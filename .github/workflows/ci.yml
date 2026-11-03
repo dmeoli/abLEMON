@@ -190,6 +190,32 @@ jobs:
           -DLEMON_INSTALL_TEST_LP=ON
           && cmake --build use && ./use/lp_install_test
 
+  # the lines, functions and branches of lemon/ that the tests run, in the
+  # summary of the run, and file by file in its log
+  coverage:
+    name: coverage on ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build with coverage and run the tests
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+          -DLEMON_BUILD_DEMOS=NO -DLEMON_BUILD_TOOLS=NO -DLEMON_BUILD_DOC=NO
+          -DLEMON_ENABLE_GLPK=NO -DLEMON_ENABLE_COIN=NO -DLEMON_ENABLE_ILOG=NO
+          -DLEMON_ENABLE_SOPLEX=NO
+          && cmake --build build --parallel 4
+          && ctest --test-dir build --output-on-failure --timeout 300
+
+      - name: Summarize the coverage
+        run: |
+          pip install -q gcovr
+          gcovr -r . --filter 'lemon/' --exclude-throw-branches --txt-summary \
+            --txt coverage.txt --markdown-summary "$GITHUB_STEP_SUMMARY" build
+          cat coverage.txt
+
   # SoPlex, which no distribution of Ubuntu packages, from conda-forge, with
   # the configuration that it installs, and a project that links the
   # static library through it
