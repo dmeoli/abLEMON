@@ -276,10 +276,13 @@ typedef DigraphExtender< CompactDigraphBase > ExtendedCompactDigraphBase;
 /// similar to \ref StaticDigraph. It is more memory efficient but does
 /// not provide efficient iteration over incoming arcs.
 ///
-/// It stores only one \c int values for each node and one \c int value
-/// for each arc. Its \ref InArcIt implementation is inefficient and
-/// provided only for compatibility with the
-/// \ref concepts::Digraph "Digraph concept".
+/// It stores only one \c int value for each node and one \c int value
+/// for each arc. Its \ref InArcIt is provided only for compatibility with
+/// the \ref concepts::Digraph "Digraph concept": with no index of the
+/// incoming arcs, it scans the arcs, so that visiting the incoming arcs
+/// of one node takes \f$O(m)\f$ time, and of all nodes \f$O(nm)\f$. An
+/// algorithm that visits them (e.g., one on the reverse digraph) should
+/// use \ref StaticDigraph, which stores the incoming arcs too.
 ///
 /// This type fully conforms to the \ref concepts::Digraph "Digraph concept".
 /// Most of its member functions and nested classes are documented

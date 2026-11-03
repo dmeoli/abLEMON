@@ -18,8 +18,8 @@
 TESTS = adaptors_test arc_look_up_test bellman_ford_test bfs_test \
 	bpgraph_test circulation_test concept_check_test \
 	connectivity_test counter_test dfs_test digraph_test \
-	dijkstra_test dim_test edge_set_test error_test euler_test \
-	fractional_matching_test gomory_hu_test graph_copy_test \
+	dijkstra_test dim_test edge_case_test edge_set_test error_test \
+	euler_test fractional_matching_test gomory_hu_test graph_copy_test \
 	graph_test graph_utils_test hao_orlin_test heap_test \
 	kruskal_test lgf_reader_writer_test lgf_test macro_test \
 	maps_test matching_test max_cardinality_search_test \

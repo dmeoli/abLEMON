@@ -67,6 +67,7 @@ class Elevator
  int _item_num;
  VitMap _where;
  IntMap _level;
+ // one more than the items, so that &_items[ 0 ] is there with no item
  std::vector< Item > _items;
  std::vector< Vit > _first;
  std::vector< Vit > _last_active;
@@ -99,7 +100,7 @@ class Elevator
  ///Set the range of the possible labels to <tt>[0..max_level]</tt>.
  Elevator( const GR & graph , int max_level )
      : _g( graph ) , _max_level( max_level ) , _item_num( _max_level ) ,
-       _where( graph ) , _level( graph , 0 ) , _items( _max_level ) ,
+       _where( graph ) , _level( graph , 0 ) , _items( _max_level + 1 ) ,
        _first( _max_level + 2 ) , _last_active( _max_level + 2 ) ,
        _highest_active( -1 ) { }
  ///Constructor.
@@ -112,7 +113,7 @@ class Elevator
  Elevator( const GR & graph )
      : _g( graph ) , _max_level( countItems< GR , Item >( graph ) ) ,
        _item_num( _max_level ) , _where( graph ) , _level( graph , 0 ) ,
-       _items( _max_level ) , _first( _max_level + 2 ) ,
+       _items( _max_level + 1 ) , _first( _max_level + 2 ) ,
        _last_active( _max_level + 2 ) , _highest_active( -1 ) { }
 
  ///Activate item \c i.

@@ -25,6 +25,7 @@ SET(TESTS
   digraph_test
   dijkstra_test
   dim_test
+  edge_case_test
   edge_set_test
   error_test
   euler_test
