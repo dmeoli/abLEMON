@@ -52,12 +52,8 @@ infeasibility, since it compared reduced costs and residual flows against an
 exact zero. It also updates the potentials on the smaller side of the tree at
 each pivot, and it gives the cycle that certifies an unbounded problem
 (`unboundedCycle()`). `CostScaling` and `CycleCanceling` find their starting
-flow on their residual network, and `CapacityScaling` uses a 4-ary heap. Each
-of the four algorithms has `runWarm()`, which solves the problem again after a
-change of the costs, of the upper bounds or of the supplies: it starts from the
-basis, the flow or the potentials of the last run, and it does what `run()`
-does when the last run did not end at an optimum. Also, they answer that a
-digraph without nodes has an optimal (empty) flow.
+flow on their residual network, and `CapacityScaling` uses a 4-ary heap. Also,
+they answer that a digraph without nodes has an optimal (empty) flow.
 
 **Building and installing.** The build with CMake (3.19 or later) honors
 `CMAKE_CXX_STANDARD`, takes the version from the tag of git, and can leave

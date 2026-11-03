@@ -352,14 +352,14 @@ void checkNarrowType()
 	"Wrong result on a narrow value type" );
  }
 
-// NetworkSimplex::runWarm() after every change of a pseudo-random sequence
-// of changes of the costs, of the upper bounds (some of them infinite) and
-// of the supplies, on instances with and without lower bounds, against a
-// run from scratch: the same result, a feasible flow of the same cost,
-// and on an unbounded problem a cycle of negative cost and infinite
-// capacity
+// NetworkSimplex run again on the same object after every change of a
+// pseudo-random sequence of changes of the costs, of the upper bounds (some
+// of them infinite) and of the supplies, on instances with and without
+// lower bounds, against a new object: the same result, a feasible flow of
+// the same cost, and on an unbounded problem a cycle of negative cost and
+// infinite capacity
 template< typename V >
-void checkWarmStart( int seeds )
+void checkRunAgain( int seeds )
 {
  typedef NetworkSimplex< SmartDigraph , V , V > NS;
  const V inf = std::numeric_limits< V >::has_infinity
@@ -401,7 +401,7 @@ void checkWarmStart( int seeds )
      cap[ arcs[ k ] ] = low[ arcs[ k ] ];
     }
    }
-  NS warm( g );
+  NS again( g );
   for( int step = 0 ; step != 20 ; ++step ) {
    r = r * 1103515245 + 12345;
    int what = ( r >> 24 ) % 3;
@@ -426,23 +426,23 @@ void checkWarmStart( int seeds )
     sup[ g.nodeFromId( 0 ) ] = t;
     }
    if( step == 0 && lower )
-    warm.lowerMap( low );
-   warm.costMap( cost ).upperMap( cap ).supplyMap( sup );
-   typename NS::ProblemType rw = step == 0 ? warm.run() : warm.runWarm();
+    again.lowerMap( low );
+   again.costMap( cost ).upperMap( cap ).supplyMap( sup );
+   typename NS::ProblemType rw = again.run();
    NS cold( g );
    cold.lowerMap( low ).costMap( cost ).upperMap( cap ).supplyMap( sup );
    typename NS::ProblemType rc = cold.run();
-   check( rw == rc , "Wrong result of runWarm()" );
+   check( rw == rc , "Wrong result of a run again" );
    if( rw == NS::OPTIMAL ) {
-    check( warm.totalCost() == cold.totalCost() ,
-	   "Wrong total cost of runWarm()" );
+    check( again.totalCost() == cold.totalCost() ,
+	   "Wrong total cost of a run again" );
     SmartDigraph::ArcMap< V > flow( g );
-    warm.flowMap( flow );
+    again.flowMap( flow );
     check( checkFlow( g , low , cap , sup , flow ) ,
-	   "Wrong flow of runWarm()" );
+	   "Wrong flow of a run again" );
     }
    if( rw == NS::UNBOUNDED ) {
-    std::vector< SmartDigraph::Arc > cyc = warm.unboundedCycle();
+    std::vector< SmartDigraph::Arc > cyc = again.unboundedCycle();
     V c = 0;
     for( std::size_t i = 0 ; i != cyc.size() ; ++i ) {
      c += cost[ cyc[ i ] ];
@@ -561,12 +561,12 @@ void checkSupplyTypes( int seeds )
   }
  }
 
-// The runWarm() of CostScaling, CycleCanceling and CapacityScaling after
-// every change of a pseudo-random sequence of changes of the costs, of the
-// upper bounds (some of them infinite, which make it run from scratch) and
-// of the supplies, against NetworkSimplex from scratch
+// CostScaling, CycleCanceling and CapacityScaling run again on the same
+// object after every change of a pseudo-random sequence of changes of the
+// costs, of the upper bounds (some of them infinite) and of the supplies,
+// against NetworkSimplex on a new object
 template< typename MCF >
-void checkWarmStartOf( int seeds )
+void checkRunAgainOf( int seeds )
 {
  typedef NetworkSimplex< SmartDigraph , long > NS;
  const long inf = ( std::numeric_limits< long >::max )();
@@ -594,7 +594,7 @@ void checkWarmStartOf( int seeds )
    cap[ arcs[ k ] ] = ( r >> 4 ) % 6 == 0 ? inf : long( 1 + ( r >> 8 ) % 15 );
    cost[ arcs[ k ] ] = long( ( r >> 16 ) % 41 );
    }
-  MCF warm( g );
+  MCF again( g );
   for( int step = 0 ; step != 20 ; ++step ) {
    r = r * 1103515245 + 12345;
    int what = ( r >> 24 ) % 3;
@@ -617,14 +617,14 @@ void checkWarmStartOf( int seeds )
      }
     sup[ g.nodeFromId( 0 ) ] = t;
     }
-   warm.costMap( cost ).upperMap( cap ).supplyMap( sup );
-   typename MCF::ProblemType rw = step == 0 ? warm.run() : warm.runWarm();
+   again.costMap( cost ).upperMap( cap ).supplyMap( sup );
+   typename MCF::ProblemType rw = again.run();
    NS cold( g );
    cold.costMap( cost ).upperMap( cap ).supplyMap( sup );
-   check( int( rw ) == int( cold.run() ) , "Wrong result of runWarm()" );
+   check( int( rw ) == int( cold.run() ) , "Wrong result of a run again" );
    if( rw == MCF::OPTIMAL ) {
-    check( warm.totalCost() == cold.totalCost() ,
-	   "Wrong total cost of runWarm()" );
+    check( again.totalCost() == cold.totalCost() ,
+	   "Wrong total cost of a run again" );
     }
    }
   }
@@ -974,12 +974,12 @@ int main()
    }
   }
 
- // Test the warm start of NetworkSimplex
- checkWarmStart< long >( 200 );
- checkWarmStart< double >( 200 );
- checkWarmStartOf< CostScaling< SmartDigraph , long > >( 100 );
- checkWarmStartOf< CycleCanceling< SmartDigraph , long > >( 100 );
- checkWarmStartOf< CapacityScaling< SmartDigraph , long > >( 100 );
+ // The algorithms run again on the same object after changes
+ checkRunAgain< long >( 200 );
+ checkRunAgain< double >( 200 );
+ checkRunAgainOf< CostScaling< SmartDigraph , long > >( 100 );
+ checkRunAgainOf< CycleCanceling< SmartDigraph , long > >( 100 );
+ checkRunAgainOf< CapacityScaling< SmartDigraph , long > >( 100 );
 
  checkAgainstNetworkSimplex< CostScaling< SmartDigraph , long > >(
    500 , "CostScaling" );

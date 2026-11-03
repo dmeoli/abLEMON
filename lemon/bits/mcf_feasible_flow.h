@@ -38,11 +38,9 @@ namespace _mcf_bits
 // the same push-relabel algorithm (Goldberg and Tarjan, 1988), i.e., the
 // active node of highest level first, every node at level zero at the
 // start, a push towards any lower level and the first empty level as the
-// proof that no such flow exists (Cherkassky and Goldberg, 1997), from
-// either the flow that the arcs into the nodes with a deficit take
-// greedily, as Circulation does, or, with warm, the flow of the last run
-// put within the new bounds, so that after a change of the capacities or
-// of the supplies only what the change has displaced is sent anew.
+// proof that no such flow exists (Cherkassky and Goldberg, 1997), from the
+// flow that the arcs into the nodes with a deficit take greedily, as
+// Circulation does.
 //
 // It sets the residual capacities of the arcs of the digraph and of
 // those of the root, the ones out of the root having root_cap if the
@@ -51,8 +49,7 @@ namespace _mcf_bits
 // there is no such flow. The last arc out of every node is the one to
 // the root, which is not an arc of the digraph.
 template< typename MCF >
-bool feasibleFlow( MCF & mcf , bool warm , typename MCF::Value root_cap ,
-		   int & sup_num )
+bool feasibleFlow( MCF & mcf , typename MCF::Value root_cap , int & sup_num )
 {
  typedef typename MCF::Value Value;
  const int n = mcf._root;
@@ -83,7 +80,7 @@ bool feasibleFlow( MCF & mcf , bool warm , typename MCF::Value root_cap ,
    const int v = mcf._target[ j ] , rj = mcf._reverse[ j ];
    const Value cap =
      mcf._has_lower ? mcf._upper[ j ] - mcf._lower[ j ] : mcf._upper[ j ];
-   Value f = warm ? mcf._res_cap[ rj ] : -ex[ v ];
+   Value f = -ex[ v ];
    if( f > cap )
     f = cap;
    if( f < 0 )

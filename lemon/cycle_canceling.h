@@ -82,8 +82,7 @@ template< typename GR , typename V = int , typename C = V >
 class CycleCanceling
 {
  template< typename MCF >
- friend bool _mcf_bits::feasibleFlow( MCF & , bool , typename MCF::Value ,
-				      int & );
+ friend bool _mcf_bits::feasibleFlow( MCF & , typename MCF::Value , int & );
 
  public:
  /// The type of the digraph
@@ -202,9 +201,6 @@ class CycleCanceling
  // The arcs whose infinite upper bound init() has replaced by a finite
  // one, which the next init() makes infinite again
  IntVector _inf_upper;
- // The flow of the last run is there for runWarm()
- // to start from
- bool _warm;
  BoolVector _forward;
  IntVector _source;
  IntVector _target;
@@ -277,7 +273,6 @@ class CycleCanceling
  /// \return <tt>(*this)</tt>
  template< typename LowerMap >
  CycleCanceling & lowerMap( const LowerMap & map ) {
-  _warm = false;
   _has_lower = true;
   for( ArcIt a( _graph ) ; a != INVALID ; ++a ) {
    _lower[ _arc_idf[ a ] ] = map[ a ];
@@ -414,7 +409,6 @@ class CycleCanceling
  /// \see ProblemType, Method
  /// \see resetParams(), reset()
  ProblemType run( Method method = CANCEL_AND_TIGHTEN ) {
-  _warm = false;
   // A problem without nodes has the empty flow, which is optimal
   if( _node_num == 0 )
    return( OPTIMAL );
@@ -422,56 +416,6 @@ class CycleCanceling
   if( pt != OPTIMAL )
    return( pt );
   start( method );
-  _warm = true;
-  return( OPTIMAL );
-  }
-
- /// \brief Run the algorithm again from the flow of the last run.
- ///
- /// This function runs the algorithm again after a change of the
- /// costs, of the upper bounds or of the supplies, starting from the
- /// flow of the last run rather than from a feasible flow found anew: a
- /// cycle-canceling algorithm needs only a feasible flow to start from,
- /// which the flow of the last run is after a change of the costs, and
- /// which it becomes after a change of the upper bounds or of the
- /// supplies once put within the new bounds and once what this leaves
- /// at the nodes is sent where it is due on the residual network, so
- /// that the negative cycles are canceled from there.
- ///
- /// It does what \ref run() does if the last run did not end with
- /// \ref OPTIMAL, with lower bounds, with an arc of infinite upper
- /// bound, with supplies that do not sum to zero, and when no flow
- /// meets the new bounds and supplies, which \ref run() then proves.
- ///
- /// \param method As for \ref run().
- ///
- /// \return The same as \ref run().
- ProblemType runWarm( Method method = CANCEL_AND_TIGHTEN ) {
-  if( ! _warm || _has_lower || _sum_supply != 0 || ! _inf_upper.empty() ) {
-   return( run( method ) );
-   }
-  const Value MAX = ( std::numeric_limits< Value >::max )();
-  Value sum = 0;
-  for( int i = 0 ; i != _root ; ++i )
-   sum += _supply[ i ];
-  if( sum != 0 )
-   return( run( method ) );
-  for( int j = 0 ; j != _res_arc_num ; ++j ) {
-   if( _forward[ j ] && _source[ j ] != _root && _upper[ j ] >= MAX ) {
-    return( run( method ) );
-    }
-   }
-  int sup_num;
-  if( ! _mcf_bits::feasibleFlow( *this , true , Value( 1 ) , sup_num ) ) {
-   return( run( method ) );
-   }
-
-  // The zero potentials that init() starts from
-  for( int i = 0 ; i != _res_node_num ; ++i )
-   _pi[ i ] = 0;
-
-  start( method );
-  _warm = true;
   return( OPTIMAL );
   }
 
@@ -514,7 +458,6 @@ class CycleCanceling
  ///
  /// \see reset(), run()
  CycleCanceling & resetParams() {
-  _warm = false;
   _inf_upper.clear();
   for( int i = 0 ; i != _res_node_num ; ++i ) {
    _supply[ i ] = 0;
@@ -555,7 +498,6 @@ class CycleCanceling
  ///
  /// \see resetParams(), run()
  CycleCanceling & reset() {
-  _warm = false;
   // Resize vectors
   _node_num = countNodes( _graph );
   _arc_num = countArcs( _graph );
@@ -765,7 +707,7 @@ class CycleCanceling
 
   // Find a feasible flow on the residual network
   int sup_num;
-  if( ! _mcf_bits::feasibleFlow( *this , false , Value( 1 ) , sup_num ) ) {
+  if( ! _mcf_bits::feasibleFlow( *this , Value( 1 ) , sup_num ) ) {
    return( INFEASIBLE );
    }
   if( unbounded )
