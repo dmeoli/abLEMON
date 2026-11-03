@@ -16,6 +16,7 @@ SET(TESTS
   arc_look_up_test
   bellman_ford_test
   bfs_test
+  bipartite_matching_test
   bpgraph_test
   circulation_test
   concept_check_test

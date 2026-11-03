@@ -13,6 +13,7 @@ module;
 #include <lemon/bfs.h>
 #include <lemon/bin_heap.h>
 #include <lemon/binomial_heap.h>
+#include <lemon/bipartite_matching.h>
 #include <lemon/bucket_heap.h>
 #include <lemon/capacity_scaling.h>
 #include <lemon/christofides_tsp.h>
@@ -239,6 +240,7 @@ export namespace lemon {
  using ::lemon::HartmannOrlinMmc;
  using ::lemon::HartmannOrlinMmcDefaultTraits;
  using ::lemon::HeapUnionFind;
+ using ::lemon::HopcroftKarp;
  using ::lemon::HowardMmc;
  using ::lemon::HowardMmcDefaultTraits;
  using ::lemon::HypercubeGraph;
@@ -302,6 +304,7 @@ export namespace lemon {
  using ::lemon::MaxWeightedPerfectMatching;
  using ::lemon::MinCostArborescence;
  using ::lemon::MinCostArborescenceDefaultTraits;
+ using ::lemon::MinCostAssignment;
  using ::lemon::MipSkeleton;
  using ::lemon::MipSolver;
  using ::lemon::MulMap;

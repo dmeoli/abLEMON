@@ -341,10 +341,6 @@ This group contains the algorithms for finding shortest paths in digraphs
    from a source node when arc lenghts can be either positive or negative,
    but the digraph should not contain directed cycles with negative total
    length.
- - \ref FloydWarshall "Floyd-Warshall" and \ref Johnson "Johnson" algorithms
-   for solving the \e all-pairs \e shortest \e paths \e problem when arc
-   lenghts can be either positive or negative, but the digraph should
-   not contain directed cycles with negative total length.
  - \ref Suurballe A successive shortest path algorithm for finding
    arc-disjoint paths between two nodes having minimum total length.
 */
@@ -378,18 +374,14 @@ following optimization problem.
     \quad \forall u\in V\setminus\{s,t\} \f]
 \f[ 0 \leq f(uv) \leq cap(uv) \quad \forall uv\in A \f]
 
-LEMON contains several algorithms for solving maximum flow problems:
+LEMON contains two algorithms for solving maximum flow problems:
 - \ref EdmondsKarp Edmonds-Karp algorithm
   \cite edmondskarp72theoretical.
 - \ref Preflow Goldberg-Tarjan's preflow push-relabel algorithm
   \cite goldberg88newapproach.
-- \ref DinitzSleatorTarjan Dinitz's blocking flow algorithm with dynamic trees
-  \cite dinic70algorithm, \cite sleator83dynamic.
-- \ref GoldbergTarjan !Preflow push-relabel algorithm with dynamic trees
-  \cite goldberg88newapproach, \cite sleator83dynamic.
 
 In most cases the \ref Preflow algorithm provides the
-fastest method for computing a maximum flow. All implementations
+fastest method for computing a maximum flow. Both implementations
 also provide functions to query the minimum cut, which is the dual
 problem of maximum flow.
 
@@ -526,16 +518,11 @@ matching. The search can be constrained to find perfect or
 maximum cardinality matching.
 
 The matching algorithms implemented in LEMON:
-- \ref MaxBipartiteMatching Hopcroft-Karp augmenting path algorithm
+- \ref HopcroftKarp Hopcroft-Karp augmenting path algorithm
   for calculating maximum cardinality matching in bipartite graphs.
-- \ref PrBipartiteMatching Push-relabel algorithm
-  for calculating maximum cardinality matching in bipartite graphs.
-- \ref MaxWeightedBipartiteMatching
-  Successive shortest path algorithm for calculating maximum weighted
-  matching and maximum weighted bipartite matching in bipartite graphs.
-- \ref MinCostMaxBipartiteMatching
-  Successive shortest path algorithm for calculating minimum cost maximum
-  matching in bipartite graphs.
+- \ref MinCostAssignment Successive shortest path algorithm for
+  calculating a minimum cost matching that covers the red nodes of a
+  bipartite graph.
 - \ref MaxMatching Edmond's blossom shrinking algorithm for calculating
   maximum cardinality matching in general graphs.
 - \ref MaxWeightedMatching Edmond's blossom shrinking algorithm for calculating
