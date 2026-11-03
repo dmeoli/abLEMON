@@ -140,7 +140,7 @@ class CompactDigraphBase
  Arc arcFromId( int id ) const {
   int * l =
     std::upper_bound( node_first_out , node_first_out + node_num , id ) - 1;
-  int src = l - node_first_out;
+  int src = static_cast< int >( l - node_first_out );
   return( Arc( id , src ) );
   }
  int maxArcId() const { return( arc_num - 1 ); }

@@ -65,14 +65,14 @@ class SmartDigraphBase
  typedef True NodeNumTag;
  typedef True ArcNumTag;
 
- int nodeNum() const { return( _nodes.size() ); }
- int arcNum() const { return( _arcs.size() ); }
+ int nodeNum() const { return( static_cast< int >( _nodes.size() ) ); }
+ int arcNum() const { return( static_cast< int >( _arcs.size() ) ); }
 
- int maxNodeId() const { return( _nodes.size() - 1 ); }
- int maxArcId() const { return( _arcs.size() - 1 ); }
+ int maxNodeId() const { return( static_cast< int >( _nodes.size() - 1 ) ); }
+ int maxArcId() const { return( static_cast< int >( _arcs.size() - 1 ) ); }
 
  Node addNode() {
-  int n = _nodes.size();
+  int n = static_cast< int >( _nodes.size() );
   _nodes.push_back( NodeT() );
   _nodes[ n ].first_in = -1;
   _nodes[ n ].first_out = -1;
@@ -80,7 +80,7 @@ class SmartDigraphBase
   }
 
  Arc addArc( Node u , Node v ) {
-  int n = _arcs.size();
+  int n = static_cast< int >( _arcs.size() );
   _arcs.push_back( ArcT() );
   _arcs[ n ].source = u._id;
   _arcs[ n ].target = v._id;
@@ -147,11 +147,15 @@ class SmartDigraphBase
   bool operator<( const Arc i ) const { return( _id < i._id ); }
   };
 
- void first( Node & node ) const { node._id = _nodes.size() - 1; }
+ void first( Node & node ) const {
+  node._id = static_cast< int >( _nodes.size() - 1 );
+  }
 
  static void next( Node & node ) { --node._id; }
 
- void first( Arc & arc ) const { arc._id = _arcs.size() - 1; }
+ void first( Arc & arc ) const {
+  arc._id = static_cast< int >( _arcs.size() - 1 );
+  }
 
  static void next( Arc & arc ) { --arc._id; }
 
@@ -296,14 +300,14 @@ class SmartDigraph : public ExtendedSmartDigraphBase
  protected:
  void restoreSnapshot( const Snapshot & s ) {
   while( s.arc_num < _arcs.size() ) {
-   Arc arc = arcFromId( _arcs.size() - 1 );
+   Arc arc = arcFromId( static_cast< int >( _arcs.size() - 1 ) );
    Parent::notifier( Arc() ).erase( arc );
    _nodes[ _arcs.back().source ].first_out = _arcs.back().next_out;
    _nodes[ _arcs.back().target ].first_in = _arcs.back().next_in;
    _arcs.pop_back();
    }
   while( s.node_num < _nodes.size() ) {
-   Node node = nodeFromId( _nodes.size() - 1 );
+   Node node = nodeFromId( static_cast< int >( _nodes.size() - 1 ) );
    Parent::notifier( Node() ).erase( node );
    _nodes.pop_back();
    }
@@ -347,8 +351,8 @@ class SmartDigraph : public ExtendedSmartDigraphBase
   ///This constructor immediately makes a snapshot of the given digraph.
   ///
   Snapshot( SmartDigraph & gr ) : _graph( &gr ) {
-   node_num = _graph->_nodes.size();
-   arc_num = _graph->_arcs.size();
+   node_num = static_cast< unsigned int >( _graph->_nodes.size() );
+   arc_num = static_cast< unsigned int >( _graph->_arcs.size() );
    }
 
   ///Make a snapshot.
@@ -358,8 +362,8 @@ class SmartDigraph : public ExtendedSmartDigraphBase
   ///call, the previous snapshot gets lost.
   void save( SmartDigraph & gr ) {
    _graph = &gr;
-   node_num = _graph->_nodes.size();
-   arc_num = _graph->_arcs.size();
+   node_num = static_cast< unsigned int >( _graph->_nodes.size() );
+   arc_num = static_cast< unsigned int >( _graph->_arcs.size() );
    }
 
   ///Undo the changes until a snapshot.
@@ -455,13 +459,15 @@ class SmartGraphBase
  typedef True EdgeNumTag;
  typedef True ArcNumTag;
 
- int nodeNum() const { return( _nodes.size() ); }
- int edgeNum() const { return( _arcs.size() / 2 ); }
- int arcNum() const { return( _arcs.size() ); }
+ int nodeNum() const { return( static_cast< int >( _nodes.size() ) ); }
+ int edgeNum() const { return( static_cast< int >( _arcs.size() / 2 ) ); }
+ int arcNum() const { return( static_cast< int >( _arcs.size() ) ); }
 
- int maxNodeId() const { return( _nodes.size() - 1 ); }
- int maxEdgeId() const { return( _arcs.size() / 2 - 1 ); }
- int maxArcId() const { return( _arcs.size() - 1 ); }
+ int maxNodeId() const { return( static_cast< int >( _nodes.size() - 1 ) ); }
+ int maxEdgeId() const {
+  return( static_cast< int >( _arcs.size() / 2 - 1 ) );
+  }
+ int maxArcId() const { return( static_cast< int >( _arcs.size() - 1 ) ); }
 
  Node source( Arc e ) const { return( Node( _arcs[ e._id ^ 1 ].target ) ); }
  Node target( Arc e ) const { return( Node( _arcs[ e._id ].target ) ); }
@@ -475,15 +481,21 @@ class SmartGraphBase
   return( Arc( e._id * 2 + ( d ? 1 : 0 ) ) );
   }
 
- void first( Node & node ) const { node._id = _nodes.size() - 1; }
+ void first( Node & node ) const {
+  node._id = static_cast< int >( _nodes.size() - 1 );
+  }
 
  static void next( Node & node ) { --node._id; }
 
- void first( Arc & arc ) const { arc._id = _arcs.size() - 1; }
+ void first( Arc & arc ) const {
+  arc._id = static_cast< int >( _arcs.size() - 1 );
+  }
 
  static void next( Arc & arc ) { --arc._id; }
 
- void first( Edge & arc ) const { arc._id = _arcs.size() / 2 - 1; }
+ void first( Edge & arc ) const {
+  arc._id = static_cast< int >( _arcs.size() / 2 - 1 );
+  }
 
  static void next( Edge & arc ) { --arc._id; }
 
@@ -545,7 +557,7 @@ class SmartGraphBase
   }
 
  Node addNode() {
-  int n = _nodes.size();
+  int n = static_cast< int >( _nodes.size() );
   _nodes.push_back( NodeT() );
   _nodes[ n ].first_out = -1;
 
@@ -553,7 +565,7 @@ class SmartGraphBase
   }
 
  Edge addEdge( Node u , Node v ) {
-  int n = _arcs.size();
+  int n = static_cast< int >( _arcs.size() );
   _arcs.push_back( ArcT() );
   _arcs.push_back( ArcT() );
 
@@ -686,13 +698,13 @@ class SmartGraph : public ExtendedSmartGraphBase
  protected:
  void saveSnapshot( Snapshot & s ) {
   s._graph = this;
-  s.node_num = _nodes.size();
-  s.arc_num = _arcs.size();
+  s.node_num = static_cast< unsigned int >( _nodes.size() );
+  s.arc_num = static_cast< unsigned int >( _arcs.size() );
   }
 
  void restoreSnapshot( const Snapshot & s ) {
   while( s.arc_num < _arcs.size() ) {
-   int n = _arcs.size() - 1;
+   int n = static_cast< int >( _arcs.size() - 1 );
    Edge arc = edgeFromId( n / 2 );
    Parent::notifier( Edge() ).erase( arc );
    std::vector< Arc > dir;
@@ -705,7 +717,7 @@ class SmartGraph : public ExtendedSmartGraphBase
    _arcs.pop_back();
    }
   while( s.node_num < _nodes.size() ) {
-   int n = _nodes.size() - 1;
+   int n = static_cast< int >( _nodes.size() - 1 );
    Node node = nodeFromId( n );
    Parent::notifier( Node() ).erase( node );
    _nodes.pop_back();
@@ -892,17 +904,19 @@ class SmartBpGraphBase
  typedef True EdgeNumTag;
  typedef True ArcNumTag;
 
- int nodeNum() const { return( _nodes.size() ); }
+ int nodeNum() const { return( static_cast< int >( _nodes.size() ) ); }
  int redNum() const { return( max_red + 1 ); }
  int blueNum() const { return( max_blue + 1 ); }
- int edgeNum() const { return( _arcs.size() / 2 ); }
- int arcNum() const { return( _arcs.size() ); }
+ int edgeNum() const { return( static_cast< int >( _arcs.size() / 2 ) ); }
+ int arcNum() const { return( static_cast< int >( _arcs.size() ) ); }
 
- int maxNodeId() const { return( _nodes.size() - 1 ); }
+ int maxNodeId() const { return( static_cast< int >( _nodes.size() - 1 ) ); }
  int maxRedId() const { return( max_red ); }
  int maxBlueId() const { return( max_blue ); }
- int maxEdgeId() const { return( _arcs.size() / 2 - 1 ); }
- int maxArcId() const { return( _arcs.size() - 1 ); }
+ int maxEdgeId() const {
+  return( static_cast< int >( _arcs.size() / 2 - 1 ) );
+  }
+ int maxArcId() const { return( static_cast< int >( _arcs.size() - 1 ) ); }
 
  bool red( Node n ) const { return( _nodes[ n._id ].red ); }
  bool blue( Node n ) const { return( ! _nodes[ n._id ].red ); }
@@ -926,7 +940,9 @@ class SmartBpGraphBase
   return( Arc( e._id * 2 + ( d ? 1 : 0 ) ) );
   }
 
- void first( Node & node ) const { node._id = _nodes.size() - 1; }
+ void first( Node & node ) const {
+  node._id = static_cast< int >( _nodes.size() - 1 );
+  }
 
  static void next( Node & node ) { --node._id; }
 
@@ -942,11 +958,15 @@ class SmartBpGraphBase
   node._id = _nodes[ node._id ].partition_next;
   }
 
- void first( Arc & arc ) const { arc._id = _arcs.size() - 1; }
+ void first( Arc & arc ) const {
+  arc._id = static_cast< int >( _arcs.size() - 1 );
+  }
 
  static void next( Arc & arc ) { --arc._id; }
 
- void first( Edge & arc ) const { arc._id = _arcs.size() / 2 - 1; }
+ void first( Edge & arc ) const {
+  arc._id = static_cast< int >( _arcs.size() / 2 - 1 );
+  }
 
  static void next( Edge & arc ) { --arc._id; }
 
@@ -1010,7 +1030,7 @@ class SmartBpGraphBase
   }
 
  RedNode addRedNode() {
-  int n = _nodes.size();
+  int n = static_cast< int >( _nodes.size() );
   _nodes.push_back( NodeT() );
   _nodes[ n ].first_out = -1;
   _nodes[ n ].red = true;
@@ -1022,7 +1042,7 @@ class SmartBpGraphBase
   }
 
  BlueNode addBlueNode() {
-  int n = _nodes.size();
+  int n = static_cast< int >( _nodes.size() );
   _nodes.push_back( NodeT() );
   _nodes[ n ].first_out = -1;
   _nodes[ n ].red = false;
@@ -1034,7 +1054,7 @@ class SmartBpGraphBase
   }
 
  Edge addEdge( RedNode u , BlueNode v ) {
-  int n = _arcs.size();
+  int n = static_cast< int >( _arcs.size() );
   _arcs.push_back( ArcT() );
   _arcs.push_back( ArcT() );
 
@@ -1178,13 +1198,13 @@ class SmartBpGraph : public ExtendedSmartBpGraphBase
  protected:
  void saveSnapshot( Snapshot & s ) {
   s._graph = this;
-  s.node_num = _nodes.size();
-  s.arc_num = _arcs.size();
+  s.node_num = static_cast< unsigned int >( _nodes.size() );
+  s.arc_num = static_cast< unsigned int >( _arcs.size() );
   }
 
  void restoreSnapshot( const Snapshot & s ) {
   while( s.arc_num < _arcs.size() ) {
-   int n = _arcs.size() - 1;
+   int n = static_cast< int >( _arcs.size() - 1 );
    Edge arc = edgeFromId( n / 2 );
    Parent::notifier( Edge() ).erase( arc );
    std::vector< Arc > dir;
@@ -1197,7 +1217,7 @@ class SmartBpGraph : public ExtendedSmartBpGraphBase
    _arcs.pop_back();
    }
   while( s.node_num < _nodes.size() ) {
-   int n = _nodes.size() - 1;
+   int n = static_cast< int >( _nodes.size() - 1 );
    Node node = nodeFromId( n );
    if( Parent::red( node ) ) {
     first_red = _nodes[ n ].partition_next;

@@ -54,7 +54,7 @@ class VarIndex
  int addIndex( int idx ) {
   int n;
   if( first_free_item == -1 ) {
-   n = items.size();
+   n = static_cast< int >( items.size() );
    items.push_back( ItemT() );
    }
   else {
@@ -89,9 +89,9 @@ class VarIndex
    items.back().prev = -1;
    items.back().next = first_free_item;
    if( first_free_item != -1 ) {
-    items[ first_free_item ].prev = items.size() - 1;
+    items[ first_free_item ].prev = static_cast< int >( items.size() - 1 );
     }
-   first_free_item = items.size() - 1;
+   first_free_item = static_cast< int >( items.size() - 1 );
    }
   if( items[ n ].next != -1 ) {
    items[ items[ n ].next ].prev = items[ n ].prev;
@@ -150,7 +150,7 @@ class VarIndex
    }
   }
 
- int maxIndex() const { return( cross.size() - 1 ); }
+ int maxIndex() const { return( static_cast< int >( cross.size() - 1 ) ); }
 
  void shiftIndices( int idx ) {
   for( int i = idx + 1 ; i < static_cast< int >( cross.size() ) ; ++i ) {

@@ -142,7 +142,7 @@ class FibHeap
  void push( const Item & item , const Prio & prio ) {
   int i = _iim[ item ];
   if( i < 0 ) {
-   int s = _data.size();
+   int s = static_cast< int >( _data.size() );
    _iim.set( item , s );
    Store st;
    st.name = item;

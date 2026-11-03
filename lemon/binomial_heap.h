@@ -164,7 +164,7 @@ class BinomialHeap
  void push( const Item & item , const Prio & value ) {
   int i = _iim[ item ];
   if( i < 0 ) {
-   int s = _data.size();
+   int s = static_cast< int >( _data.size() );
    _iim.set( item , s );
    Store st;
    st.name = item;
@@ -406,7 +406,7 @@ class BinomialHeap
  // Interleave the elements of the given list into the list of the roots
  void interleave( int a ) {
   int p = _head , q = a;
-  int curr = _data.size();
+  int curr = static_cast< int >( _data.size() );
   _data.push_back( Store() );
 
   while( p != -1 || q != -1 ) {

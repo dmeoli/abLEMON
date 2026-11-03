@@ -111,7 +111,7 @@ class UnionFind
  ///
  /// The method returns the index of the new component.
  int insert( const Item & a ) {
-  int n = items.size();
+  int n = static_cast< int >( items.size() );
   items.push_back( -1 );
   index.set( a , n );
   return( n );
@@ -207,7 +207,7 @@ class UnionFindEnum
 
  int newClass() {
   if( firstFreeClass == -1 ) {
-   int cdx = classes.size();
+   int cdx = static_cast< int >( classes.size() );
    classes.push_back( ClassT() );
    return( cdx );
    }
@@ -220,7 +220,7 @@ class UnionFindEnum
 
  int newItem() {
   if( firstFreeItem == -1 ) {
-   int idx = items.size();
+   int idx = static_cast< int >( items.size() );
    items.push_back( ItemT() );
    return( idx );
    }
@@ -653,7 +653,7 @@ class ExtendFindEnum
    }
   else {
    classes.push_back( ClassT() );
-   return( classes.size() - 1 );
+   return( static_cast< int >( classes.size() - 1 ) );
    }
   }
 
@@ -665,7 +665,7 @@ class ExtendFindEnum
    }
   else {
    items.push_back( ItemT() );
-   return( items.size() - 1 );
+   return( static_cast< int >( items.size() - 1 ) );
    }
   }
 
@@ -962,7 +962,7 @@ class HeapUnionFind
 
  int newClass() {
   if( first_free_class < 0 ) {
-   int id = classes.size();
+   int id = static_cast< int >( classes.size() );
    classes.push_back( ClassNode() );
    return( id );
    }
@@ -993,7 +993,7 @@ class HeapUnionFind
 
  int newNode() {
   if( first_free_node < 0 ) {
-   int id = nodes.size();
+   int id = static_cast< int >( nodes.size() );
    nodes.push_back( ItemNode() );
    return( id );
    }

@@ -97,7 +97,7 @@ class ListArcSetBase
  Arc addArc( const Node & u , const Node & v ) {
   int n;
   if( first_free_arc == -1 ) {
-   n = arcs.size();
+   n = static_cast< int >( arcs.size() );
    arcs.push_back( ArcT() );
    }
   else {
@@ -199,7 +199,7 @@ class ListArcSetBase
  Arc arcFromId( int ix ) const { return( Arc( ix ) ); }
 
  int maxNodeId() const { return( _graph->maxNodeId() ); };
- int maxArcId() const { return( arcs.size() - 1 ); }
+ int maxArcId() const { return( static_cast< int >( arcs.size() - 1 ) ); }
 
  Node source( const Arc & arc ) const { return( arcs[ arc.id ].source ); }
  Node target( const Arc & arc ) const { return( arcs[ arc.id ].target ); }
@@ -429,7 +429,7 @@ class ListEdgeSetBase
   int n;
 
   if( first_free_arc == -1 ) {
-   n = arcs.size();
+   n = static_cast< int >( arcs.size() );
    arcs.push_back( ArcT() );
    arcs.push_back( ArcT() );
    }
@@ -622,8 +622,10 @@ class ListEdgeSetBase
  static Edge edgeFromId( int id ) { return( Edge( id ) ); }
 
  int maxNodeId() const { return( _graph->maxNodeId() ); };
- int maxEdgeId() const { return( arcs.size() / 2 - 1 ); }
- int maxArcId() const { return( arcs.size() - 1 ); }
+ int maxEdgeId() const {
+  return( static_cast< int >( arcs.size() / 2 - 1 ) );
+  }
+ int maxArcId() const { return( static_cast< int >( arcs.size() - 1 ) ); }
 
  Node source( Arc e ) const { return( arcs[ e.id ^ 1 ].target ); }
  Node target( Arc e ) const { return( arcs[ e.id ].target ); }
@@ -827,7 +829,7 @@ class SmartArcSetBase
   }
 
  Arc addArc( const Node & u , const Node & v ) {
-  int n = arcs.size();
+  int n = static_cast< int >( arcs.size() );
   arcs.push_back( ArcT() );
   arcs[ n ].next_in = ( *_nodes )[ v ].first_in;
   ( *_nodes )[ v ].first_in = n;
@@ -851,7 +853,9 @@ class SmartArcSetBase
 
  void next( Node & node ) const { _graph->next( node ); }
 
- void first( Arc & arc ) const { arc.id = arcs.size() - 1; }
+ void first( Arc & arc ) const {
+  arc.id = static_cast< int >( arcs.size() - 1 );
+  }
 
  static void next( Arc & arc ) { --arc.id; }
 
@@ -874,7 +878,7 @@ class SmartArcSetBase
  Arc arcFromId( int ix ) const { return( Arc( ix ) ); }
 
  int maxNodeId() const { return( _graph->maxNodeId() ); };
- int maxArcId() const { return( arcs.size() - 1 ); }
+ int maxArcId() const { return( static_cast< int >( arcs.size() - 1 ) ); }
 
  Node source( const Arc & arc ) const { return( arcs[ arc.id ].source ); }
  Node target( const Arc & arc ) const { return( arcs[ arc.id ].target ); }
@@ -1114,7 +1118,7 @@ class SmartEdgeSetBase
   }
 
  Edge addEdge( const Node & u , const Node & v ) {
-  int n = arcs.size();
+  int n = static_cast< int >( arcs.size() );
   arcs.push_back( ArcT() );
   arcs.push_back( ArcT() );
 
@@ -1142,11 +1146,15 @@ class SmartEdgeSetBase
 
  void next( Node & node ) const { _graph->next( node ); }
 
- void first( Arc & arc ) const { arc.id = arcs.size() - 1; }
+ void first( Arc & arc ) const {
+  arc.id = static_cast< int >( arcs.size() - 1 );
+  }
 
  static void next( Arc & arc ) { --arc.id; }
 
- void first( Edge & arc ) const { arc.id = arcs.size() / 2 - 1; }
+ void first( Edge & arc ) const {
+  arc.id = static_cast< int >( arcs.size() / 2 - 1 );
+  }
 
  static void next( Edge & arc ) { --arc.id; }
 
@@ -1206,8 +1214,10 @@ class SmartEdgeSetBase
  static Edge edgeFromId( int id ) { return( Edge( id ) ); }
 
  int maxNodeId() const { return( _graph->maxNodeId() ); };
- int maxArcId() const { return( arcs.size() - 1 ); }
- int maxEdgeId() const { return( arcs.size() / 2 - 1 ); }
+ int maxArcId() const { return( static_cast< int >( arcs.size() - 1 ) ); }
+ int maxEdgeId() const {
+  return( static_cast< int >( arcs.size() / 2 - 1 ) );
+  }
 
  Node source( Arc e ) const { return( arcs[ e.id ^ 1 ].target ); }
  Node target( Arc e ) const { return( arcs[ e.id ].target ); }

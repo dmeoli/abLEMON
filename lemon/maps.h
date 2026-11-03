@@ -288,7 +288,7 @@ class RangeMap : public MapBase< int , V >
      : _vector( c._vector.begin() , c._vector.end() ) { }
 
  /// Returns the size of the map.
- int size() { return( _vector.size() ); }
+ int size() { return( static_cast< int >( _vector.size() ) ); }
 
  /// Resizes the map.
 
@@ -2177,7 +2177,9 @@ class CrossRefMap : protected ItemSetTraits< GR , K >::template Map< V >::Type
  ///
  /// This function returns the number of items with the given value
  /// associated with it.
- int count( const Value & val ) const { return( _inv_map.count( val ) ); }
+ int count( const Value & val ) const {
+  return( static_cast< int >( _inv_map.count( val ) ) );
+  }
 
  protected:
  /// \brief Erase the key from the map and the inverse map.
@@ -2309,7 +2311,7 @@ class RangeIdMap : protected ItemSetTraits< GR , K >::template Map< int >::Type
   Item it;
   const typename Map::Notifier * nf = Map::notifier();
   for( nf->first( it ) ; it != INVALID ; nf->next( it ) ) {
-   Map::set( it , _inv_map.size() );
+   Map::set( it , static_cast< const int >( _inv_map.size() ) );
    _inv_map.push_back( it );
    }
   }
@@ -2321,7 +2323,7 @@ class RangeIdMap : protected ItemSetTraits< GR , K >::template Map< int >::Type
  /// \c AlterationNotifier.
  virtual void add( const Item & item ) {
   Map::add( item );
-  Map::set( item , _inv_map.size() );
+  Map::set( item , static_cast< const int >( _inv_map.size() ) );
   _inv_map.push_back( item );
   }
 
@@ -2332,7 +2334,7 @@ class RangeIdMap : protected ItemSetTraits< GR , K >::template Map< int >::Type
  virtual void add( const std::vector< Item > & items ) {
   Map::add( items );
   for( int i = 0 ; i < int( items.size() ) ; ++i ) {
-   Map::set( items[ i ] , _inv_map.size() );
+   Map::set( items[ i ] , static_cast< const int >( _inv_map.size() ) );
    _inv_map.push_back( items[ i ] );
    }
   }
@@ -2370,7 +2372,7 @@ class RangeIdMap : protected ItemSetTraits< GR , K >::template Map< int >::Type
   Item it;
   const typename Map::Notifier * nf = Map::notifier();
   for( nf->first( it ) ; it != INVALID ; nf->next( it ) ) {
-   Map::set( it , _inv_map.size() );
+   Map::set( it , static_cast< const int >( _inv_map.size() ) );
    _inv_map.push_back( it );
    }
   }
@@ -2388,7 +2390,9 @@ class RangeIdMap : protected ItemSetTraits< GR , K >::template Map< int >::Type
  /// \brief Returns the maximal value plus one.
  ///
  /// Returns the maximal value plus one in the map.
- unsigned int size() const { return( _inv_map.size() ); }
+ unsigned int size() const {
+  return( static_cast< unsigned int >( _inv_map.size() ) );
+  }
 
  /// \brief Swaps the position of the two items in the map.
  ///
@@ -2570,10 +2574,10 @@ class IterableBoolMap
   typename Parent::Notifier * nf = Parent::notifier();
   Key it;
   for( nf->first( it ) ; it != INVALID ; nf->next( it ) ) {
-   Parent::set( it , _array.size() );
+   Parent::set( it , static_cast< const int >( _array.size() ) );
    _array.push_back( it );
    }
-  _sep = ( def ? _array.size() : 0 );
+  _sep = ( def ? static_cast< int >( _array.size() ) : 0 );
   }
 
  /// \brief Const subscript operator of the map.
@@ -2621,7 +2625,9 @@ class IterableBoolMap
  ///
  /// Set all items in the map.
  /// \note Constant time operation.
- void setAll( bool value ) { _sep = ( value ? _array.size() : 0 ); }
+ void setAll( bool value ) {
+  _sep = ( value ? static_cast< int >( _array.size() ) : 0 );
+  }
 
  /// \brief Returns the number of the keys mapped to \c true.
  ///
@@ -2631,7 +2637,9 @@ class IterableBoolMap
  /// \brief Returns the number of the keys mapped to \c false.
  ///
  /// Returns the number of the keys mapped to \c false.
- int falseNum() const { return( _array.size() - _sep ); }
+ int falseNum() const {
+  return( static_cast< int >( _array.size() - _sep ) );
+  }
 
  /// \brief Iterator for the keys mapped to \c true.
  ///
@@ -2789,14 +2797,14 @@ class IterableBoolMap
  protected:
  virtual void add( const Key & key ) {
   Parent::add( key );
-  Parent::set( key , _array.size() );
+  Parent::set( key , static_cast< const int >( _array.size() ) );
   _array.push_back( key );
   }
 
  virtual void add( const std::vector< Key > & keys ) {
   Parent::add( keys );
   for( int i = 0 ; i < int( keys.size() ) ; ++i ) {
-   Parent::set( keys[ i ] , _array.size() );
+   Parent::set( keys[ i ] , static_cast< const int >( _array.size() ) );
    _array.push_back( keys[ i ] );
    }
   }
@@ -2844,7 +2852,7 @@ class IterableBoolMap
   typename Parent::Notifier * nf = Parent::notifier();
   Key it;
   for( nf->first( it ) ; it != INVALID ; nf->next( it ) ) {
-   Parent::set( it , _array.size() );
+   Parent::set( it , static_cast< const int >( _array.size() ) );
    _array.push_back( it );
    }
   _sep = 0;
@@ -3062,7 +3070,7 @@ class IterableIntMap : protected ItemSetTraits< GR , K >::template Map<
  /// \brief Gives back the maximal value plus one.
  ///
  /// Gives back the maximal value plus one.
- int size() const { return( _first.size() ); }
+ int size() const { return( static_cast< int >( _first.size() ) ); }
 
  /// \brief Set operation of the map.
  ///

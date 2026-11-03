@@ -157,7 +157,9 @@ class Path
 
 
  /// \brief Length of the path.
- int length() const { return( head.size() + tail.size() ); }
+ int length() const {
+  return( static_cast< int >( head.size() + tail.size() ) );
+  }
  /// \brief Return whether the path is empty.
  bool empty() const { return( head.empty() && tail.empty() ); }
 
@@ -203,7 +205,7 @@ class Path
    }
   else {
    head.clear();
-   int halfsize = tail.size() / 2;
+   int halfsize = static_cast< int >( tail.size() / 2 );
    head.resize( halfsize );
    std::copy( tail.begin() + 1 , tail.begin() + halfsize + 1 , head.rbegin() );
    std::copy( tail.begin() + halfsize + 1 , tail.end() , tail.begin() );
@@ -225,7 +227,7 @@ class Path
    tail.pop_back();
    }
   else {
-   int halfsize = head.size() / 2;
+   int halfsize = static_cast< int >( head.size() / 2 );
    tail.resize( halfsize );
    std::copy( head.begin() + 1 , head.begin() + halfsize + 1 , tail.rbegin() );
    std::copy( head.begin() + halfsize + 1 , head.end() , head.begin() );
@@ -380,7 +382,7 @@ class SimplePath
 
 
  /// \brief Length of the path.
- int length() const { return( data.size() ); }
+ int length() const { return( static_cast< int >( data.size() ) ); }
  /// \brief Return true if the path is empty.
  bool empty() const { return( data.empty() ); }
 

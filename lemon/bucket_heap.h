@@ -115,7 +115,7 @@ class BucketHeap
  /// \brief The number of items stored in the heap.
  ///
  /// This function returns the number of items stored in the heap.
- int size() const { return( _data.size() ); }
+ int size() const { return( static_cast< int >( _data.size() ) ); }
 
  /// \brief Check if the heap is empty.
  ///
@@ -194,7 +194,7 @@ class BucketHeap
  /// \param p The priority of the item.
  /// \pre \e i must not be stored in the heap.
  void push( const Item & i , const Prio & p ) {
-  int idx = _data.size();
+  int idx = static_cast< int >( _data.size() );
   _iim[ i ] = idx;
   _data.push_back( BucketItem( i , p ) );
   lace( idx );
@@ -477,7 +477,7 @@ class SimpleBucketHeap
  void push( const Item & i , const Prio & p ) {
   int idx;
   if( _free == -1 ) {
-   idx = _data.size();
+   idx = static_cast< int >( _data.size() );
    _data.push_back( BucketItem( i ) );
    }
   else {

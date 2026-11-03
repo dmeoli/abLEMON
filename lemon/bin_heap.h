@@ -103,7 +103,7 @@ class BinHeap
  /// \brief The number of items stored in the heap.
  ///
  /// This function returns the number of items stored in the heap.
- int size() const { return( _data.size() ); }
+ int size() const { return( static_cast< int >( _data.size() ) ); }
 
  /// \brief Check if the heap is empty.
  ///
@@ -173,7 +173,7 @@ class BinHeap
  /// \param p The pair to insert.
  /// \pre \c p.first must not be stored in the heap.
  void push( const Pair & p ) {
-  int n = _data.size();
+  int n = static_cast< int >( _data.size() );
   _data.resize( n + 1 );
   bubbleUp( n , p );
   }
@@ -204,7 +204,7 @@ class BinHeap
  /// This function removes the item having minimum priority.
  /// \pre The heap must be non-empty.
  void pop() {
-  int n = _data.size() - 1;
+  int n = static_cast< int >( _data.size() - 1 );
   _iim.set( _data[ 0 ].first , POST_HEAP );
   if( n > 0 ) {
    bubbleDown( 0 , _data[ n ] , n );
@@ -220,7 +220,7 @@ class BinHeap
  /// \pre \e i must be in the heap.
  void erase( const Item & i ) {
   int h = _iim[ i ];
-  int n = _data.size() - 1;
+  int n = static_cast< int >( _data.size() - 1 );
   _iim.set( _data[ h ].first , POST_HEAP );
   if( h < n ) {
    if( bubbleUp( h , _data[ n ] ) == h ) {
@@ -257,7 +257,7 @@ class BinHeap
    bubbleUp( idx , Pair( i , p ) );
    }
   else {
-   bubbleDown( idx , Pair( i , p ) , _data.size() );
+   bubbleDown( idx , Pair( i , p ) , static_cast< int >( _data.size() ) );
    }
   }
 
@@ -280,7 +280,7 @@ class BinHeap
  /// \pre \e i must be stored in the heap with priority at most \e p.
  void increase( const Item & i , const Prio & p ) {
   int idx = _iim[ i ];
-  bubbleDown( idx , Pair( i , p ) , _data.size() );
+  bubbleDown( idx , Pair( i , p ) , static_cast< int >( _data.size() ) );
   }
 
  /// \brief Return the state of an item.

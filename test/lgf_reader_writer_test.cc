@@ -30,7 +30,9 @@
 
 struct ReaderConverter
 {
- int operator()( const std::string & str ) const { return( str.length() ); }
+ int operator()( const std::string & str ) const {
+  return( static_cast< int >( str.length() ) );
+  }
  };
 
 struct WriterConverter

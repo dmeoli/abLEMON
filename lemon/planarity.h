@@ -68,9 +68,9 @@ struct PlanarityVisitor : DfsVisitor< Graph >
        _ancestor_map( ancestor_map ) , _low_map( low_map ) { }
 
  void reach( const Node & node ) {
-  _order_map[ node ] = _order_list.size();
-  _low_map[ node ] = _order_list.size();
-  _ancestor_map[ node ] = _order_list.size();
+  _order_map[ node ] = static_cast< int >( _order_list.size() );
+  _low_map[ node ] = static_cast< int >( _order_list.size() );
+  _ancestor_map[ node ] = static_cast< int >( _order_list.size() );
   _order_list.push_back( node );
   }
 
@@ -201,7 +201,7 @@ class PlanarityChecking
 
   MergeRoots merge_roots( _graph );
 
-  for( int i = order_list.size() - 1 ; i >= 0 ; --i ) {
+  for( int i = static_cast< int >( order_list.size() - 1 ) ; i >= 0 ; --i ) {
 
    Node node = order_list[ i ];
 
@@ -511,13 +511,13 @@ class PlanarityChecking
  void initFace( const Node & node , NodeData & node_data ,
 		const OrderMap & order_map , const OrderList & order_list ) {
   int n = order_map[ node ];
-  int rn = n + order_list.size();
+  int rn = static_cast< int >( n + order_list.size() );
 
   node_data[ n ].next = node_data[ n ].prev = rn;
   node_data[ rn ].next = node_data[ rn ].prev = n;
 
-  node_data[ n ].visited = order_list.size();
-  node_data[ rn ].visited = order_list.size();
+  node_data[ n ].visited = static_cast< int >( order_list.size() );
+  node_data[ rn ].visited = static_cast< int >( order_list.size() );
   }
 
  bool external( const Node & node , int rorder , ChildLists & child_lists ,
@@ -675,7 +675,7 @@ class PlanarEmbedding
 
   FlipMap flip_map( _graph , false );
 
-  for( int i = order_list.size() - 1 ; i >= 0 ; --i ) {
+  for( int i = static_cast< int >( order_list.size() - 1 ) ; i >= 0 ; --i ) {
 
    Node node = order_list[ i ];
 
@@ -1091,13 +1091,13 @@ class PlanarEmbedding
 		const PredMap & pred_map , const OrderMap & order_map ,
 		const OrderList & order_list ) {
   int n = order_map[ node ];
-  int rn = n + order_list.size();
+  int rn = static_cast< int >( n + order_list.size() );
 
   node_data[ n ].next = node_data[ n ].prev = rn;
   node_data[ rn ].next = node_data[ rn ].prev = n;
 
-  node_data[ n ].visited = order_list.size();
-  node_data[ rn ].visited = order_list.size();
+  node_data[ n ].visited = static_cast< int >( order_list.size() );
+  node_data[ rn ].visited = static_cast< int >( order_list.size() );
 
   node_data[ n ].inverted = false;
   node_data[ rn ].inverted = false;
@@ -1121,7 +1121,7 @@ class PlanarEmbedding
   while( child_lists[ node ].first != INVALID ) {
    int dd = order_map[ node ];
    Node child = child_lists[ node ].first;
-   int cd = order_map[ child ] + order_list.size();
+   int cd = static_cast< int >( order_map[ child ] + order_list.size() );
    child_lists[ node ].first = child_lists[ child ].next;
 
    Arc de = node_data[ dd ].first;
@@ -1226,7 +1226,7 @@ class PlanarEmbedding
     }
    child = child_lists[ child ].next;
    }
-  return( order + order_list.size() );
+  return( static_cast< int >( order + order_list.size() ) );
   }
 
  Node findPertinent( Node node , OrderMap & order_map , NodeData & node_data ,
@@ -2398,7 +2398,7 @@ class PlanarDrawing
    }
 
   typename AuxGraph::template NodeMap< int > atree( graph , 0 );
-  for( int i = aorder.size() - 1 ; i >= 0 ; --i ) {
+  for( int i = static_cast< int >( aorder.size() - 1 ) ; i >= 0 ; --i ) {
    Node n = aorder[ i ];
    atree[ n ] = 1;
    for( OutArcIt e( graph , n ) ; e != INVALID ; ++e ) {
@@ -2409,7 +2409,7 @@ class PlanarDrawing
    }
 
   typename AuxGraph::template NodeMap< int > btree( graph , 0 );
-  for( int i = border.size() - 1 ; i >= 0 ; --i ) {
+  for( int i = static_cast< int >( border.size() - 1 ) ; i >= 0 ; --i ) {
    Node n = border[ i ];
    btree[ n ] = 1;
    for( OutArcIt e( graph , n ) ; e != INVALID ; ++e ) {
@@ -2793,7 +2793,7 @@ class PlanarColoring
     }
    }
 
-  for( int i = order.size() - 1 ; i >= 0 ; --i ) {
+  for( int i = static_cast< int >( order.size() - 1 ) ; i >= 0 ; --i ) {
    std::vector< bool > forbidden( 5 , false );
    for( OutArcIt e( _graph , order[ i ] ) ; e != INVALID ; ++e ) {
     Node t = _graph.runningNode( e );

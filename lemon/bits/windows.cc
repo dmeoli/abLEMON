@@ -132,7 +132,7 @@ int getWinRndSeed()
 #else
  timeval tv;
  gettimeofday( &tv , 0 );
- return( getpid() + tv.tv_sec + tv.tv_usec );
+ return( static_cast< int >( getpid() + tv.tv_sec + tv.tv_usec ) );
 #endif
  }
 

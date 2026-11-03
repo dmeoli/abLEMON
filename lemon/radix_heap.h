@@ -117,7 +117,8 @@ class RadixHeap
      : _iim( map ) {
   _boxes.push_back( RadixBox( minimum , 1 ) );
   _boxes.push_back( RadixBox( minimum + 1 , 1 ) );
-  while( lower( _boxes.size() - 1 , capacity + minimum - 1 ) ) {
+  while( lower( static_cast< int >( _boxes.size() - 1 ) ,
+		capacity + minimum - 1 ) ) {
    extend();
    }
   }
@@ -125,7 +126,7 @@ class RadixHeap
  /// \brief The number of items stored in the heap.
  ///
  /// This function returns the number of items stored in the heap.
- int size() const { return( _data.size() ); }
+ int size() const { return( static_cast< int >( _data.size() ) ); }
 
  /// \brief Check if the heap is empty.
  ///
@@ -146,7 +147,8 @@ class RadixHeap
   _boxes.clear();
   _boxes.push_back( RadixBox( minimum , 1 ) );
   _boxes.push_back( RadixBox( minimum + 1 , 1 ) );
-  while( lower( _boxes.size() - 1 , capacity + minimum - 1 ) ) {
+  while( lower( static_cast< int >( _boxes.size() - 1 ) ,
+		capacity + minimum - 1 ) ) {
    extend();
    }
   }
@@ -303,13 +305,13 @@ class RadixHeap
  /// \pre \e i must not be stored in the heap.
  /// \warning This method may throw an \c UnderFlowPriorityException.
  void push( const Item & i , const Prio & p ) {
-  int n = _data.size();
+  int n = static_cast< int >( _data.size() );
   _iim.set( i , n );
   _data.push_back( RadixItem( i , p ) );
-  while( lower( _boxes.size() - 1 , p ) ) {
+  while( lower( static_cast< int >( _boxes.size() - 1 ) , p ) ) {
    extend();
    }
-  int box = findDown( _boxes.size() - 1 , p );
+  int box = findDown( static_cast< int >( _boxes.size() - 1 ) , p );
   insert( box , n );
   }
 

@@ -306,7 +306,7 @@ void ArgParser::shortHelp() const
  const unsigned int LINE_LEN = 77;
  const std::string indent( "    " );
  std::cerr << "Usage:\n  " << _command_name;
- int pos = _command_name.size() + 2;
+ int pos = static_cast< int >( _command_name.size() + 2 );
  for( Groups::const_iterator g = _groups.begin() ; g != _groups.end() ; ++g ) {
   std::ostringstream cstr;
   cstr << ' ';
@@ -317,7 +317,7 @@ void ArgParser::shortHelp() const
    cstr << ']';
   if( pos + cstr.str().size() > LINE_LEN ) {
    std::cerr << std::endl << indent;
-   pos = indent.size();
+   pos = static_cast< int >( indent.size() );
    }
   std::cerr << cstr.str();
   pos += cstr.str().size();
@@ -333,7 +333,7 @@ void ArgParser::shortHelp() const
     cstr << ']';
    if( pos + cstr.str().size() > LINE_LEN ) {
     std::cerr << std::endl << indent;
-    pos = indent.size();
+    pos = static_cast< int >( indent.size() );
     }
    std::cerr << cstr.str();
    pos += cstr.str().size();
@@ -345,7 +345,7 @@ void ArgParser::shortHelp() const
 
   if( pos + cstr.str().size() > LINE_LEN ) {
    std::cerr << std::endl << indent;
-   pos = indent.size();
+   pos = static_cast< int >( indent.size() );
    }
   std::cerr << cstr.str();
   pos += cstr.str().size();

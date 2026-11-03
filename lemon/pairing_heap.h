@@ -161,7 +161,7 @@ class PairingHeap
  void push( const Item & item , const Prio & value ) {
   int i = _iim[ item ];
   if( i < 0 ) {
-   int s = _data.size();
+   int s = static_cast< int >( _data.size() );
    _iim.set( item , s );
    store st;
    st.name = item;
@@ -250,7 +250,7 @@ class PairingHeap
      }
     }
 
-   int num_child = trees.size();
+   int num_child = static_cast< int >( trees.size() );
    int other;
    for( i = 0 ; i < num_child - 1 ; i += 2 ) {
     if( ! _comp( _data[ trees[ i ] ].prio , _data[ trees[ i + 1 ] ].prio ) ) {

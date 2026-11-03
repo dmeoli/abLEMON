@@ -354,7 +354,7 @@ class KarpMmc
   if( _cycle_node == INVALID )
    return( false );
   IntNodeMap reached( _gr , -1 );
-  int r = _data[ _cycle_node ].size();
+  int r = static_cast< int >( _data[ _cycle_node ].size() );
   Node u = _cycle_node;
   while( reached[ u ] < 0 ) {
    reached[ u ] = --r;
@@ -475,7 +475,7 @@ class KarpMmc
  // Initialize path data for the current component
  bool initComponent( int comp ) {
   _nodes = &( _comp_nodes[ comp ] );
-  int n = _nodes->size();
+  int n = static_cast< int >( _nodes->size() );
   if( n < 1 || ( n == 1 && _out_arcs[ ( *_nodes )[ 0 ] ].size() == 0 ) ) {
    return( false );
    }
@@ -494,7 +494,7 @@ class KarpMmc
   _process.clear();
   _process.push_back( start );
 
-  int k , n = _nodes->size();
+  int k , n = static_cast< int >( _nodes->size() );
   for( k = 1 ; k <= n && int( _process.size() ) < n ; ++k ) {
    processNextBuildRound( k );
    }
@@ -545,7 +545,7 @@ class KarpMmc
 
  // Update the minimum cycle mean
  void updateMinMean() {
-  int n = _nodes->size();
+  int n = static_cast< int >( _nodes->size() );
   for( int i = 0 ; i < n ; ++i ) {
    Node u = ( *_nodes )[ i ];
    if( _data[ u ][ n ].dist == INF )

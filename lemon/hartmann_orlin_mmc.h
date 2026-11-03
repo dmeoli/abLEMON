@@ -494,7 +494,7 @@ class HartmannOrlinMmc
  // Initialize path data for the current component
  bool initComponent( int comp ) {
   _nodes = &( _comp_nodes[ comp ] );
-  int n = _nodes->size();
+  int n = static_cast< int >( _nodes->size() );
   if( n < 1 || ( n == 1 && _out_arcs[ ( *_nodes )[ 0 ] ].size() == 0 ) ) {
    return( false );
    }
@@ -513,7 +513,7 @@ class HartmannOrlinMmc
   _process.clear();
   _process.push_back( start );
 
-  int k , n = _nodes->size();
+  int k , n = static_cast< int >( _nodes->size() );
   int next_check = 4;
   bool terminate = false;
   for( k = 1 ; k <= n && int( _process.size() ) < n && ! terminate ; ++k ) {
@@ -577,7 +577,7 @@ class HartmannOrlinMmc
   typedef std::pair< int , int > Pair;
   typename GR::template NodeMap< Pair > level( _gr , Pair( -1 , 0 ) );
   typename GR::template NodeMap< LargeCost > pi( _gr );
-  int n = _nodes->size();
+  int n = static_cast< int >( _nodes->size() );
   LargeCost cost;
   int size;
   Node u;

@@ -955,7 +955,7 @@ class DigraphReader
      label_index = -1;
      }
     }
-   map_num = maps.size();
+   map_num = static_cast< int >( maps.size() );
    }
 
   while( readLine() && line >> c && c != '@' ) {
@@ -1058,7 +1058,7 @@ class DigraphReader
      label_index = -1;
      }
     }
-   map_num = maps.size();
+   map_num = static_cast< int >( maps.size() );
    }
 
   while( readLine() && line >> c && c != '@' ) {
@@ -1833,7 +1833,7 @@ class GraphReader
      label_index = -1;
      }
     }
-   map_num = maps.size();
+   map_num = static_cast< int >( maps.size() );
    }
 
   while( readLine() && line >> c && c != '@' ) {
@@ -1936,7 +1936,7 @@ class GraphReader
      label_index = -1;
      }
     }
-   map_num = maps.size();
+   map_num = static_cast< int >( maps.size() );
    }
 
   while( readLine() && line >> c && c != '@' ) {
@@ -2809,7 +2809,7 @@ class BpGraphReader
      label_index = -1;
      }
     }
-   map_num = maps.size();
+   map_num = static_cast< int >( maps.size() );
    }
 
   while( readLine() && line >> c && c != '@' ) {
@@ -2904,7 +2904,7 @@ class BpGraphReader
      label_index = -1;
      }
     }
-   map_num = maps.size();
+   map_num = static_cast< int >( maps.size() );
    }
 
   while( readLine() && line >> c && c != '@' ) {
@@ -2999,7 +2999,7 @@ class BpGraphReader
      label_index = -1;
      }
     }
-   map_num = maps.size();
+   map_num = static_cast< int >( maps.size() );
    }
 
   while( readLine() && line >> c && c != '@' ) {
@@ -3646,7 +3646,9 @@ class LgfContents
  /// \brief Gives back the number of node sections in the file.
  ///
  /// Gives back the number of node sections in the file.
- int nodeSectionNum() const { return( _node_sections.size() ); }
+ int nodeSectionNum() const {
+  return( static_cast< int >( _node_sections.size() ) );
+  }
 
  /// \brief Returns the node section name at the given position.
  ///
@@ -3671,7 +3673,9 @@ class LgfContents
  ///
  /// Gives back the number of arc/edge sections in the file.
  /// \note It is synonym of \c edgeSectionNum().
- int arcSectionNum() const { return( _edge_sections.size() ); }
+ int arcSectionNum() const {
+  return( static_cast< int >( _edge_sections.size() ) );
+  }
 
  /// \brief Returns the arc/edge section name at the given position.
  ///
@@ -3698,7 +3702,9 @@ class LgfContents
  ///
  /// Gives back the number of arc/edge sections in the file.
  /// \note It is synonym of \c arcSectionNum().
- int edgeSectionNum() const { return( _edge_sections.size() ); }
+ int edgeSectionNum() const {
+  return( static_cast< int >( _edge_sections.size() ) );
+  }
 
  /// \brief Returns the section name at the given position.
  ///
@@ -3724,7 +3730,9 @@ class LgfContents
  /// \brief Gives back the number of attribute sections in the file.
  ///
  /// Gives back the number of attribute sections in the file.
- int attributeSectionNum() const { return( _attribute_sections.size() ); }
+ int attributeSectionNum() const {
+  return( static_cast< int >( _attribute_sections.size() ) );
+  }
 
  /// \brief Returns the attribute section name at the given position.
  ///
@@ -3748,7 +3756,9 @@ class LgfContents
  /// \brief Gives back the number of extra sections in the file.
  ///
  /// Gives back the number of extra sections in the file.
- int extraSectionNum() const { return( _extra_sections.size() ); }
+ int extraSectionNum() const {
+  return( static_cast< int >( _extra_sections.size() ) );
+  }
 
  /// \brief Returns the extra section type at the given position.
  ///

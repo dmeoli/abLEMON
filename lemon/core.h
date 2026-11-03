@@ -26,16 +26,16 @@
 ///It is automatically included by all graph types, therefore it usually
 ///do not have to be included directly.
 
-// The warnings of MSVC that the headers of LEMON give, turned off:
-// C4250: 'class1' : inherits 'class2::member' via dominance
-// C4267: conversion from 'size_t' to 'type', possible loss of data
-// (the others that LEMON turned off, among them C4996 on what is declared
-// deprecated, it does not give, and they are left to the user)
+// The warning of MSVC that the headers of LEMON give, turned off:
+// C4250: 'class1' : inherits 'class2::member' via dominance, which the
+// graph adaptors and the edge sets do by design (the others that LEMON
+// turned off, among them C4996 on what is declared deprecated and C4267 on
+// a size_t narrowed, it does not give, and they are left to the user)
 
 #include <lemon/config.h>
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4250 4267 )
+#pragma warning( disable : 4250 )
 #endif
 
 // The types that the [DI]GRAPH_TYPEDEFS macros define in the scope of the
@@ -2212,7 +2212,7 @@ class DynArcLookUp
     v.push_back( a );
    if( ! v.empty() ) {
     std::sort( v.begin() , v.end() , ArcLess( _g ) );
-    Arc head = refreshRec( v , 0 , v.size() - 1 );
+    Arc head = refreshRec( v , 0 , static_cast< int >( v.size() - 1 ) );
     _head[ n ] = head;
     _parent[ head ] = INVALID;
     }
@@ -2463,7 +2463,7 @@ class ArcLookUp
    v.push_back( e );
   if( v.size() ) {
    std::sort( v.begin() , v.end() , ArcLess( _g ) );
-   _head[ n ] = refreshRec( v , 0 , v.size() - 1 );
+   _head[ n ] = refreshRec( v , 0 , static_cast< int >( v.size() - 1 ) );
    }
   else
    _head[ n ] = INVALID;

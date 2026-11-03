@@ -392,7 +392,8 @@ class InsertionTsp
     Cost curr_cost = _ins_cost[ u ];
     int curr_pos = _ins_pos[ u ];
 
-    int ipos_prev = ipos == 0 ? _tour.size() - 1 : ipos - 1;
+    int ipos_prev =
+      ipos == 0 ? static_cast< int >( _tour.size() - 1 ) : ipos - 1;
     int ipos_next = ipos == int( _tour.size() ) - 1 ? 0 : ipos + 1;
     Cost nc1 = costDiff( _tour[ ipos_prev ] , _tour[ ipos ] , u );
     Cost nc2 = costDiff( _tour[ ipos ] , _tour[ ipos_next ] , u );
@@ -452,7 +453,7 @@ class InsertionTsp
       : _notused( notused ) { }
 
   Node select() const {
-   const int index = rnd[ _notused.size() ];
+   const int index = static_cast< int >( rnd[ _notused.size() ] );
    Node n = _notused[ index ];
    _notused[ index ] = _notused.back();
    _notused.pop_back();

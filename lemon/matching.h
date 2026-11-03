@@ -1566,15 +1566,16 @@ class MaxWeightedMatching
     ( *_node_potential )[ stack.back().base ] = pot;
     _blossom_node_list.push_back( stack.back().base );
     while( int( close_stack.size() ) > stack.back().close_index ) {
-     _blossom_potential[ close_stack.back() ].end = _blossom_node_list.size();
+     _blossom_potential[ close_stack.back() ].end =
+       static_cast< int >( _blossom_node_list.size() );
      close_stack.pop_back();
      }
     stack.pop_back();
     }
    else {
     Value pot = ( *_blossom_data )[ stack.back().blossom ].pot;
-    int bn = _blossom_node_list.size();
-    close_stack.push_back( _blossom_potential.size() );
+    int bn = static_cast< int >( _blossom_node_list.size() );
+    close_stack.push_back( static_cast< int >( _blossom_potential.size() ) );
     _blossom_potential.push_back( BlossomVariable( bn , pot ) );
 
     std::vector< int > subblossoms;
@@ -1597,10 +1598,10 @@ class MaxWeightedMatching
      Arc m = ( *_blossom_data )[ tb ].next;
      stack.push_back( ExtractBlossomItem(
        sb , _graph.target( m ) , _graph.oppositeArc( m ) ,
-	 close_stack.size() ) );
+	 static_cast< int >( close_stack.size() ) ) );
      stack.push_back(
        ExtractBlossomItem( tb , _graph.source( m ) , m ,
-			   close_stack.size() ) );
+			   static_cast< int >( close_stack.size() ) ) );
      }
     }
    }
@@ -2110,7 +2111,9 @@ class MaxWeightedMatching
  ///
  /// \pre Either run() or start() must be called before using this function.
  /// \see BlossomIt
- int blossomNum() const { return( _blossom_potential.size() ); }
+ int blossomNum() const {
+  return( static_cast< int >( _blossom_potential.size() ) );
+  }
 
  /// \brief Return the number of the nodes in the given blossom.
  ///
@@ -3051,15 +3054,16 @@ class MaxWeightedPerfectMatching
     ( *_node_potential )[ stack.back().base ] = pot;
     _blossom_node_list.push_back( stack.back().base );
     while( int( close_stack.size() ) > stack.back().close_index ) {
-     _blossom_potential[ close_stack.back() ].end = _blossom_node_list.size();
+     _blossom_potential[ close_stack.back() ].end =
+       static_cast< int >( _blossom_node_list.size() );
      close_stack.pop_back();
      }
     stack.pop_back();
     }
    else {
     Value pot = ( *_blossom_data )[ stack.back().blossom ].pot;
-    int bn = _blossom_node_list.size();
-    close_stack.push_back( _blossom_potential.size() );
+    int bn = static_cast< int >( _blossom_node_list.size() );
+    close_stack.push_back( static_cast< int >( _blossom_potential.size() ) );
     _blossom_potential.push_back( BlossomVariable( bn , pot ) );
 
     std::vector< int > subblossoms;
@@ -3082,10 +3086,10 @@ class MaxWeightedPerfectMatching
      Arc m = ( *_blossom_data )[ tb ].next;
      stack.push_back( ExtractBlossomItem(
        sb , _graph.target( m ) , _graph.oppositeArc( m ) ,
-	 close_stack.size() ) );
+	 static_cast< int >( close_stack.size() ) ) );
      stack.push_back(
        ExtractBlossomItem( tb , _graph.source( m ) , m ,
-			   close_stack.size() ) );
+			   static_cast< int >( close_stack.size() ) ) );
      }
     }
    }
@@ -3552,7 +3556,9 @@ class MaxWeightedPerfectMatching
  ///
  /// \pre Either run() or start() must be called before using this function.
  /// \see BlossomIt
- int blossomNum() const { return( _blossom_potential.size() ); }
+ int blossomNum() const {
+  return( static_cast< int >( _blossom_potential.size() ) );
+  }
 
  /// \brief Return the number of the nodes in the given blossom.
  ///

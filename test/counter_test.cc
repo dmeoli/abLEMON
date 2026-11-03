@@ -32,7 +32,7 @@ void bubbleSort( std::vector< T > & v )
   Counter op( "Bubble Sort - Operations: " , s1 );
   Counter::SubCounter as( op , "Assignments: " , s2 );
   Counter::SubCounter co( op , "Comparisons: " , s3 );
-  for( int i = v.size() - 1 ; i > 0 ; --i ) {
+  for( int i = static_cast< int >( v.size() ) - 1 ; i > 0 ; --i ) {
    for( int j = 0 ; j < i ; ++j ) {
     if( v[ j ] > v[ j + 1 ] ) {
      T tmp = v[ j ];

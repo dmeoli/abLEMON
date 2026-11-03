@@ -265,9 +265,9 @@ class MinCostArborescence
 
  Arc prepare( Node node ) {
   std::vector< Node > nodes;
-  ( *_node_order )[ node ] = _dual_node_list.size();
+  ( *_node_order )[ node ] = static_cast< int >( _dual_node_list.size() );
   StackLevel level;
-  level.node_level = _dual_node_list.size();
+  level.node_level = static_cast< int >( _dual_node_list.size() );
   _dual_node_list.push_back( node );
   for( InArcIt it( *_digraph , node ) ; it != INVALID ; ++it ) {
    Arc arc = it;
@@ -293,8 +293,10 @@ class MinCostArborescence
     minimum = ( *_cost_arcs )[ nodes[ i ] ];
     }
    }
-  ( *_arc_order )[ minimum.arc ] = _dual_variables.size();
-  DualVariable var( _dual_node_list.size() - 1 , _dual_node_list.size() ,
+  ( *_arc_order )[ minimum.arc ] =
+    static_cast< int >( _dual_variables.size() );
+  DualVariable var( static_cast< int >( _dual_node_list.size() - 1 ) ,
+		    static_cast< int >( _dual_node_list.size() ) ,
 		    minimum.value );
   _dual_variables.push_back( var );
   for( int i = 0 ; i < int( nodes.size() ) ; ++i ) {
@@ -337,8 +339,11 @@ class MinCostArborescence
     minimum = ( *_cost_arcs )[ nodes[ i ] ];
     }
    }
-  ( *_arc_order )[ minimum.arc ] = _dual_variables.size();
-  DualVariable var( node_bottom , _dual_node_list.size() , minimum.value );
+  ( *_arc_order )[ minimum.arc ] =
+    static_cast< int >( _dual_variables.size() );
+  DualVariable var( node_bottom ,
+		    static_cast< int >( _dual_node_list.size() ) ,
+		    minimum.value );
   _dual_variables.push_back( var );
   StackLevel level;
   level.node_level = node_bottom;
@@ -352,7 +357,7 @@ class MinCostArborescence
   }
 
  int bottom( Node node ) {
-  int k = level_stack.size() - 1;
+  int k = static_cast< int >( level_stack.size() - 1 );
   while( level_stack[ k ].node_level > ( *_node_order )[ node ] ) {
    --k;
    }
@@ -570,7 +575,7 @@ class MinCostArborescence
  ///
  /// Returns the number of the nodes to be processed in the priority
  /// queue.
- int queueSize() const { return( queue.size() ); }
+ int queueSize() const { return( static_cast< int >( queue.size() ) ); }
 
  /// \brief Returns \c false if there are nodes to be processed.
  ///
@@ -678,7 +683,9 @@ class MinCostArborescence
  /// \brief Returns the number of the dual variables in basis.
  ///
  /// Returns the number of the dual variables in basis.
- int dualNum() const { return( _dual_variables.size() ); }
+ int dualNum() const {
+  return( static_cast< int >( _dual_variables.size() ) );
+  }
 
  /// \brief Returns the value of the dual solution.
  ///

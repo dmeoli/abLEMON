@@ -531,7 +531,7 @@ class NagamochiIbaraki
    if( ! _heap->empty() ) {
     if( alpha < pmc ) {
      pmc = alpha;
-     sep = order.size();
+     sep = static_cast< int >( order.size() );
      }
     }
    }

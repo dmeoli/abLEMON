@@ -105,8 +105,8 @@ class ListDigraphBase
        first_free_arc( -1 ) { }
 
 
- int maxNodeId() const { return( _nodes.size() - 1 ); }
- int maxArcId() const { return( _arcs.size() - 1 ); }
+ int maxNodeId() const { return( static_cast< int >( _nodes.size() - 1 ) ); }
+ int maxArcId() const { return( static_cast< int >( _arcs.size() - 1 ) ); }
 
  Node source( Arc e ) const { return( Node( _arcs[ e.id ].source ) ); }
  Node target( Arc e ) const { return( Node( _arcs[ e.id ].target ) ); }
@@ -169,7 +169,7 @@ class ListDigraphBase
   int n;
 
   if( first_free_node == -1 ) {
-   n = _nodes.size();
+   n = static_cast< int >( _nodes.size() );
    _nodes.push_back( NodeT() );
    }
   else {
@@ -192,7 +192,7 @@ class ListDigraphBase
   int n;
 
   if( first_free_arc == -1 ) {
-   n = _arcs.size();
+   n = static_cast< int >( _arcs.size() );
    _arcs.push_back( ArcT() );
    }
   else {
@@ -576,7 +576,7 @@ class ListDigraph : public ExtendedListDigraphBase
    protected:
    virtual void add( const Node & node ) { snapshot.addNode( node ); }
    virtual void add( const std::vector< Node > & nodes ) {
-    for( int i = nodes.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( nodes.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addNode( nodes[ i ] );
      }
     }
@@ -593,7 +593,7 @@ class ListDigraph : public ExtendedListDigraphBase
 	 notifier()->next( node ) ) {
      nodes.push_back( node );
      }
-    for( int i = nodes.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( nodes.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addNode( nodes[ i ] );
      }
     }
@@ -620,7 +620,7 @@ class ListDigraph : public ExtendedListDigraphBase
    protected:
    virtual void add( const Arc & arc ) { snapshot.addArc( arc ); }
    virtual void add( const std::vector< Arc > & arcs ) {
-    for( int i = arcs.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( arcs.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addArc( arcs[ i ] );
      }
     }
@@ -637,7 +637,7 @@ class ListDigraph : public ExtendedListDigraphBase
 	 notifier()->next( arc ) ) {
      arcs.push_back( arc );
      }
-    for( int i = arcs.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( arcs.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addArc( arcs[ i ] );
      }
     }
@@ -852,9 +852,11 @@ class ListGraphBase
        first_free_arc( -1 ) { }
 
 
- int maxNodeId() const { return( _nodes.size() - 1 ); }
- int maxEdgeId() const { return( _arcs.size() / 2 - 1 ); }
- int maxArcId() const { return( _arcs.size() - 1 ); }
+ int maxNodeId() const { return( static_cast< int >( _nodes.size() - 1 ) ); }
+ int maxEdgeId() const {
+  return( static_cast< int >( _arcs.size() / 2 - 1 ) );
+  }
+ int maxArcId() const { return( static_cast< int >( _arcs.size() - 1 ) ); }
 
  Node source( Arc e ) const { return( Node( _arcs[ e.id ^ 1 ].target ) ); }
  Node target( Arc e ) const { return( Node( _arcs[ e.id ].target ) ); }
@@ -1000,7 +1002,7 @@ class ListGraphBase
   int n;
 
   if( first_free_node == -1 ) {
-   n = _nodes.size();
+   n = static_cast< int >( _nodes.size() );
    _nodes.push_back( NodeT() );
    }
   else {
@@ -1023,7 +1025,7 @@ class ListGraphBase
   int n;
 
   if( first_free_arc == -1 ) {
-   n = _arcs.size();
+   n = static_cast< int >( _arcs.size() );
    _arcs.push_back( ArcT() );
    _arcs.push_back( ArcT() );
    }
@@ -1369,7 +1371,7 @@ class ListGraph : public ExtendedListGraphBase
    protected:
    virtual void add( const Node & node ) { snapshot.addNode( node ); }
    virtual void add( const std::vector< Node > & nodes ) {
-    for( int i = nodes.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( nodes.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addNode( nodes[ i ] );
      }
     }
@@ -1386,7 +1388,7 @@ class ListGraph : public ExtendedListGraphBase
 	 notifier()->next( node ) ) {
      nodes.push_back( node );
      }
-    for( int i = nodes.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( nodes.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addNode( nodes[ i ] );
      }
     }
@@ -1413,7 +1415,7 @@ class ListGraph : public ExtendedListGraphBase
    protected:
    virtual void add( const Edge & edge ) { snapshot.addEdge( edge ); }
    virtual void add( const std::vector< Edge > & edges ) {
-    for( int i = edges.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( edges.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addEdge( edges[ i ] );
      }
     }
@@ -1430,7 +1432,7 @@ class ListGraph : public ExtendedListGraphBase
 	 notifier()->next( edge ) ) {
      edges.push_back( edge );
      }
-    for( int i = edges.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( edges.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addEdge( edges[ i ] );
      }
     }
@@ -1690,11 +1692,13 @@ class ListBpGraphBase
  static RedNode asRedNodeUnsafe( Node n ) { return( RedNode( n.id ) ); }
  static BlueNode asBlueNodeUnsafe( Node n ) { return( BlueNode( n.id ) ); }
 
- int maxNodeId() const { return( _nodes.size() - 1 ); }
+ int maxNodeId() const { return( static_cast< int >( _nodes.size() - 1 ) ); }
  int maxRedId() const { return( max_red ); }
  int maxBlueId() const { return( max_blue ); }
- int maxEdgeId() const { return( _arcs.size() / 2 - 1 ); }
- int maxArcId() const { return( _arcs.size() - 1 ); }
+ int maxEdgeId() const {
+  return( static_cast< int >( _arcs.size() / 2 - 1 ) );
+  }
+ int maxArcId() const { return( static_cast< int >( _arcs.size() - 1 ) ); }
 
  Node source( Arc e ) const { return( Node( _arcs[ e.id ^ 1 ].target ) ); }
  Node target( Arc e ) const { return( Node( _arcs[ e.id ].target ) ); }
@@ -1858,7 +1862,7 @@ class ListBpGraphBase
   int n;
 
   if( first_free_red == -1 ) {
-   n = _nodes.size();
+   n = static_cast< int >( _nodes.size() );
    _nodes.push_back( NodeT() );
    _nodes[ n ].partition_index = ++max_red;
    _nodes[ n ].red = true;
@@ -1889,7 +1893,7 @@ class ListBpGraphBase
   int n;
 
   if( first_free_blue == -1 ) {
-   n = _nodes.size();
+   n = static_cast< int >( _nodes.size() );
    _nodes.push_back( NodeT() );
    _nodes[ n ].partition_index = ++max_blue;
    _nodes[ n ].red = false;
@@ -1920,7 +1924,7 @@ class ListBpGraphBase
   int n;
 
   if( first_free_arc == -1 ) {
-   n = _arcs.size();
+   n = static_cast< int >( _arcs.size() );
    _arcs.push_back( ArcT() );
    _arcs.push_back( ArcT() );
    }
@@ -2264,7 +2268,7 @@ class ListBpGraph : public ExtendedListBpGraphBase
    protected:
    virtual void add( const Node & node ) { snapshot.addNode( node ); }
    virtual void add( const std::vector< Node > & nodes ) {
-    for( int i = nodes.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( nodes.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addNode( nodes[ i ] );
      }
     }
@@ -2281,7 +2285,7 @@ class ListBpGraph : public ExtendedListBpGraphBase
 	 notifier()->next( node ) ) {
      nodes.push_back( node );
      }
-    for( int i = nodes.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( nodes.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addNode( nodes[ i ] );
      }
     }
@@ -2308,7 +2312,7 @@ class ListBpGraph : public ExtendedListBpGraphBase
    protected:
    virtual void add( const Edge & edge ) { snapshot.addEdge( edge ); }
    virtual void add( const std::vector< Edge > & edges ) {
-    for( int i = edges.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( edges.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addEdge( edges[ i ] );
      }
     }
@@ -2325,7 +2329,7 @@ class ListBpGraph : public ExtendedListBpGraphBase
 	 notifier()->next( edge ) ) {
      edges.push_back( edge );
      }
-    for( int i = edges.size() - 1 ; i >= 0 ; --i ) {
+    for( int i = static_cast< int >( edges.size() - 1 ) ; i >= 0 ; --i ) {
      snapshot.addEdge( edges[ i ] );
      }
     }
