@@ -1,8 +1,8 @@
 class LemonNg < Formula
   desc "Maintained fork of LEMON, a C++ library of graphs and network optimization"
   homepage "https://github.com/dmeoli/lemon-ng"
-  url "https://github.com/dmeoli/lemon-ng/archive/refs/tags/1.4.1.tar.gz"
-  sha256 "60aeaf56b6bc32b97a34fccf1efb49de98c765b1b21865544ec686ddeeff5b2d"
+  url "https://github.com/dmeoli/lemon-ng/archive/refs/tags/1.5.0.tar.gz"
+  sha256 "968ccc5aca2c75a3c14281c5ca96a62e68decb9bf0ab5ab17d743026d5f93bb8"
   license all_of: ["BSL-1.0", "BSD-3-Clause"]
   head "https://github.com/dmeoli/lemon-ng.git", branch: "master"
 
