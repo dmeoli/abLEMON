@@ -46,16 +46,20 @@ delete a map of the user. Default-constructed, the items of the graphs are
 now `INVALID`, and the fields that some classes copied while
 still uninitialized are now initialized.
 
-**Minimum cost flow.** `NetworkSimplex` solves problems with floating-point
-costs and capacities, on which it typically pivoted for ever or reported
-infeasibility, since it compared reduced costs and residual flows against an
-exact zero. It also updates the potentials on the smaller side of the tree at
-each pivot. `CostScaling` and `CycleCanceling` find their starting flow on
-their residual network, and `CapacityScaling` uses a 4-ary heap. Also, they
-answer that a digraph without nodes has an optimal (empty) flow, and all four
-certify an answer that is not optimal: `infeasibleCut()` gives a set of nodes
-whose supply exceeds what the arcs out of it can carry, and `unboundedCycle()`
-a directed cycle of negative cost and infinite capacity.
+**Minimum cost flow.** The four algorithms solve problems with
+floating-point costs, capacities and supplies, on which `NetworkSimplex`
+typically pivoted for ever or reported infeasibility, since it compared
+reduced costs and residual flows against an exact zero, and the other three
+asked for integer data. `NetworkSimplex` also updates the potentials on the
+smaller side of the tree at each pivot, `CostScaling` and `CycleCanceling`
+find their starting flow on their residual network, and `CapacityScaling`
+uses a 4-ary heap. Also, the four answer that a digraph without nodes has an
+optimal (empty) flow, and certify an answer that is not optimal:
+`infeasibleCut()` gives a set of nodes whose supply exceeds what the arcs out
+of it can carry, and `unboundedCycle()` a directed cycle of negative cost and
+infinite capacity. A battery runs every algorithm, with each of its methods,
+on limit cases and on random instances, with integer and floating-point
+data, and checks each answer by its certificate and against the others.
 
 **Building and installing.** The build with CMake (3.19 or later) honors
 `CMAKE_CXX_STANDARD`, takes the version from the tag of git, and can leave

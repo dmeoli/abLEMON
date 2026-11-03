@@ -70,8 +70,16 @@ namespace lemon
 /// algorithm. By default, it is the same as \c V.
 ///
 /// \warning Both \c V and \c C must be signed number types.
-/// \warning All input data (capacities, supply values, and costs) must
-/// be integer.
+/// \warning With integer types all input data (capacities, supply
+/// values, and costs) must be integer. With floating-point types they
+/// need not be: an excess, a deficit or a residual capacity within 10^6
+/// units in the last place of the largest supply or finite bound is taken
+/// as zero, and a reduced cost within 10^6 units in the last place of the
+/// largest cost as nonnegative, so that rounding errors neither keep the
+/// algorithm sending round-off around for ever nor make a feasible
+/// problem infeasible; the phases of Cancel-and-Tighten go
+/// on until epsilon is within the latter, which the optimal flow then
+/// meets.
 ///
 /// \note For more information about the three available methods,
 /// see \ref Method.
@@ -203,6 +211,10 @@ class CycleCanceling
  int _root;
  // What the last run() returned, and whether there was one
  int _result = -1;
+ // The tolerances on the flows and on the reduced costs, zero for exact
+ // types [see bits/mcf_feasible_flow.h]
+ Value _feps;
+ Cost _ceps;
 
  // Parameters of the problem
  bool _has_lower;
@@ -729,6 +741,17 @@ class CycleCanceling
   for( int i = 0 ; i != _root ; ++i ) {
    _sum_supply += _supply[ i ];
    }
+  // A sum within the tolerance on the flows is zero, as in NetworkSimplex:
+  // supplies that sum to zero in decimal sum, in floating point, to a few
+  // units in the last place of either sign
+  const Value feps =
+    _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
+			      _lower , _upper , _supply , _has_lower );
+  if( _sum_supply <= feps && _sum_supply >= -feps )
+   _sum_supply = 0;
+  _feps = feps;
+  _ceps = _mcf_bits::costTolerance( _root , _first_out , _target , _forward ,
+				    _cost );
   if( _sum_supply > 0 )
    return( INFEASIBLE );
 
@@ -783,6 +806,22 @@ class CycleCanceling
 
  // Build a StaticDigraph structure containing the current
  // residual network
+ typedef _mcf_bits::ToleranceBfOperationTraits< Cost > BfOps;
+
+ // Sends d along the residual arc j; in floating point, a residual
+ // capacity that falls within the tolerance on the flows goes to the
+ // reverse arc, so that no cycle of a capacity made of round-off is left
+ // to cancel
+ void push( int j , Value d ) {
+  const int rj = _reverse[ j ];
+  _res_cap[ j ] -= d;
+  _res_cap[ rj ] += d;
+  if( _res_cap[ j ] <= _feps ) {
+   _res_cap[ rj ] += _res_cap[ j ];
+   _res_cap[ j ] = 0;
+   }
+  }
+
  void buildResidualNetwork() {
   _arc_vec.clear();
   _cost_vec.clear();
@@ -799,6 +838,7 @@ class CycleCanceling
 
  // Execute the algorithm and transform the results
  void start( Method method ) {
+  BfOps::epsilon() = _ceps;
   // Execute the algorithm
   switch( method ) {
    case SIMPLE_CYCLE_CANCELING:
@@ -816,7 +856,8 @@ class CycleCanceling
   if( method != SIMPLE_CYCLE_CANCELING ) {
    buildResidualNetwork();
    typename BellmanFord< StaticDigraph , CostArcMap >::template SetDistMap<
-     CostNodeMap >::Create bf( _sgr , _cost_map );
+     CostNodeMap >::template SetOperationTraits< BfOps >::Create bf(
+     _sgr , _cost_map );
    bf.distMap( _pi_map );
    bf.init( 0 );
    bf.start();
@@ -842,7 +883,8 @@ class CycleCanceling
   typedef FilterArcs< StaticDigraph , FilterMap > ResDigraph;
   typedef StaticVectorMap< StaticDigraph::Node , StaticDigraph::Arc > PredMap;
   typedef typename BellmanFord< ResDigraph , CostArcMap >::template SetDistMap<
-    CostNodeMap >::template SetPredMap< PredMap >::Create BF;
+    CostNodeMap >::template SetPredMap< PredMap >::template SetOperationTraits<
+    BfOps >::Create BF;
 
   // Build the residual network
   _arc_vec.clear();
@@ -915,11 +957,8 @@ class CycleCanceling
         }
 
        // Augment along the cycle
-       for( int i = 0 ; i < int( cycle.size() ) ; ++i ) {
-	int j = cycle[ i ];
-	_res_cap[ j ] -= delta;
-	_res_cap[ _reverse[ j ] ] += delta;
-        }
+       for( int i = 0 ; i < int( cycle.size() ) ; ++i )
+	push( cycle[ i ] , delta );
        }
       }
      }
@@ -963,13 +1002,15 @@ class CycleCanceling
     HoMmc ho_mmc( _sgr , _cost_map );
     ho_mmc.cycle( cycle );
     // Find a minimum mean cycle (Hartmann-Orlin algorithm)
-    if( ! ( ho_mmc.findCycleMean() && ho_mmc.cycleCost() < 0 ) )
+    if( ! ( ho_mmc.findCycleMean() &&
+	    ho_mmc.cycleCost() < -_ceps * ho_mmc.cycleSize() ) )
      break;
     ho_mmc.findCycle();
     }
    else {
     // Find a minimum mean cycle (Howard algorithm)
-    if( ! ( hw_tc == HwMmc::OPTIMAL && hw_mmc.cycleCost() < 0 ) )
+    if( ! ( hw_tc == HwMmc::OPTIMAL &&
+	    hw_mmc.cycleCost() < -_ceps * hw_mmc.cycleSize() ) )
      break;
     hw_mmc.findCycle();
     }
@@ -983,11 +1024,8 @@ class CycleCanceling
     }
 
    // Augment along the cycle
-   for( SPathArcIt a( cycle ) ; a != INVALID ; ++a ) {
-    int j = _id_vec[ _sgr.id( a ) ];
-    _res_cap[ j ] -= delta;
-    _res_cap[ _reverse[ j ] ] += delta;
-    }
+   for( SPathArcIt a( cycle ) ; a != INVALID ; ++a )
+    push( _id_vec[ _sgr.id( a ) ] , delta );
 
    // Rebuild the residual network
    buildResidualNetwork();
@@ -1024,13 +1062,17 @@ class CycleCanceling
    }
 
   // Start phases
+  // With an exact cost type, epsilon below 1/n proves the flow optimal;
+  // otherwise, the phases go on until epsilon is within the tolerance on
+  // the reduced costs, and so does the test of admissibility
+  const bool exact = std::numeric_limits< Cost >::is_exact;
   Tolerance< double > tol;
-  tol.epsilon( 1e-6 );
+  tol.epsilon( exact ? 1e-6 : double( _ceps ) );
   int limit = int( LIMIT_FACTOR * std::sqrt( double( _res_node_num ) ) );
   if( limit < MIN_LIMIT )
    limit = MIN_LIMIT;
   int iter = limit;
-  while( epsilon * _res_node_num >= 1 ) {
+  while( exact ? epsilon * _res_node_num >= 1 : epsilon > _ceps ) {
    // Find and cancel cycles in the admissible network using DFS
    for( int u = 0 ; u != _res_node_num ; ++u ) {
     reached[ u ] = false;
@@ -1097,13 +1139,9 @@ class CycleCanceling
         }
 
        // Augment along the cycle
-       _res_cap[ sa ] -= delta;
-       _res_cap[ _reverse[ sa ] ] += delta;
-       for( n = u ; n != v ; n = pred_node[ n ] ) {
-	int pa = pred_arc[ n ];
-	_res_cap[ pa ] -= delta;
-	_res_cap[ _reverse[ pa ] ] += delta;
-        }
+       push( sa , delta );
+       for( n = u ; n != v ; n = pred_node[ n ] )
+	push( pred_arc[ n ] , delta );
        for( n = u ; stack_head > 0 && n != w ; n = pred_node[ n ] ) {
 	--stack_head;
 	reached[ n ] = false;
@@ -1203,7 +1241,7 @@ class CycleCanceling
     typedef HartmannOrlinMmc< StaticDigraph , CostArcMap > HoMmc;
     typedef
       typename BellmanFord< StaticDigraph , CostArcMap >::template SetDistMap<
-	CostNodeMap >::Create BF;
+	CostNodeMap >::template SetOperationTraits< BfOps >::Create BF;
 
     // Set epsilon to the minimum cycle mean
     Cost cycle_cost = 0;

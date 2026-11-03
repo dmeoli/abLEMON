@@ -173,6 +173,15 @@ FOREACH(TEST_NAME ${TESTS})
   ADD_DEPENDENCIES(check ${TEST_NAME})
 ENDFOREACH()
 
+# the battery of the minimum cost flow algorithms, once for each value type
+ADD_EXECUTABLE(min_cost_flow_battery_test min_cost_flow_battery_test.cc)
+TARGET_LINK_LIBRARIES(min_cost_flow_battery_test lemon)
+FOREACH(VALUE_TYPE long double)
+  ADD_TEST(NAME min_cost_flow_battery_${VALUE_TYPE}
+    COMMAND min_cost_flow_battery_test ${VALUE_TYPE})
+ENDFOREACH()
+ADD_DEPENDENCIES(check min_cost_flow_battery_test)
+
 # with LEMON as a DLL, the tests find it in the directory where it is built;
 # the generator expression is expanded in the property of a test created by
 # ADD_TEST(NAME ...) only, which all of them are

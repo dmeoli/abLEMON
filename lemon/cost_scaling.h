@@ -23,6 +23,7 @@
 /// \file
 /// \brief Cost scaling algorithm for finding a minimum cost flow.
 
+#include <cmath>
 #include <vector>
 #include <deque>
 #include <limits>
@@ -123,8 +124,16 @@ struct CostScalingDefaultTraits< GR , V , C , true >
 /// consider to use the named template parameters instead.
 ///
 /// \warning Both \c V and \c C must be signed number types.
-/// \warning All input data (capacities, supply values, and costs) must
-/// be integer.
+/// \warning With integer types all input data (capacities, supply
+/// values, and costs) must be integer. With floating-point types they
+/// need not be: an excess, a deficit or a residual capacity within 10^6
+/// units in the last place of the largest supply or finite bound is taken
+/// as zero, and a reduced cost within 10^6 units in the last place of the
+/// largest cost as nonnegative, so that rounding errors neither keep the
+/// algorithm sending round-off around for ever nor make a feasible
+/// problem infeasible; the scaling phases go on
+/// until epsilon is within the latter, which the optimal flow then
+/// meets.
 ///
 /// \note %CostScaling provides three different internal methods,
 /// from which the most efficient one is used by default.
@@ -299,6 +308,15 @@ class CostScaling
 
  // Data for scaling
  LargeCost _epsilon;
+ // The last epsilon: one for an exact cost type, which proves the flow
+ // optimal, otherwise the tolerance on the reduced costs times the factor
+ // that the costs are scaled by
+ LargeCost _eps_min;
+ // The tolerances on the flows and on the reduced costs, zero for exact
+ // types [see bits/mcf_feasible_flow.h]: an excess or a residual
+ // capacity within the former is zero
+ Value _feps = 0;
+ Cost _ceps;
  int _alpha;
 
  IntVector _buckets;
@@ -826,6 +844,15 @@ class CostScaling
   for( int i = 0 ; i != _root ; ++i ) {
    _sum_supply += _supply[ i ];
    }
+  // A sum within the tolerance on the flows is zero, as in NetworkSimplex:
+  // supplies that sum to zero in decimal sum, in floating point, to a few
+  // units in the last place of either sign
+  const Value feps =
+    _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
+			      _lower , _upper , _supply , _has_lower );
+  if( _sum_supply <= feps && _sum_supply >= -feps )
+   _sum_supply = 0;
+  _feps = feps;
   if( _sum_supply > 0 )
    return( INFEASIBLE );
 
@@ -871,6 +898,11 @@ class CostScaling
     }
    }
   _epsilon /= _alpha;
+  _ceps = _mcf_bits::costTolerance( _root , _first_out , _target , _forward ,
+				    _scost );
+  _eps_min = std::numeric_limits< Cost >::is_exact
+	       ? LargeCost( 1 )
+	       : static_cast< LargeCost >( _ceps ) * _res_node_num * _alpha;
 
   // Find a feasible flow on the residual network
   if( ! _mcf_bits::feasibleFlow( *this , Value( 0 ) , _sup_node_num ) ) {
@@ -924,7 +956,8 @@ class CostScaling
    LargeCost pi_i = _pi[ i ];
    int last_out = _first_out[ i + 1 ];
    for( int j = _first_out[ i ] ; j != last_out ; ++j ) {
-    if( _res_cap[ j ] > 0 && _scost[ j ] + pi_i - _pi[ _target[ j ] ] < 0 ) {
+    if( _res_cap[ j ] > _feps &&
+	_scost[ j ] + pi_i - _pi[ _target[ j ] ] < -_ceps ) {
      optimal = false;
      break;
      }
@@ -943,7 +976,7 @@ class CostScaling
    arc_vec.clear();
    cost_vec.clear();
    for( int j = 0 ; j != _res_arc_num ; ++j ) {
-    if( _res_cap[ j ] > 0 ) {
+    if( _res_cap[ j ] > _feps ) {
      int u = _source[ j ] , v = _target[ j ];
      arc_vec.push_back( IntPair( u , v ) );
      cost_vec.push_back( _scost[ j ] + _pi[ u ] - _pi[ v ] );
@@ -951,8 +984,10 @@ class CostScaling
     }
    sgr.build( _res_node_num , arc_vec.begin() , arc_vec.end() );
 
-   typename BellmanFord< StaticDigraph , LargeCostArcMap >::Create bf(
-     sgr , cost_map );
+   typedef _mcf_bits::ToleranceBfOperationTraits< LargeCost > BfOps;
+   BfOps::epsilon() = _ceps;
+   typename BellmanFord< StaticDigraph , LargeCostArcMap >::
+     template SetOperationTraits< BfOps >::Create bf( sgr , cost_map );
    bf.init( 0 );
    bf.start();
 
@@ -1006,7 +1041,7 @@ class CostScaling
 
   // Find active nodes (i.e. nodes with positive excess)
   for( int u = 0 ; u != _res_node_num ; ++u ) {
-   if( _excess[ u ] > 0 )
+   if( _excess[ u ] > _feps )
     _active_nodes.push_back( u );
    }
 
@@ -1043,11 +1078,17 @@ class CostScaling
     LargeCost rc , pi_u = _pi[ u ];
     int last_out = _first_out[ u + 1 ];
     for( int a = _first_out[ u ] ; a != last_out ; ++a ) {
-     if( _res_cap[ a ] > 0 ) {
+     if( _res_cap[ a ] > _feps ) {
       v = _target[ a ];
       rc = _cost[ a ] + pi_u - _pi[ v ];
       if( rc < 0 ) {
-       LargeCost nrc = static_cast< LargeCost >( ( -rc - 0.5 ) / _epsilon );
+       // The number of epsilons by which rc is below zero, less one:
+       // with integer costs, ( -rc - 0.5 ) / epsilon truncated, and its
+       // exact form, which the 0.5 would spoil on smaller costs, otherwise
+       LargeCost nrc = static_cast< LargeCost >(
+	 std::numeric_limits< LargeCost >::is_integer
+	   ? ( -rc - 0.5 ) / _epsilon
+	   : std::ceil( -rc / _epsilon ) - 1 );
        // The rank of v is a sum of ranks along a path, which may
        // not fit in the buckets even if each of them does: then
        // the heuristic is abandoned, and the refinement proceeds
@@ -1087,7 +1128,7 @@ class CostScaling
      int last_out = _first_out[ u + 1 ];
      int v , old_rank_v , new_rank_v;
      for( int a = _first_out[ u ] ; a != last_out ; ++a ) {
-      if( _res_cap[ a ] > 0 ) {
+      if( _res_cap[ a ] > _feps ) {
        v = _target[ a ];
        old_rank_v = _rank[ v ];
 
@@ -1168,7 +1209,7 @@ class CostScaling
     LargeCost pi_tip = _pi[ tip ];
     int a , last_out = _first_out[ tip + 1 ];
     for( a = _next_out[ tip ] ; a != last_out ; ++a ) {
-     if( _res_cap[ a ] > 0 ) {
+     if( _res_cap[ a ] > _feps ) {
       v = _target[ a ];
       if( _cost[ a ] + pi_tip - _pi[ v ] < 0 ) {
        if( ! reached[ v ] ) {
@@ -1256,14 +1297,15 @@ class CostScaling
   Value total_excess = 0;
   int b0 = bucket_end;
   for( int i = 0 ; i != _res_node_num ; ++i ) {
-   if( _excess[ i ] < 0 ) {
+   if( _excess[ i ] < -_feps ) {
     _rank[ i ] = 0;
     _bucket_next[ i ] = b0;
     _bucket_prev[ b0 ] = i;
     b0 = i;
     }
    else {
-    total_excess += _excess[ i ];
+    if( _excess[ i ] > _feps )
+     total_excess += _excess[ i ];
     _rank[ i ] = _max_rank;
     }
    }
@@ -1284,12 +1326,17 @@ class CostScaling
     int last_out = _first_out[ u + 1 ];
     for( int a = _first_out[ u ] ; a != last_out ; ++a ) {
      int ra = _reverse[ a ];
-     if( _res_cap[ ra ] > 0 ) {
+     if( _res_cap[ ra ] > _feps ) {
       int v = _source[ ra ];
       int old_rank_v = _rank[ v ];
       if( r < old_rank_v ) {
        // Compute the new rank of v
        LargeCost nrc = ( _cost[ ra ] + _pi[ v ] - pi_u ) / _epsilon;
+       // The flow is epsilon-optimal, hence nrc is at least -1; in
+       // floating point, round-off may take it below, which must not
+       // take the rank of v below r
+       if( nrc < -1 )
+	nrc = -1;
        int new_rank_v = old_rank_v;
        if( nrc < LargeCost( _max_rank ) ) {
 	new_rank_v = r + 1 + static_cast< int >( nrc );
@@ -1323,7 +1370,7 @@ class CostScaling
      }
 
     // Finish search if there are no more active nodes
-    if( _excess[ u ] > 0 ) {
+    if( _excess[ u ] > _feps ) {
      total_excess -= _excess[ u ];
      if( total_excess <= 0 )
       break;
@@ -1357,8 +1404,10 @@ class CostScaling
   BoolVector path_arc( _res_arc_num , false );
   int relabel_cnt = 0;
   int eps_phase_cnt = 0;
-  for( ; _epsilon >= 1 ;
-       _epsilon = _epsilon < _alpha && _epsilon > 1 ? 1 : _epsilon / _alpha ) {
+  for( ; _epsilon >= _eps_min ;
+       _epsilon = _epsilon < _alpha * _eps_min && _epsilon > _eps_min
+		    ? _eps_min
+		    : _epsilon / _alpha ) {
    ++eps_phase_cnt;
 
    // Price refinement heuristic
@@ -1374,7 +1423,7 @@ class CostScaling
    while( true ) {
     // Select an active node (FIFO selection)
     while( _active_nodes.size() > 0 &&
-	   _excess[ _active_nodes.front() ] <= 0 ) {
+	   _excess[ _active_nodes.front() ] <= _feps ) {
      _active_nodes.pop_front();
      }
     if( _active_nodes.size() == 0 )
@@ -1383,13 +1432,13 @@ class CostScaling
 
     // Find an augmenting path from the start node
     int tip = start;
-    while( int( path.size() ) < max_length && _excess[ tip ] >= 0 ) {
+    while( int( path.size() ) < max_length && _excess[ tip ] >= -_feps ) {
      int u;
      LargeCost rc , min_red_cost = ( std::numeric_limits< LargeCost >::max )();
      LargeCost pi_tip = _pi[ tip ];
      int last_out = _first_out[ tip + 1 ];
      for( int a = _next_out[ tip ] ; a != last_out ; ++a ) {
-      if( _res_cap[ a ] > 0 ) {
+      if( _res_cap[ a ] > _feps ) {
        u = _target[ a ];
        rc = _cost[ a ] + pi_tip - _pi[ u ];
        if( rc < 0 ) {
@@ -1416,7 +1465,7 @@ class CostScaling
       }
      last_out = _next_out[ tip ];
      for( int a = _first_out[ tip ] ; a != last_out ; ++a ) {
-      if( _res_cap[ a ] > 0 ) {
+      if( _res_cap[ a ] > _feps ) {
        rc = _cost[ a ] + pi_tip - _pi[ _target[ a ] ];
        if( rc < min_red_cost ) {
 	min_red_cost = rc;
@@ -1452,7 +1501,8 @@ class CostScaling
      _res_cap[ _reverse[ pa ] ] += delta;
      _excess[ u ] -= delta;
      _excess[ v ] += delta;
-     if( _excess[ v ] > 0 && _excess[ v ] <= delta ) {
+     if( _excess[ v ] > _feps &&
+	  _excess[ v ] - delta <= _feps ) {
       _active_nodes.push_back( v );
       }
      }
@@ -1482,8 +1532,10 @@ class CostScaling
   LargeCostVector hyper_cost( _res_node_num );
   int relabel_cnt = 0;
   int eps_phase_cnt = 0;
-  for( ; _epsilon >= 1 ;
-       _epsilon = _epsilon < _alpha && _epsilon > 1 ? 1 : _epsilon / _alpha ) {
+  for( ; _epsilon >= _eps_min ;
+       _epsilon = _epsilon < _alpha * _eps_min && _epsilon > _eps_min
+		    ? _eps_min
+		    : _epsilon / _alpha ) {
    ++eps_phase_cnt;
 
    // Price refinement heuristic
@@ -1508,9 +1560,10 @@ class CostScaling
     pi_n = _pi[ n ];
 
     // Perform push operations if there are admissible arcs
-    if( _excess[ n ] > 0 ) {
+    if( _excess[ n ] > _feps ) {
      for( a = _next_out[ n ] ; a != last_out ; ++a ) {
-      if( _res_cap[ a ] > 0 && _cost[ a ] + pi_n - _pi[ _target[ a ] ] < 0 ) {
+      if( _res_cap[ a ] > _feps &&
+	  _cost[ a ] + pi_n - _pi[ _target[ a ] ] < 0 ) {
        delta = ( std::min )( _res_cap[ a ] , _excess[ n ] );
        t = _target[ a ];
 
@@ -1519,7 +1572,7 @@ class CostScaling
        int last_out_t = _first_out[ t + 1 ];
        LargeCost pi_t = _pi[ t ];
        for( int ta = _next_out[ t ] ; ta != last_out_t ; ++ta ) {
-	if( _res_cap[ ta ] > 0 &&
+	if( _res_cap[ ta ] > _feps &&
 	    _cost[ ta ] + pi_t - _pi[ _target[ ta ] ] < 0 )
 	 ahead += _res_cap[ ta ];
 	if( ahead >= delta )
@@ -1545,11 +1598,12 @@ class CostScaling
 	_res_cap[ _reverse[ a ] ] += delta;
 	_excess[ n ] -= delta;
 	_excess[ t ] += delta;
-	if( _excess[ t ] > 0 && _excess[ t ] <= delta )
+	if( _excess[ t ] > _feps &&
+	    _excess[ t ] - delta <= _feps )
 	 _active_nodes.push_back( t );
         }
 
-       if( _excess[ n ] == 0 ) {
+       if( _excess[ n ] <= _feps ) {
 	_next_out[ n ] = a;
 	goto remove_nodes;
         }
@@ -1559,11 +1613,11 @@ class CostScaling
      }
 
     // Relabel the node if it is still active (or hyper)
-    if( _excess[ n ] > 0 || hyper[ n ] ) {
+    if( _excess[ n ] > _feps || hyper[ n ] ) {
      min_red_cost = hyper[ n ] ? -hyper_cost[ n ]
 			       : ( std::numeric_limits< LargeCost >::max )();
      for( int a = _first_out[ n ] ; a != last_out ; ++a ) {
-      if( _res_cap[ a ] > 0 ) {
+      if( _res_cap[ a ] > _feps ) {
        rc = _cost[ a ] + pi_n - _pi[ _target[ a ] ];
        if( rc < min_red_cost ) {
 	min_red_cost = rc;
@@ -1578,7 +1632,8 @@ class CostScaling
 
     // Remove nodes that are not active nor hyper
    remove_nodes:
-    while( _active_nodes.size() > 0 && _excess[ _active_nodes.front() ] <= 0 &&
+    while( _active_nodes.size() > 0 &&
+	   _excess[ _active_nodes.front() ] <= _feps &&
 	   ! hyper[ _active_nodes.front() ] ) {
      _active_nodes.pop_front();
      }

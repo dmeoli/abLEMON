@@ -100,8 +100,15 @@ struct CapacityScalingDefaultTraits
 /// consider to use the named template parameters instead.
 ///
 /// \warning Both \c V and \c C must be signed number types.
-/// \warning Capacity bounds and supply values must be integer, but
-/// arc costs can be arbitrary real numbers.
+/// \warning With integer types all input data (capacities, supply
+/// values, and costs) must be integer. With floating-point types they
+/// need not be: an excess, a deficit or a residual capacity within 10^6
+/// units in the last place of the largest supply or finite bound is taken
+/// as zero, and a reduced cost within 10^6 units in the last place of the
+/// largest cost as nonnegative, so that rounding errors neither keep the
+/// algorithm sending round-off around for ever nor make a feasible
+/// problem infeasible; the last phase sends any amount above
+/// the former.
 #ifdef DOXYGEN
 template< typename GR , typename V , typename C , typename TR >
 #else
@@ -207,6 +214,12 @@ class CapacityScaling
 
  Value _delta;
  int _factor;
+ // The smallest delta: one for an integer value type, the tolerance on
+ // the flows otherwise, below which an excess or a residual capacity is
+ // zero [see bits/mcf_feasible_flow.h]
+ Value _unit;
+ // The tolerance on the reduced costs
+ Cost _ceps;
  IntVector _pred;
 
  public:
@@ -246,7 +259,7 @@ class CapacityScaling
 	_res_cap( cs._res_cap ) , _excess( cs._excess ) , _pi( cs._pi ) ,
 	_pred( cs._pred ) , _dist( cs._node_num ) { }
 
-  int run( int s , Value delta = 1 ) {
+  int run( int s , Value delta ) {
    RangeMap< int > heap_cross_ref( _node_num , Heap::PRE_HEAP );
    Heap heap( heap_cross_ref );
    heap.push( s , 0 );
@@ -532,7 +545,8 @@ class CapacityScaling
   if( _result != UNBOUNDED )
    return( std::vector< Arc >() );
   return( _mcf_bits::residualCycle(
-    *this , _mcf_bits::residualData( *this , std::vector< int >() ) , _cost ) );
+    *this , _mcf_bits::residualData( *this , std::vector< int >() ) ,
+    _cost ) );
   }
 
  /// \brief The set of nodes that proves the problem infeasible.
@@ -796,6 +810,14 @@ class CapacityScaling
   for( int i = 0 ; i != _root ; ++i ) {
    _sum_supply += _supply[ i ];
    }
+  // A sum within the tolerance on the flows is zero, as in NetworkSimplex:
+  // supplies that sum to zero in decimal sum, in floating point, to a few
+  // units in the last place of either sign
+  const Value feps =
+    _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
+			      _lower , _upper , _supply , _has_lower );
+  if( _sum_supply <= feps && _sum_supply >= -feps )
+   _sum_supply = 0;
   if( _sum_supply > 0 )
    return( INFEASIBLE );
 
@@ -889,6 +911,15 @@ class CapacityScaling
     }
    }
 
+  // The smallest delta, and the tolerance on the reduced costs
+  _unit = std::numeric_limits< Value >::is_exact
+	    ? Value( 1 )
+	    : _mcf_bits::flowTolerance( _root , _first_out , _target ,
+					_forward , _lower , _upper , _supply ,
+					_has_lower );
+  _ceps = _mcf_bits::costTolerance( _root , _first_out , _target , _forward ,
+				    _cost );
+
   // Initialize delta value
   if( _factor > 1 ) {
    // With scaling
@@ -906,12 +937,12 @@ class CapacityScaling
      }
     }
    max_sup = ( std::min )( ( std::min )( max_sup , max_dem ) , max_cap );
-   for( _delta = 1 ; 2 * _delta <= max_sup ; _delta *= 2 )
+   for( _delta = _unit ; 2 * _delta <= max_sup ; _delta *= 2 )
     ;
    }
   else {
    // Without scaling
-   _delta = 1;
+   _delta = _unit;
    }
 
   return( OPTIMAL );
@@ -930,7 +961,7 @@ class CapacityScaling
  ProblemType start() {
   // Execute the algorithm
   ProblemType pt;
-  if( _delta > 1 )
+  if( _delta > _unit )
    pt = startWithScaling();
   else
    pt = startWithoutScaling();
@@ -969,7 +1000,7 @@ class CapacityScaling
      int v = _target[ a ];
      Cost c = _cost[ a ] + _pi[ u ] - _pi[ v ];
      Value rc = _res_cap[ a ];
-     if( c < 0 && rc >= _delta ) {
+     if( c < -_ceps && rc >= _delta ) {
       _excess[ u ] -= rc;
       _excess[ v ] += rc;
       _res_cap[ a ] = 0;
@@ -993,7 +1024,7 @@ class CapacityScaling
    // Find augmenting shortest paths
    while( next_node < int( _excess_nodes.size() ) ) {
     // Check deficit nodes
-    if( _delta > 1 ) {
+    if( _delta > _unit ) {
      bool delta_deficit = false;
      for( ; next_def_node < int( _deficit_nodes.size() ) ; ++next_def_node ) {
       if( _excess[ _deficit_nodes[ next_def_node ] ] <= -_delta ) {
@@ -1008,7 +1039,7 @@ class CapacityScaling
     // Run Dijkstra in the residual network
     s = _excess_nodes[ next_node ];
     if( ( t = _dijkstra.run( s , _delta ) ) == -1 ) {
-     if( _delta > 1 ) {
+     if( _delta > _unit ) {
       ++next_node;
       continue;
       }
@@ -1039,9 +1070,9 @@ class CapacityScaling
      ++next_node;
     }
 
-   if( _delta == 1 )
+   if( _delta == _unit )
     break;
-   _delta = _delta <= _factor ? 1 : _delta / _factor;
+   _delta = _delta <= _factor * _unit ? _unit : _delta / _factor;
    }
 
   return( OPTIMAL );
@@ -1052,7 +1083,7 @@ class CapacityScaling
   // Find excess nodes
   _excess_nodes.clear();
   for( int i = 0 ; i != _node_num ; ++i ) {
-   if( _excess[ i ] > 0 )
+   if( _excess[ i ] >= _unit )
     _excess_nodes.push_back( i );
    }
   if( _excess_nodes.size() == 0 )
@@ -1062,18 +1093,18 @@ class CapacityScaling
   // Find shortest paths
   int s , t;
   ResidualDijkstra _dijkstra( *this );
-  while( _excess[ _excess_nodes[ next_node ] ] > 0 ||
+  while( _excess[ _excess_nodes[ next_node ] ] >= _unit ||
 	 ++next_node < int( _excess_nodes.size() ) ) {
    // Run Dijkstra in the residual network
    s = _excess_nodes[ next_node ];
-   if( ( t = _dijkstra.run( s ) ) == -1 )
+   if( ( t = _dijkstra.run( s , _unit ) ) == -1 )
     return( INFEASIBLE );
 
    // Augment along a shortest path from s to t
    Value d = ( std::min< Value > )( _excess[ s ] , -_excess[ t ] );
    int u = t;
    int a;
-   if( d > 1 ) {
+   if( d > _unit ) {
     while( ( a = _pred[ u ] ) != -1 ) {
      if( _res_cap[ a ] < d )
       d = _res_cap[ a ];
