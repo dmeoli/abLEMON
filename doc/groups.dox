@@ -341,6 +341,12 @@ This group contains the algorithms for finding shortest paths in digraphs
    from a source node when arc lenghts can be either positive or negative,
    but the digraph should not contain directed cycles with negative total
    length.
+ - \ref BidirDijkstra "Bidirectional Dijkstra" algorithm for finding a
+   shortest path between two nodes when all arc lengths are non-negative,
+   by a forward and a backward search that meet halfway.
+ - \ref AStar "A*" algorithm for finding a shortest path between two nodes
+   when all arc lengths are non-negative, by a search guided by an
+   admissible estimate of the distance to the target.
  - \ref Suurballe A successive shortest path algorithm for finding
    arc-disjoint paths between two nodes having minimum total length.
 */

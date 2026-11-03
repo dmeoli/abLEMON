@@ -51,6 +51,7 @@ SET(TESTS
   min_mean_cycle_test
   nagamochi_ibaraki_test
   path_test
+  point_to_point_test
   planarity_test
   radix_sort_test
   random_test

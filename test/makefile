@@ -24,9 +24,9 @@ TESTS = adaptors_test arc_look_up_test bellman_ford_test bfs_test \
 	kruskal_test lgf_reader_writer_test lgf_test macro_test maps_test \
 	matching_test max_cardinality_search_test max_clique_test \
 	max_flow_test min_cost_arborescence_test min_cost_flow_test \
-	min_mean_cycle_test nagamochi_ibaraki_test path_test planarity_test \
-	radix_sort_test random_test suurballe_test time_measure_test \
-	tsp_test unionfind_test vf2_test
+	min_mean_cycle_test nagamochi_ibaraki_test path_test \
+	point_to_point_test planarity_test radix_sort_test random_test \
+	suurballe_test time_measure_test tsp_test unionfind_test vf2_test
 
 # basic directory
 DIR = .

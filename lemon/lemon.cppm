@@ -9,8 +9,10 @@ module;
 #include <lemon/adaptors.h>
 #include <lemon/arg_parser.h>
 #include <lemon/assert.h>
+#include <lemon/astar.h>
 #include <lemon/bellman_ford.h>
 #include <lemon/bfs.h>
+#include <lemon/bidir_dijkstra.h>
 #include <lemon/bin_heap.h>
 #include <lemon/binomial_heap.h>
 #include <lemon/bipartite_matching.h>
@@ -86,6 +88,7 @@ module;
 export module lemon;
 
 export namespace lemon {
+ using ::lemon::AStar;
  using ::lemon::AbsMap;
  using ::lemon::AddMap;
  using ::lemon::AllArcLookUp;
@@ -116,6 +119,7 @@ export namespace lemon {
  using ::lemon::BfsWizardBase;
  using ::lemon::BfsWizardDefaultTraits;
  using ::lemon::BiVariant;
+ using ::lemon::BidirDijkstra;
  using ::lemon::BinHeap;
  using ::lemon::BinomialHeap;
  using ::lemon::BlueNodeNotifierIndicator;
