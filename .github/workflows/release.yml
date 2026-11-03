@@ -1,0 +1,70 @@
+# A tag X.Y.Z makes the release of lemon-ng: its GitHub release, whose notes
+# are the block of the version in NEWS (which must be there, written before
+# the tag), and the recipes of packaging/ at the archive of the tag,
+# committed to master and built by the Packaging workflow.
+
+name: Release
+
+on:
+  push:
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release:
+    name: GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@v4
+
+      - name: Take the notes of the version from NEWS
+        run: |
+          python3 - "${{ github.ref_name }}" > notes.md <<'EOF'
+          import re, sys
+          v = sys.argv[1]
+          text = open('NEWS').read()
+          head = re.compile(r'^\S.*Version (\S+) \(lemon-ng\) released$', re.M)
+          heads = list(head.finditer(text))
+          for i, m in enumerate(heads):
+              if m.group(1) == v:
+                  end = heads[i + 1].start() if i + 1 < len(heads) else None
+                  block = text[m.end():end].strip('\n')
+                  print(re.sub(r'^ {8}', '', block, flags=re.M))
+                  sys.exit(0)
+          sys.exit('NEWS has no block of version %s' % v)
+          EOF
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "${{ github.ref_name }}" --verify-tag
+          --title "lemon-ng ${{ github.ref_name }}" --notes-file notes.md
+
+  packaging:
+    name: Recipes at the release
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Bring the recipes to the archive of the tag
+        run: python3 packaging/bump.py "${{ github.ref_name }}"
+
+      - name: Commit them to master and build them
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "packaging/: the recipes at ${{ github.ref_name }}"
+          git push origin master
+          gh workflow run packaging.yml --ref master
