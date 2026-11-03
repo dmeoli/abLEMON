@@ -100,7 +100,10 @@ find_package(LEMON CONFIG REQUIRED)
 target_link_libraries(main PRIVATE LEMON::lemon)
 ```
 
-while other build systems can use `pkg-config --cflags --libs lemon`. A
+while other build systems can use `pkg-config --cflags --libs lemon`. Built
+with `-DLEMON_BUILD_MODULE=ON` (CMake 3.28, Ninja, and Clang 16 or MSVC
+19.34), it also installs the C++20 module `lemon`: a unit linked to
+`LEMON::lemon_module` can write `import lemon;` in place of the headers. A
 project built with make can instead include `makefile-c`, which defines the
 objects, the `-I` directives and the headers of the library (see
 [INSTALL](INSTALL)).

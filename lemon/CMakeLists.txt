@@ -202,6 +202,26 @@ INSTALL(
   COMPONENT library
 )
 
+# the module lemon, whose interface each importer compiles again, installed
+# with the headers
+IF(LEMON_BUILD_MODULE)
+  ADD_LIBRARY(lemon_module)
+  TARGET_SOURCES(lemon_module PUBLIC FILE_SET CXX_MODULES
+    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} FILES lemon.cppm)
+  TARGET_COMPILE_FEATURES(lemon_module PUBLIC cxx_std_20)
+  TARGET_LINK_LIBRARIES(lemon_module PUBLIC lemon)
+  ADD_LIBRARY(LEMON::lemon_module ALIAS lemon_module)
+  INSTALL(
+    TARGETS lemon_module
+    EXPORT LEMONTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lemon
+    COMPONENT library
+  )
+ENDIF()
+
 INSTALL(
   DIRECTORY . bits concepts
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lemon

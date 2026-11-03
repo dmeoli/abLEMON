@@ -322,6 +322,38 @@ OPTION(LEMON_BUILD_DEMOS "Build the demos and the contributed programs." ON)
 OPTION(LEMON_BUILD_TOOLS "Build and install the tools." ON)
 OPTION(LEMON_BUILD_DOC "Build the documentation." ON)
 
+# the C++20 module lemon [see lemon/lemon.cppm], which needs CMake 3.28 or
+# later, the Ninja or a Visual Studio generator and Clang 16 (with
+# clang-scan-deps) or MSVC 19.34 or later: GCC, up to 15 at least, builds
+# it, but a unit that imports it does not find the operators of the
+# standard library that its templates use; asked for where these are
+# missing, it is turned off with a warning
+OPTION(LEMON_BUILD_MODULE "Build the C++20 module lemon." OFF)
+IF(LEMON_BUILD_MODULE)
+  SET(_lemon_id ${CMAKE_CXX_COMPILER_ID})
+  SET(_lemon_ver ${CMAKE_CXX_COMPILER_VERSION})
+  IF(CMAKE_VERSION VERSION_LESS 3.28)
+    SET(_lemon_why "CMake ${CMAKE_VERSION} is older than 3.28")
+  ELSEIF(NOT CMAKE_GENERATOR MATCHES "^(Ninja|Visual Studio)")
+    SET(_lemon_why "the generator ${CMAKE_GENERATOR} does not build modules")
+  ELSEIF(NOT ((_lemon_id STREQUAL "Clang"
+                AND _lemon_ver VERSION_GREATER_EQUAL 16)
+              OR (_lemon_id STREQUAL "MSVC"
+                  AND _lemon_ver VERSION_GREATER_EQUAL 19.34)))
+    SET(_lemon_why "the compiler is ${_lemon_id} ${_lemon_ver}, and Clang 16 \
+or MSVC 19.34 is needed")
+  ELSEIF(_lemon_id STREQUAL "Clang" AND NOT CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS)
+    SET(_lemon_why "clang-scan-deps is not there")
+  ENDIF()
+  IF(_lemon_why)
+    MESSAGE(WARNING "LEMON_BUILD_MODULE is turned OFF: ${_lemon_why}")
+    SET(LEMON_BUILD_MODULE OFF)
+  ELSE()
+    # the scan of the dependencies of modules, for the library and the tests
+    CMAKE_POLICY(SET CMP0155 NEW)
+  ENDIF()
+ENDIF()
+
 ADD_SUBDIRECTORY(lemon)
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   IF(LEMON_BUILD_DEMOS)

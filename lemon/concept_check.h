@@ -26,6 +26,8 @@
 #ifndef LEMON_CONCEPT_CHECK_H
  #define LEMON_CONCEPT_CHECK_H
 
+ #include <lemon/config.h>
+
 namespace lemon
 {
 
@@ -45,7 +47,7 @@ struct IgnoreUnusedVariableWarning
 }
 
 ///\e
-const _concept_bits::IgnoreUnusedVariableWarning
+LEMON_CONSTANT _concept_bits::IgnoreUnusedVariableWarning
   ignore_unused_variable_warning =
     _concept_bits::IgnoreUnusedVariableWarning();
 

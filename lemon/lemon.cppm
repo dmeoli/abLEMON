@@ -1,0 +1,650 @@
+// The interface of the C++20 module lemon, written by
+// scripts/module_exports.py, not by hand: a translation unit
+// can write "import lemon;" in place of the #include of the
+// headers, but those of the LP and MIP backends and those whose
+// macros it uses (e.g., DIGRAPH_TYPEDEFS of lemon/core.h).
+
+module;
+
+#include <lemon/adaptors.h>
+#include <lemon/arg_parser.h>
+#include <lemon/assert.h>
+#include <lemon/bellman_ford.h>
+#include <lemon/bfs.h>
+#include <lemon/bin_heap.h>
+#include <lemon/binomial_heap.h>
+#include <lemon/bucket_heap.h>
+#include <lemon/capacity_scaling.h>
+#include <lemon/christofides_tsp.h>
+#include <lemon/circulation.h>
+#include <lemon/color.h>
+#include <lemon/compact_graph.h>
+#include <lemon/concept_check.h>
+#include <lemon/connectivity.h>
+#include <lemon/core.h>
+#include <lemon/cost_scaling.h>
+#include <lemon/counter.h>
+#include <lemon/cycle_canceling.h>
+#include <lemon/dfs.h>
+#include <lemon/dheap.h>
+#include <lemon/dijkstra.h>
+#include <lemon/dim2.h>
+#include <lemon/dimacs.h>
+#include <lemon/edge_set.h>
+#include <lemon/edmonds_karp.h>
+#include <lemon/elevator.h>
+#include <lemon/error.h>
+#include <lemon/euler.h>
+#include <lemon/fib_heap.h>
+#include <lemon/fractional_matching.h>
+#include <lemon/full_graph.h>
+#include <lemon/gomory_hu.h>
+#include <lemon/graph_to_eps.h>
+#include <lemon/greedy_tsp.h>
+#include <lemon/grid_graph.h>
+#include <lemon/grosso_locatelli_pullan_mc.h>
+#include <lemon/hao_orlin.h>
+#include <lemon/hartmann_orlin_mmc.h>
+#include <lemon/howard_mmc.h>
+#include <lemon/hypercube_graph.h>
+#include <lemon/insertion_tsp.h>
+#include <lemon/karp_mmc.h>
+#include <lemon/kruskal.h>
+#include <lemon/lgf_reader.h>
+#include <lemon/lgf_writer.h>
+#include <lemon/list_graph.h>
+#include <lemon/lp_base.h>
+#include <lemon/lp_skeleton.h>
+#include <lemon/maps.h>
+#include <lemon/matching.h>
+#include <lemon/math.h>
+#include <lemon/max_cardinality_search.h>
+#include <lemon/min_cost_arborescence.h>
+#include <lemon/nagamochi_ibaraki.h>
+#include <lemon/nauty_reader.h>
+#include <lemon/nearest_neighbor_tsp.h>
+#include <lemon/network_simplex.h>
+#include <lemon/opt2_tsp.h>
+#include <lemon/pairing_heap.h>
+#include <lemon/path.h>
+#include <lemon/planarity.h>
+#include <lemon/preflow.h>
+#include <lemon/quad_heap.h>
+#include <lemon/radix_heap.h>
+#include <lemon/radix_sort.h>
+#include <lemon/random.h>
+#include <lemon/smart_graph.h>
+#include <lemon/static_graph.h>
+#include <lemon/suurballe.h>
+#include <lemon/time_measure.h>
+#include <lemon/tolerance.h>
+#include <lemon/unionfind.h>
+#include <lemon/vf2.h>
+#include <lemon/vf2pp.h>
+
+export module lemon;
+
+export namespace lemon {
+ using ::lemon::AbsMap;
+ using ::lemon::AddMap;
+ using ::lemon::AllArcLookUp;
+ using ::lemon::AlterationNotifier;
+ using ::lemon::AndMap;
+ using ::lemon::ArcLookUp;
+ using ::lemon::ArcNotifierIndicator;
+ using ::lemon::ArcNumTagIndicator;
+ using ::lemon::ArcSetExtender;
+ using ::lemon::ArgParser;
+ using ::lemon::ArgParserException;
+ using ::lemon::ArrayMap;
+ using ::lemon::BLACK;
+ using ::lemon::BLUE;
+ using ::lemon::BackwardMap;
+ using ::lemon::BellmanFord;
+ using ::lemon::BellmanFordDefaultOperationTraits;
+ using ::lemon::BellmanFordDefaultTraits;
+ using ::lemon::BellmanFordWizard;
+ using ::lemon::BellmanFordWizardBase;
+ using ::lemon::BellmanFordWizardDefaultTraits;
+ using ::lemon::Bfs;
+ using ::lemon::BfsDefaultTraits;
+ using ::lemon::BfsVisit;
+ using ::lemon::BfsVisitDefaultTraits;
+ using ::lemon::BfsVisitor;
+ using ::lemon::BfsWizard;
+ using ::lemon::BfsWizardBase;
+ using ::lemon::BfsWizardDefaultTraits;
+ using ::lemon::BiVariant;
+ using ::lemon::BinHeap;
+ using ::lemon::BinomialHeap;
+ using ::lemon::BlueNodeNotifierIndicator;
+ using ::lemon::BpGraphCopy;
+ using ::lemon::BpGraphExtender;
+ using ::lemon::BpGraphReader;
+ using ::lemon::BpGraphWriter;
+ using ::lemon::BucketHeap;
+ using ::lemon::BuildTagIndicator;
+ using ::lemon::CYAN;
+ using ::lemon::CapacityScaling;
+ using ::lemon::CapacityScalingDefaultTraits;
+ using ::lemon::ChristofidesTsp;
+ using ::lemon::Circulation;
+ using ::lemon::CirculationDefaultTraits;
+ using ::lemon::Color;
+ using ::lemon::CombineMap;
+ using ::lemon::CompactDigraph;
+ using ::lemon::CompactDigraphBase;
+ using ::lemon::ComposeMap;
+ using ::lemon::ConArcIt;
+ using ::lemon::ConEdgeIt;
+ using ::lemon::Const;
+ using ::lemon::ConstMap;
+ using ::lemon::ConvertMap;
+ using ::lemon::CostScaling;
+ using ::lemon::CostScalingDefaultTraits;
+ using ::lemon::Counter;
+ using ::lemon::CrossRefMap;
+ using ::lemon::CycleCanceling;
+ using ::lemon::DARK_BLUE;
+ using ::lemon::DARK_CYAN;
+ using ::lemon::DARK_GREEN;
+ using ::lemon::DARK_MAGENTA;
+ using ::lemon::DARK_RED;
+ using ::lemon::DARK_YELLOW;
+ using ::lemon::DHeap;
+ using ::lemon::DefaultGraphToEpsTraits;
+ using ::lemon::DefaultMap;
+ using ::lemon::DefaultMapSelector;
+ using ::lemon::Dfs;
+ using ::lemon::DfsDefaultTraits;
+ using ::lemon::DfsVisit;
+ using ::lemon::DfsVisitDefaultTraits;
+ using ::lemon::DfsVisitor;
+ using ::lemon::DfsWizard;
+ using ::lemon::DfsWizardBase;
+ using ::lemon::DfsWizardDefaultTraits;
+ using ::lemon::DiEulerIt;
+ using ::lemon::DigraphAdaptorBase;
+ using ::lemon::DigraphAdaptorExtender;
+ using ::lemon::DigraphCopy;
+ using ::lemon::DigraphExtender;
+ using ::lemon::DigraphReader;
+ using ::lemon::DigraphWriter;
+ using ::lemon::Dijkstra;
+ using ::lemon::DijkstraDefaultOperationTraits;
+ using ::lemon::DijkstraDefaultTraits;
+ using ::lemon::DijkstraWizard;
+ using ::lemon::DijkstraWizardBase;
+ using ::lemon::DijkstraWizardDefaultTraits;
+ using ::lemon::DimacsDescriptor;
+ using ::lemon::DivMap;
+ using ::lemon::DynArcLookUp;
+ using ::lemon::E;
+ using ::lemon::EdgeNotifierIndicator;
+ using ::lemon::EdgeNumTagIndicator;
+ using ::lemon::EdgeSetExtender;
+ using ::lemon::EdmondsKarp;
+ using ::lemon::EdmondsKarpDefaultTraits;
+ using ::lemon::Elevator;
+ using ::lemon::EqualMap;
+ using ::lemon::EulerIt;
+ using ::lemon::Exception;
+ using ::lemon::ExtendFindEnum;
+ using ::lemon::ExtendedCompactDigraphBase;
+ using ::lemon::ExtendedFullBpGraphBase;
+ using ::lemon::ExtendedFullDigraphBase;
+ using ::lemon::ExtendedFullGraphBase;
+ using ::lemon::ExtendedGridGraphBase;
+ using ::lemon::ExtendedHypercubeGraphBase;
+ using ::lemon::ExtendedListBpGraphBase;
+ using ::lemon::ExtendedListDigraphBase;
+ using ::lemon::ExtendedListGraphBase;
+ using ::lemon::ExtendedSmartBpGraphBase;
+ using ::lemon::ExtendedSmartDigraphBase;
+ using ::lemon::ExtendedSmartGraphBase;
+ using ::lemon::ExtendedStaticDigraphBase;
+ using ::lemon::False;
+ using ::lemon::FalseMap;
+ using ::lemon::FibHeap;
+ using ::lemon::FilterArcs;
+ using ::lemon::FilterEdges;
+ using ::lemon::FilterNodes;
+ using ::lemon::FindArcTagIndicator;
+ using ::lemon::FindEdgeTagIndicator;
+ using ::lemon::ForkMap;
+ using ::lemon::FormatError;
+ using ::lemon::ForwardMap;
+ using ::lemon::FullBpGraph;
+ using ::lemon::FullBpGraphBase;
+ using ::lemon::FullDigraph;
+ using ::lemon::FullDigraphBase;
+ using ::lemon::FullGraph;
+ using ::lemon::FullGraphBase;
+ using ::lemon::FunctorToMap;
+ using ::lemon::GREEN;
+ using ::lemon::GREY;
+ using ::lemon::GomoryHu;
+ using ::lemon::GraphAdaptorBase;
+ using ::lemon::GraphAdaptorExtender;
+ using ::lemon::GraphCopy;
+ using ::lemon::GraphExtender;
+ using ::lemon::GraphReader;
+ using ::lemon::GraphToEps;
+ using ::lemon::GraphWriter;
+ using ::lemon::GreedyTsp;
+ using ::lemon::GridGraph;
+ using ::lemon::GridGraphBase;
+ using ::lemon::GrossoLocatelliPullanMc;
+ using ::lemon::HaoOrlin;
+ using ::lemon::HartmannOrlinMmc;
+ using ::lemon::HartmannOrlinMmcDefaultTraits;
+ using ::lemon::HeapUnionFind;
+ using ::lemon::HowardMmc;
+ using ::lemon::HowardMmcDefaultTraits;
+ using ::lemon::HypercubeGraph;
+ using ::lemon::HypercubeGraphBase;
+ using ::lemon::INDUCED;
+ using ::lemon::INVALID;
+ using ::lemon::ISOMORPH;
+ using ::lemon::IdMap;
+ using ::lemon::IdentityMap;
+ using ::lemon::InDegMap;
+ using ::lemon::InsertionTsp;
+ using ::lemon::Invalid;
+ using ::lemon::InvalidType;
+ using ::lemon::IoError;
+ using ::lemon::ItemSetTraits;
+ using ::lemon::IterableBoolMap;
+ using ::lemon::IterableIntMap;
+ using ::lemon::IterableValueMap;
+ using ::lemon::KarpMmc;
+ using ::lemon::KarpMmcDefaultTraits;
+ using ::lemon::LN10;
+ using ::lemon::LN2;
+ using ::lemon::LOG10E;
+ using ::lemon::LOG2E;
+ using ::lemon::LemonItWrapper;
+ using ::lemon::LemonRangeWrapper1;
+ using ::lemon::LemonRangeWrapper2;
+ using ::lemon::LessMap;
+ using ::lemon::LgfContents;
+ using ::lemon::LinkedElevator;
+ using ::lemon::ListArcSet;
+ using ::lemon::ListArcSetBase;
+ using ::lemon::ListBpGraph;
+ using ::lemon::ListBpGraphBase;
+ using ::lemon::ListDigraph;
+ using ::lemon::ListDigraphBase;
+ using ::lemon::ListEdgeSet;
+ using ::lemon::ListEdgeSetBase;
+ using ::lemon::ListGraph;
+ using ::lemon::ListGraphBase;
+ using ::lemon::ListPath;
+ using ::lemon::LoggerBoolMap;
+ using ::lemon::LpBase;
+ using ::lemon::LpSkeleton;
+ using ::lemon::LpSolver;
+ using ::lemon::MAGENTA;
+ using ::lemon::MapBase;
+ using ::lemon::MapExtender;
+ using ::lemon::MapToFunctor;
+ using ::lemon::MapTraits;
+ using ::lemon::MappingType;
+ using ::lemon::MatrixMapTraits;
+ using ::lemon::MaxCardinalitySearch;
+ using ::lemon::MaxCardinalitySearchDefaultTraits;
+ using ::lemon::MaxFractionalMatching;
+ using ::lemon::MaxFractionalMatchingDefaultTraits;
+ using ::lemon::MaxMatching;
+ using ::lemon::MaxWeightedFractionalMatching;
+ using ::lemon::MaxWeightedMatching;
+ using ::lemon::MaxWeightedPerfectFractionalMatching;
+ using ::lemon::MaxWeightedPerfectMatching;
+ using ::lemon::MinCostArborescence;
+ using ::lemon::MinCostArborescenceDefaultTraits;
+ using ::lemon::MipSkeleton;
+ using ::lemon::MipSolver;
+ using ::lemon::MulMap;
+ using ::lemon::NagamochiIbaraki;
+ using ::lemon::NagamochiIbarakiDefaultTraits;
+ using ::lemon::NearestNeighborTsp;
+ using ::lemon::NegMap;
+ using ::lemon::NegWriteMap;
+ using ::lemon::NetworkSimplex;
+ using ::lemon::NoCounter;
+ using ::lemon::NoTimeReport;
+ using ::lemon::NodeNotifierIndicator;
+ using ::lemon::NodeNumTagIndicator;
+ using ::lemon::NotMap;
+ using ::lemon::NotWriteMap;
+ using ::lemon::NullMap;
+ using ::lemon::Opt2Tsp;
+ using ::lemon::OrMap;
+ using ::lemon::Orienter;
+ using ::lemon::OrienterBase;
+ using ::lemon::OutDegMap;
+ using ::lemon::PI;
+ using ::lemon::PI_2;
+ using ::lemon::PI_4;
+ using ::lemon::PairingHeap;
+ using ::lemon::Palette;
+ using ::lemon::Path;
+ using ::lemon::PathNodeIt;
+ using ::lemon::PlanarColoring;
+ using ::lemon::PlanarDrawing;
+ using ::lemon::PlanarEmbedding;
+ using ::lemon::PotentialDifferenceMap;
+ using ::lemon::PredMapPath;
+ using ::lemon::PredMatrixMapPath;
+ using ::lemon::Preflow;
+ using ::lemon::PreflowDefaultTraits;
+ using ::lemon::QuadHeap;
+ using ::lemon::RED;
+ using ::lemon::RadixHeap;
+ using ::lemon::Random;
+ using ::lemon::Random32;
+ using ::lemon::Random64;
+ using ::lemon::RangeIdMap;
+ using ::lemon::RangeMap;
+ using ::lemon::RedNodeNotifierIndicator;
+ using ::lemon::ResidualDigraph;
+ using ::lemon::ReverseDigraph;
+ using ::lemon::ReverseDigraphBase;
+ using ::lemon::SQRT1_2;
+ using ::lemon::SQRT2;
+ using ::lemon::SUBGRAPH;
+ using ::lemon::ScaleMap;
+ using ::lemon::ScaleWriteMap;
+ using ::lemon::SectionReader;
+ using ::lemon::SectionWriter;
+ using ::lemon::ShiftMap;
+ using ::lemon::ShiftWriteMap;
+ using ::lemon::SimpleBucketHeap;
+ using ::lemon::SimplePath;
+ using ::lemon::SkeletonSolverBase;
+ using ::lemon::SmartArcSet;
+ using ::lemon::SmartArcSetBase;
+ using ::lemon::SmartBpGraph;
+ using ::lemon::SmartBpGraphBase;
+ using ::lemon::SmartDigraph;
+ using ::lemon::SmartDigraphBase;
+ using ::lemon::SmartEdgeSet;
+ using ::lemon::SmartEdgeSetBase;
+ using ::lemon::SmartGraph;
+ using ::lemon::SmartGraphBase;
+ using ::lemon::SourceMap;
+ using ::lemon::SparseMap;
+ using ::lemon::SplitNodes;
+ using ::lemon::SplitNodesBase;
+ using ::lemon::StaticDigraph;
+ using ::lemon::StaticDigraphBase;
+ using ::lemon::StaticPath;
+ using ::lemon::SubDigraph;
+ using ::lemon::SubDigraphBase;
+ using ::lemon::SubGraph;
+ using ::lemon::SubGraphBase;
+ using ::lemon::SubMap;
+ using ::lemon::SubMapExtender;
+ using ::lemon::Suurballe;
+ using ::lemon::SuurballeDefaultTraits;
+ using ::lemon::TargetMap;
+ using ::lemon::TimeReport;
+ using ::lemon::TimeStamp;
+ using ::lemon::Timer;
+ using ::lemon::Tolerance;
+ using ::lemon::True;
+ using ::lemon::TrueMap;
+ using ::lemon::UndirectedTagIndicator;
+ using ::lemon::Undirector;
+ using ::lemon::UndirectorBase;
+ using ::lemon::UnionFind;
+ using ::lemon::UnionFindEnum;
+ using ::lemon::Variant;
+ using ::lemon::VariantTypeMap;
+ using ::lemon::VectorMap;
+ using ::lemon::Vf2;
+ using ::lemon::Vf2Wizard;
+ using ::lemon::Vf2WizardBase;
+ using ::lemon::Vf2pp;
+ using ::lemon::Vf2ppWizard;
+ using ::lemon::Vf2ppWizardBase;
+ using ::lemon::WHITE;
+ using ::lemon::Wrap;
+ using ::lemon::YELLOW;
+ using ::lemon::_NoSubCounter;
+ using ::lemon::_SubCounter;
+ using ::lemon::_addArcEdge;
+ using ::lemon::_readDimacs;
+ using ::lemon::absMap;
+ using ::lemon::acyclic;
+ using ::lemon::addMap;
+ using ::lemon::andMap;
+ using ::lemon::assert_fail_abort;
+ using ::lemon::backwardMap;
+ using ::lemon::bellmanFord;
+ using ::lemon::bfs;
+ using ::lemon::biEdgeConnected;
+ using ::lemon::biEdgeConnectedComponents;
+ using ::lemon::biEdgeConnectedCutEdges;
+ using ::lemon::biNodeConnected;
+ using ::lemon::biNodeConnectedComponents;
+ using ::lemon::biNodeConnectedCutNodes;
+ using ::lemon::bipartite;
+ using ::lemon::bipartitePartitions;
+ using ::lemon::bpGraphCopy;
+ using ::lemon::bpGraphReader;
+ using ::lemon::bpGraphWriter;
+ using ::lemon::checkConcept;
+ using ::lemon::checkPath;
+ using ::lemon::checkPlanarity;
+ using ::lemon::checkedTopologicalSort;
+ using ::lemon::combineMap;
+ using ::lemon::composeMap;
+ using ::lemon::connected;
+ using ::lemon::connectedComponents;
+ using ::lemon::constMap;
+ using ::lemon::convertMap;
+ using ::lemon::copyPath;
+ using ::lemon::countArcs;
+ using ::lemon::countBiEdgeConnectedComponents;
+ using ::lemon::countBiNodeConnectedComponents;
+ using ::lemon::countBlueNodes;
+ using ::lemon::countConnectedComponents;
+ using ::lemon::countEdges;
+ using ::lemon::countInArcs;
+ using ::lemon::countIncEdges;
+ using ::lemon::countItems;
+ using ::lemon::countNodeDegree;
+ using ::lemon::countNodes;
+ using ::lemon::countOutArcs;
+ using ::lemon::countRedNodes;
+ using ::lemon::countStronglyConnectedComponents;
+ using ::lemon::dag;
+ using ::lemon::dfs;
+ using ::lemon::digraphCopy;
+ using ::lemon::digraphReader;
+ using ::lemon::digraphWriter;
+ using ::lemon::dijkstra;
+ using ::lemon::dimacsType;
+ using ::lemon::disable_if;
+ using ::lemon::disable_if_c;
+ using ::lemon::distantBW;
+ using ::lemon::distantColor;
+ using ::lemon::divMap;
+ using ::lemon::dummy;
+ using ::lemon::enable_if;
+ using ::lemon::enable_if_c;
+ using ::lemon::equalMap;
+ using ::lemon::eulerian;
+ using ::lemon::exists;
+ using ::lemon::falseMap;
+ using ::lemon::filterArcs;
+ using ::lemon::filterEdges;
+ using ::lemon::filterNodes;
+ using ::lemon::findArc;
+ using ::lemon::findEdge;
+ using ::lemon::forkMap;
+ using ::lemon::forwardMap;
+ using ::lemon::function_requires;
+ using ::lemon::functorToMap;
+ using ::lemon::graphCopy;
+ using ::lemon::graphReader;
+ using ::lemon::graphToEps;
+ using ::lemon::graphWriter;
+ using ::lemon::idMap;
+ using ::lemon::identityMap;
+ using ::lemon::ignore_unused_variable_warning;
+ using ::lemon::isNaN;
+ using ::lemon::kruskal;
+ using ::lemon::lazy_disable_if;
+ using ::lemon::lazy_disable_if_c;
+ using ::lemon::lazy_enable_if;
+ using ::lemon::lazy_enable_if_c;
+ using ::lemon::lessMap;
+ using ::lemon::loggerBoolMap;
+ using ::lemon::loopFree;
+ using ::lemon::mapCompare;
+ using ::lemon::mapCopy;
+ using ::lemon::mapCount;
+ using ::lemon::mapCountIf;
+ using ::lemon::mapFill;
+ using ::lemon::mapFind;
+ using ::lemon::mapFindIf;
+ using ::lemon::mapMax;
+ using ::lemon::mapMaxValue;
+ using ::lemon::mapMin;
+ using ::lemon::mapMinValue;
+ using ::lemon::mapToFunctor;
+ using ::lemon::minCostArborescence;
+ using ::lemon::mulMap;
+ using ::lemon::negMap;
+ using ::lemon::negWriteMap;
+ using ::lemon::notMap;
+ using ::lemon::notWriteMap;
+ using ::lemon::nullMap;
+ using ::lemon::operator*;
+ using ::lemon::operator+;
+ using ::lemon::operator-;
+ using ::lemon::operator/;
+ using ::lemon::operator<<;
+ using ::lemon::operator<=;
+ using ::lemon::operator==;
+ using ::lemon::operator>=;
+ using ::lemon::orMap;
+ using ::lemon::orienter;
+ using ::lemon::parallelFree;
+ using ::lemon::pathCopy;
+ using ::lemon::pathNodes;
+ using ::lemon::pathSource;
+ using ::lemon::pathTarget;
+ using ::lemon::potentialDifferenceMap;
+ using ::lemon::radixSort;
+ using ::lemon::rangeIdMap;
+ using ::lemon::rangeMap;
+ using ::lemon::readDimacsCap;
+ using ::lemon::readDimacsMat;
+ using ::lemon::readDimacsMax;
+ using ::lemon::readDimacsMin;
+ using ::lemon::readDimacsSp;
+ using ::lemon::readNautyGraph;
+ using ::lemon::residualDigraph;
+ using ::lemon::reverseDigraph;
+ using ::lemon::rnd;
+ using ::lemon::round;
+ using ::lemon::runningTimeTest;
+ using ::lemon::scaleMap;
+ using ::lemon::scaleWriteMap;
+ using ::lemon::sectionReader;
+ using ::lemon::sectionWriter;
+ using ::lemon::shiftMap;
+ using ::lemon::shiftWriteMap;
+ using ::lemon::simpleGraph;
+ using ::lemon::sourceMap;
+ using ::lemon::sparseMap;
+ using ::lemon::splitNodes;
+ using ::lemon::stableRadixSort;
+ using ::lemon::stronglyConnected;
+ using ::lemon::stronglyConnectedComponents;
+ using ::lemon::stronglyConnectedCutArcs;
+ using ::lemon::subDigraph;
+ using ::lemon::subGraph;
+ using ::lemon::subMap;
+ using ::lemon::targetMap;
+ using ::lemon::topologicalSort;
+ using ::lemon::tree;
+ using ::lemon::trueMap;
+ using ::lemon::undirected;
+ using ::lemon::undirector;
+ using ::lemon::vf2;
+ using ::lemon::vf2pp;
+ using ::lemon::writeDimacsMat;
+ namespace bits {
+  using ::lemon::bits::Lock;
+  namespace vf2 {
+   using ::lemon::bits::vf2::AlwaysEq;
+   using ::lemon::bits::vf2::BfsLeaveOrder;
+   using ::lemon::bits::vf2::MapEq;
+  }
+ }
+ namespace concepts {
+  using ::lemon::concepts::AlterableBpGraphComponent;
+  using ::lemon::concepts::AlterableDigraphComponent;
+  using ::lemon::concepts::AlterableGraphComponent;
+  using ::lemon::concepts::BaseBpGraphComponent;
+  using ::lemon::concepts::BaseDigraphComponent;
+  using ::lemon::concepts::BaseGraphComponent;
+  using ::lemon::concepts::ClearableBpGraphComponent;
+  using ::lemon::concepts::ClearableDigraphComponent;
+  using ::lemon::concepts::ClearableGraphComponent;
+  using ::lemon::concepts::Digraph;
+  using ::lemon::concepts::ErasableBpGraphComponent;
+  using ::lemon::concepts::ErasableDigraphComponent;
+  using ::lemon::concepts::ErasableGraphComponent;
+  using ::lemon::concepts::ExtendableBpGraphComponent;
+  using ::lemon::concepts::ExtendableDigraphComponent;
+  using ::lemon::concepts::ExtendableGraphComponent;
+  using ::lemon::concepts::Graph;
+  using ::lemon::concepts::GraphIncIt;
+  using ::lemon::concepts::GraphItem;
+  using ::lemon::concepts::GraphItemIt;
+  using ::lemon::concepts::GraphMap;
+  using ::lemon::concepts::IDableBpGraphComponent;
+  using ::lemon::concepts::IDableDigraphComponent;
+  using ::lemon::concepts::IDableGraphComponent;
+  using ::lemon::concepts::IterableBpGraphComponent;
+  using ::lemon::concepts::IterableDigraphComponent;
+  using ::lemon::concepts::IterableGraphComponent;
+  using ::lemon::concepts::MappableBpGraphComponent;
+  using ::lemon::concepts::MappableDigraphComponent;
+  using ::lemon::concepts::MappableGraphComponent;
+  using ::lemon::concepts::Path;
+  using ::lemon::concepts::PathDumper;
+  using ::lemon::concepts::ReadMap;
+  using ::lemon::concepts::ReadWriteMap;
+  using ::lemon::concepts::ReferenceMap;
+  using ::lemon::concepts::WriteMap;
+ }
+ namespace dim2 {
+  using ::lemon::dim2::Bezier1;
+  using ::lemon::dim2::Bezier2;
+  using ::lemon::dim2::Bezier3;
+  using ::lemon::dim2::BezierBase;
+  using ::lemon::dim2::Box;
+  using ::lemon::dim2::ConstXMap;
+  using ::lemon::dim2::ConstYMap;
+  using ::lemon::dim2::NormSquareMap;
+  using ::lemon::dim2::Point;
+  using ::lemon::dim2::XMap;
+  using ::lemon::dim2::YMap;
+  using ::lemon::dim2::makePoint;
+  using ::lemon::dim2::normSquareMap;
+  using ::lemon::dim2::operator*;
+  using ::lemon::dim2::operator<<;
+  using ::lemon::dim2::operator>>;
+  using ::lemon::dim2::rot180;
+  using ::lemon::dim2::rot270;
+  using ::lemon::dim2::rot90;
+  using ::lemon::dim2::xMap;
+  using ::lemon::dim2::yMap;
+ }
+}

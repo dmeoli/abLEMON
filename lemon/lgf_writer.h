@@ -281,7 +281,7 @@ inline bool isEscaped( char c )
  return( c == '\\' || c == '\"' || c == '\'' || c == '\a' || c == '\b' );
  }
 
-inline static void writeEscape( std::ostream & os , char c )
+inline void writeEscape( std::ostream & os , char c )
 {
  switch( c ) {
   case '\\':

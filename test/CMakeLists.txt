@@ -60,6 +60,14 @@ SET(TESTS
   vf2_test
 )
 
+# a unit that imports the module lemon instead of including the headers
+IF(LEMON_BUILD_MODULE)
+  ADD_EXECUTABLE(module_test module_test.cc)
+  TARGET_LINK_LIBRARIES(module_test lemon_module)
+  ADD_TEST(NAME module_test COMMAND module_test)
+  ADD_DEPENDENCIES(check module_test)
+ENDIF()
+
 IF(LEMON_HAVE_LP)
   IF(${CMAKE_BUILD_TYPE} STREQUAL "Maintainer")
     ADD_EXECUTABLE(lp_test lp_test.cc)
