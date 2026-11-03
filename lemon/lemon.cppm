@@ -209,6 +209,7 @@ export namespace lemon {
  using ::lemon::ExtendedSmartDigraphBase;
  using ::lemon::ExtendedSmartGraphBase;
  using ::lemon::ExtendedStaticDigraphBase;
+ using ::lemon::ExtendedStaticGraphBase;
  using ::lemon::False;
  using ::lemon::FalseMap;
  using ::lemon::FibHeap;
@@ -386,6 +387,8 @@ export namespace lemon {
  using ::lemon::SplitNodesBase;
  using ::lemon::StaticDigraph;
  using ::lemon::StaticDigraphBase;
+ using ::lemon::StaticGraph;
+ using ::lemon::StaticGraphBase;
  using ::lemon::StaticPath;
  using ::lemon::SubDigraph;
  using ::lemon::SubDigraphBase;

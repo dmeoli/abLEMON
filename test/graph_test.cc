@@ -16,9 +16,14 @@
  *
  */
 
+#include <algorithm>
+#include <vector>
+
 #include <lemon/concepts/graph.h>
 #include <lemon/list_graph.h>
 #include <lemon/smart_graph.h>
+#include <lemon/static_graph.h>
+#include <lemon/random.h>
 #include <lemon/full_graph.h>
 #include <lemon/grid_graph.h>
 #include <lemon/hypercube_graph.h>
@@ -361,6 +366,8 @@ void checkConcepts()
   }
  {  // Checking SmartGraph
   checkConcept< Graph , SmartGraph >();
+  checkConcept< Graph , StaticGraph >();
+  checkConcept< ClearableGraphComponent<> , StaticGraph >();
   checkConcept< AlterableGraphComponent<> , SmartGraph >();
   checkConcept< ExtendableGraphComponent<> , SmartGraph >();
   checkConcept< ClearableGraphComponent<> , SmartGraph >();
@@ -568,6 +575,107 @@ void checkHypercubeGraph( int dim )
  checkGraphEdgeMap( G );
  }
 
+// StaticGraph, built from a random ListGraph with loops and parallel edges
+// by GraphCopy and by its list of edges, against that graph
+void checkStaticGraph()
+{
+ GRAPH_TYPEDEFS( StaticGraph );
+
+ StaticGraph G;
+ checkGraphNodeList( G , 0 );
+ checkGraphEdgeList( G , 0 );
+ checkGraphArcList( G , 0 );
+
+ for( int round = 0 ; round < 3 ; ++round ) {
+  ListGraph L;
+  std::vector< ListGraph::Node > ln;
+  int n = 1 + rnd[ 12 ];
+  for( int i = 0 ; i < n ; ++i ) {
+   ln.push_back( L.addNode() );
+   }
+  std::vector< std::pair< int , int > > ends;
+  for( int k = rnd[ 3 * n ] ; k > 0 ; --k ) {
+   int i = rnd[ n ] , j = rnd[ n ];
+   L.addEdge( ln[ i ] , ln[ j ] );
+   ends.push_back( std::make_pair( i , j ) );
+   }
+
+  // a map of G, which the builds below clear and rebuild
+  IntNodeMap degree( G , 0 );
+  ListGraph::NodeMap< Node > nref( L );
+  ListGraph::EdgeMap< Edge > eref( L );
+  for( int how = 0 ; how < 2 ; ++how ) {
+   if( how == 0 ) {
+    graphCopy( L , G ).nodeRef( nref ).edgeRef( eref ).run();
+    }
+   else {
+    G.build( n , ends.begin() , ends.end() );
+    int k = 0;
+    for( int i = 0 ; i < n ; ++i ) {
+     nref[ ln[ i ] ] = G.node( i );
+     }
+    // the edges of L, in the order in which they were added
+    std::vector< ListGraph::Edge > le;
+    for( ListGraph::EdgeIt e( L ) ; e != INVALID ; ++e ) {
+     le.push_back( e );
+     }
+    std::sort( le.begin() , le.end() ,
+	       [ &L ]( ListGraph::Edge a , ListGraph::Edge b ) {
+		return( L.id( a ) < L.id( b ) );
+	        } );
+    for( ListGraph::Edge e : le ) {
+     eref[ e ] = G.edge( k++ );
+     }
+    }
+   checkGraphNodeList( G , n );
+   checkGraphEdgeList( G , int( ends.size() ) );
+   checkGraphArcList( G , 2 * int( ends.size() ) );
+   for( ListGraph::EdgeIt e( L ) ; e != INVALID ; ++e ) {
+    check( G.u( eref[ e ] ) == nref[ L.u( e ) ] &&
+	     G.v( eref[ e ] ) == nref[ L.v( e ) ] ,
+	   "Wrong ends of an edge" );
+    }
+   for( int i = 0 ; i < n ; ++i ) {
+    Node v = nref[ ln[ i ] ];
+    std::vector< int > inc_l , inc_g;
+    for( ListGraph::IncEdgeIt e( L , ln[ i ] ) ; e != INVALID ; ++e ) {
+     inc_l.push_back( G.id( eref[ e ] ) );
+     }
+    for( IncEdgeIt e( G , v ) ; e != INVALID ; ++e ) {
+     inc_g.push_back( G.id( e ) );
+     }
+    std::sort( inc_l.begin() , inc_l.end() );
+    std::sort( inc_g.begin() , inc_g.end() );
+    check( inc_l == inc_g , "Wrong incident edges" );
+    checkGraphIncEdgeArcLists( G , v , int( inc_g.size() ) );
+    for( OutArcIt a( G , v ) ; a != INVALID ; ++a ) {
+     check( G.source( a ) == v , "Wrong source of an out-arc" );
+     }
+    for( InArcIt a( G , v ) ; a != INVALID ; ++a ) {
+     check( G.target( a ) == v , "Wrong target of an in-arc" );
+     }
+    check( G.index( v ) == G.id( v ) && G.node( G.index( v ) ) == v ,
+	   "Wrong index" );
+    }
+   checkGraphConArcList( G , 2 * int( ends.size() ) );
+   checkGraphConEdgeList( G , int( ends.size() ) );
+   checkArcDirections( G );
+   checkNodeIds( G );
+   checkArcIds( G );
+   checkEdgeIds( G );
+   checkGraphNodeMap( G );
+   checkGraphArcMap( G );
+   checkGraphEdgeMap( G );
+   for( NodeIt v( G ) ; v != INVALID ; ++v ) {
+    degree[ v ] = 1;
+    }
+   }
+  }
+ G.clear();
+ checkGraphNodeList( G , 0 );
+ checkGraphEdgeList( G , 0 );
+ }
+
 void checkGraphs()
 {
  {  // Checking ListGraph
@@ -581,6 +689,9 @@ void checkGraphs()
   checkGraphBuild< SmartGraph >();
   checkGraphSnapshot< SmartGraph >();
   checkGraphValidity< SmartGraph >();
+  }
+ {  // Checking StaticGraph
+  checkStaticGraph();
   }
  {  // Checking FullGraph
   checkFullGraph( 7 );
