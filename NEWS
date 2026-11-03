@@ -1,3 +1,47 @@
+2026-11-03 Version 1.5.0 (lemon-ng) released
+
+        The algorithms for bipartite matching, for a shortest path
+        between two nodes and for an exact maximum clique, the static
+        undirected graph and the C++20 module, with fixes of
+        GrossoLocatelliPullanMc and Circulation
+
+        * New data structures
+
+          ----: StaticGraph, the undirected counterpart of StaticDigraph,
+                built once from another graph or from a list of edges
+
+        * New algorithms
+
+          #168: HopcroftKarp, a maximum cardinality matching of a
+                bipartite graph, with the vertex cover that proves it, and
+                MinCostAssignment, a minimum cost matching that covers the
+                red nodes, with its dual potentials
+          #249: BidirDijkstra and AStar, for a shortest path between two
+                nodes, by two searches that meet halfway and by a search
+                guided by an admissible heuristic
+          ----: TomitaSekiMc, the exact maximum clique algorithm of Tomita
+                and Seki, next to the heuristic GrossoLocatelliPullanMc
+
+        * Bug fixes
+
+          ----: GrossoLocatelliPullanMc ran forever on a graph with a loop
+          ----: Circulation read past its storage on an empty digraph
+          ----: SoplexLp did not compile with SoPlex 5 and later, and gave
+                the Farkas proof of the dual as its primal ray
+
+        * Building and installing
+
+          ----: The C++20 module lemon, with -DLEMON_BUILD_MODULE=ON on
+                Clang 16 or MSVC 19.34, as the target LEMON::lemon_module
+          ----: SoPlex is found through its CMake configuration, which
+                brings the libraries that its headers call
+          ----: No narrowing of a size_t to an int is left implicit, so
+                that MSVC no longer warns of C4267 in LEMON
+          ----: The packages of vcpkg, conda and Conan build LEMON as a
+                DLL on Windows too
+          ----: The documentation no longer names the classes of LEMON
+                0.x that were never ported
+
 2026-11-01 Version 1.4.1 (lemon-ng) released
 
         A release of fixes, among them one of NetworkSimplex::runWarm(),
