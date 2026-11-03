@@ -709,8 +709,12 @@ class GrossoLocatelliPullanMc
   for( NodeIt u( _graph ) ; u != INVALID ; ++u ) {
    for( IncEdgeIt e( _graph , u ) ; e != INVALID ; ++e ) {
     int vi = _id[ _graph.runningNode( e ) ];
-    _gr[ ui ][ vi ] = true;
-    _gr[ vi ][ ui ] = true;
+    // a loop makes no node adjacent to itself: one that was would stay
+    // among the candidates of the clique it is already in, forever
+    if( vi != ui ) {
+     _gr[ ui ][ vi ] = true;
+     _gr[ vi ][ ui ] = true;
+     }
     }
    ++ui;
    }

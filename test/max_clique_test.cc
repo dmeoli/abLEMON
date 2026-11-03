@@ -174,9 +174,33 @@ void checkMaxCliqueGridGraph( Param rule )
  check( mc.cliqueSize() == 2 , "Wrong clique size" );
  }
 
+// Check with a loop, which once made a node adjacent to itself and the
+// search never end
+template< typename Param >
+void checkMaxCliqueLoop( Param rule )
+{
+ ListGraph g;
+ ListGraph::Node v[ 4 ];
+ for( int i = 0 ; i < 4 ; ++i ) {
+  v[ i ] = g.addNode();
+  }
+ for( int i = 0 ; i < 4 ; ++i ) {
+  for( int j = i + 1 ; j < 4 ; ++j ) {
+   g.addEdge( v[ i ] , v[ j ] );
+   }
+  }
+ g.addEdge( v[ 0 ] , v[ 0 ] );
+ GrossoLocatelliPullanMc< ListGraph > mc( g );
+ mc.run( rule );
+ check( mc.cliqueSize() == 4 , "Wrong clique size" );
+ }
 
 int main()
 {
+ checkMaxCliqueLoop( GrossoLocatelliPullanMc< ListGraph >::RANDOM );
+ checkMaxCliqueLoop( GrossoLocatelliPullanMc< ListGraph >::DEGREE_BASED );
+ checkMaxCliqueLoop( GrossoLocatelliPullanMc< ListGraph >::PENALTY_BASED );
+
  checkMaxCliqueGeneral( GrossoLocatelliPullanMc< ListGraph >::RANDOM );
  checkMaxCliqueGeneral( GrossoLocatelliPullanMc< ListGraph >::DEGREE_BASED );
  checkMaxCliqueGeneral( GrossoLocatelliPullanMc< ListGraph >::PENALTY_BASED );

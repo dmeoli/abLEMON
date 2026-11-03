@@ -643,11 +643,14 @@ for example, the results of other algorithms.
 \brief Approximation algorithms.
 
 This group contains the approximation and heuristic algorithms
-implemented in LEMON.
+implemented in LEMON, and the exact algorithm for the maximum clique
+problem next to its heuristic.
 
 <b>Maximum Clique Problem</b>
   - \ref GrossoLocatelliPullanMc An efficient heuristic algorithm of
     Grosso, Locatelli, and Pullan.
+  - \ref TomitaSekiMc The exact branch and bound algorithm of Tomita and
+    Seki, which proves the clique it finds maximum.
 */
 
 /**

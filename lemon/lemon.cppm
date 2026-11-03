@@ -81,6 +81,7 @@ module;
 #include <lemon/suurballe.h>
 #include <lemon/time_measure.h>
 #include <lemon/tolerance.h>
+#include <lemon/tomita_seki_mc.h>
 #include <lemon/unionfind.h>
 #include <lemon/vf2.h>
 #include <lemon/vf2pp.h>
@@ -399,6 +400,7 @@ export namespace lemon {
  using ::lemon::TimeStamp;
  using ::lemon::Timer;
  using ::lemon::Tolerance;
+ using ::lemon::TomitaSekiMc;
  using ::lemon::True;
  using ::lemon::TrueMap;
  using ::lemon::UndirectedTagIndicator;

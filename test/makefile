@@ -26,7 +26,8 @@ TESTS = adaptors_test arc_look_up_test bellman_ford_test bfs_test \
 	max_flow_test min_cost_arborescence_test min_cost_flow_test \
 	min_mean_cycle_test nagamochi_ibaraki_test path_test \
 	point_to_point_test planarity_test radix_sort_test random_test \
-	suurballe_test time_measure_test tsp_test unionfind_test vf2_test
+	suurballe_test time_measure_test tomita_seki_mc_test tsp_test \
+	unionfind_test vf2_test
 
 # basic directory
 DIR = .

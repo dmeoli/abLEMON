@@ -57,6 +57,7 @@ SET(TESTS
   random_test
   suurballe_test
   time_measure_test
+  tomita_seki_mc_test
   tsp_test
   unionfind_test
   vf2_test
