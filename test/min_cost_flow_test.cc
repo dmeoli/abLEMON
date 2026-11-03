@@ -172,6 +172,9 @@ class McfClassConcept
    c = const_mcf.potential( me.n );
    const_mcf.flowMap( fm );
    const_mcf.potentialMap( pm );
+   std::vector< Node > cut = const_mcf.infeasibleCut();
+   std::vector< Arc > cycle = const_mcf.unboundedCycle();
+   ignore_unused_variable_warning( cut , cycle );
    }
 
   typedef typename GR::Node Node;
@@ -531,6 +534,83 @@ void checkAgainstNetworkSimplex( int seeds , const std::string & name )
 	     "NetworkSimplex on instance " + std::to_string( seed ) );
    }
   }
+ }
+
+// The supply type LEQ, which only NetworkSimplex has
+template< typename MCF >
+void setLeq( MCF & , bool ) {}
+template< typename GR , typename V , typename C >
+void setLeq( NetworkSimplex< GR , V , C > & mcf , bool leq )
+{
+ mcf.supplyType( leq ? mcf.LEQ : mcf.GEQ );
+ }
+// The certificates of the result on the instances above: on INFEASIBLE a
+// set of nodes whose supply exceeds what can leave it (whose demand
+// exceeds what can enter it under LEQ), checked on the data with no arc
+// of infinite upper bound across it, on UNBOUNDED a directed cycle of
+// negative cost and infinite upper bounds, on OPTIMAL neither
+template< typename MCF >
+void checkCertificates( int seeds , const std::string & name , bool leq )
+{
+ typedef SmartDigraph::Arc Arc;
+ typedef SmartDigraph::Node Node;
+ unsigned int r = 627;
+ int nc = 0 , nu = 0;
+ for( int seed = 0 ; seed != seeds ; ++seed ) {
+  RandomMcf p( r );
+  const bool l = leq && seed % 2 == 1;
+  if( leq )
+   p.supply[ p.g.nodeFromId( 0 ) ] += l ? 2 : -2;
+  MCF mcf( p.g );
+  mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+    p.supply );
+  setLeq( mcf , l );
+  const typename MCF::ProblemType rm = mcf.run();
+  const std::string id = name + " on instance " + std::to_string( seed );
+  const std::vector< Node > cut = mcf.infeasibleCut();
+  const std::vector< Arc > cyc = mcf.unboundedCycle();
+  check( rm == MCF::INFEASIBLE || cut.empty() ,
+	 "Wrong cut of a feasible problem: " + id );
+  check( rm == MCF::UNBOUNDED || cyc.empty() ,
+	 "Wrong cycle of a problem not unbounded: " + id );
+  if( rm == MCF::INFEASIBLE ) {
+   ++nc;
+   check( ! cut.empty() , "No infeasibility cut: " + id );
+   SmartDigraph::NodeMap< bool > in( p.g , false );
+   long gap = 0;
+   for( std::size_t i = 0 ; i != cut.size() ; ++i ) {
+    in[ cut[ i ] ] = true;
+    gap += l ? -p.supply[ cut[ i ] ] : p.supply[ cut[ i ] ];
+    }
+   for( SmartDigraph::ArcIt a( p.g ) ; a != INVALID ; ++a ) {
+    const bool out = l ? in[ p.g.target( a ) ] && ! in[ p.g.source( a ) ]
+		       : in[ p.g.source( a ) ] && ! in[ p.g.target( a ) ];
+    const bool into = l ? in[ p.g.source( a ) ] && ! in[ p.g.target( a ) ]
+			: in[ p.g.target( a ) ] && ! in[ p.g.source( a ) ];
+    if( out ) {
+     check( p.upper[ a ] != p.inf , "Infinite arc across the cut: " + id );
+     gap -= p.upper[ a ];
+     }
+    else if( into )
+     gap += p.lower[ a ];
+    }
+   check( gap > 0 , "Wrong infeasibility cut: " + id );
+   }
+  if( rm == MCF::UNBOUNDED ) {
+   ++nu;
+   long c = 0;
+   for( std::size_t i = 0 ; i != cyc.size() ; ++i ) {
+    c += p.cost[ cyc[ i ] ];
+    check( p.upper[ cyc[ i ] ] == p.inf ,
+	   "Wrong unbounded cycle: finite arc: " + id );
+    check( p.g.target( cyc[ i ] ) ==
+	     p.g.source( cyc[ ( i + 1 ) % cyc.size() ] ) ,
+	   "Wrong unbounded cycle: not a cycle: " + id );
+    }
+   check( ! cyc.empty() && c < 0 , "Wrong unbounded cycle: cost: " + id );
+   }
+  }
+ check( nc > 0 && nu > 0 , "No infeasible or no unbounded instance: " + name );
  }
 
 // NetworkSimplex with the supply constraints GEQ and LEQ on the instances
@@ -988,6 +1068,14 @@ int main()
  checkAgainstNetworkSimplex< CapacityScaling< SmartDigraph , long > >(
    500 , "CapacityScaling" );
  checkSupplyTypes( 500 );
+ checkCertificates< NetworkSimplex< SmartDigraph , long , long > >(
+   1000 , "NetworkSimplex" , true );
+ checkCertificates< CostScaling< SmartDigraph , long > >( 1000 ,
+							"CostScaling" , false );
+ checkCertificates< CycleCanceling< SmartDigraph , long > >(
+   1000 , "CycleCanceling" , false );
+ checkCertificates< CapacityScaling< SmartDigraph , long > >(
+   1000 , "CapacityScaling" , false );
 
  // Test CapacityScaling
  {

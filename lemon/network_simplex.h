@@ -30,6 +30,7 @@
 
 #include <lemon/core.h>
 #include <lemon/math.h>
+#include <lemon/bits/mcf_certificate.h>
 
 namespace lemon
 {
@@ -233,6 +234,8 @@ class NetworkSimplex
 
  // The entering arc of the pivot that proved the problem unbounded
  int _unb_arc;
+ // What the last run() returned, and whether there was one
+ int _result = -1;
 
  // Temporary data used in the current pivot iteration
  int in_arc , join , u_in , v_in , u_out , v_out;
@@ -882,60 +885,91 @@ class NetworkSimplex
  /// \see resetParams(), reset()
  ProblemType run( PivotRule pivot_rule = BLOCK_SEARCH ) {
   _unb_arc = -1;
-  // A problem without nodes has the empty flow, which is optimal
-  if( _node_num == 0 )
-   return( OPTIMAL );
-  if( ! init() ) {
-   restoreSupply();
-   return( INFEASIBLE );
-   }
-  return( feasibleUnbounded( start( pivot_rule ) , pivot_rule ) );
+  const ProblemType pt = solve( pivot_rule );
+  _result = pt;
+  return( pt );
   }
 
  /// \brief The cycle that proves the problem unbounded.
  ///
- /// This function gives the directed cycle of negative cost and
- /// infinite capacity that proves the problem unbounded, which the
- /// algorithm has at hand when it says so: the cycle of the pivot it
- /// cannot perform, i.e., the entering arc and the path of the tree of
- /// the basis between its two ends, every arc of which the flow
- /// traverses forward. The arcs are given in the direction of the flow.
- /// The cycle is empty if the last run did not end with
- /// \ref UNBOUNDED, or if it goes through an artificial arc, which is
- /// no cycle of the problem.
+ /// This function gives a directed cycle of negative cost whose arcs
+ /// have infinite upper bounds, which proves the problem unbounded
+ /// since the last \ref run() found it feasible: the flow may be
+ /// increased along it without limit, and the cost decreases with it.
+ /// The arcs are given in the direction of the flow. It is the cycle of
+ /// the pivot that the algorithm cannot perform, i.e., the entering arc
+ /// and the path of the tree of the basis between its two ends, unless
+ /// that path goes through an artificial arc, in which case it is found
+ /// by the algorithm of Bellman and Ford on the arcs of infinite upper
+ /// bound.
+ ///
+ /// The cycle is empty if the last \ref run() did not return
+ /// \ref UNBOUNDED.
  std::vector< Arc > unboundedCycle() const {
   std::vector< Arc > cycle;
-  if( _unb_arc < 0 )
+  if( _result != UNBOUNDED )
    return( cycle );
-
-  std::vector< int > ids;
-  ids.push_back( _unb_arc );
-  // The entering arc goes from v_in to u_in, as findLeavingArc() sets
-  // them when no arc leaves; the flow goes on from u_in up to join, and
-  // then from join down to v_in, i.e., along the path from v_in to join
-  // taken backwards
-  for( int u = u_in ; u != join ; u = _parent[ u ] )
-   ids.push_back( _pred[ u ] );
-  std::vector< int > down;
-  for( int u = v_in ; u != join ; u = _parent[ u ] )
-   down.push_back( _pred[ u ] );
-  ids.insert( ids.end() , down.rbegin() , down.rend() );
-
-  for( std::size_t i = 0 ; i != ids.size() ; ++i ) {
-   if( ids[ i ] >= _arc_num )
-    return( std::vector< Arc >() );
-   }
-
-  // The inverse of the numbering of the arcs, taken once here
   std::vector< Arc > arc_of( _arc_num , INVALID );
   for( ArcIt a( _graph ) ; a != INVALID ; ++a )
    arc_of[ _arc_id[ a ] ] = a;
-  for( std::size_t i = 0 ; i != ids.size() ; ++i ) {
-   if( arc_of[ ids[ i ] ] == INVALID )
-    return( std::vector< Arc >() );
-   cycle.push_back( arc_of[ ids[ i ] ] );
+
+  std::vector< int > ids;
+  if( _unb_arc >= 0 ) {
+   ids.push_back( _unb_arc );
+   // The entering arc goes from v_in to u_in, as findLeavingArc() sets
+   // them when no arc leaves; the flow goes on from u_in up to join, and
+   // then from join down to v_in, i.e., along the path from v_in to join
+   // taken backwards
+   for( int u = u_in ; u != join ; u = _parent[ u ] )
+    ids.push_back( _pred[ u ] );
+   std::vector< int > down;
+   for( int u = v_in ; u != join ; u = _parent[ u ] )
+    down.push_back( _pred[ u ] );
+   ids.insert( ids.end() , down.rbegin() , down.rend() );
+   for( std::size_t i = 0 ; i != ids.size() ; ++i )
+    if( ids[ i ] >= _arc_num ) {
+     ids.clear();
+     break;
+     }
    }
+  if( ids.empty() )
+   ids = _mcf_bits::negativeCycle( certData() , _cost );
+  for( std::size_t i = 0 ; i != ids.size() ; ++i )
+   cycle.push_back( arc_of[ ids[ i ] ] );
   return( cycle );
+  }
+
+ /// \brief The set of nodes that proves the problem infeasible.
+ ///
+ /// This function gives a set \f$N'\f$ of nodes that proves the
+ /// problem infeasible since the last \ref run() found it so. With the
+ /// \ref GEQ supply type, the supply of \f$N'\f$ exceeds what can leave
+ /// it, i.e.,
+ /// \f[ \sum_{u\in N'} sup(u) > \sum_{uv\in A, u\in N', v\notin N'}
+ ///     upper(uv) - \sum_{uv\in A, u\notin N', v\in N'} lower(uv) \f]
+ /// and no arc out of \f$N'\f$ has an infinite upper bound; with the
+ /// \ref LEQ supply type, the demand of \f$N'\f$ exceeds what can
+ /// enter it, i.e., the same holds with \f$-sup\f$ in place of
+ /// \f$sup\f$ and every arc taken backwards. It is the side of the
+ /// source of a minimum cut of the maximum flow problem that sends the
+ /// supplies to the demands (Gale, 1957; Hoffman, 1960), and the
+ /// inequality is checked on the given data before the set is given.
+ ///
+ /// The set is empty if the last \ref run() did not return
+ /// \ref INFEASIBLE, or if, in floating point, the inequality does
+ /// not hold beyond the round-off.
+ std::vector< Node > infeasibleCut() const {
+  std::vector< Node > cut;
+  if( _result != INFEASIBLE )
+   return( cut );
+  std::vector< Node > node_of( _node_num , INVALID );
+  for( NodeIt n( _graph ) ; n != INVALID ; ++n )
+   node_of[ _node_id[ n ] ] = n;
+  const std::vector< int > ids =
+    _mcf_bits::infeasibleCut( certData() , _stype == LEQ );
+  for( std::size_t i = 0 ; i != ids.size() ; ++i )
+   cut.push_back( node_of[ ids[ i ] ] );
+  return( cut );
   }
 
  /// \brief Reset all the parameters that have been given before.
@@ -1628,6 +1662,34 @@ class NetworkSimplex
  // The supplies as they were before init() moved the lower bounds into
  // them, which start() does on every exit, so that the next run starts
  // from the supplies that were given
+ ProblemType solve( PivotRule pivot_rule ) {
+  // A problem without nodes has the empty flow, which is optimal
+  if( _node_num == 0 )
+   return( OPTIMAL );
+  if( ! init() ) {
+   restoreSupply();
+   return( INFEASIBLE );
+   }
+  return( feasibleUnbounded( start( pivot_rule ) , pivot_rule ) );
+  }
+
+ // The problem as it was given, for the certificates
+ _mcf_bits::McfData< Value > certData() const {
+  _mcf_bits::McfData< Value > d;
+  d.n = _node_num;
+  d.supply.assign( _supply.begin() , _supply.begin() + _node_num );
+  for( int i = 0 ; i != _arc_num ; ++i ) {
+   const Value low = _has_lower ? _lower[ i ] : Value( 0 );
+   if( _supply_shifted ) {
+    d.supply[ _source[ i ] ] += low;
+    d.supply[ _target[ i ] ] -= low;
+    }
+   d.addArc( _source[ i ] , _target[ i ] , low , _upper[ i ] ,
+	     _upper[ i ] >= MAX_VALUE );
+   }
+  return( d );
+  }
+
  void restoreSupply() {
   if( ! _supply_shifted )
    return;

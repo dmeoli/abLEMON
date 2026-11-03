@@ -30,6 +30,7 @@
 #include <lemon/maps.h>
 #include <lemon/quad_heap.h>
 #include <lemon/bits/mcf_feasible_flow.h>
+#include <lemon/bits/mcf_certificate.h>
 
 namespace lemon
 {
@@ -109,6 +110,20 @@ template< typename GR , typename V = int , typename C = V ,
 #endif
 class CapacityScaling
 {
+ template< typename MCF >
+ friend bool _mcf_bits::feasibleFlow( MCF & , typename MCF::Value , int & );
+ template< typename MCF >
+ friend _mcf_bits::McfData< typename MCF::Value >
+ _mcf_bits::residualData( const MCF & , const std::vector< int > & );
+ template< typename MCF , typename CV >
+ friend std::vector< typename MCF::Digraph::Arc >
+ _mcf_bits::residualCycle( const MCF & ,
+			   const _mcf_bits::McfData< typename MCF::Value > & ,
+			   const CV & );
+ template< typename MCF >
+ friend std::vector< typename MCF::Digraph::Node >
+ _mcf_bits::residualCut( const MCF & ,
+			 const _mcf_bits::McfData< typename MCF::Value > & );
  public:
  /// The type of the digraph
  typedef typename TR::Digraph Digraph;
@@ -158,6 +173,8 @@ class CapacityScaling
  int _arc_num;
  int _res_arc_num;
  int _root;
+ // What the last run() returned, and whether there was one
+ int _result = -1;
 
  // Parameters of the problem
  bool _has_lower;
@@ -492,14 +509,48 @@ class CapacityScaling
   // A problem without nodes (the only one here being the root) has the
   // empty flow, which is optimal
   if( _node_num == 1 )
-   return( OPTIMAL );
+   return( remember( OPTIMAL ) );
   ProblemType pt = init();
   if( pt != OPTIMAL )
-   return( pt );
+   return( remember( pt ) );
   pt = start();
   if( pt == OPTIMAL && _unbounded )
    pt = UNBOUNDED;
-  return( pt );
+  return( remember( pt ) );
+  }
+
+ /// \brief The cycle that proves the problem unbounded.
+ ///
+ /// This function gives a directed cycle of negative cost whose arcs
+ /// have infinite upper bounds, in the direction of the flow, which
+ /// proves the problem unbounded since the last \ref run() found it
+ /// feasible, as in \ref NetworkSimplex::unboundedCycle(). It is found
+ /// by the algorithm of Bellman and Ford on the arcs of infinite upper
+ /// bound, and it is empty if the last \ref run() did not return
+ /// \ref UNBOUNDED.
+ std::vector< Arc > unboundedCycle() const {
+  if( _result != UNBOUNDED )
+   return( std::vector< Arc >() );
+  return( _mcf_bits::residualCycle(
+    *this , _mcf_bits::residualData( *this , std::vector< int >() ) , _cost ) );
+  }
+
+ /// \brief The set of nodes that proves the problem infeasible.
+ ///
+ /// This function gives a set \f$N'\f$ of nodes whose supply exceeds
+ /// what can leave it, i.e.,
+ /// \f[ \sum_{u\in N'} sup(u) > \sum_{uv\in A, u\in N', v\notin N'}
+ ///     upper(uv) - \sum_{uv\in A, u\notin N', v\in N'} lower(uv) \f]
+ /// with no arc of infinite upper bound out of \f$N'\f$, which proves
+ /// the problem infeasible since the last \ref run() found it so, as in
+ /// \ref NetworkSimplex::infeasibleCut(). It is empty if the last
+ /// \ref run() did not return \ref INFEASIBLE, or if, in floating
+ /// point, the inequality does not hold beyond the round-off.
+ std::vector< Node > infeasibleCut() const {
+  if( _result != INFEASIBLE )
+   return( std::vector< Node >() );
+  return( _mcf_bits::residualCut(
+    *this , _mcf_bits::residualData( *this , std::vector< int >() ) ) );
   }
 
  /// \brief Reset all the parameters that have been given before.
@@ -730,6 +781,12 @@ class CapacityScaling
 
  private:
  // Initialize the algorithm
+ // Keeps what run() returns, for the certificates
+ ProblemType remember( ProblemType pt ) {
+  _result = pt;
+  return( pt );
+  }
+
  ProblemType init() {
   if( _node_num <= 1 )
    return( INFEASIBLE );

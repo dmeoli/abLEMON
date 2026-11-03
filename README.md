@@ -50,10 +50,12 @@ still uninitialized are now initialized.
 costs and capacities, on which it typically pivoted for ever or reported
 infeasibility, since it compared reduced costs and residual flows against an
 exact zero. It also updates the potentials on the smaller side of the tree at
-each pivot, and it gives the cycle that certifies an unbounded problem
-(`unboundedCycle()`). `CostScaling` and `CycleCanceling` find their starting
-flow on their residual network, and `CapacityScaling` uses a 4-ary heap. Also,
-they answer that a digraph without nodes has an optimal (empty) flow.
+each pivot. `CostScaling` and `CycleCanceling` find their starting flow on
+their residual network, and `CapacityScaling` uses a 4-ary heap. Also, they
+answer that a digraph without nodes has an optimal (empty) flow, and all four
+certify an answer that is not optimal: `infeasibleCut()` gives a set of nodes
+whose supply exceeds what the arcs out of it can carry, and `unboundedCycle()`
+a directed cycle of negative cost and infinite capacity.
 
 **Building and installing.** The build with CMake (3.19 or later) honors
 `CMAKE_CXX_STANDARD`, takes the version from the tag of git, and can leave
