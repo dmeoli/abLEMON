@@ -1,5 +1,5 @@
 context:
-  name: lemon-ng
+  name: ablemon
   version: "1.5.0"
 
 package:
@@ -7,7 +7,7 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/dmeoli/lemon-ng/archive/${{ version }}.tar.gz
+  url: https://github.com/dmeoli/abLEMON/archive/${{ version }}.tar.gz
   sha256: 968ccc5aca2c75a3c14281c5ca96a62e68decb9bf0ab5ab17d743026d5f93bb8
 
 build:
@@ -44,16 +44,16 @@ tests:
         else: build\install_test.exe
 
 about:
-  homepage: https://github.com/dmeoli/lemon-ng
-  repository: https://github.com/dmeoli/lemon-ng
-  documentation: https://dmeoli.github.io/lemon-ng/
+  homepage: https://github.com/dmeoli/abLEMON
+  repository: https://github.com/dmeoli/abLEMON
+  documentation: https://dmeoli.github.io/abLEMON/
   license: BSL-1.0 AND BSD-3-Clause
   license_file:
     - LICENSE
     - lemon/random.h
   summary: A maintained fork of LEMON, a C++ library of graphs and of network optimization
   description: |
-    lemon-ng is a maintained fork of LEMON, the Library for Efficient
+    abLEMON is a maintained fork of LEMON, the Library for Efficient
     Modeling and Optimization in Networks: a C++ template library of graphs,
     maps and heaps and of the algorithms of network optimization built on
     them (shortest paths, maximum and minimum cost flows, matchings,

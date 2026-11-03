@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Brings the recipes of packaging/ to a released version of lemon-ng: the
+"""Brings the recipes of packaging/ to a released version of abLEMON: the
 version, the checksums of the archive of its tag on GitHub (SHA-256 for
 conda, Homebrew and Conan, SHA-512 for vcpkg) and the build number, which
 starts again from 0.
@@ -17,7 +17,7 @@ import re
 import sys
 import urllib.request
 
-URL = 'https://github.com/dmeoli/lemon-ng/archive/%s.tar.gz'
+URL = 'https://github.com/dmeoli/abLEMON/archive/%s.tar.gz'
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -57,7 +57,7 @@ def main():
         [(r'^(  version: )"[^"]*"', r'\g<1>"%s"' % v),
          (r'^(  sha256: )[0-9a-f]{64}', r'\g<1>' + sha256),
          (r'^(  number: )\d+', r'\g<1>0')])
-    sub('homebrew/lemon-ng.rb',
+    sub('homebrew/ablemon.rb',
         [(r'(archive/refs/tags/)[^/"]*(\.tar\.gz")', r'\g<1>%s\2' % v),
          (r'^(  sha256 ")[0-9a-f]{64}', r'\g<1>' + sha256)])
     sub('conan/config.yml', [(r'^  "[^"]*":', '  "%s":' % v)])
@@ -65,14 +65,14 @@ def main():
         [(r'^  "[^"]*":', '  "%s":' % v),
          (r'(archive/)[^/"]*(\.tar\.gz")', r'\g<1>%s\2' % v),
          (r'^(    sha256: ")[0-9a-f]{64}', r'\g<1>' + sha256)])
-    sub('vcpkg/lemon-ng/vcpkg.json',
+    sub('vcpkg/ablemon/vcpkg.json',
         [(r'^(  "version": )"[^"]*"', r'\g<1>"%s"' % v)])
-    full = os.path.join(HERE, 'vcpkg/lemon-ng/vcpkg.json')
+    full = os.path.join(HERE, 'vcpkg/ablemon/vcpkg.json')
     with open(full) as f:
         text = f.read()
     with open(full, 'w') as f:
         f.write(re.sub(r'^  "port-version": \d+,\n', '', text, flags=re.M))
-    sub('vcpkg/lemon-ng/portfile.cmake',
+    sub('vcpkg/ablemon/portfile.cmake',
         [(r'^(    SHA512 )[0-9a-f]{128}', r'\g<1>' + sha512)])
     print('%s: sha256 %s' % (v, sha256))
     print('%s: sha512 %s' % (v, sha512))

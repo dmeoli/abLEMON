@@ -4,7 +4,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = lemon-ng
+PROJECT_NAME           = abLEMON
 PROJECT_NUMBER         = @PROJECT_VERSION@
 PROJECT_BRIEF          = "A maintained fork of LEMON"
 PROJECT_LOGO           = "@abs_top_srcdir@/doc/theme/lemon-logo.png"

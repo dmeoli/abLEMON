@@ -1,4 +1,4 @@
-# Build and test of lemon-ng on every operating system it supports: Linux
+# Build and test of abLEMON on every operating system it supports: Linux
 # with GCC and Clang, macOS with AppleClang and Windows with MSVC, each from
 # the oldest C++ standard it accepts to the latest, with all the warnings on.
 

@@ -1,15 +1,16 @@
-# lemon-ng
+# abLEMON
 
-[![CI](https://github.com/dmeoli/lemon-ng/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dmeoli/lemon-ng/actions/workflows/ci.yml)
-[![Packaging](https://github.com/dmeoli/lemon-ng/actions/workflows/packaging.yml/badge.svg?branch=master)](https://github.com/dmeoli/lemon-ng/actions/workflows/packaging.yml)
-[![Release](https://img.shields.io/github/v/release/dmeoli/lemon-ng)](https://github.com/dmeoli/lemon-ng/releases)
-[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://dmeoli.github.io/lemon-ng/)
+[![CI](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml)
+[![Packaging](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml/badge.svg?branch=master)](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml)
+[![Release](https://img.shields.io/github/v/release/dmeoli/abLEMON)](https://github.com/dmeoli/abLEMON/releases)
+[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://dmeoli.github.io/abLEMON/)
 [![C++ Standard](https://img.shields.io/badge/C%2B%2B-11%20to%2023-blue)](https://en.cppreference.com/w/cpp)
-[![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/dmeoli/lemon-ng/actions/workflows/ci.yml)
-[![Homebrew](https://img.shields.io/badge/homebrew-dmeoli%2Flemon--ng-orange)](https://github.com/dmeoli/homebrew-lemon-ng)
+[![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml)
+[![Homebrew](https://img.shields.io/badge/homebrew-dmeoli%2Fablemon-orange)](https://github.com/dmeoli/homebrew-ablemon)
 [![License: BSL-1.0](https://img.shields.io/badge/License-BSL_1.0-blue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
-lemon-ng is a maintained fork of [LEMON](https://lemon.cs.elte.hu/trac/lemon),
+abLEMON (a better LEMON, and an able one; formerly lemon-ng) is a maintained
+fork of [LEMON](https://lemon.cs.elte.hu/trac/lemon),
 the Library for Efficient Modeling and Optimization in Networks, i.e., a C++
 template library of graphs, maps and heaps and of the algorithms of network
 optimization built on them (shortest paths, maximum and minimum cost flows,
@@ -19,10 +20,10 @@ since 1.3.1 (2014); hence, the fixes collected in the meantime by its trac and
 by its forks were never distributed, and its headers no longer compile with the
 compilers and the standards of today (e.g., C++20 removed the members of
 `std::allocator` that `ArrayMap` and `ListPath` call). Its documentation is at
-<https://dmeoli.github.io/lemon-ng/>. lemon-ng starts from the last revision of
+<https://dmeoli.github.io/abLEMON/>. abLEMON starts from the last revision of
 the Mercurial repository of LEMON, whose history it keeps. Its headers are
 still `lemon/` and its namespace is still `lemon`; hence, a program written for
-LEMON may be compiled with lemon-ng unchanged (and, possibly, with fewer
+LEMON may be compiled with abLEMON unchanged (and, possibly, with fewer
 warnings).
 
 ## Differences from LEMON 1.3.1
@@ -139,5 +140,5 @@ that stops a commit out of the style.
 
 ## License
 
-lemon-ng is distributed, as LEMON, under the Boost Software License 1.0
+abLEMON is distributed, as LEMON, under the Boost Software License 1.0
 (see [LICENSE](LICENSE)).

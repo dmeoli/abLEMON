@@ -1,3 +1,50 @@
+2026-11-04 Version 1.6.0 (abLEMON) released
+
+        lemon-ng is now abLEMON; the certificates of an infeasible and of
+        an unbounded minimum cost flow problem, and the four minimum cost
+        flow algorithms on floating-point data
+
+        * The name
+
+          ----: lemon-ng is now abLEMON (a better LEMON, and an able one):
+                the repository is https://github.com/dmeoli/abLEMON, the
+                packages are ablemon, and the headers, the namespace and
+                find_package(LEMON) do not change
+
+        * New features
+
+          ----: infeasibleCut() in NetworkSimplex, CostScaling,
+                CapacityScaling and CycleCanceling, a set of nodes whose
+                supply exceeds what the arcs out of it can carry, which
+                proves an INFEASIBLE answer
+          ----: unboundedCycle() in the four, a directed cycle of negative
+                cost and infinite capacity, which proves an UNBOUNDED
+                answer; NetworkSimplex no longer gives an empty one when
+                its pivot cycle goes through an artificial arc
+          ----: CostScaling, CapacityScaling and CycleCanceling solve
+                problems with floating-point costs, capacities and
+                supplies, which they asked to be integer
+
+        * Bug fixes
+
+          ----: CostScaling, CapacityScaling and CycleCanceling answered
+                INFEASIBLE on floating-point supplies that sum to zero in
+                decimal and not in binary
+
+        * Removed
+
+          ----: runWarm() of the four minimum cost flow algorithms
+                (1.4.0 to 1.5.0): a re-optimization belongs to whoever
+                knows what has changed, and a second run() solves the
+                changed problem
+
+        * Tests
+
+          ----: min_cost_flow_battery_test runs every algorithm and method
+                on limit cases and on random instances, with integer and
+                floating-point data, and checks each answer by its
+                certificate and against the others
+
 2026-11-03 Version 1.5.0 (lemon-ng) released
 
         The algorithms for bipartite matching, for a shortest path

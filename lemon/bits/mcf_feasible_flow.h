@@ -2,7 +2,7 @@
  *
  * This file is a part of LEMON, a generic C++ optimization library.
  *
- * Copyright (C) 2026 the authors of lemon-ng.
+ * Copyright (C) 2026 the authors of abLEMON.
  *
  * Permission to use, modify and distribute this software is granted
  * provided that this copyright notice appears in all copies. For

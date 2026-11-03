@@ -1,4 +1,4 @@
-# A tag X.Y.Z makes the release of lemon-ng: its GitHub release, whose notes
+# A tag X.Y.Z makes the release of abLEMON: its GitHub release, whose notes
 # are the block of the version in NEWS (which must be there, written before
 # the tag), and the recipes of packaging/ at the archive of the tag,
 # committed to master and built by the Packaging workflow.
@@ -27,7 +27,7 @@ jobs:
           import re, sys
           v = sys.argv[1]
           text = open('NEWS').read()
-          head = re.compile(r'^\S.*Version (\S+) \(lemon-ng\) released$', re.M)
+          head = re.compile(r'^\S.*Version (\S+) \(abLEMON\) released$', re.M)
           heads = list(head.finditer(text))
           for i, m in enumerate(heads):
               if m.group(1) == v:
@@ -43,7 +43,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release create "${{ github.ref_name }}" --verify-tag
-          --title "lemon-ng ${{ github.ref_name }}" --notes-file notes.md
+          --title "abLEMON ${{ github.ref_name }}" --notes-file notes.md
 
   packaging:
     name: Recipes at the release
