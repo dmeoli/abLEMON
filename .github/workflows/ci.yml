@@ -190,6 +190,45 @@ jobs:
           -DLEMON_INSTALL_TEST_LP=ON
           && cmake --build use && ./use/lp_install_test
 
+  # SoPlex, which no distribution of Ubuntu packages, from conda-forge, with
+  # the configuration that it installs, and a project that links the
+  # static library through it
+  soplex:
+    name: SoPlex on ubuntu-latest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install SoPlex
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: soplex
+          create-args: -c conda-forge soplex zlib
+          init-shell: bash
+
+      - name: Build, test and install the library
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/prefix"
+          -DSOPLEX_ROOT_DIR="$CONDA_PREFIX"
+          -DLEMON_BUILD_DEMOS=NO -DLEMON_BUILD_TOOLS=NO -DLEMON_BUILD_DOC=NO
+          -DLEMON_ENABLE_GLPK=NO -DLEMON_ENABLE_COIN=NO -DLEMON_ENABLE_ILOG=NO
+          && grep -q "define LEMON_HAVE_SOPLEX" build/lemon/config.h
+          && cmake --build build --parallel 4
+          && ctest --test-dir build --output-on-failure -R lp_test
+          && cmake --install build
+
+      - name: Build and run a project that uses the installation
+        run: >
+          cmake -S test/install -B use -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/prefix"
+          -DLEMON_INSTALL_TEST_LP=ON
+          && cmake --build use && ./use/lp_install_test
+
   # the library, the tests, the tools and the demos built with the makefiles
   # instead of CMake, and the tests run, on Linux, macOS (whose sed is the
   # one of BSD) and Windows (MinGW in MSYS2)

@@ -508,7 +508,7 @@ int main()
   lpTest( lp_soplex1 );
   aTest( lp_soplex2 );
   cloneTest< SoplexLp >();
-  rangeConstraintTest< Soplex >();
+  rangeConstraintTest< SoplexLp >();
   }
 #endif
 

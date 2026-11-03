@@ -17,6 +17,34 @@ ELSE()
   SET(LEMON_PC_LIB lemon)
 ENDIF()
 
+# the files and the names of the libraries that an imported target links,
+# with those of the targets it links in turn; generator expressions are
+# left out
+FUNCTION(LEMON_TARGET_LIBRARIES _lemon_out _lemon_target)
+  SET(_lemon_libs ${${_lemon_out}})
+  GET_TARGET_PROPERTY(_lemon_type ${_lemon_target} TYPE)
+  IF(NOT _lemon_type STREQUAL "INTERFACE_LIBRARY")
+    GET_TARGET_PROPERTY(_lemon_loc ${_lemon_target} LOCATION)
+    IF(_lemon_loc)
+      LIST(APPEND _lemon_libs ${_lemon_loc})
+    ENDIF()
+  ENDIF()
+  GET_TARGET_PROPERTY(_lemon_deps ${_lemon_target} INTERFACE_LINK_LIBRARIES)
+  IF(_lemon_deps)
+    FOREACH(_lemon_dep ${_lemon_deps})
+      IF(_lemon_dep MATCHES "^\\$<" OR _lemon_dep IN_LIST _lemon_libs)
+        CONTINUE()
+      ELSEIF(TARGET ${_lemon_dep})
+        LIST(APPEND _lemon_libs ${_lemon_dep})
+        LEMON_TARGET_LIBRARIES(_lemon_libs ${_lemon_dep})
+      ELSE()
+        LIST(APPEND _lemon_libs ${_lemon_dep})
+      ENDIF()
+    ENDFOREACH()
+  ENDIF()
+  SET(${_lemon_out} ${_lemon_libs} PARENT_SCOPE)
+ENDFUNCTION()
+
 # lemon.pc finds the prefix from its own directory, however deep the
 # directory of the libraries is, and lists the libraries of the LP and MIP
 # solvers as private, for a static libemon
@@ -24,9 +52,18 @@ FILE(RELATIVE_PATH LEMON_PC_RELPREFIX
   ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig ${CMAKE_INSTALL_PREFIX})
 STRING(REGEX REPLACE "/$" "" LEMON_PC_RELPREFIX "${LEMON_PC_RELPREFIX}")
 SET(LEMON_PC_PRIVATE "")
+SET(_lemon_pc_libs "")
 FOREACH(_lemon_lib ${GLPK_LIBRARIES} ${COIN_LIBRARIES} ${ILOG_LIBRARIES}
     ${SOPLEX_LIBRARIES})
-  IF(_lemon_lib MATCHES "^(debug|optimized|general)$")
+  IF(TARGET ${_lemon_lib})
+    LEMON_TARGET_LIBRARIES(_lemon_pc_libs ${_lemon_lib})
+  ELSE()
+    LIST(APPEND _lemon_pc_libs ${_lemon_lib})
+  ENDIF()
+ENDFOREACH()
+FOREACH(_lemon_lib ${_lemon_pc_libs})
+  IF(_lemon_lib MATCHES "^(debug|optimized|general)$"
+      OR TARGET ${_lemon_lib})
     CONTINUE()
   ELSEIF(_lemon_lib MATCHES "^/" OR _lemon_lib MATCHES "^[A-Za-z]:")
     STRING(APPEND LEMON_PC_PRIVATE " ${_lemon_lib}")
@@ -96,15 +133,22 @@ ENDIF()
 # the libraries of the LP and MIP solvers are linked by their paths on the
 # machine that builds LEMON, which the installed configuration does not
 # carry: it has their file names, and a static LEMON looks for them again
-# on the machine that uses it [see cmake/LEMONConfig.cmake.in]
+# on the machine that uses it; a solver found by its own CMake
+# configuration (SoPlex) is linked by its target, and the installed
+# configuration finds that package again [see cmake/LEMONConfig.cmake.in]
 SET(LEMON_SOLVER_LIBRARIES "")
 SET(LEMON_SOLVER_DIRS "")
+SET(LEMON_SOLVER_TARGETS "")
 FOREACH(_lemon_lib ${GLPK_LIBRARIES} ${COIN_LIBRARIES} ${ILOG_LIBRARIES}
     ${SOPLEX_LIBRARIES})
   IF(_lemon_lib MATCHES "^(debug|optimized|general)$")
     CONTINUE()
   ENDIF()
   TARGET_LINK_LIBRARIES(lemon PRIVATE $<BUILD_INTERFACE:${_lemon_lib}>)
+  IF(TARGET ${_lemon_lib})
+    LIST(APPEND LEMON_SOLVER_TARGETS ${_lemon_lib})
+    CONTINUE()
+  ENDIF()
   GET_FILENAME_COMPONENT(_lemon_name ${_lemon_lib} NAME)
   LIST(APPEND LEMON_SOLVER_LIBRARIES ${_lemon_name})
   IF(IS_ABSOLUTE ${_lemon_lib})
@@ -116,6 +160,7 @@ LIST(REMOVE_DUPLICATES LEMON_SOLVER_LIBRARIES)
 LIST(REMOVE_DUPLICATES LEMON_SOLVER_DIRS)
 SET(LEMON_SOLVER_LIBRARIES "${LEMON_SOLVER_LIBRARIES}" PARENT_SCOPE)
 SET(LEMON_SOLVER_DIRS "${LEMON_SOLVER_DIRS}" PARENT_SCOPE)
+SET(LEMON_SOLVER_TARGETS "${LEMON_SOLVER_TARGETS}" PARENT_SCOPE)
 
 # the shared library carries the numeric version and, as the version of its
 # interface, its first two numbers; the static one is position-independent
@@ -141,6 +186,11 @@ TARGET_INCLUDE_DIRECTORIES(lemon PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 TARGET_COMPILE_FEATURES(lemon PUBLIC cxx_std_11)
+# the headers of SoPlex 7 and later need C++14, which only the library is
+# compiled with, since lemon/soplex.h does not include them
+IF(LEMON_HAVE_SOPLEX)
+  TARGET_COMPILE_FEATURES(lemon PRIVATE cxx_std_14)
+ENDIF()
 ADD_LIBRARY(LEMON::lemon ALIAS lemon)
 
 INSTALL(

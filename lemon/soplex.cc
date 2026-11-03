@@ -20,7 +20,6 @@
 #include <lemon/soplex.h>
 
 #include <soplex.h>
-#include <spxout.h>
 
 
 ///\file
@@ -45,7 +44,7 @@ SoplexLp::SoplexLp( const SoplexLp & lp )
  _cols = lp._cols;
 
  soplex = new soplex::SoPlex;
- ( *static_cast< soplex::SPxLP * >( soplex ) ) = *( lp.soplex );
+ *soplex = *( lp.soplex );
 
  _col_names = lp._col_names;
  _col_names_ref = lp._col_names_ref;
@@ -60,6 +59,8 @@ void SoplexLp::_clear_temporals()
 {
  _primal_values.clear();
  _dual_values.clear();
+ _primal_ray.clear();
+ _dual_ray.clear();
  }
 
 SoplexLp * SoplexLp::newSolver() const
@@ -84,11 +85,11 @@ int SoplexLp::_addCol()
  soplex::LPCol c;
  c.setLower( -soplex::infinity );
  c.setUpper( soplex::infinity );
- soplex->addCol( c );
+ soplex->addColReal( c );
 
  _col_names.push_back( std::string() );
 
- return( soplex->nCols() - 1 );
+ return( soplex->numCols() - 1 );
  }
 
 int SoplexLp::_addRow()
@@ -96,11 +97,11 @@ int SoplexLp::_addRow()
  soplex::LPRow r;
  r.setLhs( -soplex::infinity );
  r.setRhs( soplex::infinity );
- soplex->addRow( r );
+ soplex->addRowReal( r );
 
  _row_names.push_back( std::string() );
 
- return( soplex->nRows() - 1 );
+ return( soplex->numRows() - 1 );
  }
 
 int SoplexLp::_addRow( Value l , ExprIterator b , ExprIterator e , Value u )
@@ -110,17 +111,17 @@ int SoplexLp::_addRow( Value l , ExprIterator b , ExprIterator e , Value u )
   v.add( it->first , it->second );
   }
  soplex::LPRow r( l , v , u );
- soplex->addRow( r );
+ soplex->addRowReal( r );
 
  _row_names.push_back( std::string() );
 
- return( soplex->nRows() - 1 );
+ return( soplex->numRows() - 1 );
  }
 
 
 void SoplexLp::_eraseCol( int i )
 {
- soplex->removeCol( i );
+ soplex->removeColReal( i );
  _col_names_ref.erase( _col_names[ i ] );
  _col_names[ i ] = _col_names.back();
  _col_names_ref[ _col_names.back() ] = i;
@@ -129,7 +130,7 @@ void SoplexLp::_eraseCol( int i )
 
 void SoplexLp::_eraseRow( int i )
 {
- soplex->removeRow( i );
+ soplex->removeRowReal( i );
  _row_names_ref.erase( _row_names[ i ] );
  _row_names[ i ] = _row_names.back();
  _row_names_ref[ _row_names.back() ] = i;
@@ -202,17 +203,17 @@ int SoplexLp::_rowByName( const std::string & name ) const
 
 void SoplexLp::_setRowCoeffs( int i , ExprIterator b , ExprIterator e )
 {
- for( int j = 0 ; j < soplex->nCols() ; ++j ) {
-  soplex->changeElement( i , j , 0.0 );
+ for( int j = 0 ; j < soplex->numCols() ; ++j ) {
+  soplex->changeElementReal( i , j , 0.0 );
   }
  for( ExprIterator it = b ; it != e ; ++it ) {
-  soplex->changeElement( i , it->first , it->second );
+  soplex->changeElementReal( i , it->first , it->second );
   }
  }
 
 void SoplexLp::_getRowCoeffs( int i , InsertIterator b ) const
 {
- const soplex::SVector & vec = soplex->rowVector( i );
+ const soplex::SVector & vec = soplex->rowVectorRealInternal( i );
  for( int k = 0 ; k < vec.size() ; ++k ) {
   *b = std::make_pair( vec.index( k ) , vec.value( k ) );
   ++b;
@@ -221,17 +222,17 @@ void SoplexLp::_getRowCoeffs( int i , InsertIterator b ) const
 
 void SoplexLp::_setColCoeffs( int j , ExprIterator b , ExprIterator e )
 {
- for( int i = 0 ; i < soplex->nRows() ; ++i ) {
-  soplex->changeElement( i , j , 0.0 );
+ for( int i = 0 ; i < soplex->numRows() ; ++i ) {
+  soplex->changeElementReal( i , j , 0.0 );
   }
  for( ExprIterator it = b ; it != e ; ++it ) {
-  soplex->changeElement( it->first , j , it->second );
+  soplex->changeElementReal( it->first , j , it->second );
   }
  }
 
 void SoplexLp::_getColCoeffs( int i , InsertIterator b ) const
 {
- const soplex::SVector & vec = soplex->colVector( i );
+ const soplex::SVector & vec = soplex->colVectorRealInternal( i );
  for( int k = 0 ; k < vec.size() ; ++k ) {
   *b = std::make_pair( vec.index( k ) , vec.value( k ) );
   ++b;
@@ -240,78 +241,78 @@ void SoplexLp::_getColCoeffs( int i , InsertIterator b ) const
 
 void SoplexLp::_setCoeff( int i , int j , Value value )
 {
- soplex->changeElement( i , j , value );
+ soplex->changeElementReal( i , j , value );
  }
 
 SoplexLp::Value SoplexLp::_getCoeff( int i , int j ) const
 {
- return( soplex->rowVector( i )[ j ] );
+ return( soplex->coefReal( i , j ) );
  }
 
 void SoplexLp::_setColLowerBound( int i , Value value )
 {
  LEMON_ASSERT( value != INF , "Invalid bound" );
- soplex->changeLower( i , value != -INF ? value : -soplex::infinity );
+ soplex->changeLowerReal( i , value != -INF ? value : -soplex::infinity );
  }
 
 SoplexLp::Value SoplexLp::_getColLowerBound( int i ) const
 {
- double value = soplex->lower( i );
+ double value = soplex->lowerReal( i );
  return( value != -soplex::infinity ? value : -INF );
  }
 
 void SoplexLp::_setColUpperBound( int i , Value value )
 {
  LEMON_ASSERT( value != -INF , "Invalid bound" );
- soplex->changeUpper( i , value != INF ? value : soplex::infinity );
+ soplex->changeUpperReal( i , value != INF ? value : soplex::infinity );
  }
 
 SoplexLp::Value SoplexLp::_getColUpperBound( int i ) const
 {
- double value = soplex->upper( i );
+ double value = soplex->upperReal( i );
  return( value != soplex::infinity ? value : INF );
  }
 
 void SoplexLp::_setRowLowerBound( int i , Value lb )
 {
  LEMON_ASSERT( lb != INF , "Invalid bound" );
- soplex->changeRange( i , lb != -INF ? lb : -soplex::infinity ,
-		      soplex->rhs( i ) );
+ soplex->changeRangeReal( i , lb != -INF ? lb : -soplex::infinity ,
+			  soplex->rhsReal( i ) );
  }
 
 SoplexLp::Value SoplexLp::_getRowLowerBound( int i ) const
 {
- double res = soplex->lhs( i );
+ double res = soplex->lhsReal( i );
  return( res == -soplex::infinity ? -INF : res );
  }
 
 void SoplexLp::_setRowUpperBound( int i , Value ub )
 {
  LEMON_ASSERT( ub != -INF , "Invalid bound" );
- soplex->changeRange( i , soplex->lhs( i ) ,
+ soplex->changeRangeReal( i , soplex->lhsReal( i ) ,
 		      ub != INF ? ub : soplex::infinity );
  }
 
 SoplexLp::Value SoplexLp::_getRowUpperBound( int i ) const
 {
- double res = soplex->rhs( i );
+ double res = soplex->rhsReal( i );
  return( res == soplex::infinity ? INF : res );
  }
 
 void SoplexLp::_setObjCoeffs( ExprIterator b , ExprIterator e )
 {
- for( int j = 0 ; j < soplex->nCols() ; ++j ) {
-  soplex->changeObj( j , 0.0 );
+ for( int j = 0 ; j < soplex->numCols() ; ++j ) {
+  soplex->changeObjReal( j , 0.0 );
   }
  for( ExprIterator it = b ; it != e ; ++it ) {
-  soplex->changeObj( it->first , it->second );
+  soplex->changeObjReal( it->first , it->second );
   }
  }
 
 void SoplexLp::_getObjCoeffs( InsertIterator b ) const
 {
- for( int j = 0 ; j < soplex->nCols() ; ++j ) {
-  Value coef = soplex->obj( j );
+ for( int j = 0 ; j < soplex->numCols() ; ++j ) {
+  Value coef = soplex->objReal( j );
   if( coef != 0.0 ) {
    *b = std::make_pair( j , coef );
    ++b;
@@ -321,12 +322,12 @@ void SoplexLp::_getObjCoeffs( InsertIterator b ) const
 
 void SoplexLp::_setObjCoeff( int i , Value obj_coef )
 {
- soplex->changeObj( i , obj_coef );
+ soplex->changeObjReal( i , obj_coef );
  }
 
 SoplexLp::Value SoplexLp::_getObjCoeff( int i ) const
 {
- return( soplex->obj( i ) );
+ return( soplex->objReal( i ) );
  }
 
 SoplexLp::SolveExitStatus SoplexLp::_solve()
@@ -351,9 +352,9 @@ SoplexLp::SolveExitStatus SoplexLp::_solve()
 SoplexLp::Value SoplexLp::_getPrimal( int i ) const
 {
  if( _primal_values.empty() ) {
-  _primal_values.resize( soplex->nCols() );
-  soplex::Vector pv( _primal_values.size() , &_primal_values.front() );
-  soplex->getPrimal( pv );
+  _primal_values.resize( soplex->numCols() );
+  soplex->getPrimalReal( _primal_values.data() ,
+			 int( _primal_values.size() ) );
   }
  return( _primal_values[ i ] );
  }
@@ -361,21 +362,20 @@ SoplexLp::Value SoplexLp::_getPrimal( int i ) const
 SoplexLp::Value SoplexLp::_getDual( int i ) const
 {
  if( _dual_values.empty() ) {
-  _dual_values.resize( soplex->nRows() );
-  soplex::Vector dv( _dual_values.size() , &_dual_values.front() );
-  soplex->getDual( dv );
+  _dual_values.resize( soplex->numRows() );
+  soplex->getDualReal( _dual_values.data() , int( _dual_values.size() ) );
   }
  return( _dual_values[ i ] );
  }
 
 SoplexLp::Value SoplexLp::_getPrimalValue() const
 {
- return( soplex->objValue() );
+ return( soplex->objValueReal() );
  }
 
 SoplexLp::VarStatus SoplexLp::_getColStatus( int i ) const
 {
- switch( soplex->getBasisColStatus( i ) ) {
+ switch( soplex->basisColStatus( i ) ) {
   case soplex::SPxSolver::BASIC:
    return( BASIC );
   case soplex::SPxSolver::ON_UPPER:
@@ -394,7 +394,7 @@ SoplexLp::VarStatus SoplexLp::_getColStatus( int i ) const
 
 SoplexLp::VarStatus SoplexLp::_getRowStatus( int i ) const
 {
- switch( soplex->getBasisRowStatus( i ) ) {
+ switch( soplex->basisRowStatus( i ) ) {
   case soplex::SPxSolver::BASIC:
    return( BASIC );
   case soplex::SPxSolver::ON_UPPER:
@@ -414,9 +414,8 @@ SoplexLp::VarStatus SoplexLp::_getRowStatus( int i ) const
 SoplexLp::Value SoplexLp::_getPrimalRay( int i ) const
 {
  if( _primal_ray.empty() ) {
-  _primal_ray.resize( soplex->nCols() );
-  soplex::Vector pv( _primal_ray.size() , &_primal_ray.front() );
-  soplex->getDualfarkas( pv );
+  _primal_ray.resize( soplex->numCols() );
+  soplex->getPrimalRayReal( _primal_ray.data() , int( _primal_ray.size() ) );
   }
  return( _primal_ray[ i ] );
  }
@@ -424,9 +423,8 @@ SoplexLp::Value SoplexLp::_getPrimalRay( int i ) const
 SoplexLp::Value SoplexLp::_getDualRay( int i ) const
 {
  if( _dual_ray.empty() ) {
-  _dual_ray.resize( soplex->nRows() );
-  soplex::Vector dv( _dual_ray.size() , &_dual_ray.front() );
-  soplex->getDualfarkas( dv );
+  _dual_ray.resize( soplex->numRows() );
+  soplex->getDualFarkasReal( _dual_ray.data() , int( _dual_ray.size() ) );
   }
  return( _dual_ray[ i ] );
  }
@@ -461,31 +459,22 @@ SoplexLp::ProblemType SoplexLp::_getDualType() const
 
 void SoplexLp::_setSense( Sense sense )
 {
- switch( sense ) {
-  case MIN:
-   soplex->changeSense( soplex::SPxSolver::MINIMIZE );
-   break;
-  case MAX:
-   soplex->changeSense( soplex::SPxSolver::MAXIMIZE );
-  }
+ soplex->setIntParam( soplex::SoPlex::OBJSENSE ,
+		      sense == MAX ? soplex::SoPlex::OBJSENSE_MAXIMIZE
+				   : soplex::SoPlex::OBJSENSE_MINIMIZE );
  }
 
 SoplexLp::Sense SoplexLp::_getSense() const
 {
- switch( soplex->spxSense() ) {
-  case soplex::SPxSolver::MAXIMIZE:
-   return( MAX );
-  case soplex::SPxSolver::MINIMIZE:
-   return( MIN );
-  default:
-   LEMON_ASSERT( false , "Wrong sense." );
-   return( SoplexLp::Sense() );
-  }
+ return( soplex->intParam( soplex::SoPlex::OBJSENSE ) ==
+	      soplex::SoPlex::OBJSENSE_MAXIMIZE
+	    ? MAX
+	    : MIN );
  }
 
 void SoplexLp::_clear()
 {
- soplex->clear();
+ soplex->clearLPReal();
  _col_names.clear();
  _col_names_ref.clear();
  _row_names.clear();
@@ -499,26 +488,26 @@ void SoplexLp::_messageLevel( MessageLevel level )
 {
  switch( level ) {
   case MESSAGE_NOTHING:
-   _message_level = -1;
+   _message_level = soplex::SoPlex::VERBOSITY_ERROR;
    break;
   case MESSAGE_ERROR:
-   _message_level = soplex::SPxOut::ERROR;
+   _message_level = soplex::SoPlex::VERBOSITY_ERROR;
    break;
   case MESSAGE_WARNING:
-   _message_level = soplex::SPxOut::WARNING;
+   _message_level = soplex::SoPlex::VERBOSITY_WARNING;
    break;
   case MESSAGE_NORMAL:
-   _message_level = soplex::SPxOut::INFO2;
+   _message_level = soplex::SoPlex::VERBOSITY_NORMAL;
    break;
   case MESSAGE_VERBOSE:
-   _message_level = soplex::SPxOut::DEBUG;
+   _message_level = soplex::SoPlex::VERBOSITY_HIGH;
    break;
   }
  }
 
 void SoplexLp::_applyMessageLevel()
 {
- soplex::Param::setVerbose( _message_level );
+ soplex->setIntParam( soplex::SoPlex::VERBOSITY , _message_level );
  }
 
 }  //namespace lemon

@@ -10,7 +10,9 @@ INCLUDE(${CMAKE_CURRENT_LIST_DIR}/LEMONTargets.cmake)
 
 # a static LEMON needs the libraries of the LP and MIP solvers it was built
 # with, looked for on this machine (first where they were when LEMON was
-# built); a shared one carries them
+# built), and the target of SoPlex from its own configuration, whose
+# dependencies are looked for also where SoPlex was; a shared one carries
+# them
 GET_TARGET_PROPERTY(_lemon_type LEMON::lemon TYPE)
 IF(_lemon_type STREQUAL "STATIC_LIBRARY")
   FOREACH(_lemon_name @LEMON_SOLVER_LIBRARIES@)
@@ -26,6 +28,15 @@ IF(_lemon_type STREQUAL "STATIC_LIBRARY")
     SET_PROPERTY(TARGET LEMON::lemon APPEND PROPERTY
       INTERFACE_LINK_LIBRARIES ${${_lemon_var}})
   ENDFOREACH()
+  IF(NOT "@LEMON_SOLVER_TARGETS@" STREQUAL "")
+    INCLUDE(CMakeFindDependencyMacro)
+    SET(_lemon_prefix_path ${CMAKE_PREFIX_PATH})
+    LIST(APPEND CMAKE_PREFIX_PATH "@SOPLEX_PREFIX@")
+    FIND_DEPENDENCY(soplex CONFIG)
+    SET(CMAKE_PREFIX_PATH ${_lemon_prefix_path})
+    SET_PROPERTY(TARGET LEMON::lemon APPEND PROPERTY
+      INTERFACE_LINK_LIBRARIES @LEMON_SOLVER_TARGETS@)
+  ENDIF()
 ENDIF()
 
 GET_TARGET_PROPERTY(LEMON_INCLUDE_DIR LEMON::lemon

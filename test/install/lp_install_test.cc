@@ -33,6 +33,9 @@
 #ifdef LEMON_HAVE_CBC
  #include <lemon/cbc.h>
 #endif
+#ifdef LEMON_HAVE_SOPLEX
+ #include <lemon/soplex.h>
+#endif
 
 // max x with 0 <= x <= 3, whose optimum is 3
 template< class Lp >
@@ -76,6 +79,10 @@ int main()
 #endif
 #ifdef LEMON_HAVE_CLP
  ok = lp_ok< lemon::ClpLp >( "ClpLp" ) && ok;
+ ++solvers;
+#endif
+#ifdef LEMON_HAVE_SOPLEX
+ ok = lp_ok< lemon::SoplexLp >( "SoplexLp" ) && ok;
  ++solvers;
 #endif
 #ifdef LEMON_HAVE_CBC

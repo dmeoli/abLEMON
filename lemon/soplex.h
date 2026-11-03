@@ -27,10 +27,13 @@
 
 #include <lemon/lp_base.h>
 
-// Forward declaration
+// Forward declaration; SoPlex 5 and later make SoPlex an instance of
+// SoPlexBase on the floating-point type Real, which is double
 namespace soplex
 {
-class SoPlex;
+template< class R >
+class SoPlexBase;
+typedef SoPlexBase< double > SoPlex;
 }
 
 namespace lemon

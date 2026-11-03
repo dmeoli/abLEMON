@@ -137,13 +137,16 @@ You find a list of the most useful options below.
 -DLEMON_ENABLE_GLPK=NO
 -DLEMON_ENABLE_COIN=NO
 -DLEMON_ENABLE_ILOG=NO
+-DLEMON_ENABLE_SOPLEX=NO
 
-  Enable optional third party libraries. They are all enabled by default. 
+  Enable optional third party libraries. They are all enabled by default.
+  SoPlex must be version 5 or later, and the CMake configuration that
+  it installs is used when there is one.
 
 -DLEMON_DEFAULT_LP=GLPK
 
   Sets the default LP solver backend. The supported values are
-  CPLEX, CLP and GLPK. By default, it is set to the first one which
+  CPLEX, CLP, GLPK and SOPLEX. By default, it is set to the first one which
   is enabled and succesfully discovered.
 
 -DLEMON_DEFAULT_MIP=GLPK
@@ -155,6 +158,7 @@ You find a list of the most useful options below.
 -DGLPK_ROOT_DIR=DIRECTORY
 -DCOIN_ROOT_DIR=DIRECTORY
 -DILOG_ROOT_DIR=DIRECTORY
+-DSOPLEX_ROOT_DIR=DIRECTORY
 
   Root directory prefixes of optional third party libraries.
 
