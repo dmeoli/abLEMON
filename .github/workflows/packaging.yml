@@ -90,6 +90,7 @@ jobs:
           - { os: ubuntu-latest,  shared: "True" }
           - { os: macos-latest,   shared: "False" }
           - { os: windows-latest, shared: "False" }
+          - { os: windows-latest, shared: "True" }
     steps:
       - uses: actions/checkout@v4
       - name: Create the package and run its test_package
@@ -97,5 +98,7 @@ jobs:
         run: |
           pip install -q conan
           conan profile detect
-          conan create packaging/conan/all --version 1.4.1 \
+          # the version of the recipe, the one of conan/config.yml
+          v=$(sed -n 's/^  "\(.*\)":$/\1/p' packaging/conan/config.yml)
+          conan create packaging/conan/all --version "$v" \
             --build=missing -o "lemon-ng/*:shared=${{ matrix.shared }}"
