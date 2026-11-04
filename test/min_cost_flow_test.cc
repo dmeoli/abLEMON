@@ -172,6 +172,7 @@ class McfClassConcept
    c = const_mcf.potential( me.n );
    const_mcf.flowMap( fm );
    const_mcf.potentialMap( pm );
+   mcf.tolerances( v , c );
    std::vector< Node > cut = const_mcf.infeasibleCut();
    std::vector< Arc > cycle = const_mcf.unboundedCycle();
    ignore_unused_variable_warning( cut , cycle );
@@ -830,6 +831,39 @@ void runMcfLeqTests( Param param , const std::string & test_str = "" )
  }
 
 
+// The tolerances given by tolerances(): supplies 0.1 + 0.2 - 0.3, which
+// sum to 5.55e-17 in binary, make a balanced problem infeasible with a
+// tolerance of zero on the flows, as in LEMON 1.3.1, and optimal with one
+// of 1e-12, the same as with the tolerances left to the algorithm
+template< typename MCF >
+void checkTolerances( const std::string & name )
+{
+ SmartDigraph g;
+ SmartDigraph::Node a = g.addNode() , b = g.addNode() , t = g.addNode();
+ SmartDigraph::Arc at = g.addArc( a , t ) , bt = g.addArc( b , t );
+ SmartDigraph::ArcMap< double > cost( g ) , cap( g );
+ cost[ at ] = 1;
+ cost[ bt ] = 2;
+ cap[ at ] = cap[ bt ] = 1;
+ SmartDigraph::NodeMap< double > sup( g );
+ sup[ a ] = 0.1;
+ sup[ b ] = 0.2;
+ sup[ t ] = -0.3;
+ MCF exact( g ) , loose( g ) , dflt( g );
+ exact.costMap( cost ).upperMap( cap ).supplyMap( sup ).tolerances( 0 , 0 );
+ loose.costMap( cost ).upperMap( cap ).supplyMap( sup ).tolerances( 1e-12 ,
+								   1e-12 );
+ dflt.costMap( cost ).upperMap( cap ).supplyMap( sup );
+ check( exact.run() == MCF::INFEASIBLE ,
+	"Wrong result with a tolerance of zero: " + name );
+ check( loose.run() == MCF::OPTIMAL &&
+	  std::abs( loose.totalCost() - 0.5 ) < 1e-12 ,
+	"Wrong result with a tolerance of 1e-12: " + name );
+ check( dflt.run() == MCF::OPTIMAL &&
+	  std::abs( dflt.totalCost() - 0.5 ) < 1e-12 ,
+	"Wrong result with the tolerances of the algorithm: " + name );
+ }
+
 int main()
 {
  // Read the test networks
@@ -1068,6 +1102,13 @@ int main()
  checkAgainstNetworkSimplex< CapacityScaling< SmartDigraph , long > >(
    500 , "CapacityScaling" );
  checkSupplyTypes( 500 );
+ checkTolerances< NetworkSimplex< SmartDigraph , double > >(
+   "NetworkSimplex" );
+ checkTolerances< CostScaling< SmartDigraph , double > >( "CostScaling" );
+ checkTolerances< CycleCanceling< SmartDigraph , double > >(
+   "CycleCanceling" );
+ checkTolerances< CapacityScaling< SmartDigraph , double > >(
+   "CapacityScaling" );
  checkCertificates< NetworkSimplex< SmartDigraph , long , long > >(
    1000 , "NetworkSimplex" , true );
  checkCertificates< CostScaling< SmartDigraph , long > >( 1000 ,

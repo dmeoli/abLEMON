@@ -91,7 +91,8 @@ template< typename GR , typename V = int , typename C = V >
 class CycleCanceling
 {
  template< typename MCF >
- friend bool _mcf_bits::feasibleFlow( MCF & , typename MCF::Value , int & );
+ friend bool _mcf_bits::feasibleFlow( MCF & , typename MCF::Value , int & ,
+				      typename MCF::Value );
  template< typename MCF >
  friend _mcf_bits::McfData< typename MCF::Value >
  _mcf_bits::residualData( const MCF & , const std::vector< int > & );
@@ -220,6 +221,10 @@ class CycleCanceling
  int _root;
  // What the last run() returned, and whether there was one
  int _result = -1;
+ // The tolerances on the flows and on the reduced costs that were set,
+ // negative if they are left to the algorithm [see tolerances()]
+ Value _flow_tol = -1;
+ Cost _cost_tol = -1;
  // The tolerances on the flows and on the reduced costs, zero for exact
  // types [see bits/mcf_feasible_flow.h]
  Value _feps;
@@ -544,6 +549,24 @@ class CycleCanceling
 		  d , _mcf_bits::residualCosts( d , _cost ) , k ) ) );
   }
 
+ /// \brief Sets the tolerances on the flows and on the reduced costs.
+ ///
+ /// An excess, a deficit or a residual capacity within the tolerance on
+ /// the flows is taken as zero, and a reduced cost above the opposite of
+ /// the tolerance on the costs as nonnegative. A negative value, the
+ /// default, leaves the tolerance to the algorithm: zero for an exact
+ /// type, and otherwise 10^6 units in the last place of the largest
+ /// supply or finite bound and of the largest cost, respectively. With
+ /// floating-point data, a tolerance of zero lets rounding errors keep the
+ /// algorithm going for ever, as in LEMON 1.3.1.
+ ///
+ /// \return <tt>(*this)</tt>
+ CycleCanceling & tolerances( Value flow , Cost cost ) {
+  _flow_tol = flow;
+  _cost_tol = cost;
+  return( *this );
+  }
+
  /// \brief Reset all the parameters that have been given before.
  ///
  /// This function resets all the paramaters that have been given
@@ -809,13 +832,17 @@ class CycleCanceling
   // supplies that sum to zero in decimal sum, in floating point, to a few
   // units in the last place of either sign
   const Value feps =
-    _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
-			      _lower , _upper , _supply , _has_lower );
+    _flow_tol >= 0
+      ? _flow_tol
+      : _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
+				  _lower , _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   _feps = feps;
-  _ceps = _mcf_bits::costTolerance( _root , _first_out , _target , _forward ,
-				    _cost );
+  _ceps = _cost_tol >= 0
+	    ? _cost_tol
+	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
+					_forward , _cost );
   if( _sum_supply > 0 )
    return( INFEASIBLE );
 
@@ -849,7 +876,7 @@ class CycleCanceling
 
   // Find a feasible flow on the residual network
   int sup_num;
-  if( ! _mcf_bits::feasibleFlow( *this , Value( 1 ) , sup_num ) ) {
+  if( ! _mcf_bits::feasibleFlow( *this , Value( 1 ) , sup_num , _feps ) ) {
    return( INFEASIBLE );
    }
   if( unbounded )

@@ -191,6 +191,10 @@ class CapacityScaling
  int _root;
  // What the last run() returned, and whether there was one
  int _result = -1;
+ // The tolerances on the flows and on the reduced costs that were set,
+ // negative if they are left to the algorithm [see tolerances()]
+ Value _flow_tol = -1;
+ Cost _cost_tol = -1;
 
  // Parameters of the problem
  bool _has_lower;
@@ -631,6 +635,24 @@ class CapacityScaling
 		  d , _mcf_bits::residualCosts( d , _cost ) , k ) ) );
   }
 
+ /// \brief Sets the tolerances on the flows and on the reduced costs.
+ ///
+ /// An excess, a deficit or a residual capacity within the tolerance on
+ /// the flows is taken as zero, and a reduced cost above the opposite of
+ /// the tolerance on the costs as nonnegative. A negative value, the
+ /// default, leaves the tolerance to the algorithm: zero for an exact
+ /// type, and otherwise 10^6 units in the last place of the largest
+ /// supply or finite bound and of the largest cost, respectively. With
+ /// floating-point data, a tolerance of zero lets rounding errors keep the
+ /// algorithm going for ever, as in LEMON 1.3.1.
+ ///
+ /// \return <tt>(*this)</tt>
+ CapacityScaling & tolerances( Value flow , Cost cost ) {
+  _flow_tol = flow;
+  _cost_tol = cost;
+  return( *this );
+  }
+
  /// \brief Reset all the parameters that have been given before.
  ///
  /// This function resets all the paramaters that have been given
@@ -878,8 +900,10 @@ class CapacityScaling
   // supplies that sum to zero in decimal sum, in floating point, to a few
   // units in the last place of either sign
   const Value feps =
-    _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
-			      _lower , _upper , _supply , _has_lower );
+    _flow_tol >= 0
+      ? _flow_tol
+      : _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
+				  _lower , _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   if( _sum_supply > 0 )
@@ -978,11 +1002,11 @@ class CapacityScaling
   // The smallest delta, and the tolerance on the reduced costs
   _unit = std::numeric_limits< Value >::is_exact
 	    ? Value( 1 )
-	    : _mcf_bits::flowTolerance( _root , _first_out , _target ,
-					_forward , _lower , _upper , _supply ,
-					_has_lower );
-  _ceps = _mcf_bits::costTolerance( _root , _first_out , _target , _forward ,
-				    _cost );
+	    : ( feps > 0 ? feps : ( std::numeric_limits< Value >::min )() );
+  _ceps = _cost_tol >= 0
+	    ? _cost_tol
+	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
+					_forward , _cost );
 
   // Initialize delta value
   if( _factor > 1 ) {

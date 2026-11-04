@@ -55,7 +55,8 @@ that some classes copied while still uninitialized are now initialized.
 **Minimum cost flow.** The four algorithms solve problems with floating-point
 costs, capacities and supplies, on which `NetworkSimplex` typically pivoted for
 ever or reported infeasibility, since it compared reduced costs and residual
-flows against an exact zero, and the other three asked for integer data.
+flows against an exact zero, and the other three asked for integer data; the
+tolerances are relative to the data unless `tolerances()` sets them.
 `NetworkSimplex` also updates the potentials on the smaller side of the tree at
 each pivot, `CostScaling` and `CycleCanceling` find their starting flow on
 their residual network, and `CapacityScaling` uses a 4-ary heap. Also, the four

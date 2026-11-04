@@ -100,16 +100,14 @@ typename CV::value_type costTolerance( int root , const IV & first_out ,
 // supply net of the lower bounds is positive, and returns false if
 // there is no such flow. The last arc out of every node is the one to
 // the root, which is not an arc of the digraph. In floating point, an
-// excess or a residual capacity within the tolerance on the flows is
-// zero, since what round-off leaves of an excess can find no way out.
+// excess or a residual capacity within feps, the tolerance on the flows,
+// is zero, since what round-off leaves of an excess can find no way out.
 template< typename MCF >
-bool feasibleFlow( MCF & mcf , typename MCF::Value root_cap , int & sup_num )
+bool feasibleFlow( MCF & mcf , typename MCF::Value root_cap , int & sup_num ,
+		   typename MCF::Value feps )
 {
  typedef typename MCF::Value Value;
  const int n = mcf._root;
- const Value feps = flowTolerance( n , mcf._first_out , mcf._target ,
-				   mcf._forward , mcf._lower , mcf._upper ,
-				   mcf._supply , mcf._has_lower );
  std::vector< Value > ex( mcf._supply.begin() , mcf._supply.begin() + n );
  if( mcf._has_lower ) {
   for( int u = 0 ; u != n ; ++u ) {

@@ -236,6 +236,10 @@ class NetworkSimplex
  int _unb_arc;
  // What the last run() returned, and whether there was one
  int _result = -1;
+ // The tolerances on the flows and on the reduced costs that were set,
+ // negative if they are left to the algorithm [see tolerances()]
+ Value _flow_tol = -1;
+ Cost _cost_tol = -1;
 
  // Temporary data used in the current pivot iteration
  int in_arc , join , u_in , v_in , u_out , v_out;
@@ -252,6 +256,14 @@ class NetworkSimplex
  const Value INF;
 
  private:
+ // The tolerances in use, those set or those of the data
+ Cost costTol() const {
+  return( _cost_tol >= 0 ? _cost_tol : pivotTolerance( _cost , _arc_num ) );
+  }
+ Value flowTol() const {
+  return( _flow_tol >= 0 ? _flow_tol : flowTolerance( _supply , _node_num ) );
+  }
+
  // The tolerance of the pivot rules on the reduced costs: zero for an
  // exact cost type, otherwise relative to the largest of the n costs.
  static Cost pivotTolerance( const CostVector & cost , int n ) {
@@ -305,7 +317,7 @@ class NetworkSimplex
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
 	_search_arc_num( ns._search_arc_num ) ,
-	_eps( pivotTolerance( ns._cost , ns._arc_num ) ) , _next_arc( 0 ) { }
+	_eps( ns.costTol() ) , _next_arc( 0 ) { }
 
   // Find next entering arc
   bool findEnteringArc() {
@@ -354,7 +366,7 @@ class NetworkSimplex
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
 	_search_arc_num( ns._search_arc_num ) ,
-	_eps( pivotTolerance( ns._cost , ns._arc_num ) ) { }
+	_eps( ns.costTol() ) { }
 
   // Find next entering arc
   bool findEnteringArc() {
@@ -397,7 +409,7 @@ class NetworkSimplex
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
 	_search_arc_num( ns._search_arc_num ) ,
-	_eps( pivotTolerance( ns._cost , ns._arc_num ) ) , _next_arc( 0 ) {
+	_eps( ns.costTol() ) , _next_arc( 0 ) {
    // The main parameters of the pivot rule
    const double BLOCK_SIZE_FACTOR = 1.0;
    const int MIN_BLOCK_SIZE = 10;
@@ -475,7 +487,7 @@ class NetworkSimplex
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
 	_search_arc_num( ns._search_arc_num ) ,
-	_eps( pivotTolerance( ns._cost , ns._arc_num ) ) , _next_arc( 0 ) {
+	_eps( ns.costTol() ) , _next_arc( 0 ) {
    // The main parameters of the pivot rule
    const double LIST_LENGTH_FACTOR = 0.25;
    const int MIN_LIST_LENGTH = 10;
@@ -599,7 +611,7 @@ class NetworkSimplex
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
 	_search_arc_num( ns._search_arc_num ) ,
-	_eps( pivotTolerance( ns._cost , ns._arc_num ) ) , _next_arc( 0 ) ,
+	_eps( ns.costTol() ) , _next_arc( 0 ) ,
 	_cand_cost( ns._search_arc_num ) , _sort_func( _cand_cost ) {
    // The main parameters of the pivot rule
    const double BLOCK_SIZE_FACTOR = 1.0;
@@ -1028,6 +1040,24 @@ class NetworkSimplex
   return( cycles );
   }
 
+ /// \brief Sets the tolerances on the flows and on the reduced costs.
+ ///
+ /// An excess, a deficit or a residual capacity within the tolerance on
+ /// the flows is taken as zero, and a reduced cost above the opposite of
+ /// the tolerance on the costs as nonnegative. A negative value, the
+ /// default, leaves the tolerance to the algorithm: zero for an exact
+ /// type, and otherwise 10^6 units in the last place of the largest
+ /// supply or finite bound and of the largest cost, respectively. With
+ /// floating-point data, a tolerance of zero lets rounding errors keep the
+ /// algorithm going for ever, as in LEMON 1.3.1.
+ ///
+ /// \return <tt>(*this)</tt>
+ NetworkSimplex & tolerances( Value flow , Cost cost ) {
+  _flow_tol = flow;
+  _cost_tol = cost;
+  return( *this );
+  }
+
  /// \brief Reset all the parameters that have been given before.
  ///
  /// This function resets all the paramaters that have been given
@@ -1259,7 +1289,7 @@ class NetworkSimplex
   // A sum within the tolerance on the flow is zero: supplies that sum to
   // zero sum, in floating point, to a few units in the last place of
   // either sign, which would make a balanced problem infeasible.
-  const Value feps = flowTolerance( _supply , _node_num );
+  const Value feps = flowTol();
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   if( ! ( ( _stype == GEQ && _sum_supply <= 0 ) ||
@@ -1952,7 +1982,7 @@ class NetworkSimplex
   alignPotential();
 
   // Check feasibility, up to the tolerance on the artificial arcs
-  const Value feps = flowTolerance( _supply , _node_num );
+  const Value feps = flowTol();
   for( int e = _search_arc_num ; e != _all_arc_num ; ++e ) {
    if( _flow[ e ] > feps || _flow[ e ] < -feps ) {
     restoreSupply();
