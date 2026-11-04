@@ -1,8 +1,8 @@
 class Ablemon < Formula
   desc "Maintained fork of LEMON, a C++ library of graphs and network optimization"
   homepage "https://github.com/dmeoli/abLEMON"
-  url "https://github.com/dmeoli/abLEMON/archive/refs/tags/1.6.0.tar.gz"
-  sha256 "19ff8a62faad00bb699a16ae7383dd3978c749f40ba5d5d3b01f8f00043e9de1"
+  url "https://github.com/dmeoli/abLEMON/archive/refs/tags/1.7.0.tar.gz"
+  sha256 "6ca9da3d115557c2dc914f58f3dbcdb2186808ed98c92a306160b1dc7b4d50ee"
   license all_of: ["BSL-1.0", "BSD-3-Clause"]
   head "https://github.com/dmeoli/abLEMON.git", branch: "master"
 
