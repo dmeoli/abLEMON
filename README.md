@@ -77,9 +77,12 @@ extreme points, i.e., the pivots of the network simplex from the bases of the
 vertices already given (with a limit on the bases it expands, in all and for
 each vertex, beyond which the vertices are still given in order but may not be
 the K best ones, as at a degenerate vertex, e.g., a path of a shortest path
-problem, whose bases are as many as the trees containing it), and `KBestFlows`
-the K integer flows of least cost, by the algorithm of Hamacher; both start
-from an optimal flow that any of the four may find.
+problem, whose bases are as many as the trees containing it), or, enumerating
+no basis, by the cycles of least reduced cost (the other optimal vertices
+through the cycles of zero reduced cost, then the best vertices one such cycle
+away from an optimal one), and `KBestFlows` the K integer flows of least cost,
+by the algorithm of Hamacher; both start from an optimal flow that any of the
+four may find.
 
 **New algorithms and structures.** `HopcroftKarp` finds a maximum matching of a
 bipartite graph, with the vertex cover that proves it, and `MinCostAssignment`

@@ -256,6 +256,37 @@ void checkExtremeAgainstEnumeration( int seeds )
 	  "Wrong number of extreme flows within a gap on " + id );
    }
 
+  // the cycles of least reduced cost: the same, and a second optimal
+  // vertex whenever there is one
+  {
+   KBestExtremeFlows< Digraph > kc( p.g );
+   kc.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+     p.supply ).method( KBestExtremeFlows< Digraph >::CYCLES );
+   const int got = kc.run( k );
+   check( ( got > 0 ) == ( ! all.empty() ) ,
+	  "No extreme flow by the cycles on " + id );
+   std::set< std::vector< int > > seen;
+   int optimal = 0;
+   for( int j = 0 ; j != got ; ++j ) {
+    check( std::binary_search( all.begin() , all.end() , kc.totalCost( j ) ) ,
+	   "Not the cost of a vertex, by the cycles, on " + id );
+    check( j > 0 ? kc.totalCost( j ) >= kc.totalCost( j - 1 ) :
+	   kc.totalCost( 0 ) == all[ 0 ] ,
+	   "Wrong order, by the cycles, on " + id );
+    optimal += kc.totalCost( j ) == all[ 0 ];
+    std::vector< int > f;
+    for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a )
+     f.push_back( kc.flow( j , a ) );
+    check( seen.insert( f ).second ,
+	   "An extreme flow given twice, by the cycles, on " + id );
+    }
+   const bool two = all.size() > 1 && all[ 1 ] == all[ 0 ];
+   check( ! two || optimal >= 2 ,
+	  "A second optimal vertex missed by the cycles on " + id );
+   check( all.size() < 2 || got >= 2 ,
+	  "A second vertex missed by the cycles on " + id );
+   }
+
   // one basis for each vertex: distinct vertices, the first optimal, the
   // costs not decreasing, each the cost of a vertex
   kb.vertexBasisLimit( 1 );

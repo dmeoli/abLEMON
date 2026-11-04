@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <queue>
@@ -107,6 +108,7 @@ class KBestExtremeFlows
  bool _has_init;
  int _basis_limit;
  int _vertex_limit;
+ int _method;
  bool _exact;
  std::vector< Value > _init;
  Value _feps;
@@ -125,7 +127,7 @@ class KBestExtremeFlows
        _source( _m + _n ) , _target( _m + _n ) , _lower( _m + _n , 0 ) ,
        _upper( _m + _n , 0 ) , _supply( _n , 0 ) , _inf( _m + _n , 1 ) ,
        _cost( _m + _n , 0 ) , _has_init( false ) , _basis_limit( 1000 ) ,
-       _vertex_limit( 0 ) ,
+       _vertex_limit( 0 ) , _method( RANKING ) ,
        _exact( true ) , _feps( 0 ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
@@ -195,6 +197,38 @@ class KBestExtremeFlows
   return( *this );
   }
 
+ /// \brief The ways the flows are generated [see \ref method()].
+ enum Method {
+  /// The ranking of Murty: the k best vertices, in order.
+  RANKING ,
+  /// The cycles of least reduced cost: the optimal vertices that the
+  /// cycles of zero reduced cost lead to, then the vertices one cycle away
+  /// from them, in the order of their costs.
+  CYCLES
+  };
+
+ /// \brief Sets the way the flows are generated.
+ ///
+ /// With \ref RANKING, the default, a \ref run() gives the k best
+ /// vertices in order, as long as the limits on the bases allow it [see
+ /// \ref basisLimit() and \ref vertexBasisLimit()]. With \ref CYCLES it
+ /// enumerates no basis: from the optimal vertex and potentials optimal
+ /// for it, the cycles of the residual graph whose arcs have a reduced
+ /// cost of zero, saturated and made vertices, are the other optimal
+ /// vertices, from which the same is done again; then, from each optimal
+ /// vertex and for each residual arc, the cycle of least reduced cost
+ /// through the arc (one Dijkstra's algorithm for each node), saturated and
+ /// made a vertex, the cost not growing, gives a vertex of larger cost, and
+ /// these are given in the order of their costs. The flows are distinct
+ /// vertices in the order of their costs, the optimal ones first, but
+ /// those of larger cost are only the best of the vertices one cycle away
+ /// from an optimal one [see \ref exact()]; each optimal vertex costs
+ /// \f$O(nm\log n)\f$ time and \f$O(km)\f$ memory.
+ KBestExtremeFlows & method( Method m ) {
+  _method = m;
+  return( *this );
+  }
+
  /// \brief Finds the k best extreme flows.
  ///
  /// \param k The largest number of flows to find.
@@ -205,6 +239,8 @@ class KBestExtremeFlows
  /// the problem has fewer vertices within the gap, and zero if it has no
  /// optimal flow (it is infeasible or unbounded).
  int run( int k , Cost gap = -1 ) {
+  if( _method == CYCLES )
+   return( runCycles( k , gap ) );
   _flows.clear();
   _costs.clear();
   _exact = true;
@@ -354,7 +390,8 @@ class KBestExtremeFlows
 
  /// \brief Whether the last \ref run() is exact.
  ///
- /// False if the last \ref run() stopped at the limit of the bases
+ /// Always false with \ref CYCLES [see \ref method()]; with \ref RANKING,
+ /// false if the last \ref run() stopped at the limit of the bases
  /// [see \ref basisLimit()] or left out a basis or a pivot for the limit
  /// of the bases of a vertex [see \ref vertexBasisLimit()], so that the
  /// flows it gives may not be the k best ones.
@@ -379,6 +416,192 @@ class KBestExtremeFlows
   }
 
  private:
+ // The run of CYCLES [see method()]
+ int runCycles( int k , Cost gap ) {
+  _flows.clear();
+  _costs.clear();
+  _exact = false;
+  State s;
+  if( k <= 0 || ! firstState( s ) )
+   return( 0 );
+  const bool bounded = gap >= 0;
+  const Cost limit = bounded ? s.cost + gap : s.cost;
+  const int nn = _n + 1 , rr = 2 * ( _m + _n );
+
+  // the tolerance on the reduced costs: zero for an exact type, otherwise
+  // relative to the largest cost
+  Cost ceps = 0;
+  if( ! std::numeric_limits< Cost >::is_exact ) {
+   Cost big = 1;
+   for( int i = 0 ; i != _m ; ++i )
+    big = ( std::max )( big , _cost[ i ] < 0 ? Cost( -_cost[ i ] )
+					      : _cost[ i ] );
+   ceps = static_cast< Cost >( big * std::numeric_limits< Cost >::epsilon() *
+			       1e6 );
+   }
+
+  // potentials optimal for the first vertex: the distances in its residual
+  // graph from a source joined to every node, which has no negative cycle
+  std::vector< Cost > pi( nn , 0 );
+  for( int pass = 0 ; pass != nn ; ++pass ) {
+   bool changed = false;
+   for( int r = 0 ; r != rr ; ++r )
+    if( open( s , r ) && pi[ tail( r ) ] + resCost( r ) <
+	                 pi[ head( r ) ] - ceps ) {
+     pi[ head( r ) ] = pi[ tail( r ) ] + resCost( r );
+     changed = true;
+     }
+   if( ! changed )
+    break;
+   }
+  // the reduced costs, nonnegative on the residual arcs of every optimal
+  // vertex, the potentials being optimal for all of them
+  std::vector< Cost > rc( rr );
+  for( int r = 0 ; r != rr ; ++r ) {
+   rc[ r ] = resCost( r ) + pi[ tail( r ) ] - pi[ head( r ) ];
+   if( rc[ r ] < 0 )
+    rc[ r ] = 0;
+   }
+
+  std::set< std::vector< Value > > seen;
+  auto give = [ & ]( const State & x ) -> bool {
+   std::vector< Value > f( x.flow.begin() , x.flow.begin() + _m );
+   if( ! seen.insert( f ).second )
+    return( false );
+   _flows.push_back( f );
+   _costs.push_back( x.cost );
+   return( true );
+   };
+
+  // the cycle of the residual arc r closed by the path from head( r ) to
+  // tail( r ) of the tree pred, saturated and made a vertex
+  auto step = [ & ]( const State & x , int r ,
+		     const std::vector< int > & pred , State & y ) -> bool {
+   std::vector< int > cycle( 1 , r );
+   for( int w = tail( r ) ; w != head( r ) ; w = tail( pred[ w ] ) )
+    cycle.push_back( pred[ w ] );
+   Value amount = 0;
+   bool first = true;
+   for( std::size_t h = 0 ; h != cycle.size() ; ++h ) {
+    Value c;
+    if( ! residual( x , cycle[ h ] , c ) )
+     continue;
+    if( first || c < amount )
+     amount = c;
+    first = false;
+    }
+   if( first || amount <= _feps )
+    return( false );
+   y = x;
+   for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+    y.flow[ cycle[ h ] / 2 ] += cycle[ h ] % 2 == 0 ? amount : -amount;
+   purify( y );
+   y.cost = 0;
+   for( int i = 0 ; i != _m ; ++i )
+    y.cost += _cost[ i ] * y.flow[ i ];
+   return( true );
+   };
+
+  // the paths from v along the open residual arcs of x, by Dijkstra's
+  // algorithm on the reduced costs, those of zero reduced cost alone if
+  // zero is true
+  auto paths = [ & ]( const std::vector< std::vector< int > > & out , int v ,
+		      bool zero , std::vector< Cost > & dist ,
+		      std::vector< int > & pred ) {
+   dist.assign( nn , -1 );
+   pred.assign( nn , -1 );
+   typedef std::pair< Cost , int > QI;
+   std::priority_queue< QI , std::vector< QI > , std::greater< QI > > q;
+   std::vector< char > done( nn , 0 );
+   dist[ v ] = 0;
+   q.push( QI( 0 , v ) );
+   while( ! q.empty() ) {
+    const int w = q.top().second;
+    q.pop();
+    if( done[ w ] )
+     continue;
+    done[ w ] = 1;
+    for( std::size_t t = 0 ; t != out[ w ].size() ; ++t ) {
+     const int r = out[ w ][ t ] , z = head( r );
+     if( zero && rc[ r ] > ceps )
+      continue;
+     const Cost d = dist[ w ] + rc[ r ];
+     if( ! done[ z ] && ( dist[ z ] < 0 || d < dist[ z ] ) ) {
+      dist[ z ] = d;
+      pred[ z ] = r;
+      q.push( QI( d , z ) );
+      }
+     }
+    }
+   };
+
+  auto outOf = [ & ]( const State & x )
+		      -> std::vector< std::vector< int > > {
+   std::vector< std::vector< int > > out( nn );
+   for( int r = 0 ; r != rr ; ++r )
+    if( open( x , r ) )
+     out[ tail( r ) ].push_back( r );
+   return( out );
+   };
+
+  // the optimal vertices, through the cycles of zero reduced cost
+  std::vector< State > optimal( 1 , s );
+  give( s );
+  std::vector< Cost > dist;
+  std::vector< int > pred;
+  for( std::size_t i = 0 ; i != optimal.size() &&
+	                   int( _flows.size() ) < k ; ++i ) {
+   const State x = optimal[ i ];
+   const auto out = outOf( x );
+   for( int v = 0 ; v != nn && int( _flows.size() ) < k ; ++v ) {
+    paths( out , v , true , dist , pred );
+    for( int r = 0 ; r != rr && int( _flows.size() ) < k ; ++r ) {
+     if( head( r ) != v || rc[ r ] > ceps || ! open( x , r ) ||
+	 ( tail( r ) != v && pred[ tail( r ) ] < 0 ) )
+      continue;
+     State y;
+     if( step( x , r , pred , y ) && y.cost <= s.cost + ceps && give( y ) )
+      optimal.push_back( y );
+     }
+    }
+   }
+
+  // the vertices one cycle of least reduced cost away from an optimal one,
+  // the best ones kept
+  std::multimap< Cost , std::vector< Value > > cand;
+  const std::size_t want = std::size_t( k ) - _flows.size();
+  for( std::size_t i = 0 ; i != optimal.size() && want > 0 ; ++i ) {
+   const State & x = optimal[ i ];
+   const auto out = outOf( x );
+   for( int v = 0 ; v != nn ; ++v ) {
+    paths( out , v , false , dist , pred );
+    for( int r = 0 ; r != rr ; ++r ) {
+     if( head( r ) != v || ! open( x , r ) ||
+	 ( tail( r ) != v && pred[ tail( r ) ] < 0 ) ||
+	 rc[ r ] + ( tail( r ) != v ? dist[ tail( r ) ] : Cost( 0 ) ) <= ceps )
+      continue;
+     State y;
+     if( ! step( x , r , pred , y ) || ( bounded && y.cost > limit ) ||
+	 y.cost <= s.cost + ceps )
+      continue;
+     std::vector< Value > f( y.flow.begin() , y.flow.begin() + _m );
+     if( seen.count( f ) )
+      continue;
+     cand.insert( std::make_pair( y.cost , f ) );
+     while( cand.size() > 2 * want )
+      cand.erase( std::prev( cand.end() ) );
+     }
+    }
+   }
+  for( auto it = cand.begin() ; it != cand.end() &&
+	                         int( _flows.size() ) < k ; ++it )
+   if( seen.insert( it->second ).second ) {
+    _flows.push_back( it->second );
+    _costs.push_back( it->first );
+    }
+  return( int( _flows.size() ) );
+  }
+
  // Whether the arc i is strictly within its bounds
  bool isFree( const State & s , int i ) const {
   return( s.flow[ i ] > _lower[ i ] + _feps &&
@@ -523,8 +746,9 @@ class KBestExtremeFlows
 
  // The flow made a vertex: while the arcs strictly within their bounds
  // close a cycle, the cycle is saturated in a direction in which it is
- // bounded, which leaves the cost as it is at an optimal flow, since such
- // a cycle has a reduced cost of zero
+ // bounded, that in which the cost does not grow first, so that the cost
+ // stays as it is at an optimal flow, where such a cycle has a reduced
+ // cost of zero, and does not grow elsewhere
  void purify( State & s ) const {
   const int nn = _n + 1;
   for( ; ; ) {
@@ -549,6 +773,13 @@ class KBestExtremeFlows
    std::vector< int > cycle;
    forestPath( s , on , _target[ closing ] , _source[ closing ] , cycle );
    cycle.insert( cycle.begin() , 2 * closing );
+   // the direction in which the cost does not grow is tried first
+   Cost cc = 0;
+   for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+    cc += resCost( cycle[ h ] );
+   if( cc > 0 )
+    for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+     cycle[ h ] ^= 1;
    Value amount = 0;
    bool bounded = false;
    for( int dir = 0 ; dir != 2 && ! bounded ; ++dir ) {

@@ -421,7 +421,9 @@ LEMON contains several algorithms for this problem.
 
 Besides an optimal flow, \ref KBestExtremeFlows gives the K vertices of least
 cost of the polyhedron of the flows in order \cite murty68ranking (or,
-within a limit on the bases it expands, distinct vertices in order), and
+within a limit on the bases it expands, distinct vertices in order, or the
+optimal vertices and those one cycle of least reduced cost away from them),
+and
 \ref KBestFlows the K integer flows of least cost in order
 \cite hamacher95kbestflows, \cite lawler72kbest.
 
