@@ -320,7 +320,7 @@ void ArgParser::shortHelp() const
    pos = static_cast< int >( indent.size() );
    }
   std::cerr << cstr.str();
-  pos += cstr.str().size();
+  pos += static_cast< int >( cstr.str().size() );
   }
  for( Opts::const_iterator i = _opts.begin() ; i != _opts.end() ; ++i )
   if( ! i->second.ingroup && ! i->second.syn ) {
@@ -336,7 +336,7 @@ void ArgParser::shortHelp() const
     pos = static_cast< int >( indent.size() );
     }
    std::cerr << cstr.str();
-   pos += cstr.str().size();
+   pos += static_cast< int >( cstr.str().size() );
    }
  for( std::vector< OtherArg >::const_iterator i = _others_help.begin() ;
       i != _others_help.end() ; ++i ) {
@@ -348,7 +348,7 @@ void ArgParser::shortHelp() const
    pos = static_cast< int >( indent.size() );
    }
   std::cerr << cstr.str();
-  pos += cstr.str().size();
+  pos += static_cast< int >( cstr.str().size() );
   }
  std::cerr << std::endl;
  }

@@ -52,6 +52,9 @@ int failures = 0;
 
 // Whether each run is printed before it starts, as the environment
 // variable LEMON_BATTERY_VERBOSE asks
+#ifdef _MSC_VER
+ #pragma warning( disable : 4996 )  // getenv(), which is only read here
+#endif
 const bool verbose = std::getenv( "LEMON_BATTERY_VERBOSE" ) != nullptr;
 
 void expect( bool ok , const std::string & what )

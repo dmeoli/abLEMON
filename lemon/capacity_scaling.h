@@ -118,8 +118,6 @@ template< typename GR , typename V = int , typename C = V ,
 class CapacityScaling
 {
  template< typename MCF >
- friend bool _mcf_bits::feasibleFlow( MCF & , typename MCF::Value , int & );
- template< typename MCF >
  friend _mcf_bits::McfData< typename MCF::Value >
  _mcf_bits::residualData( const MCF & , const std::vector< int > & );
  template< typename MCF , typename CV >

@@ -61,7 +61,8 @@ typename VV::value_type flowTolerance( int root , const IV & first_out ,
     m = ( std::max )( m , Value( std::abs( lower[ j ] ) ) );
    }
   }
- return( m * std::numeric_limits< Value >::epsilon() * 1e6 );
+ return( static_cast< Value >( m * std::numeric_limits< Value >::epsilon() *
+			      1e6 ) );
  }
 
 // The tolerance on the reduced costs: zero for an exact cost type,
@@ -81,7 +82,8 @@ typename CV::value_type costTolerance( int root , const IV & first_out ,
   for( int j = first_out[ u ] ; j != first_out[ u + 1 ] ; ++j )
    if( forward[ j ] && target[ j ] != root )
     m = ( std::max )( m , Cost( std::abs( cost[ j ] ) ) );
- return( m * std::numeric_limits< Cost >::epsilon() * 1e6 );
+ return( static_cast< Cost >( m * std::numeric_limits< Cost >::epsilon() *
+			     1e6 ) );
  }
 
 // Finds a flow within the bounds that meets the supplies on the

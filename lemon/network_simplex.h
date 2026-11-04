@@ -276,7 +276,8 @@ class NetworkSimplex
    else if( -cost[ i ] > m )
     m = -cost[ i ];
    }
-  return( m * std::numeric_limits< Cost >::epsilon() * 1e6 );
+  return( static_cast< Cost >( m * std::numeric_limits< Cost >::epsilon() *
+			     1e6 ) );
   }
 
  // The tolerance on the flow left on the artificial arcs: zero for an
@@ -291,7 +292,8 @@ class NetworkSimplex
    else if( -supply[ i ] > m )
     m = -supply[ i ];
    }
-  return( m * std::numeric_limits< Value >::epsilon() * 1e6 );
+  return( static_cast< Value >( m * std::numeric_limits< Value >::epsilon() *
+			      1e6 ) );
   }
 
  // Implementation of the First Eligible pivot rule
