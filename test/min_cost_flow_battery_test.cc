@@ -30,7 +30,9 @@
 #include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <algorithm>
 #include <limits>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -115,6 +117,8 @@ struct Answer
  std::vector< V > pi;
  std::vector< Node > cut;
  std::vector< Arc > cycle;
+ std::vector< std::vector< Node > > cuts , disjoint;
+ std::vector< std::vector< Arc > > cycles;
  };
 
 template< typename V >
@@ -143,6 +147,9 @@ Answer< V > answerOf( const MCF & mcf , PT pt , const Instance< V > & p )
   }
  a.cut = mcf.infeasibleCut();
  a.cycle = mcf.unboundedCycle();
+ a.cuts = mcf.infeasibleCuts( 5 );
+ a.disjoint = mcf.disjointInfeasibleCuts();
+ a.cycles = mcf.unboundedCycles( 5 );
  return( a );
  }
 
@@ -287,48 +294,135 @@ void checkOptimal( const Instance< V > & p , const Answer< V > & a ,
 	"Dual cost not equal to the primal one: " + id );
  }
 
+// The violation of a set of nodes, its supply less what can leave it;
+// false if an arc of infinite upper bound leaves it
+template< typename V >
+bool violation( const Instance< V > & p , const std::vector< char > & in ,
+		double & gap )
+{
+ gap = 0;
+ for( Digraph::NodeIt u( p.g ) ; u != INVALID ; ++u )
+  if( in[ p.g.id( u ) ] )
+   gap += p.supply[ u ];
+ for( Digraph::ArcIt e( p.g ) ; e != INVALID ; ++e ) {
+  const bool s = in[ p.g.id( p.g.source( e ) ) ] ,
+	     t = in[ p.g.id( p.g.target( e ) ) ];
+  if( s && ! t ) {
+   if( p.upper[ e ] == p.inf )
+    return( false );
+   gap -= p.upper[ e ];
+   }
+  else if( ! s && t )
+   gap += p.lower[ e ];
+  }
+ return( true );
+ }
+
+template< typename V >
+std::vector< char > charOf( const Instance< V > & p ,
+			    const std::vector< Node > & set )
+{
+ std::vector< char > in( countNodes( p.g ) , 0 );
+ for( std::size_t i = 0 ; i != set.size() ; ++i )
+  in[ p.g.id( set[ i ] ) ] = 1;
+ return( in );
+ }
+
 // An infeasible answer: a set of nodes whose supply exceeds what can
-// leave it
+// leave it; the k best sets, whose violations are the k largest ones of
+// all the subsets of the nodes, enumerated, in order; disjoint sets, each
+// violated, with no arc between two of them
 template< typename V >
 void checkCut( const Instance< V > & p , const Answer< V > & a ,
 	       const std::string & id )
 {
+ const double tol = tolerance< V >( scaleOf( p ) * countArcs( p.g ) );
  expect( ! a.cut.empty() , "No infeasibility cut: " + id );
- Digraph::NodeMap< bool > in( p.g , false );
- double gap = 0;
- for( std::size_t i = 0 ; i != a.cut.size() ; ++i ) {
-  in[ a.cut[ i ] ] = true;
-  gap += p.supply[ a.cut[ i ] ];
+ double gap;
+ expect( violation( p , charOf( p , a.cut ) , gap ) ,
+	 "Infinite arc out of the cut: " + id );
+ expect( gap > tol , "Wrong infeasibility cut: " + id );
+
+ const int n = countNodes( p.g );
+ std::vector< double > all;
+ for( long mask = 1 ; n <= 14 && mask < ( 1L << n ) ; ++mask ) {
+  std::vector< char > in( n );
+  for( int u = 0 ; u != n ; ++u )
+   in[ u ] = ( mask >> u ) & 1;
+  double g;
+  if( violation( p , in , g ) && g > tol )
+   all.push_back( g );
+  }
+ std::sort( all.rbegin() , all.rend() );
+ expect( ! a.cuts.empty() && a.cuts.size() == std::min< std::size_t >(
+					      5 , all.size() ) ,
+	 "Wrong number of best infeasibility cuts: " + id );
+ std::set< std::vector< char > > seen;
+ for( std::size_t j = 0 ; j != a.cuts.size() && j != all.size() ; ++j ) {
+  const std::vector< char > in = charOf( p , a.cuts[ j ] );
+  expect( violation( p , in , gap ) && std::abs( gap - all[ j ] ) <= tol ,
+	  "Wrong violation of a best infeasibility cut: " + id );
+  expect( seen.insert( in ).second , "A best cut given twice: " + id );
+  }
+
+ expect( ! a.disjoint.empty() , "No disjoint infeasibility cut: " + id );
+ std::vector< int > owner( n , -1 );
+ for( std::size_t j = 0 ; j != a.disjoint.size() ; ++j ) {
+  const std::vector< char > in = charOf( p , a.disjoint[ j ] );
+  expect( violation( p , in , gap ) && gap > tol ,
+	  "Wrong disjoint infeasibility cut: " + id );
+  for( std::size_t h = 0 ; h != a.disjoint[ j ].size() ; ++h ) {
+   const int u = p.g.id( a.disjoint[ j ][ h ] );
+   expect( owner[ u ] < 0 , "Disjoint cuts that meet: " + id );
+   owner[ u ] = int( j );
+   }
   }
  for( Digraph::ArcIt e( p.g ) ; e != INVALID ; ++e ) {
-  if( in[ p.g.source( e ) ] && ! in[ p.g.target( e ) ] ) {
-   expect( p.upper[ e ] != p.inf , "Infinite arc out of the cut: " + id );
-   gap -= p.upper[ e ];
-   }
-  else if( ! in[ p.g.source( e ) ] && in[ p.g.target( e ) ] )
-   gap += p.lower[ e ];
+  const int s = owner[ p.g.id( p.g.source( e ) ) ] ,
+	    t = owner[ p.g.id( p.g.target( e ) ) ];
+  expect( s < 0 || t < 0 || s == t , "An arc between disjoint cuts: " + id );
   }
- expect( gap > tolerance< V >( scaleOf( p ) * countArcs( p.g ) ) ,
-	"Wrong infeasibility cut: " + id );
+ }
+
+// One cycle: directed, of negative cost, of infinite upper bounds; its
+// mean cost in mean
+template< typename V >
+void checkOneCycle( const Instance< V > & p , const std::vector< Arc > & cyc ,
+		    const std::string & id , double & mean )
+{
+ expect( ! cyc.empty() , "No unbounded cycle: " + id );
+ double c = 0;
+ for( std::size_t i = 0 ; i != cyc.size() ; ++i ) {
+  const Arc e = cyc[ i ];
+  c += p.cost[ e ];
+  expect( p.upper[ e ] == p.inf , "Finite arc in the cycle: " + id );
+  expect( p.g.target( e ) == p.g.source( cyc[ ( i + 1 ) % cyc.size() ] ) ,
+	  "The unbounded cycle is not a cycle: " + id );
+  }
+ expect( c < 0 , "The unbounded cycle has a nonnegative cost: " + id );
+ mean = cyc.empty() ? 0 : c / cyc.size();
  }
 
 // An unbounded answer: a directed cycle of negative cost and infinite
-// upper bounds
+// upper bounds, and arc-disjoint ones in the order of their means
 template< typename V >
 void checkCycle( const Instance< V > & p , const Answer< V > & a ,
 		 const std::string & id )
 {
- expect( ! a.cycle.empty() , "No unbounded cycle: " + id );
- double c = 0;
- for( std::size_t i = 0 ; i != a.cycle.size() ; ++i ) {
-  const Arc e = a.cycle[ i ];
-  c += p.cost[ e ];
-  expect( p.upper[ e ] == p.inf , "Finite arc in the cycle: " + id );
-  expect( p.g.target( e ) == p.g.source( a.cycle[ ( i + 1 ) %
-						  a.cycle.size() ] ) ,
-	 "The unbounded cycle is not a cycle: " + id );
+ double mean , last = -std::numeric_limits< double >::infinity();
+ checkOneCycle( p , a.cycle , id , mean );
+ expect( ! a.cycles.empty() && a.cycles.size() <= 5 ,
+	 "Wrong number of unbounded cycles: " + id );
+ std::set< int > used;
+ const double tol = tolerance< V >( scaleOf( p ) );
+ for( std::size_t j = 0 ; j != a.cycles.size() ; ++j ) {
+  checkOneCycle( p , a.cycles[ j ] , id , mean );
+  expect( mean >= last - tol , "Unbounded cycles out of order: " + id );
+  last = mean;
+  for( std::size_t h = 0 ; h != a.cycles[ j ].size() ; ++h )
+   expect( used.insert( p.g.id( a.cycles[ j ][ h ] ) ).second ,
+	   "Unbounded cycles that share an arc: " + id );
   }
- expect( c < 0 , "The unbounded cycle has a nonnegative cost: " + id );
  }
 
 // Every solver on an instance, each answer checked by itself and against

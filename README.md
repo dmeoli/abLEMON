@@ -60,7 +60,11 @@ uses a 4-ary heap. Also, the four answer that a digraph without nodes has an
 optimal (empty) flow, and certify an answer that is not optimal:
 `infeasibleCut()` gives a set of nodes whose supply exceeds what the arcs out
 of it can carry, and `unboundedCycle()` a directed cycle of negative cost and
-infinite capacity. A battery runs every algorithm, with each of its methods,
+infinite capacity. Also, `infeasibleCuts()` gives the k most violated such sets
+in order (Lawler's partition, with one maximum flow per part),
+`disjointInfeasibleCuts()` violated sets with no node and no arc in common, and
+`unboundedCycles()` arc-disjoint cycles in the order of their mean costs, since
+the cycle of least total cost is NP-hard to find. A battery runs every algorithm, with each of its methods,
 on limit cases and on random instances, with integer and floating-point
 data, and checks each answer by its certificate and against the others.
 `KBestFlows` gives the K integer flows of least cost in order (the optimal

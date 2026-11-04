@@ -972,6 +972,62 @@ class NetworkSimplex
   return( cut );
   }
 
+ /// \brief The k sets of nodes that prove the problem infeasible best.
+ ///
+ /// This function gives the k sets of nodes of largest violation of the
+ /// inequality of \ref infeasibleCut(), in the order of their
+ /// violations, at most k and only those that prove the problem
+ /// infeasible: Lawler's partition by the nodes that a set contains or
+ /// not, with a maximum flow for each part (Hamacher, Picard and
+ /// Queyranne, 1984), i.e., at most n maximum flows for each set. They
+ /// are empty if the last \ref run() did not return \ref INFEASIBLE.
+ std::vector< std::vector< Node > > infeasibleCuts( int k ) const {
+  if( _result != INFEASIBLE )
+   return( std::vector< std::vector< Node > >() );
+  return( nodeSets( _mcf_bits::infeasibleCuts( certData() , _stype == LEQ ,
+					       k ) ) );
+  }
+
+ /// \brief Disjoint sets of nodes that prove the problem infeasible.
+ ///
+ /// This function gives sets of nodes that prove the problem infeasible
+ /// as \ref infeasibleCut() does and that are pairwise disjoint, with no
+ /// arc between two of them: the weakly connected components of the set
+ /// of \ref infeasibleCut() whose violation is positive, in the order of
+ /// their violations, which sum to at least the violation of that set.
+ /// They are empty if the last \ref run() did not return
+ /// \ref INFEASIBLE.
+ std::vector< std::vector< Node > > disjointInfeasibleCuts() const {
+  if( _result != INFEASIBLE )
+   return( std::vector< std::vector< Node > >() );
+  return( nodeSets( _mcf_bits::disjointInfeasibleCuts( certData() ,
+						       _stype == LEQ ) ) );
+  }
+
+ /// \brief Arc-disjoint cycles that prove the problem unbounded.
+ ///
+ /// This function gives at most k directed cycles of negative cost whose
+ /// arcs have infinite upper bounds, pairwise arc-disjoint, in the order
+ /// of their mean costs: the cycle of minimum mean cost (Howard's
+ /// algorithm) among those arcs, then that among the arcs not yet taken,
+ /// and so on. The cycle of minimum total cost would be NP-hard to find.
+ /// They are empty if the last \ref run() did not return \ref UNBOUNDED.
+ std::vector< std::vector< Arc > > unboundedCycles( int k ) const {
+  std::vector< std::vector< Arc > > cycles;
+  if( _result != UNBOUNDED )
+   return( cycles );
+  std::vector< Arc > arc_of( _arc_num , INVALID );
+  for( ArcIt a( _graph ) ; a != INVALID ; ++a )
+   arc_of[ _arc_id[ a ] ] = a;
+  const std::vector< std::vector< int > > ids =
+    _mcf_bits::negativeCycles( certData() , _cost , k );
+  cycles.resize( ids.size() );
+  for( std::size_t j = 0 ; j != ids.size() ; ++j )
+   for( std::size_t h = 0 ; h != ids[ j ].size() ; ++h )
+    cycles[ j ].push_back( arc_of[ ids[ j ][ h ] ] );
+  return( cycles );
+  }
+
  /// \brief Reset all the parameters that have been given before.
  ///
  /// This function resets all the paramaters that have been given
@@ -1671,6 +1727,19 @@ class NetworkSimplex
    return( INFEASIBLE );
    }
   return( feasibleUnbounded( start( pivot_rule ) , pivot_rule ) );
+  }
+
+ // Sets of nodes, by their indices, as nodes of the digraph
+ std::vector< std::vector< Node > > nodeSets(
+   const std::vector< std::vector< int > > & ids ) const {
+  std::vector< Node > node_of( _node_num , INVALID );
+  for( NodeIt n( _graph ) ; n != INVALID ; ++n )
+   node_of[ _node_id[ n ] ] = n;
+  std::vector< std::vector< Node > > sets( ids.size() );
+  for( std::size_t j = 0 ; j != ids.size() ; ++j )
+   for( std::size_t h = 0 ; h != ids[ j ].size() ; ++h )
+    sets[ j ].push_back( node_of[ ids[ j ][ h ] ] );
+  return( sets );
   }
 
  // The problem as it was given, for the certificates
