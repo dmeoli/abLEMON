@@ -10,8 +10,8 @@
 [![License: BSL-1.0](https://img.shields.io/badge/License-BSL_1.0-blue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
 abLEMON (formerly lemon-ng) is a maintained fork of
-[LEMON](https://lemon.cs.elte.hu/trac/lemon), the Library for Efficient Modeling and Optimization in Networks, i.e., a C++
-template library of graphs, maps and heaps and of the algorithms of network
+[LEMON](https://lemon.cs.elte.hu/trac/lemon), the Library for Efficient
+Modeling and Optimization in Networks, i.e., a C++ template library of graphs, maps and heaps and of the algorithms of network
 optimization built on them (shortest paths, maximum and minimum cost flows,
 matchings, connectivity, cuts and cycles), written by the Egerváry Research
 Group of the Eötvös Loránd University of Budapest. LEMON has had no release
