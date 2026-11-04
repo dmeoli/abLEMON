@@ -1,6 +1,6 @@
 context:
   name: ablemon
-  version: "1.5.0"
+  version: "1.6.0"
 
 package:
   name: ${{ name }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/dmeoli/abLEMON/archive/${{ version }}.tar.gz
-  sha256: 968ccc5aca2c75a3c14281c5ca96a62e68decb9bf0ab5ab17d743026d5f93bb8
+  sha256: 19ff8a62faad00bb699a16ae7383dd3978c749f40ba5d5d3b01f8f00043e9de1
 
 build:
   number: 0
