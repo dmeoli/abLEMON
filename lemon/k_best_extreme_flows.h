@@ -68,7 +68,10 @@ namespace lemon
 ///
 /// \note The number of the bases of a degenerate vertex can be large, and
 /// all of them are visited when the vertex is expanded; each pivot takes
-/// \f$O(n)\f$ time, and each basis \f$O(nm)\f$ for all its pivots.
+/// \f$O(n)\f$ time, and each basis \f$O(nm)\f$ for all its pivots. A
+/// candidate pivot waits in the queue as its cost alone, the basis it leads
+/// to being made when it is taken, so that the memory is \f$O(n+m)\f$ for
+/// each basis expanded, and their number is bounded by \ref basisLimit().
 template< typename GR , typename V = int , typename C = V >
 class KBestExtremeFlows
 {
@@ -102,6 +105,9 @@ class KBestExtremeFlows
  std::vector< char > _inf;
  std::vector< Cost > _cost;
  bool _has_init;
+ int _basis_limit;
+ int _vertex_limit;
+ bool _exact;
  std::vector< Value > _init;
  Value _feps;
 
@@ -118,7 +124,9 @@ class KBestExtremeFlows
        _m( countArcs( graph ) ) , _node_id( graph ) , _arc_id( graph ) ,
        _source( _m + _n ) , _target( _m + _n ) , _lower( _m + _n , 0 ) ,
        _upper( _m + _n , 0 ) , _supply( _n , 0 ) , _inf( _m + _n , 1 ) ,
-       _cost( _m + _n , 0 ) , _has_init( false ) , _feps( 0 ) {
+       _cost( _m + _n , 0 ) , _has_init( false ) , _basis_limit( 1000 ) ,
+       _vertex_limit( 0 ) ,
+       _exact( true ) , _feps( 0 ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
    _node_id[ u ] = i++;
@@ -199,6 +207,7 @@ class KBestExtremeFlows
  int run( int k , Cost gap = -1 ) {
   _flows.clear();
   _costs.clear();
+  _exact = true;
   State s;
   if( k <= 0 || ! firstState( s ) )
    return( 0 );
@@ -206,46 +215,136 @@ class KBestExtremeFlows
   const bool bounded = gap >= 0;
   const Cost limit = bounded ? s.cost + gap : s.cost;
 
-  typedef std::pair< Cost , int > Item;
+  // a candidate is the pivot of the arc r from the expanded basis j, -1
+  // for the first basis, kept by its cost alone: the basis it leads to is
+  // made when it leaves the queue
+  typedef std::pair< Cost , std::pair< int , int > > Item;
   std::priority_queue< Item , std::vector< Item > , std::greater< Item > >
     queue;
-  std::vector< State > states( 1 , s );
+  struct Expanded
+  {
+   State state;
+   std::vector< int > parent , depth;
+   };
+  std::vector< Expanded > done;
   // a basis is its tree and the bounds its nonbasic arcs are at, i.e.,
   // the tree and the flow
   std::set< std::pair< std::vector< char > , std::vector< Value > > >
     seen_bases;
   std::map< std::vector< Value > , int > seen_flows;
-  queue.push( Item( s.cost , 0 ) );
+  queue.push( Item( s.cost , std::make_pair( -1 , -1 ) ) );
   while( ! queue.empty() && int( _flows.size() ) < k ) {
-   const int j = queue.top().second;
+   const Item it = queue.top();
    queue.pop();
-   const State st = states[ j ];
-   if( bounded && st.cost > limit )
+   if( bounded && it.first > limit )
     break;
-   if( ! seen_bases.insert( std::make_pair( st.tree , st.flow ) ).second )
+   State st;
+   if( it.second.first < 0 )
+    st = s;
+   else {
+    const Expanded & e = done[ it.second.first ];
+    pivot( e.state , e.parent , e.depth , it.second.second , st );
+    }
+   if( seen_bases.count( std::make_pair( st.tree , st.flow ) ) )
     continue;
+   if( int( done.size() ) >= _basis_limit ) {
+    _exact = false;
+    break;
+    }
    std::vector< Value > f( st.flow.begin() , st.flow.begin() + _m );
-   if( seen_flows.insert( std::make_pair( f , 0 ) ).second ) {
+   auto sf = seen_flows.insert( std::make_pair( f , 0 ) );
+   if( sf.second ) {
     _flows.push_back( f );
     _costs.push_back( st.cost );
     }
-   // every pivot of the basis, saturating the cycle of a nonbasic arc
-   std::vector< int > parent_arc , depth;
-   rootTree( st , parent_arc , depth );
-   for( int r = 0 ; r != 2 * ( _m + _n ) ; ++r ) {
-    if( st.tree[ r / 2 ] || ! open( st , r ) )
-     continue;
-    State nx;
-    if( pivot( st , parent_arc , depth , r , nx ) &&
-	( ! bounded || nx.cost <= limit ) &&
-	! seen_bases.count( std::make_pair( nx.tree , nx.flow ) ) ) {
-     states.push_back( nx );
-     queue.push( Item( nx.cost , int( states.size() ) - 1 ) );
-     }
+   // the bases of a vertex beyond the limit are not expanded
+   if( _vertex_limit > 0 && sf.first->second >= _vertex_limit ) {
+    _exact = false;
+    continue;
     }
+   const bool more = _vertex_limit <= 0 ||
+                     ++sf.first->second < _vertex_limit;
+   seen_bases.insert( std::make_pair( st.tree , st.flow ) );
+   // every pivot of the basis, saturating the cycle of a nonbasic arc
+   done.push_back( Expanded() );
+   Expanded & e = done.back();
+   rootTree( st , e.parent , e.depth );
+   e.state = std::move( st );
+   const int j = int( done.size() ) - 1;
+   for( int r = 0 ; r != 2 * ( _m + _n ) ; ++r ) {
+    if( e.state.tree[ r / 2 ] || ! open( e.state , r ) )
+     continue;
+    Cost c;
+    Value amount;
+    if( ! pivotCost( e.state , e.parent , e.depth , r , c , amount ) ||
+	( bounded && c > limit ) )
+     continue;
+    // a degenerate pivot leads to another basis of the same vertex
+    if( ! more && amount <= _feps ) {
+     _exact = false;
+     continue;
+     }
+    queue.push( Item( c , std::make_pair( j , r ) ) );
+    }
+   }
+  // a vertex reached only through a basis left out may come after one of
+  // larger cost: the flows are put back in the order of their costs
+  if( ! _exact ) {
+   std::vector< int > order( _flows.size() );
+   for( std::size_t i = 0 ; i != order.size() ; ++i )
+    order[ i ] = int( i );
+   std::stable_sort( order.begin() , order.end() ,
+		     [ this ]( int x , int y ) {
+		      return( _costs[ x ] < _costs[ y ] ); } );
+   std::vector< std::vector< Value > > flows;
+   std::vector< Cost > costs;
+   for( std::size_t i = 0 ; i != order.size() ; ++i ) {
+    flows.push_back( std::move( _flows[ order[ i ] ] ) );
+    costs.push_back( _costs[ order[ i ] ] );
+    }
+   _flows.swap( flows );
+   _costs.swap( costs );
    }
   return( int( _flows.size() ) );
   }
+
+ /// \brief Sets the largest number of bases a \ref run() expands.
+ ///
+ /// A degenerate vertex has many bases, and the ranking expands all of
+ /// those it meets, each taking \f$O(n+m)\f$ memory and \f$O(n(n+m))\f$
+ /// time; when the limit is reached the run stops, the flows it gives are
+ /// still distinct vertices in the order of their costs, but they may not
+ /// be the k best ones [see \ref exact()]. By default, 1000.
+ KBestExtremeFlows & basisLimit( int limit ) {
+  _basis_limit = limit;
+  return( *this );
+  }
+
+ /// \brief Sets the largest number of bases of one vertex a \ref run()
+ /// expands.
+ ///
+ /// At a degenerate vertex the pivots of zero amount lead to its other
+ /// bases, and a vertex of a problem as a shortest path, a path whose
+ /// other basic arcs carry no flow, has as many bases as there are trees
+ /// containing it; the next vertex is adjacent to a basis of one of those
+ /// given, but expanding them all may take the whole \ref basisLimit().
+ /// With a positive limit, the bases of a vertex beyond it are not
+ /// expanded and the degenerate pivots of its last one are not taken: the
+ /// flows given are distinct vertices in the order of their costs, the
+ /// first one optimal, adjacent to the bases expanded, but they may not be
+ /// the k best ones [see \ref exact()]. By default, no limit.
+ KBestExtremeFlows & vertexBasisLimit( int limit ) {
+  _vertex_limit = limit;
+  return( *this );
+  }
+
+ /// \brief Whether the last \ref run() is exact.
+ ///
+ /// False if the last \ref run() stopped at the limit of the bases
+ /// [see \ref basisLimit()] or left out a basis or a pivot for the limit
+ /// of the bases of a vertex [see \ref vertexBasisLimit()], so that the
+ /// flows it gives may not be the k best ones.
+ bool exact() const { return( _exact ); }
 
  /// \brief The number of the flows found by the last \ref run().
  int flowNum() const { return( int( _flows.size() ) ); }
@@ -507,10 +606,10 @@ class KBestExtremeFlows
    }
   }
 
- // The pivot of the nonbasic residual arc r: the cycle it closes with the
- // tree, saturated; false if the cycle has no bound (a ray, not an edge)
- bool pivot( const State & s , const std::vector< int > & parent ,
-	     const std::vector< int > & depth , int r , State & nx ) const {
+ // The cycle the nonbasic residual arc r closes with the tree
+ void cycleOf( const std::vector< int > & parent ,
+	       const std::vector< int > & depth , int r ,
+	       std::vector< int > & cycle ) const {
   // the cycle: r from u to v, then the tree path from v back to u
   const int u = tail( r ) , v = head( r );
   std::vector< int > up_v , up_u;
@@ -529,12 +628,17 @@ class KBestExtremeFlows
    up_u.push_back( parent[ b ] );
    b = tail( parent[ b ] );
    }
-  std::vector< int > cycle( 1 , r );
+  cycle.assign( 1 , r );
   cycle.insert( cycle.end() , up_v.begin() , up_v.end() );
   cycle.insert( cycle.end() , up_u.rbegin() , up_u.rend() );
+  }
 
-  Value amount = 0;
-  int leave = -1;
+ // The amount the cycle of r carries when saturated, and the position of
+ // the arc that leaves; false if the cycle has no bound
+ bool saturate( const State & s , const std::vector< int > & cycle ,
+		Value & amount , int & leave ) const {
+  amount = 0;
+  leave = -1;
   for( std::size_t h = 0 ; h != cycle.size() ; ++h ) {
    Value c;
    if( ! residual( s , cycle[ h ] , c ) )
@@ -544,7 +648,34 @@ class KBestExtremeFlows
     leave = int( h );
     }
    }
-  if( leave < 0 )
+  return( leave >= 0 );
+  }
+
+ // The cost of the basis the pivot of r leads to, without making it
+ bool pivotCost( const State & s , const std::vector< int > & parent ,
+		 const std::vector< int > & depth , int r , Cost & cost ,
+		 Value & amount ) const {
+  std::vector< int > cycle;
+  cycleOf( parent , depth , r , cycle );
+  int leave;
+  if( ! saturate( s , cycle , amount , leave ) )
+   return( false );
+  Cost dc = 0;
+  for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+   dc += resCost( cycle[ h ] );
+  cost = s.cost + dc * amount;
+  return( true );
+  }
+
+ // The pivot of the nonbasic residual arc r: the cycle it closes with the
+ // tree, saturated; false if the cycle has no bound (a ray, not an edge)
+ bool pivot( const State & s , const std::vector< int > & parent ,
+	     const std::vector< int > & depth , int r , State & nx ) const {
+  std::vector< int > cycle;
+  cycleOf( parent , depth , r , cycle );
+  Value amount;
+  int leave;
+  if( ! saturate( s , cycle , amount , leave ) )
    return( false );
   nx = s;
   Cost dc = 0;

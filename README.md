@@ -74,9 +74,12 @@ by its certificate and against the others. `KBestExtremeFlows` gives the K
 vertices of least cost of the polyhedron of the flows in order (the optimal
 ones first, then those within a gap of the optimum), by Murty's ranking of the
 extreme points, i.e., the pivots of the network simplex from the bases of the
-vertices already given, and `KBestFlows` the K integer flows of least cost, by
-the algorithm of Hamacher; both start from an optimal flow that any of the four
-may find.
+vertices already given (with a limit on the bases it expands, in all and for
+each vertex, beyond which the vertices are still given in order but may not be
+the K best ones, as at a degenerate vertex, e.g., a path of a shortest path
+problem, whose bases are as many as the trees containing it), and `KBestFlows`
+the K integer flows of least cost, by the algorithm of Hamacher; both start
+from an optimal flow that any of the four may find.
 
 **New algorithms and structures.** `HopcroftKarp` finds a maximum matching of a
 bipartite graph, with the vertex cover that proves it, and `MinCostAssignment`

@@ -20,7 +20,7 @@
 // the flows are feasible and all different; then the limit cases (no
 // flow asked, an infeasible problem, fewer flows than asked, a given
 // optimal flow, one inside a face, a floating-point type, an arc of
-// infinite capacity)
+// infinite capacity, the limit of the bases)
 
 #include <algorithm>
 #include <functional>
@@ -222,8 +222,8 @@ std::vector< int > vertexCosts( const Small & p )
 
 // KBestExtremeFlows against the enumeration of the vertices: the costs of
 // the flows it gives are the smallest ones of the vertices, in order, and
-// the flows are vertices, feasible and all different; with a gap, only
-// those within it
+// the flows are vertices, feasible and all different, without reaching the
+// limit of the bases; with a gap, only those within it
 void checkExtremeAgainstEnumeration( int seeds )
 {
  unsigned int r = 1968;
@@ -239,6 +239,7 @@ void checkExtremeAgainstEnumeration( int seeds )
   const int got = kb.run( k );
   check( got == std::min( k , int( all.size() ) ) ,
 	 "Wrong number of extreme flows on " + id );
+  check( kb.exact() , "A run stopped at the limit of the bases on " + id );
   std::set< std::vector< int > > seen;
   for( int j = 0 ; j != got ; ++j ) {
    check( kb.totalCost( j ) == all[ j ] ,
@@ -253,6 +254,26 @@ void checkExtremeAgainstEnumeration( int seeds )
 					     all[ 0 ] + 2 ) - all.begin() );
    check( kb.run( 100 , 2 ) == std::min( 100 , within ) ,
 	  "Wrong number of extreme flows within a gap on " + id );
+   }
+
+  // one basis for each vertex: distinct vertices, the first optimal, the
+  // costs not decreasing, each the cost of a vertex
+  kb.vertexBasisLimit( 1 );
+  const int some = kb.run( k );
+  check( ( some > 0 ) == ( ! all.empty() ) ,
+	 "No extreme flow with one basis for each vertex on " + id );
+  std::set< std::vector< int > > other;
+  for( int j = 0 ; j != some ; ++j ) {
+   check( std::binary_search( all.begin() , all.end() , kb.totalCost( j ) ) ,
+	  "Not the cost of a vertex, one basis for each vertex, on " + id );
+   check( j > 0 ? kb.totalCost( j ) >= kb.totalCost( j - 1 ) :
+	  kb.totalCost( 0 ) == all[ 0 ] ,
+	  "Wrong order, one basis for each vertex, on " + id );
+   std::vector< int > f;
+   for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a )
+    f.push_back( kb.flow( j , a ) );
+   check( other.insert( f ).second ,
+	  "An extreme flow given twice, one basis for each vertex, on " + id );
    }
   }
  }
@@ -385,6 +406,11 @@ void checkLimitCases()
   check( kb.run( 5 ) == 2 && kb.totalCost( 0 ) == 1.75 &&
 	   kb.totalCost( 1 ) == 3 ,
 	 "Wrong extreme flows with an infinite arc" );
+
+  // one basis only: the optimal vertex, and the run says it stopped
+  kb.basisLimit( 1 );
+  check( kb.run( 5 ) == 1 && kb.totalCost( 0 ) == 1.75 && ! kb.exact() ,
+	 "Wrong run at the limit of the bases" );
   }
  }
 

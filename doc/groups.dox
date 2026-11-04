@@ -420,7 +420,8 @@ LEMON contains several algorithms for this problem.
    strongly polynomial \cite klein67primal, \cite goldberg89cyclecanceling.
 
 Besides an optimal flow, \ref KBestExtremeFlows gives the K vertices of least
-cost of the polyhedron of the flows in order \cite murty68ranking, and
+cost of the polyhedron of the flows in order \cite murty68ranking (or,
+within a limit on the bases it expands, distinct vertices in order), and
 \ref KBestFlows the K integer flows of least cost in order
 \cite hamacher95kbestflows, \cite lawler72kbest.
 
