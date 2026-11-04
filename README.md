@@ -1,4 +1,4 @@
-# abLEMON: a better LEMON
+# abLEMON: a better LEMON, and an able one
 
 [![CI](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml)
 [![Packaging](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml/badge.svg?branch=master)](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml)
@@ -9,9 +9,8 @@
 [![Homebrew](https://img.shields.io/badge/homebrew-dmeoli%2Fablemon-orange)](https://github.com/dmeoli/homebrew-ablemon)
 [![License: BSL-1.0](https://img.shields.io/badge/License-BSL_1.0-blue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
-abLEMON (a better LEMON, and an able one; formerly lemon-ng) is a maintained
-fork of [LEMON](https://lemon.cs.elte.hu/trac/lemon),
-the Library for Efficient Modeling and Optimization in Networks, i.e., a C++
+abLEMON (formerly lemon-ng) is a maintained fork of
+[LEMON](https://lemon.cs.elte.hu/trac/lemon), the Library for Efficient Modeling and Optimization in Networks, i.e., a C++
 template library of graphs, maps and heaps and of the algorithms of network
 optimization built on them (shortest paths, maximum and minimum cost flows,
 matchings, connectivity, cuts and cycles), written by the Egerváry Research
