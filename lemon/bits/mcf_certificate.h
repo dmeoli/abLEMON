@@ -209,19 +209,30 @@ void maxViolatedSet( const McfData< V > & d , bool leq ,
 // supply of N' exceeds what can leave it, i.e., its violation [see
 // cutViolation()] is positive, and under LEQ (leq) the demand of N'
 // exceeds what can enter it. No arc out of N' (into it under LEQ) has an
-// infinite upper bound. It is the set of largest violation [see
-// maxViolatedSet()], empty if no set is found (e.g., the problem is
-// feasible), and the inequality is checked before it is given, so that
-// what round-off in floating point makes a mistake of is not given at all.
+// infinite upper bound. It is hint, the set that the algorithm had at
+// hand when it found no feasible flow, if that proves it, and the set of
+// largest violation [see maxViolatedSet()] otherwise; it is empty if no
+// set is found (e.g., the problem is feasible), and the inequality is
+// checked before it is given, so that what round-off in floating point
+// makes a mistake of is not given at all.
 template< typename V >
-std::vector< int > infeasibleCut( const McfData< V > & d , bool leq )
+std::vector< int > infeasibleCut( const McfData< V > & d , bool leq ,
+				  const std::vector< int > & hint =
+				    std::vector< int >() )
 {
  std::vector< int > cut;
  if( d.n == 0 )
   return( cut );
- std::vector< char > in;
- maxViolatedSet( d , leq , std::vector< int >() , in );
  long double gap , scale;
+ std::vector< char > in( d.n , 0 );
+ if( ! hint.empty() ) {
+  for( std::size_t h = 0 ; h != hint.size() ; ++h )
+   in[ hint[ h ] ] = 1;
+  if( cutViolation( d , leq , in , gap , scale ) &&
+      positiveBeyond< V >( gap , scale ) )
+   return( hint );
+  }
+ maxViolatedSet( d , leq , std::vector< int >() , in );
  if( ! cutViolation( d , leq , in , gap , scale ) ||
      ! positiveBeyond< V >( gap , scale ) )
   return( cut );
@@ -304,10 +315,11 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
 // set, since no arc joins two of them.
 template< typename V >
 std::vector< std::vector< int > > disjointInfeasibleCuts(
-  const McfData< V > & d , bool leq )
+  const McfData< V > & d , bool leq ,
+  const std::vector< int > & hint = std::vector< int >() )
 {
  std::vector< std::vector< int > > cuts;
- const std::vector< int > cut = infeasibleCut( d , leq );
+ const std::vector< int > cut = infeasibleCut( d , leq , hint );
  if( cut.empty() )
   return( cuts );
  std::vector< int > comp( d.n , -1 ) , par( d.n );
@@ -525,7 +537,8 @@ std::vector< typename MCF::Digraph::Node >
 residualCut( const MCF & mcf , const McfData< typename MCF::Value > & d )
 {
  typedef typename MCF::Digraph::Node Node;
- const std::vector< int > ids = infeasibleCut( d , false );
+ const std::vector< int > ids =
+   infeasibleCut( d , false , mcf._cut_hint );
  std::vector< Node > node_of( d.n , INVALID ) , cut;
  for( typename MCF::Digraph::NodeIt n( mcf._graph ) ; n != INVALID ; ++n )
   node_of[ mcf._node_id[ n ] ] = n;

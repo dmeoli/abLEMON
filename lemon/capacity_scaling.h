@@ -189,6 +189,9 @@ class CapacityScaling
  int _root;
  // What the last run() returned, and whether there was one
  int _result = -1;
+ // The set of nodes that the algorithm had at hand when it found no
+ // feasible flow, which may prove it [see infeasibleCut()]
+ std::vector< int > _cut_hint;
  // The tolerances on the flows and on the reduced costs that were set,
  // negative if they are left to the algorithm [see tolerances()]
  Value _flow_tol = -1;
@@ -320,6 +323,10 @@ class CapacityScaling
 
    return( t );
    }
+
+  // The nodes that the last run() processed, all those it reaches from
+  // its source when it returns -1
+  const IntVector & reached() const { return( _proc_nodes ); }
 
   };  //class ResidualDijkstra
 
@@ -562,14 +569,19 @@ class CapacityScaling
 
  /// \brief The set of nodes that proves the problem infeasible.
  ///
- /// This function gives a set \f$N'\f$ of nodes whose supply exceeds
- /// what can leave it, i.e.,
+ /// This function gives a set \f$N'\f$ of nodes whose supply exceeds what
+ /// can leave it, i.e.,
  /// \f[ \sum_{u\in N'} sup(u) > \sum_{uv\in A, u\in N', v\notin N'}
  ///     upper(uv) - \sum_{uv\in A, u\notin N', v\in N'} lower(uv) \f]
- /// with no arc of infinite upper bound out of \f$N'\f$, which proves
- /// the problem infeasible since the last \ref run() found it so, as in
- /// \ref NetworkSimplex::infeasibleCut(). It is empty if the last
- /// \ref run() did not return \ref INFEASIBLE, or if, in floating
+ /// with no arc of infinite upper bound out of \f$N'\f$, which proves the
+ /// problem infeasible since the last \ref run() found it so. It is the set
+ /// that the algorithm has at hand when it finds no feasible flow, at no
+ /// further cost: the nodes that the search for a shortest augmenting path
+ /// reaches from a node with excess without finding a deficit, from which no
+ /// residual arc leaves; if that set does not prove it (in floating point,
+ /// beyond the round-off), it is the set of largest violation, from a
+ /// maximum flow, as in \ref NetworkSimplex::infeasibleCut(). It is empty if
+ /// the last \ref run() did not return \ref INFEASIBLE, or if, in floating
  /// point, the inequality does not hold beyond the round-off.
  std::vector< Node > infeasibleCut() const {
   if( _result != INFEASIBLE )
@@ -612,7 +624,8 @@ class CapacityScaling
   const _mcf_bits::McfData< Value > d =
     _mcf_bits::residualData( *this , std::vector< int >() );
   return( _mcf_bits::residualNodeSets(
-    *this , d.n , _mcf_bits::disjointInfeasibleCuts( d , false ) ) );
+    *this , d.n ,
+    _mcf_bits::disjointInfeasibleCuts( d , false , _cut_hint ) ) );
   }
 
  /// \brief Arc-disjoint cycles that prove the problem unbounded.
@@ -904,8 +917,13 @@ class CapacityScaling
 				  _lower , _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
-  if( _sum_supply > 0 )
+  _cut_hint.clear();
+  if( _sum_supply > 0 ) {
+   // all the nodes, whose supplies exceed what can leave them, nothing
+   for( int i = 0 ; i != _root ; ++i )
+    _cut_hint.push_back( i );
    return( INFEASIBLE );
+   }
 
   // Check lower and upper bounds
   LEMON_DEBUG( checkBoundMaps() ,
@@ -1044,6 +1062,16 @@ class CapacityScaling
   return( true );
   }
 
+ // The nodes of the digraph that a search from a node with excess reaches
+ // without finding a deficit, from which no residual arc leaves, as the
+ // set that proves the problem infeasible [see infeasibleCut()]
+ void reachedCut( const ResidualDijkstra & dijkstra ) {
+  _cut_hint.clear();
+  for( std::size_t i = 0 ; i != dijkstra.reached().size() ; ++i )
+   if( dijkstra.reached()[ i ] != _root )
+    _cut_hint.push_back( dijkstra.reached()[ i ] );
+  }
+
  ProblemType start() {
   // Execute the algorithm
   ProblemType pt;
@@ -1129,6 +1157,7 @@ class CapacityScaling
       ++next_node;
       continue;
       }
+     reachedCut( _dijkstra );
      return( INFEASIBLE );
      }
 
@@ -1183,8 +1212,10 @@ class CapacityScaling
 	 ++next_node < int( _excess_nodes.size() ) ) {
    // Run Dijkstra in the residual network
    s = _excess_nodes[ next_node ];
-   if( ( t = _dijkstra.run( s , _unit ) ) == -1 )
+   if( ( t = _dijkstra.run( s , _unit ) ) == -1 ) {
+    reachedCut( _dijkstra );
     return( INFEASIBLE );
+    }
 
    // Augment along a shortest path from s to t
    Value d = ( std::min< Value > )( _excess[ s ] , -_excess[ t ] );

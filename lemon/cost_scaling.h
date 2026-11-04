@@ -148,7 +148,8 @@ class CostScaling
 {
  template< typename MCF >
  friend bool _mcf_bits::feasibleFlow( MCF & , typename MCF::Value , int & ,
-				      typename MCF::Value );
+				      typename MCF::Value ,
+				      std::vector< int > & );
  template< typename MCF >
  friend _mcf_bits::McfData< typename MCF::Value >
  _mcf_bits::residualData( const MCF & , const std::vector< int > & );
@@ -284,6 +285,9 @@ class CostScaling
  int _root;
  // What the last run() returned, and whether there was one
  int _result = -1;
+ // The set of nodes that the algorithm had at hand when it found no
+ // feasible flow, which may prove it [see infeasibleCut()]
+ std::vector< int > _cut_hint;
  // The tolerances on the flows and on the reduced costs that were set,
  // negative if they are left to the algorithm [see tolerances()]
  Value _flow_tol = -1;
@@ -582,15 +586,21 @@ class CostScaling
 
  /// \brief The set of nodes that proves the problem infeasible.
  ///
- /// This function gives a set \f$N'\f$ of nodes whose supply exceeds
- /// what can leave it, i.e.,
+ /// This function gives a set \f$N'\f$ of nodes whose supply exceeds what
+ /// can leave it, i.e.,
  /// \f[ \sum_{u\in N'} sup(u) > \sum_{uv\in A, u\in N', v\notin N'}
  ///     upper(uv) - \sum_{uv\in A, u\notin N', v\in N'} lower(uv) \f]
- /// with no arc of infinite upper bound out of \f$N'\f$, which proves
- /// the problem infeasible since the last \ref run() found it so, as in
- /// \ref NetworkSimplex::infeasibleCut(). It is empty if the last
- /// \ref run() did not return \ref INFEASIBLE, or if, in floating
- /// point, the inequality does not hold beyond the round-off.
+ /// with no arc of infinite upper bound out of \f$N'\f$, which proves the
+ /// problem infeasible since the last \ref run() found it so. It is the set
+ /// that the algorithm has at hand when it finds no feasible flow, at no
+ /// further cost: the nodes above the level that the push-relabel algorithm
+ /// of its starting flow leaves empty, together with the node it was
+ /// lifting, from which no residual arc leaves; if that set does not prove
+ /// it (in floating point, beyond the round-off), it is the set of largest
+ /// violation, from a maximum flow, as in \ref
+ /// NetworkSimplex::infeasibleCut(). It is empty if the last \ref run() did
+ /// not return \ref INFEASIBLE, or if, in floating point, the inequality
+ /// does not hold beyond the round-off.
  std::vector< Node > infeasibleCut() const {
   if( _result != INFEASIBLE )
    return( std::vector< Node >() );
@@ -632,7 +642,8 @@ class CostScaling
   const _mcf_bits::McfData< Value > d =
     _mcf_bits::residualData( *this , _inf_upper );
   return( _mcf_bits::residualNodeSets(
-    *this , d.n , _mcf_bits::disjointInfeasibleCuts( d , false ) ) );
+    *this , d.n ,
+    _mcf_bits::disjointInfeasibleCuts( d , false , _cut_hint ) ) );
   }
 
  /// \brief Arc-disjoint cycles that prove the problem unbounded.
@@ -942,8 +953,13 @@ class CostScaling
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   _feps = feps;
-  if( _sum_supply > 0 )
+  _cut_hint.clear();
+  if( _sum_supply > 0 ) {
+   // all the nodes, whose supplies exceed what can leave them, nothing
+   for( int i = 0 ; i != _root ; ++i )
+    _cut_hint.push_back( i );
    return( INFEASIBLE );
+   }
 
   // Check lower and upper bounds
   LEMON_DEBUG( checkBoundMaps() ,
@@ -999,7 +1015,7 @@ class CostScaling
 
   // Find a feasible flow on the residual network
   if( ! _mcf_bits::feasibleFlow( *this , Value( 0 ) , _sup_node_num ,
-				  _feps ) ) {
+				  _feps , _cut_hint ) ) {
    return( INFEASIBLE );
    }
   if( unbounded )

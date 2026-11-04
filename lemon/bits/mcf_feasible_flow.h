@@ -104,9 +104,11 @@ typename CV::value_type costTolerance( int root , const IV & first_out ,
 // the root, which is not an arc of the digraph. In floating point, an
 // excess or a residual capacity within feps, the tolerance on the flows,
 // is zero, since what round-off leaves of an excess can find no way out.
+// When there is no such flow, cut gets a set of nodes that proves it, one
+// with positive excess and no residual arc out of it.
 template< typename MCF >
 bool feasibleFlow( MCF & mcf , typename MCF::Value root_cap , int & sup_num ,
-		   typename MCF::Value feps )
+		   typename MCF::Value feps , std::vector< int > & cut )
 {
  typedef typename MCF::Value Value;
  const int n = mcf._root;
@@ -200,8 +202,17 @@ bool feasibleFlow( MCF & mcf , typename MCF::Value root_cap , int & sup_num ,
   // u is lifted above the lowest level it has a residual arc to, and
   // no such arc, or no node left on its level, proves that no flow
   // exists
-  if( low == n || --count[ top ] == 0 )
+  if( low == n || --count[ top ] == 0 ) {
+   // no residual arc leaves u, or none leaves the nodes above the level
+   // that u leaves empty, since a residual arc goes down one level at
+   // most: their supply exceeds what can leave them by their excess
+   cut.assign( 1 , u );
+   if( low != n )
+    for( int v = 0 ; v != n ; ++v )
+     if( v != u && level[ v ] > top )
+      cut.push_back( v );
    return( false );
+   }
   level[ u ] = ++low;
   ++count[ low ];
   next[ u ] = head[ low ];
