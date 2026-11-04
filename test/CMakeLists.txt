@@ -37,6 +37,7 @@ SET(TESTS
   graph_utils_test
   hao_orlin_test
   heap_test
+  k_best_flows_test
   kruskal_test
   lgf_reader_writer_test
   lgf_test

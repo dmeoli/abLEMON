@@ -419,6 +419,9 @@ LEMON contains several algorithms for this problem.
  - \ref CycleCanceling Cycle-Canceling algorithms, two of which are
    strongly polynomial \cite klein67primal, \cite goldberg89cyclecanceling.
 
+Besides an optimal flow, \ref KBestFlows gives the K integer flows of least
+cost in order \cite hamacher95kbestflows, \cite lawler72kbest.
+
 In general, \ref NetworkSimplex and \ref CostScaling are the most efficient
 implementations.
 \ref NetworkSimplex is usually the fastest on relatively small graphs (up to
@@ -430,10 +433,11 @@ For example, if the total supply and/or capacities are rather small,
 \ref CapacityScaling is usually the fastest algorithm
 (without effective scaling).
 
-These classes are intended to be used with integer-valued input data
-(capacities, supply values, and costs), except for \ref CapacityScaling,
-which is capable of handling real-valued arc costs (other numerical
-data are required to be integer).
+The four algorithms take integer and floating-point data alike: with a
+floating-point type, the flows and the reduced costs are compared against
+tolerances relative to the largest supply or bound and to the largest
+cost. When an answer is not optimal, \c infeasibleCut() and
+\c unboundedCycle() give its certificate.
 
 For more details about these implementations and for a comprehensive
 experimental study, see the paper \cite KiralyKovacs12MCF.

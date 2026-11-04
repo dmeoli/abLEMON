@@ -51,6 +51,7 @@ module;
 #include <lemon/howard_mmc.h>
 #include <lemon/hypercube_graph.h>
 #include <lemon/insertion_tsp.h>
+#include <lemon/k_best_flows.h>
 #include <lemon/karp_mmc.h>
 #include <lemon/kruskal.h>
 #include <lemon/lgf_reader.h>
@@ -265,6 +266,7 @@ export namespace lemon {
  using ::lemon::IterableBoolMap;
  using ::lemon::IterableIntMap;
  using ::lemon::IterableValueMap;
+ using ::lemon::KBestFlows;
  using ::lemon::KarpMmc;
  using ::lemon::KarpMmcDefaultTraits;
  using ::lemon::LN10;

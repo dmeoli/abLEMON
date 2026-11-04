@@ -43,9 +43,11 @@ was wrong on 18892 of 20000 random sequences of operations), and
 `BinomialHeap` truncated fractional priorities and could loop in `pop()`.
 Furthermore, `Vf2` and `Vf2pp` indexed a map with `INVALID`, `CbcMip`
 reported a proven infeasible problem as feasible, and `BellmanFord` could
-delete a map of the user. Default-constructed, the items of the graphs are
-now `INVALID`, and the fields that some classes copied while
-still uninitialized are now initialized.
+delete a map of the user; `GrossoLocatelliPullanMc` ran for ever on a
+graph with a loop, and `Circulation` read past its storage on an empty
+digraph. Default-constructed, the items of the graphs are now `INVALID`, and
+the fields that some classes copied while still uninitialized are now
+initialized.
 
 **Minimum cost flow.** The four algorithms solve problems with
 floating-point costs, capacities and supplies, on which `NetworkSimplex`
@@ -61,6 +63,20 @@ of it can carry, and `unboundedCycle()` a directed cycle of negative cost and
 infinite capacity. A battery runs every algorithm, with each of its methods,
 on limit cases and on random instances, with integer and floating-point
 data, and checks each answer by its certificate and against the others.
+`KBestFlows` gives the K integer flows of least cost in order (the optimal
+ones first, then the suboptimal ones), by the algorithm of Hamacher, from an
+optimal flow that any of the four may find.
+
+**New algorithms and structures.** `HopcroftKarp` finds a maximum matching
+of a bipartite graph, with the vertex cover that proves it, and
+`MinCostAssignment` a minimum cost matching that covers the red nodes, with
+its dual potentials. `BidirDijkstra` and `AStar` find a shortest path between
+two nodes, by two searches that meet halfway and by a search guided by an
+admissible heuristic. `TomitaSekiMc` finds a maximum clique and proves it
+maximum, next to the heuristic `GrossoLocatelliPullanMc`, and `StaticGraph`
+is the undirected counterpart of `StaticDigraph`. With
+`-DLEMON_BUILD_MODULE=ON`, on Clang 16 or MSVC 19.34, the library is also the
+C++20 module `lemon`.
 
 **Building and installing.** The build with CMake (3.19 or later) honors
 `CMAKE_CXX_STANDARD`, takes the version from the tag of git, and can leave
