@@ -15,12 +15,15 @@
  */
 
 // KBestFlows against the enumeration of every integer flow of small
-// random instances: the costs of the flows it gives are the smallest ones,
-// in order, and the flows are feasible and all different; then the limit
-// cases (no flow asked, an infeasible problem, fewer flows than asked, a
-// given optimal flow, a floating-point type, an arc of infinite capacity)
+// random instances, and KBestExtremeFlows against that of every vertex:
+// the costs of the flows they give are the smallest ones, in order, and
+// the flows are feasible and all different; then the limit cases (no
+// flow asked, an infeasible problem, fewer flows than asked, a given
+// optimal flow, one inside a face, a floating-point type, an arc of
+// infinite capacity)
 
 #include <algorithm>
+#include <functional>
 #include <limits>
 #include <set>
 #include <string>
@@ -29,6 +32,7 @@
 #include <lemon/smart_graph.h>
 #include <lemon/cost_scaling.h>
 #include <lemon/k_best_flows.h>
+#include <lemon/k_best_extreme_flows.h>
 
 #include "test_tools.h"
 
@@ -147,6 +151,112 @@ void checkAgainstEnumeration( int seeds )
   }
  }
 
+// The costs of all the vertices of the polyhedron of the flows of the
+// instance, in order: the integer flows whose arcs strictly within their
+// bounds, with the arcs from a root to the nodes that receive more than
+// their demands, form a forest
+std::vector< int > vertexCosts( const Small & p )
+{
+ const int m = countArcs( p.g ) , n = countNodes( p.g );
+ std::vector< int > f( m ) , costs;
+ for( int i = 0 ; i != m ; ++i )
+  f[ i ] = p.lower[ p.g.arcFromId( i ) ];
+ for( ; ; ) {
+  std::vector< int > net( n , 0 );
+  int c = 0;
+  for( int i = 0 ; i != m ; ++i ) {
+   const Arc a = p.g.arcFromId( i );
+   net[ p.g.id( p.g.source( a ) ) ] += f[ i ];
+   net[ p.g.id( p.g.target( a ) ) ] -= f[ i ];
+   c += p.cost[ a ] * f[ i ];
+   }
+  bool ok = true;
+  for( int u = 0 ; u != n ; ++u )
+   ok = ok && net[ u ] >= p.supply[ p.g.nodeFromId( u ) ];
+  if( ok ) {
+   std::vector< int > par( n + 1 );
+   for( int u = 0 ; u != n + 1 ; ++u )
+    par[ u ] = u;
+   std::function< int( int ) > find = [ & ]( int u ) {
+    return( par[ u ] == u ? u : par[ u ] = find( par[ u ] ) );
+    };
+   bool forest = true;
+   for( int i = 0 ; i != m && forest ; ++i ) {
+    const Arc a = p.g.arcFromId( i );
+    if( f[ i ] == p.lower[ a ] || f[ i ] == p.upper[ a ] )
+     continue;
+    const int x = find( p.g.id( p.g.source( a ) ) ) ,
+	      y = find( p.g.id( p.g.target( a ) ) );
+    if( x == y )
+     forest = false;
+    else
+     par[ x ] = y;
+    }
+   for( int u = 0 ; u != n && forest ; ++u ) {
+    if( net[ u ] == p.supply[ p.g.nodeFromId( u ) ] )
+     continue;
+    const int x = find( n ) , y = find( u );
+    if( x == y )
+     forest = false;
+    else
+     par[ x ] = y;
+    }
+   if( forest )
+    costs.push_back( c );
+   }
+  int i = 0;
+  for( ; i != m ; ++i ) {
+   const Arc a = p.g.arcFromId( i );
+   if( f[ i ] < p.upper[ a ] ) {
+    ++f[ i ];
+    break;
+    }
+   f[ i ] = p.lower[ a ];
+   }
+  if( i == m )
+   break;
+  }
+ std::sort( costs.begin() , costs.end() );
+ return( costs );
+ }
+
+// KBestExtremeFlows against the enumeration of the vertices: the costs of
+// the flows it gives are the smallest ones of the vertices, in order, and
+// the flows are vertices, feasible and all different; with a gap, only
+// those within it
+void checkExtremeAgainstEnumeration( int seeds )
+{
+ unsigned int r = 1968;
+ for( int seed = 0 ; seed != seeds ; ++seed ) {
+  Small p;
+  randomSmall( p , r );
+  const std::string id = "instance " + std::to_string( seed );
+  const std::vector< int > all = vertexCosts( p );
+  KBestExtremeFlows< Digraph > kb( p.g );
+  kb.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+    p.supply );
+  const int k = 8;
+  const int got = kb.run( k );
+  check( got == std::min( k , int( all.size() ) ) ,
+	 "Wrong number of extreme flows on " + id );
+  std::set< std::vector< int > > seen;
+  for( int j = 0 ; j != got ; ++j ) {
+   check( kb.totalCost( j ) == all[ j ] ,
+	  "Wrong cost of an extreme flow on " + id );
+   std::vector< int > f;
+   for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a )
+    f.push_back( kb.flow( j , a ) );
+   check( seen.insert( f ).second , "An extreme flow given twice on " + id );
+   }
+  if( ! all.empty() ) {
+   const int within = int( std::upper_bound( all.begin() , all.end() ,
+					     all[ 0 ] + 2 ) - all.begin() );
+   check( kb.run( 100 , 2 ) == std::min( 100 , within ) ,
+	  "Wrong number of extreme flows within a gap on " + id );
+   }
+  }
+ }
+
 void checkLimitCases()
 {
  // no flow asked, and an infeasible problem
@@ -230,11 +340,58 @@ void checkLimitCases()
   check( kb.flow( 0 , a ) == 1 && kb.flow( 0 , b ) == 1 ,
 	 "Wrong best flow with an infinite arc" );
   }
+
+ // an optimal flow inside a face given as the first one: two parallel
+ // arcs of the same cost, 1 and 1 of the 2 units, is made a vertex, and
+ // the two vertices, 2 and 0 or 0 and 2, are the two optimal flows
+ {
+  Small p;
+  const Node u = p.g.addNode() , v = p.g.addNode();
+  const Arc a = p.g.addArc( u , v ) , b = p.g.addArc( u , v );
+  p.upper[ a ] = p.upper[ b ] = 2;
+  p.cost[ a ] = p.cost[ b ] = 3;
+  p.supply[ u ] = 2;
+  p.supply[ v ] = -2;
+  Digraph::ArcMap< int > f( p.g );
+  f[ a ] = f[ b ] = 1;
+  KBestExtremeFlows< Digraph > kb( p.g );
+  kb.upperMap( p.upper ).costMap( p.cost ).supplyMap( p.supply ).initFlow(
+    f );
+  check( kb.run( 5 ) == 2 && kb.totalCost( 0 ) == 6 &&
+	   kb.totalCost( 1 ) == 6 ,
+	 "Wrong extreme flows from a flow inside a face" );
+  for( int j = 0 ; j != kb.flowNum() ; ++j )
+   check( ( kb.flow( j , a ) == 0 || kb.flow( j , a ) == 2 ) &&
+	    kb.flow( j , a ) + kb.flow( j , b ) == 2 ,
+	  "An extreme flow that is not a vertex" );
+  }
+
+ // a floating-point type with an arc of infinite capacity: the vertices
+ // are 2 on the infinite arc, or 1 and 1
+ {
+  Digraph g;
+  const Node u = g.addNode() , v = g.addNode();
+  const Arc a = g.addArc( u , v ) , b = g.addArc( u , v );
+  Digraph::ArcMap< double > upper( g ) , cost( g );
+  Digraph::NodeMap< double > supply( g );
+  upper[ a ] = std::numeric_limits< double >::infinity();
+  upper[ b ] = 1;
+  cost[ a ] = 1.5;
+  cost[ b ] = 0.25;
+  supply[ u ] = 2;
+  supply[ v ] = -2;
+  KBestExtremeFlows< Digraph , double > kb( g );
+  kb.upperMap( upper ).costMap( cost ).supplyMap( supply );
+  check( kb.run( 5 ) == 2 && kb.totalCost( 0 ) == 1.75 &&
+	   kb.totalCost( 1 ) == 3 ,
+	 "Wrong extreme flows with an infinite arc" );
+  }
  }
 
 int main()
 {
  checkAgainstEnumeration( 2000 );
+ checkExtremeAgainstEnumeration( 2000 );
  checkLimitCases();
  return( 0 );
  }

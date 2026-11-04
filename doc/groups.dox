@@ -419,8 +419,10 @@ LEMON contains several algorithms for this problem.
  - \ref CycleCanceling Cycle-Canceling algorithms, two of which are
    strongly polynomial \cite klein67primal, \cite goldberg89cyclecanceling.
 
-Besides an optimal flow, \ref KBestFlows gives the K integer flows of least
-cost in order \cite hamacher95kbestflows, \cite lawler72kbest.
+Besides an optimal flow, \ref KBestExtremeFlows gives the K vertices of least
+cost of the polyhedron of the flows in order \cite murty68ranking, and
+\ref KBestFlows the K integer flows of least cost in order
+\cite hamacher95kbestflows, \cite lawler72kbest.
 
 In general, \ref NetworkSimplex and \ref CostScaling are the most efficient
 implementations.

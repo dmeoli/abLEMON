@@ -1,0 +1,567 @@
+/* -*- mode: C++; indent-tabs-mode: nil; -*-
+ *
+ * This file is a part of LEMON, a generic C++ optimization library.
+ *
+ * Copyright (C) 2026 the authors of abLEMON.
+ *
+ * Permission to use, modify and distribute this software is granted
+ * provided that this copyright notice appears in all copies. For
+ * precise terms see the accompanying LICENSE file.
+ *
+ * This software is provided "AS IS" with no warranty of any kind,
+ * express or implied, and with no claim as to its suitability for any
+ * purpose.
+ *
+ */
+
+#ifndef LEMON_K_BEST_EXTREME_FLOWS_H
+ #define LEMON_K_BEST_EXTREME_FLOWS_H
+
+#include <algorithm>
+#include <functional>
+#include <limits>
+#include <map>
+#include <queue>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include <lemon/core.h>
+#include <lemon/network_simplex.h>
+
+///\ingroup min_cost_flow_algs
+///\file
+///\brief The K best extreme flows of a minimum cost flow problem.
+
+namespace lemon
+{
+
+/// \ingroup min_cost_flow_algs
+///
+/// \brief The K best extreme flows of a minimum cost flow problem.
+///
+/// This class finds the K vertices of least cost of the polyhedron of the
+/// flows of a \ref min_cost_flow "minimum cost flow problem" with the
+/// \c GEQ supply constraints, in the order of their costs: first an
+/// optimal vertex, then the other optimal ones, if any, then those whose
+/// cost exceeds the optimal one by at most a given gap. These are the
+/// flows that a Lagrangian or a Benders' decomposition wants several of,
+/// since each gives a different (sub)gradient, while a flow inside a face
+/// gives a convex combination of those of its vertices.
+///
+/// The algorithm is the ranking of the vertices of Murty
+/// \cite murty68ranking: the next vertex is adjacent to one of those
+/// already given, i.e., one pivot of the network simplex away from one of
+/// their bases, along the cycle that a nonbasic arc closes with the tree of
+/// the basis, saturated. The candidates are kept in a queue by their
+/// costs, and the bases of a degenerate vertex, which the pivots along a
+/// cycle of zero amount reach, are all expanded. The first vertex is the
+/// optimal flow that \ref NetworkSimplex finds, or one given by
+/// \ref initFlow(), brought to a vertex first, if it is not one, by
+/// saturating the cycles of the arcs strictly within their bounds, whose
+/// costs are zero at an optimal flow.
+///
+/// \tparam GR The digraph type the algorithm runs on.
+/// \tparam V The number type of the flow amounts, of the bounds and of the
+/// supplies; by default, \c int.
+/// \tparam C The number type of the costs; by default, the same as \c V.
+///
+/// \note The number of the bases of a degenerate vertex can be large, and
+/// all of them are visited when the vertex is expanded; each pivot takes
+/// \f$O(n)\f$ time, and each basis \f$O(nm)\f$ for all its pivots.
+template< typename GR , typename V = int , typename C = V >
+class KBestExtremeFlows
+{
+ public:
+ /// The type of the digraph
+ typedef GR Digraph;
+ /// The type of the flow amounts, of the bounds and of the supplies
+ typedef V Value;
+ /// The type of the costs
+ typedef C Cost;
+
+ private:
+ TEMPLATE_DIGRAPH_TYPEDEFS( GR );
+
+ // The arcs are 0, ..., m - 1, those of the digraph, and m, ..., m + n - 1,
+ // one from the root (the node n) to every node, which takes what a node
+ // receives beyond its demand under GEQ, with no upper bound and no cost
+ struct State
+ {
+  std::vector< Value > flow;
+  std::vector< char > tree;
+  Cost cost;
+  };
+
+ const GR & _graph;
+ int _n , _m;
+ IntNodeMap _node_id;
+ IntArcMap _arc_id;
+ std::vector< int > _source , _target;
+ std::vector< Value > _lower , _upper , _supply;
+ std::vector< char > _inf;
+ std::vector< Cost > _cost;
+ bool _has_init;
+ std::vector< Value > _init;
+ Value _feps;
+
+ std::vector< std::vector< Value > > _flows;
+ std::vector< Cost > _costs;
+
+ public:
+ /// \brief Constructor.
+ ///
+ /// The bounds are 0 and infinite, the costs 1 and the supplies 0 until
+ /// they are given.
+ explicit KBestExtremeFlows( const GR & graph )
+     : _graph( graph ) , _n( countNodes( graph ) ) ,
+       _m( countArcs( graph ) ) , _node_id( graph ) , _arc_id( graph ) ,
+       _source( _m + _n ) , _target( _m + _n ) , _lower( _m + _n , 0 ) ,
+       _upper( _m + _n , 0 ) , _supply( _n , 0 ) , _inf( _m + _n , 1 ) ,
+       _cost( _m + _n , 0 ) , _has_init( false ) , _feps( 0 ) {
+  int i = 0;
+  for( NodeIt u( graph ) ; u != INVALID ; ++u )
+   _node_id[ u ] = i++;
+  i = 0;
+  for( ArcIt a( graph ) ; a != INVALID ; ++a , ++i ) {
+   _arc_id[ a ] = i;
+   _source[ i ] = _node_id[ graph.source( a ) ];
+   _target[ i ] = _node_id[ graph.target( a ) ];
+   _cost[ i ] = 1;
+   }
+  for( int u = 0 ; u != _n ; ++u ) {
+   _source[ _m + u ] = _n;
+   _target[ _m + u ] = u;
+   }
+  }
+
+ /// \brief Sets the lower bounds of the arcs.
+ template< typename LowerMap >
+ KBestExtremeFlows & lowerMap( const LowerMap & map ) {
+  for( ArcIt a( _graph ) ; a != INVALID ; ++a )
+   _lower[ _arc_id[ a ] ] = map[ a ];
+  return( *this );
+  }
+
+ /// \brief Sets the upper bounds of the arcs.
+ ///
+ /// An upper bound that is infinite or the largest value of \c Value
+ /// means no bound.
+ template< typename UpperMap >
+ KBestExtremeFlows & upperMap( const UpperMap & map ) {
+  const Value MAX = ( std::numeric_limits< Value >::max )();
+  for( ArcIt a( _graph ) ; a != INVALID ; ++a ) {
+   const int i = _arc_id[ a ];
+   _upper[ i ] = map[ a ];
+   _inf[ i ] = map[ a ] >= MAX;
+   }
+  return( *this );
+  }
+
+ /// \brief Sets the costs of the arcs.
+ template< typename CostMap >
+ KBestExtremeFlows & costMap( const CostMap & map ) {
+  for( ArcIt a( _graph ) ; a != INVALID ; ++a )
+   _cost[ _arc_id[ a ] ] = map[ a ];
+  return( *this );
+  }
+
+ /// \brief Sets the supplies of the nodes (negative for the demands).
+ template< typename SupplyMap >
+ KBestExtremeFlows & supplyMap( const SupplyMap & map ) {
+  for( NodeIt u( _graph ) ; u != INVALID ; ++u )
+   _supply[ _node_id[ u ] ] = map[ u ];
+  return( *this );
+  }
+
+ /// \brief Gives the optimal flow to start from.
+ ///
+ /// The flow must be optimal for the data given, not necessarily a
+ /// vertex; then no algorithm of minimum cost flow is run.
+ template< typename FlowMap >
+ KBestExtremeFlows & initFlow( const FlowMap & map ) {
+  _init.assign( _m , 0 );
+  for( ArcIt a( _graph ) ; a != INVALID ; ++a )
+   _init[ _arc_id[ a ] ] = map[ a ];
+  _has_init = true;
+  return( *this );
+  }
+
+ /// \brief Finds the k best extreme flows.
+ ///
+ /// \param k The largest number of flows to find.
+ /// \param gap The largest excess of the cost of a flow over the optimal
+ /// one; a negative one, the default, sets no limit.
+ ///
+ /// \return The number of the flows found, which is less than \c k if
+ /// the problem has fewer vertices within the gap, and zero if it has no
+ /// optimal flow (it is infeasible or unbounded).
+ int run( int k , Cost gap = -1 ) {
+  _flows.clear();
+  _costs.clear();
+  State s;
+  if( k <= 0 || ! firstState( s ) )
+   return( 0 );
+  // a negative gap is no gap at all
+  const bool bounded = gap >= 0;
+  const Cost limit = bounded ? s.cost + gap : s.cost;
+
+  typedef std::pair< Cost , int > Item;
+  std::priority_queue< Item , std::vector< Item > , std::greater< Item > >
+    queue;
+  std::vector< State > states( 1 , s );
+  // a basis is its tree and the bounds its nonbasic arcs are at, i.e.,
+  // the tree and the flow
+  std::set< std::pair< std::vector< char > , std::vector< Value > > >
+    seen_bases;
+  std::map< std::vector< Value > , int > seen_flows;
+  queue.push( Item( s.cost , 0 ) );
+  while( ! queue.empty() && int( _flows.size() ) < k ) {
+   const int j = queue.top().second;
+   queue.pop();
+   const State st = states[ j ];
+   if( bounded && st.cost > limit )
+    break;
+   if( ! seen_bases.insert( std::make_pair( st.tree , st.flow ) ).second )
+    continue;
+   std::vector< Value > f( st.flow.begin() , st.flow.begin() + _m );
+   if( seen_flows.insert( std::make_pair( f , 0 ) ).second ) {
+    _flows.push_back( f );
+    _costs.push_back( st.cost );
+    }
+   // every pivot of the basis, saturating the cycle of a nonbasic arc
+   std::vector< int > parent_arc , depth;
+   rootTree( st , parent_arc , depth );
+   for( int r = 0 ; r != 2 * ( _m + _n ) ; ++r ) {
+    if( st.tree[ r / 2 ] || ! open( st , r ) )
+     continue;
+    State nx;
+    if( pivot( st , parent_arc , depth , r , nx ) &&
+	( ! bounded || nx.cost <= limit ) &&
+	! seen_bases.count( std::make_pair( nx.tree , nx.flow ) ) ) {
+     states.push_back( nx );
+     queue.push( Item( nx.cost , int( states.size() ) - 1 ) );
+     }
+    }
+   }
+  return( int( _flows.size() ) );
+  }
+
+ /// \brief The number of the flows found by the last \ref run().
+ int flowNum() const { return( int( _flows.size() ) ); }
+
+ /// \brief The total cost of the i-th flow, the first being 0.
+ Cost totalCost( int i ) const { return( _costs[ i ] ); }
+
+ /// \brief The flow on an arc in the i-th flow, the first being 0.
+ Value flow( int i , const Arc & a ) const {
+  return( _flows[ i ][ _arc_id[ a ] ] );
+  }
+
+ /// \brief Copies the i-th flow, the first being 0, into a map.
+ template< typename FlowMap >
+ void flowMap( int i , FlowMap & map ) const {
+  for( ArcIt a( _graph ) ; a != INVALID ; ++a )
+   map.set( a , _flows[ i ][ _arc_id[ a ] ] );
+  }
+
+ private:
+ // Whether the arc i is strictly within its bounds
+ bool isFree( const State & s , int i ) const {
+  return( s.flow[ i ] > _lower[ i ] + _feps &&
+	  ( _inf[ i ] || s.flow[ i ] < _upper[ i ] - _feps ) );
+  }
+
+ // Whether flow may go along the residual arc r (2 i forward, 2 i + 1
+ // backward), and how much
+ bool open( const State & s , int r ) const {
+  const int i = r / 2;
+  if( r % 2 == 0 )
+   return( _inf[ i ] || s.flow[ i ] < _upper[ i ] - _feps );
+  return( s.flow[ i ] > _lower[ i ] + _feps );
+  }
+
+ bool residual( const State & s , int r , Value & amount ) const {
+  const int i = r / 2;
+  if( r % 2 == 0 ) {
+   if( _inf[ i ] )
+    return( false );
+   amount = _upper[ i ] - s.flow[ i ];
+   }
+  else
+   amount = s.flow[ i ] - _lower[ i ];
+  return( true );
+  }
+
+ int tail( int r ) const {
+  return( r % 2 == 0 ? _source[ r / 2 ] : _target[ r / 2 ] );
+  }
+
+ int head( int r ) const {
+  return( r % 2 == 0 ? _target[ r / 2 ] : _source[ r / 2 ] );
+  }
+
+ Cost resCost( int r ) const {
+  return( r % 2 == 0 ? _cost[ r / 2 ] : -_cost[ r / 2 ] );
+  }
+
+ // The first state: an optimal flow, made a vertex, with a basis
+ bool firstState( State & s ) {
+  std::vector< Value > f( _m , 0 );
+  _feps = 0;
+  {
+   typedef NetworkSimplex< GR , Value , Cost > NS;
+   NS ns( _graph );
+   typename Digraph::template ArcMap< Value > low( _graph ) , up( _graph );
+   typename Digraph::template ArcMap< Cost > cost( _graph );
+   typename Digraph::template NodeMap< Value > sup( _graph );
+   for( ArcIt a( _graph ) ; a != INVALID ; ++a ) {
+    const int i = _arc_id[ a ];
+    low[ a ] = _lower[ i ];
+    up[ a ] = _inf[ i ] ? ns.INF : _upper[ i ];
+    cost[ a ] = _cost[ i ];
+    }
+   for( NodeIt u( _graph ) ; u != INVALID ; ++u )
+    sup[ u ] = _supply[ _node_id[ u ] ];
+   ns.lowerMap( low ).upperMap( up ).costMap( cost ).supplyMap( sup );
+   if( ! _has_init && ns.run() != NS::OPTIMAL )
+    return( false );
+   // the tolerance on the flows of NetworkSimplex: zero for an exact
+   // type, otherwise relative to the largest supply or finite bound
+   if( ! std::numeric_limits< Value >::is_exact ) {
+    Value big = 1;
+    for( int i = 0 ; i != _m ; ++i ) {
+     big = ( std::max )( big , Value( _lower[ i ] < 0 ? -_lower[ i ]
+						       : _lower[ i ] ) );
+     if( ! _inf[ i ] )
+      big = ( std::max )( big , Value( _upper[ i ] < 0 ? -_upper[ i ]
+							: _upper[ i ] ) );
+     }
+    for( int u = 0 ; u != _n ; ++u )
+     big = ( std::max )( big , Value( _supply[ u ] < 0 ? -_supply[ u ]
+						       : _supply[ u ] ) );
+    _feps = static_cast< Value >( big *
+				  std::numeric_limits< Value >::epsilon() *
+				  1e6 );
+    }
+   if( _has_init )
+    f = _init;
+   else
+    for( ArcIt a( _graph ) ; a != INVALID ; ++a )
+     f[ _arc_id[ a ] ] = ns.flow( a );
+   }
+  s.flow.assign( _m + _n , 0 );
+  std::copy( f.begin() , f.end() , s.flow.begin() );
+  std::vector< Value > net( _n , 0 );
+  for( int i = 0 ; i != _m ; ++i ) {
+   net[ _source[ i ] ] += f[ i ];
+   net[ _target[ i ] ] -= f[ i ];
+   }
+  for( int u = 0 ; u != _n ; ++u )
+   s.flow[ _m + u ] = net[ u ] - _supply[ u ];
+  purify( s );
+  s.cost = 0;
+  for( int i = 0 ; i != _m ; ++i )
+   s.cost += _cost[ i ] * s.flow[ i ];
+  basis( s );
+  return( true );
+  }
+
+ // Union-find on the n + 1 nodes
+ static int find( std::vector< int > & p , int u ) {
+  while( p[ u ] != u )
+   u = p[ u ] = p[ p[ u ] ];
+  return( u );
+  }
+
+ // The path between u and v in the forest of the arcs in on, as residual
+ // arcs from u to v; false if there is none
+ bool forestPath( const State & s , const std::vector< char > & on , int u ,
+		  int v , std::vector< int > & path ) const {
+  const int nn = _n + 1;
+  std::vector< int > pred( nn , -2 );
+  std::vector< int > queue( 1 , u );
+  pred[ u ] = -1;
+  for( std::size_t h = 0 ; h != queue.size() && pred[ v ] == -2 ; ++h ) {
+   const int w = queue[ h ];
+   for( int i = 0 ; i != _m + _n ; ++i ) {
+    if( ! on[ i ] )
+     continue;
+    int r = -1;
+    if( _source[ i ] == w )
+     r = 2 * i;
+    else if( _target[ i ] == w )
+     r = 2 * i + 1;
+    if( r < 0 || pred[ head( r ) ] != -2 )
+     continue;
+    pred[ head( r ) ] = r;
+    queue.push_back( head( r ) );
+    }
+   }
+  if( pred[ v ] == -2 )
+   return( false );
+  path.clear();
+  for( int w = v ; w != u ; w = tail( pred[ w ] ) )
+   path.push_back( pred[ w ] );
+  std::reverse( path.begin() , path.end() );
+  ( void )s;
+  return( true );
+  }
+
+ // The flow made a vertex: while the arcs strictly within their bounds
+ // close a cycle, the cycle is saturated in a direction in which it is
+ // bounded, which leaves the cost as it is at an optimal flow, since such
+ // a cycle has a reduced cost of zero
+ void purify( State & s ) const {
+  const int nn = _n + 1;
+  for( ; ; ) {
+   std::vector< int > p( nn );
+   for( int u = 0 ; u != nn ; ++u )
+    p[ u ] = u;
+   std::vector< char > on( _m + _n , 0 );
+   int closing = -1;
+   for( int i = 0 ; i != _m + _n && closing < 0 ; ++i ) {
+    if( ! isFree( s , i ) )
+     continue;
+    const int a = find( p , _source[ i ] ) , b = find( p , _target[ i ] );
+    if( a == b )
+     closing = i;
+    else {
+     p[ a ] = b;
+     on[ i ] = 1;
+     }
+    }
+   if( closing < 0 )
+    return;
+   std::vector< int > cycle;
+   forestPath( s , on , _target[ closing ] , _source[ closing ] , cycle );
+   cycle.insert( cycle.begin() , 2 * closing );
+   Value amount = 0;
+   bool bounded = false;
+   for( int dir = 0 ; dir != 2 && ! bounded ; ++dir ) {
+    if( dir == 1 )
+     for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+      cycle[ h ] ^= 1;
+    bounded = true;
+    bool first = true;
+    for( std::size_t h = 0 ; h != cycle.size() && bounded ; ++h ) {
+     Value r;
+     if( ! residual( s , cycle[ h ] , r ) )
+      continue;
+     if( first || r < amount )
+      amount = r;
+     first = false;
+     }
+    bounded = ! first;
+    }
+   for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+    s.flow[ cycle[ h ] / 2 ] += cycle[ h ] % 2 == 0 ? amount : -amount;
+   }
+  }
+
+ // A basis of a vertex: the arcs strictly within their bounds, a forest,
+ // completed to a spanning tree of the n + 1 nodes by other arcs
+ void basis( State & s ) const {
+  const int nn = _n + 1;
+  std::vector< int > p( nn );
+  for( int u = 0 ; u != nn ; ++u )
+   p[ u ] = u;
+  s.tree.assign( _m + _n , 0 );
+  for( int pass = 0 ; pass != 2 ; ++pass )
+   for( int i = 0 ; i != _m + _n ; ++i ) {
+    if( s.tree[ i ] || ( pass == 0 && ! isFree( s , i ) ) )
+     continue;
+    const int a = find( p , _source[ i ] ) , b = find( p , _target[ i ] );
+    if( a != b ) {
+     p[ a ] = b;
+     s.tree[ i ] = 1;
+     }
+    }
+  }
+
+ // The tree of a basis hung from the root: the residual arc from the
+ // parent of each node to it, and the depth of each node
+ void rootTree( const State & s , std::vector< int > & parent ,
+		std::vector< int > & depth ) const {
+  const int nn = _n + 1;
+  parent.assign( nn , -1 );
+  depth.assign( nn , -1 );
+  std::vector< int > queue( 1 , _n );
+  depth[ _n ] = 0;
+  std::vector< std::vector< int > > adj( nn );
+  for( int i = 0 ; i != _m + _n ; ++i )
+   if( s.tree[ i ] ) {
+    adj[ _source[ i ] ].push_back( 2 * i );
+    adj[ _target[ i ] ].push_back( 2 * i + 1 );
+    }
+  for( std::size_t h = 0 ; h != queue.size() ; ++h ) {
+   const int w = queue[ h ];
+   for( std::size_t t = 0 ; t != adj[ w ].size() ; ++t ) {
+    const int r = adj[ w ][ t ] , x = head( r );
+    if( depth[ x ] >= 0 )
+     continue;
+    depth[ x ] = depth[ w ] + 1;
+    parent[ x ] = r;
+    queue.push_back( x );
+    }
+   }
+  }
+
+ // The pivot of the nonbasic residual arc r: the cycle it closes with the
+ // tree, saturated; false if the cycle has no bound (a ray, not an edge)
+ bool pivot( const State & s , const std::vector< int > & parent ,
+	     const std::vector< int > & depth , int r , State & nx ) const {
+  // the cycle: r from u to v, then the tree path from v back to u
+  const int u = tail( r ) , v = head( r );
+  std::vector< int > up_v , up_u;
+  int a = v , b = u;
+  while( depth[ a ] > depth[ b ] ) {
+   up_v.push_back( parent[ a ] ^ 1 );
+   a = tail( parent[ a ] );
+   }
+  while( depth[ b ] > depth[ a ] ) {
+   up_u.push_back( parent[ b ] );
+   b = tail( parent[ b ] );
+   }
+  while( a != b ) {
+   up_v.push_back( parent[ a ] ^ 1 );
+   a = tail( parent[ a ] );
+   up_u.push_back( parent[ b ] );
+   b = tail( parent[ b ] );
+   }
+  std::vector< int > cycle( 1 , r );
+  cycle.insert( cycle.end() , up_v.begin() , up_v.end() );
+  cycle.insert( cycle.end() , up_u.rbegin() , up_u.rend() );
+
+  Value amount = 0;
+  int leave = -1;
+  for( std::size_t h = 0 ; h != cycle.size() ; ++h ) {
+   Value c;
+   if( ! residual( s , cycle[ h ] , c ) )
+    continue;
+   if( leave < 0 || c < amount ) {
+    amount = c;
+    leave = int( h );
+    }
+   }
+  if( leave < 0 )
+   return( false );
+  nx = s;
+  Cost dc = 0;
+  for( std::size_t h = 0 ; h != cycle.size() ; ++h ) {
+   const int x = cycle[ h ];
+   nx.flow[ x / 2 ] += x % 2 == 0 ? amount : -amount;
+   dc += resCost( x );
+   }
+  nx.cost = s.cost + dc * amount;
+  if( leave != 0 ) {
+   nx.tree[ r / 2 ] = 1;
+   nx.tree[ cycle[ leave ] / 2 ] = 0;
+   }
+  return( true );
+  }
+ };
+
+}
+
+#endif

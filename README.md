@@ -70,9 +70,12 @@ and no arc in common, and `unboundedCycles()` arc-disjoint cycles in the order
 of their mean costs, since the cycle of least total cost is NP-hard to find. A
 battery runs every algorithm, with each of its methods, on limit cases and on
 random instances, with integer and floating-point data, and checks each answer
-by its certificate and against the others. `KBestFlows` gives the K integer
-flows of least cost in order (the optimal ones first, then the suboptimal
-ones), by the algorithm of Hamacher, from an optimal flow that any of the four
+by its certificate and against the others. `KBestExtremeFlows` gives the K
+vertices of least cost of the polyhedron of the flows in order (the optimal
+ones first, then those within a gap of the optimum), by Murty's ranking of the
+extreme points, i.e., the pivots of the network simplex from the bases of the
+vertices already given, and `KBestFlows` the K integer flows of least cost, by
+the algorithm of Hamacher; both start from an optimal flow that any of the four
 may find.
 
 **New algorithms and structures.** `HopcroftKarp` finds a maximum matching of a
