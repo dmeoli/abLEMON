@@ -1,3 +1,49 @@
+2026-11-04 Version 1.7.0 (abLEMON) released
+
+        The K best integer and extreme flows, several certificates of an
+        infeasible or unbounded minimum cost flow problem, and the
+        tolerances of the four algorithms set by the caller
+
+        * New algorithms
+
+          ----: KBestFlows, the K integer flows of least cost of a minimum
+                cost flow problem in order, by the algorithm of Hamacher
+                and the partition of Lawler, from the optimal flow of
+                NetworkSimplex or from a given one
+          ----: KBestExtremeFlows, the K vertices of least cost of the
+                polyhedron of the flows in order, the optimal ones first,
+                optionally within a gap, by the ranking of Murty, with a
+                limit on the bases expanded in all and for each vertex,
+                or by the cycles of least reduced cost from the optimal
+                vertices, which enumerates no basis
+
+        * New features
+
+          ----: infeasibleCuts(k) in the four minimum cost flow algorithms,
+                the k most violated sets of nodes in order, by the
+                partition of Lawler with one maximum flow per part, each
+                started from the flow of its parent
+          ----: disjointInfeasibleCuts(), the violated weakly connected
+                components of the most violated set, which share no node
+                and no arc
+          ----: unboundedCycles(k), arc-disjoint negative cycles of
+                infinite capacity, each of minimum mean cost among the
+                arcs not yet taken
+          ----: tolerances( flow , cost ), which sets the tolerances on the
+                flows and on the reduced costs, a negative value leaving
+                them relative to the data as before
+          ----: infeasibleCut() of CostScaling, CycleCanceling and
+                CapacityScaling gives the set the algorithm has at hand
+                when it finds no feasible flow, the maximum flow being
+                left as a fallback
+
+        * Bug fixes
+
+          ----: CostScaling with floating-point costs and an integer
+                LargeCost never ended its scaling
+          ----: MSVC warned of narrowing conversions in ArgParser and in
+                the tolerances of an exact type
+
 2026-11-04 Version 1.6.0 (abLEMON) released
 
         lemon-ng is now abLEMON; the certificates of an infeasible and of
