@@ -257,13 +257,14 @@ class KBestExtremeFlows
     _flows.push_back( f );
     _costs.push_back( st.cost );
     }
-   // the bases of a vertex beyond the limit are not expanded
-   if( _vertex_limit > 0 && sf.first->second >= _vertex_limit ) {
+   // the bases of a vertex beyond the limit are not expanded; a basis
+   // counts only if it leads to another vertex, so that those whose
+   // pivots are all degenerate do not take the place of one that does
+   int & count = sf.first->second;
+   if( _vertex_limit > 0 && count >= _vertex_limit ) {
     _exact = false;
     continue;
     }
-   const bool more = _vertex_limit <= 0 ||
-                     ++sf.first->second < _vertex_limit;
    seen_bases.insert( std::make_pair( st.tree , st.flow ) );
    // every pivot of the basis, saturating the cycle of a nonbasic arc
    done.push_back( Expanded() );
@@ -271,6 +272,8 @@ class KBestExtremeFlows
    rootTree( st , e.parent , e.depth );
    e.state = std::move( st );
    const int j = int( done.size() ) - 1;
+   std::vector< std::pair< Cost , int > > degenerate;
+   bool moves = false;
    for( int r = 0 ; r != 2 * ( _m + _n ) ; ++r ) {
     if( e.state.tree[ r / 2 ] || ! open( e.state , r ) )
      continue;
@@ -279,13 +282,23 @@ class KBestExtremeFlows
     if( ! pivotCost( e.state , e.parent , e.depth , r , c , amount ) ||
 	( bounded && c > limit ) )
      continue;
-    // a degenerate pivot leads to another basis of the same vertex
-    if( ! more && amount <= _feps ) {
-     _exact = false;
-     continue;
+    if( amount <= _feps )
+     degenerate.push_back( std::make_pair( c , r ) );
+    else {
+     moves = true;
+     queue.push( Item( c , std::make_pair( j , r ) ) );
      }
-    queue.push( Item( c , std::make_pair( j , r ) ) );
     }
+   // a degenerate pivot leads to another basis of the same vertex, which
+   // is not looked for once the vertex has used up its bases
+   if( moves )
+    ++count;
+   if( _vertex_limit > 0 && count >= _vertex_limit && ! degenerate.empty() )
+    _exact = false;
+   else
+    for( std::size_t h = 0 ; h != degenerate.size() ; ++h )
+     queue.push( Item( degenerate[ h ].first ,
+		       std::make_pair( j , degenerate[ h ].second ) ) );
    }
   // a vertex reached only through a basis left out may come after one of
   // larger cost: the flows are put back in the order of their costs
@@ -328,7 +341,8 @@ class KBestExtremeFlows
  /// other basic arcs carry no flow, has as many bases as there are trees
  /// containing it; the next vertex is adjacent to a basis of one of those
  /// given, but expanding them all may take the whole \ref basisLimit().
- /// With a positive limit, the bases of a vertex beyond it are not
+ /// With a positive limit, a basis counting only if one of its pivots
+ /// leads to another vertex, the bases of a vertex beyond it are not
  /// expanded and the degenerate pivots of its last one are not taken: the
  /// flows given are distinct vertices in the order of their costs, the
  /// first one optimal, adjacent to the bases expanded, but they may not be
