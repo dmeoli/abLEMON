@@ -864,6 +864,41 @@ void checkTolerances( const std::string & name )
 	"Wrong result with the tolerances of the algorithm: " + name );
  }
 
+// CostScaling with floating-point costs and an integer LargeCost, as an
+// interface that scales its costs to integers sets it: the scaling ends
+// at epsilon one, and the flow is that of NetworkSimplex
+void checkIntegerLargeCost( int seeds )
+{
+ typedef CostScaling< SmartDigraph , double , double >::SetLargeCost<
+   long long >::Create CS;
+ typedef NetworkSimplex< SmartDigraph , double , double > NS;
+ unsigned int r = 628;
+ for( int seed = 0 ; seed != seeds ; ++seed ) {
+  RandomMcf p( r );
+  SmartDigraph::ArcMap< double > low( p.g ) , up( p.g ) , cost( p.g );
+  SmartDigraph::NodeMap< double > sup( p.g );
+  for( SmartDigraph::ArcIt a( p.g ) ; a != INVALID ; ++a ) {
+   low[ a ] = double( p.lower[ a ] );
+   up[ a ] = p.upper[ a ] == p.inf ? std::numeric_limits< double >::infinity()
+				   : double( p.upper[ a ] );
+   cost[ a ] = double( p.cost[ a ] );
+   }
+  for( SmartDigraph::NodeIt u( p.g ) ; u != INVALID ; ++u )
+   sup[ u ] = double( p.supply[ u ] );
+  CS cs( p.g );
+  NS ns( p.g );
+  cs.lowerMap( low ).upperMap( up ).costMap( cost ).supplyMap( sup );
+  ns.lowerMap( low ).upperMap( up ).costMap( cost ).supplyMap( sup );
+  const int rc = int( cs.run() ) , rn = int( ns.run() );
+  const std::string id = "instance " + std::to_string( seed );
+  check( rc == rn , "Wrong result of CostScaling with integer LargeCost on " +
+		      id );
+  if( rn == int( NS::OPTIMAL ) )
+   check( cs.totalCost() == ns.totalCost() ,
+	  "Wrong cost of CostScaling with integer LargeCost on " + id );
+  }
+ }
+
 int main()
 {
  // Read the test networks
@@ -1102,6 +1137,7 @@ int main()
  checkAgainstNetworkSimplex< CapacityScaling< SmartDigraph , long > >(
    500 , "CapacityScaling" );
  checkSupplyTypes( 500 );
+ checkIntegerLargeCost( 300 );
  checkTolerances< NetworkSimplex< SmartDigraph , double > >(
    "NetworkSimplex" );
  checkTolerances< CostScaling< SmartDigraph , double > >( "CostScaling" );

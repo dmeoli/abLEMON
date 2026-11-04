@@ -322,9 +322,9 @@ class CostScaling
 
  // Data for scaling
  LargeCost _epsilon;
- // The last epsilon: one for an exact cost type, which proves the flow
- // optimal, otherwise the tolerance on the reduced costs times the factor
- // that the costs are scaled by
+ // The last epsilon: one for an integer LargeCost, whose scaled costs are
+ // integer, which proves the flow optimal, otherwise the tolerance on the
+ // reduced costs times the factor that the costs are scaled by
  LargeCost _eps_min;
  // The tolerances on the flows and on the reduced costs, zero for exact
  // types [see bits/mcf_feasible_flow.h]: an excess or a residual
@@ -991,7 +991,7 @@ class CostScaling
 	    ? _cost_tol
 	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
 					_forward , _scost );
-  _eps_min = std::numeric_limits< Cost >::is_exact
+  _eps_min = std::numeric_limits< LargeCost >::is_integer
 	       ? LargeCost( 1 )
 	       : ( std::max )( static_cast< LargeCost >( _ceps ) * _res_node_num *
 				 _alpha ,
