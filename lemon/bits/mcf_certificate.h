@@ -140,10 +140,11 @@ bool cutViolation( const McfData< V > & d , bool leq ,
 // contain. In in, the characteristic vector of the set.
 template< typename V >
 void maxViolatedSet( const McfData< V > & d , bool leq ,
-		     const std::vector< int > & fix , std::vector< char > & in )
+		     const std::vector< int > & fix , std::vector< char > & in ,
+		     const std::vector< V > * warm = nullptr ,
+		     std::vector< V > * flow = nullptr )
 {
  typedef SmartDigraph::Node Node;
- typedef SmartDigraph::Arc Arc;
  const int n = d.n , m = int( d.source.size() );
 
  // Under LEQ, the arcs backwards and the supplies negated
@@ -169,40 +170,55 @@ void maxViolatedSet( const McfData< V > & d , bool leq ,
  const V big = static_cast< V >( pos + 1 < MAXV ? pos + 1 : MAXV );
  const V fixed = static_cast< V >( 2 * pos + 3 < MAXV ? 2 * pos + 3 : MAXV );
 
+ // The arcs are the m of the problem, then one from the source and one
+ // to the sink for each node, whatever the data and the fixed nodes, so
+ // that the flow of a part is a preflow of each of its children, whose
+ // capacities are only larger
  SmartDigraph g;
  g.reserveNode( n + 2 );
+ g.reserveArc( m + 2 * n );
  for( int u = 0 ; u != n + 2 ; ++u )
   g.addNode();
  const Node s = g.nodeFromId( n ) , t = g.nodeFromId( n + 1 );
  SmartDigraph::ArcMap< V > cap( g );
  for( int i = 0 ; i != m ; ++i ) {
-  if( from[ i ] == to[ i ] )
-   continue;
-  const V c = d.inf[ i ] ? big : static_cast< V >( d.upper[ i ] -
-						   d.lower[ i ] );
-  if( c > 0 ) {
-   const Arc a = g.addArc( g.nodeFromId( from[ i ] ) ,
-			   g.nodeFromId( to[ i ] ) );
-   cap.set( a , c );
-   }
+  const V c = from[ i ] == to[ i ]
+		? V( 0 )
+		: d.inf[ i ] ? big
+			     : static_cast< V >( d.upper[ i ] - d.lower[ i ] );
+  cap.set( g.addArc( g.nodeFromId( from[ i ] ) , g.nodeFromId( to[ i ] ) ) ,
+	   c > 0 ? c : V( 0 ) );
   }
  for( int u = 0 ; u != n ; ++u ) {
-  if( sup[ u ] > 0 )
-   cap.set( g.addArc( s , g.nodeFromId( u ) ) , static_cast< V >( sup[ u ] ) );
-  else if( sup[ u ] < 0 )
-   cap.set( g.addArc( g.nodeFromId( u ) , t ) ,
-	    static_cast< V >( -sup[ u ] ) );
+  V cs = sup[ u ] > 0 ? static_cast< V >( sup[ u ] ) : V( 0 );
+  V ct = sup[ u ] < 0 ? static_cast< V >( -sup[ u ] ) : V( 0 );
   if( ! fix.empty() && fix[ u ] == 1 )
-   cap.set( g.addArc( s , g.nodeFromId( u ) ) , fixed );
+   cs += fixed;
   else if( ! fix.empty() && fix[ u ] == 0 )
-   cap.set( g.addArc( g.nodeFromId( u ) , t ) , fixed );
+   ct += fixed;
+  cap.set( g.addArc( s , g.nodeFromId( u ) ) , cs );
+  cap.set( g.addArc( g.nodeFromId( u ) , t ) , ct );
   }
 
  Preflow< SmartDigraph , SmartDigraph::ArcMap< V > > pf( g , cap , s , t );
- pf.runMinCut();
+ bool started = false;
+ if( warm != nullptr && int( warm->size() ) == m + 2 * n ) {
+  SmartDigraph::ArcMap< V > f0( g );
+  for( int i = 0 ; i != m + 2 * n ; ++i )
+   f0.set( g.arcFromId( i ) , ( *warm )[ i ] );
+  started = pf.init( f0 );
+  }
+ if( ! started )
+  pf.init();
+ pf.startFirstPhase();
  in.assign( n , 0 );
  for( int u = 0 ; u != n ; ++u )
   in[ u ] = pf.minCut( g.nodeFromId( u ) ) ? 1 : 0;
+ if( flow != nullptr ) {
+  flow->resize( m + 2 * n );
+  for( int i = 0 ; i != m + 2 * n ; ++i )
+   ( *flow )[ i ] = pf.flowMap()[ g.arcFromId( i ) ];
+  }
  }
 
 // A set N' of nodes that proves the problem infeasible. Under GEQ the
@@ -250,7 +266,9 @@ std::vector< int > infeasibleCut( const McfData< V > & d , bool leq ,
 // split by the free nodes in turn, the j-th child keeping the first j - 1
 // of them as in the set and taking the j-th one out if the set has it,
 // in otherwise; the best set of each child is found by maxViolatedSet(),
-// and the next set is the best one of the children not yet given.
+// from the maximum flow of the part, which is a preflow of the child since
+// the child only fixes one node more, and the next set is the best one of
+// the children not yet given.
 template< typename V >
 std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
 						  bool leq , int k )
@@ -259,6 +277,7 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
  {
   std::vector< int > fix;
   std::vector< char > in;
+  std::vector< V > flow;
   long double gap , scale;
   bool ok;
   };
@@ -267,7 +286,9 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
   return( cuts );
  std::vector< Part > parts( 1 );
  parts[ 0 ].fix.assign( d.n , -1 );
- maxViolatedSet( d , leq , parts[ 0 ].fix , parts[ 0 ].in );
+ const std::vector< V > * none = nullptr;
+ maxViolatedSet( d , leq , parts[ 0 ].fix , parts[ 0 ].in , none ,
+		 & parts[ 0 ].flow );
  parts[ 0 ].ok = cutViolation( d , leq , parts[ 0 ].in , parts[ 0 ].gap ,
 			       parts[ 0 ].scale );
  while( int( cuts.size() ) < k ) {
@@ -294,7 +315,7 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
    Part c;
    c.fix = fix;
    c.fix[ u ] = p.in[ u ] ? 0 : 1;
-   maxViolatedSet( d , leq , c.fix , c.in );
+   maxViolatedSet( d , leq , c.fix , c.in , & p.flow , & c.flow );
    bool kept = true;
    for( int w = 0 ; w != d.n && kept ; ++w )
     if( c.fix[ w ] >= 0 && c.in[ w ] != c.fix[ w ] )
