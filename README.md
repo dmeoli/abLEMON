@@ -1,4 +1,4 @@
-# abLEMON
+# abLEMON: a better LEMON
 
 [![CI](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml)
 [![Packaging](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml/badge.svg?branch=master)](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml)
