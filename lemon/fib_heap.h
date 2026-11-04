@@ -46,7 +46,7 @@ namespace lemon
 /// \tparam IM A read-writable item map with \c int values, used
 /// internally to handle the cross references.
 /// \tparam CMP A functor class for comparing the priorities.
-/// The default is \c std::less<PR>.
+/// The default is \c std::less< PR >.
 #ifdef DOXYGEN
 template< typename PR , typename IM , typename CMP >
 #else

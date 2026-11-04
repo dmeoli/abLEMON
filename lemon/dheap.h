@@ -51,7 +51,7 @@ namespace lemon
 /// so that the multiplications and divisions needed to traverse the
 /// nodes of the heap could be performed faster.
 /// \tparam CMP A functor class for comparing the priorities.
-/// The default is \c std::less<PR>.
+/// The default is \c std::less< PR >.
 ///
 ///\sa BinHeap
 ///\sa FouraryHeap

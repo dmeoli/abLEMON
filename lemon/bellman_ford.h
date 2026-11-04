@@ -170,7 +170,7 @@ struct BellmanFordDefaultTraits
 /// The default type is \ref ListDigraph.
 /// \tparam LEN A \ref concepts::ReadMap "readable" arc map that specifies
 /// the lengths of the arcs. The default map type is
-/// \ref concepts::Digraph::ArcMap "GR::ArcMap<int>".
+/// \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref BellmanFordDefaultTraits
 /// "BellmanFordDefaultTraits<GR, LEN>".

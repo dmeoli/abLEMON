@@ -382,7 +382,7 @@ class CompactDigraph : public ExtendedCompactDigraphBase
  ///
  /// The list of the arcs must be given in the range <tt>[begin, end)</tt>
  /// specified by STL compatible itartors whose \c value_type must be
- /// <tt>std::pair<int,int></tt>.
+ /// <tt>std::pair< int , int ></tt>.
  /// Each arc must be specified by a pair of integer indices
  /// from the range <tt>[0..n-1]</tt>. <i>The pairs must be in a
  /// non-decreasing order with respect to their first values.</i>

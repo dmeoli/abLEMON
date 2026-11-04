@@ -304,10 +304,10 @@ class Bfs
    }
   };
  ///\brief \ref named-templ-param "Named parameter" for setting
- ///\c ProcessedMap type to be <tt>Digraph::NodeMap<bool></tt>.
+ ///\c ProcessedMap type to be <tt>Digraph::NodeMap< bool ></tt>.
  ///
  ///\ref named-templ-param "Named parameter" for setting
- ///\c ProcessedMap type to be <tt>Digraph::NodeMap<bool></tt>.
+ ///\c ProcessedMap type to be <tt>Digraph::NodeMap< bool ></tt>.
  ///If you don't set it explicitly, it will be automatically allocated.
  struct SetStandardProcessedMap
      : public Bfs< Digraph , SetStandardProcessedMapTraits >
@@ -1285,7 +1285,7 @@ struct BfsVisitDefaultTraits
 /// The value of GR is not used directly by \ref BfsVisit,
 /// it is only passed to \ref BfsVisitDefaultTraits.
 /// \tparam VS The Visitor type that is used by the algorithm.
-/// \ref BfsVisitor "BfsVisitor<GR>" is an empty visitor, which
+/// \ref BfsVisitor "BfsVisitor< GR >" is an empty visitor, which
 /// does not observe the BFS events. If you want to observe the BFS
 /// events, you should implement your own visitor class.
 /// \tparam TR The traits class that defines various types used by the

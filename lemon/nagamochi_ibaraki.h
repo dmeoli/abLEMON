@@ -72,7 +72,7 @@ struct NagamochiIbarakiDefaultTraits
  /// \brief The cross reference type used by heap.
  ///
  /// The cross reference type used by heap.
- /// Usually \c Graph::NodeMap<int>.
+ /// Usually \c Graph::NodeMap< int >.
  typedef typename Graph::template NodeMap< int > HeapCrossRef;
 
  /// \brief Instantiates a HeapCrossRef.

@@ -278,8 +278,8 @@ struct KruskalOutputSelector<
 /// \param in This object is used to describe the arc/edge costs.
 /// It can be one of the following choices.
 /// - An STL compatible 'Forward Container' with
-/// <tt>std::pair<GR::Arc,C></tt> or
-/// <tt>std::pair<GR::Edge,C></tt> as its <tt>value_type</tt>, where
+/// <tt>std::pair< GR::Arc , C ></tt> or
+/// <tt>std::pair< GR::Edge , C ></tt> as its <tt>value_type</tt>, where
 /// \c C is the type of the costs. The pairs indicates the arcs/edges
 /// along with the assigned cost. <em>They must be in a
 /// cost-ascending order.</em>

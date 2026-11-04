@@ -58,7 +58,7 @@ namespace lemon
 ///
 /// \tparam GR The type of the undirected graph the algorithm runs on.
 /// \tparam CAP The type of the edge map containing the capacities.
-/// The default map type is \ref concepts::Graph::EdgeMap "GR::EdgeMap<int>".
+/// The default map type is \ref concepts::Graph::EdgeMap "GR::EdgeMap< int >".
 #ifdef DOXYGEN
 template< typename GR , typename CAP >
 #else

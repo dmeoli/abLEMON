@@ -331,8 +331,9 @@ class GraphToEps : public T
  ///Sets the map of the node coordinates
 
  ///Sets the map of the node coordinates.
- ///\param x must be a node map with \ref dim2::Point "dim2::Point<double>" or
- ///\ref dim2::Point "dim2::Point<int>" values.
+ ///\param x must be a node map with
+ ///\ref dim2::Point "dim2::Point< double >" or
+ ///\ref dim2::Point "dim2::Point< int >" values.
  template< class X >
  GraphToEps< CoordsTraits< X > > coords( const X & x ) {
   dontPrint = true;

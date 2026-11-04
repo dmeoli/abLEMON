@@ -40,7 +40,7 @@ namespace lemon
 /// Default traits class of Suurballe algorithm.
 /// \tparam GR The digraph type the algorithm runs on.
 /// \tparam LEN The type of the length map.
-/// The default value is <tt>GR::ArcMap<int></tt>.
+/// The default value is <tt>GR::ArcMap< int ></tt>.
 #ifdef DOXYGEN
 template< typename GR , typename LEN >
 #else
@@ -97,7 +97,7 @@ struct SuurballeDefaultTraits
 ///
 /// \tparam GR The digraph type the algorithm runs on.
 /// \tparam LEN The type of the length map.
-/// The default value is <tt>GR::ArcMap<int></tt>.
+/// The default value is <tt>GR::ArcMap< int ></tt>.
 ///
 /// \warning Length values should be \e non-negative.
 ///

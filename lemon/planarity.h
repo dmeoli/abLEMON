@@ -2532,7 +2532,7 @@ class PlanarDrawing
  /// \brief Return the grid embedding in a node map
  ///
  /// This function returns the grid embedding in a node map of
- /// \c dim2::Point<int> coordinates.
+ /// \c dim2::Point< int > coordinates.
  const PointMap & coords() const { return( _point_map ); }
 
  private:

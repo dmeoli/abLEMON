@@ -58,7 +58,7 @@ struct CapacityScalingDefaultTraits
  /// The type of the heap used for internal Dijkstra computations.
  /// It must conform to the \ref lemon::concepts::Heap "Heap" concept,
  /// its priority type must be \c Cost and its cross reference type
- /// must be \ref RangeMap "RangeMap<int>". By default it is a
+ /// must be \ref RangeMap "RangeMap< int >". By default it is a
  /// \ref QuadHeap "4-ary heap", whose fewer levels make the shortest
  /// path searches cheaper than on a binary heap \cite johnson75heap.
  typedef QuadHeap< Cost , RangeMap< int > > Heap;
@@ -240,8 +240,8 @@ class CapacityScaling
  /// \brief Constant for infinite upper bounds (capacities).
  ///
  /// Constant for infinite upper bounds (capacities).
- /// It is \c std::numeric_limits<Value>::infinity() if available,
- /// \c (std::numeric_limits<Value>::max)() otherwise.
+ /// It is \c std::numeric_limits< Value >::infinity() if available,
+ /// \c (std::numeric_limits< Value >::max)() otherwise.
  const Value INF;
 
  private:
@@ -347,7 +347,7 @@ class CapacityScaling
  /// type, which is used for internal Dijkstra computations.
  /// It must conform to the \ref lemon::concepts::Heap "Heap" concept,
  /// its priority type must be \c Cost and its cross reference type
- /// must be \ref RangeMap "RangeMap<int>".
+ /// must be \ref RangeMap "RangeMap< int >".
  template< typename T >
  struct SetHeap : public CapacityScaling< GR , V , C , SetHeapTraits< T > >
  {

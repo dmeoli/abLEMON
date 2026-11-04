@@ -97,7 +97,7 @@ struct EdmondsKarpDefaultTraits
 ///
 /// \tparam GR The type of the digraph the algorithm runs on.
 /// \tparam CAP The type of the capacity map. The default map
-/// type is \ref concepts::Digraph::ArcMap "GR::ArcMap<int>".
+/// type is \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref EdmondsKarpDefaultTraits
 /// "EdmondsKarpDefaultTraits<GR, CAP>".

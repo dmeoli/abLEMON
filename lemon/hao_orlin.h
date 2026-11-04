@@ -65,9 +65,9 @@ namespace lemon
 /// \tparam GR The type of the digraph the algorithm runs on.
 /// \tparam CAP The type of the arc map containing the capacities,
 /// which can be any numreric type. The default map type is
-/// \ref concepts::Digraph::ArcMap "GR::ArcMap<int>".
+/// \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TOL Tolerance class for handling inexact computations. The
-/// default tolerance type is \ref Tolerance "Tolerance<CAP::Value>".
+/// default tolerance type is \ref Tolerance "Tolerance< CAP::Value >".
 #ifdef DOXYGEN
 template< typename GR , typename CAP , typename TOL >
 #else

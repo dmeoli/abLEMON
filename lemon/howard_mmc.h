@@ -107,7 +107,7 @@ struct HowardMmcDefaultTraits< GR , CM , true >
 ///
 /// \tparam GR The type of the digraph the algorithm runs on.
 /// \tparam CM The type of the cost map. The default
-/// map type is \ref concepts::Digraph::ArcMap "GR::ArcMap<int>".
+/// map type is \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref HowardMmcDefaultTraits
 /// "HowardMmcDefaultTraits<GR, CM>".
@@ -143,7 +143,7 @@ class HowardMmc
  ///
  /// The path type of the found cycles.
  /// Using the \ref lemon::HowardMmcDefaultTraits "default traits class",
- /// it is \ref lemon::Path "Path<Digraph>".
+ /// it is \ref lemon::Path "Path< Digraph >".
  typedef typename TR::Path Path;
 
  /// The \ref lemon::HowardMmcDefaultTraits "traits class" of the algorithm

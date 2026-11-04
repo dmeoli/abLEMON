@@ -780,11 +780,11 @@ class SubDigraphBase< DGR , NF , AF ,
 /// \tparam NF The type of the node filter map.
 /// It must be a \c bool (or convertible) node map of the
 /// adapted digraph. The default type is
-/// \ref concepts::Digraph::NodeMap "DGR::NodeMap<bool>".
+/// \ref concepts::Digraph::NodeMap "DGR::NodeMap< bool >".
 /// \tparam AF The type of the arc filter map.
 /// It must be \c bool (or convertible) arc map of the
 /// adapted digraph. The default type is
-/// \ref concepts::Digraph::ArcMap "DGR::ArcMap<bool>".
+/// \ref concepts::Digraph::ArcMap "DGR::ArcMap< bool >".
 ///
 /// \note The \c Node and \c Arc types of this adaptor and the adapted
 /// digraph are convertible to each other.
@@ -1415,11 +1415,11 @@ class SubGraphBase< GR , NF , EF , false > : public GraphAdaptorBase< GR >
 /// \tparam NF The type of the node filter map.
 /// It must be a \c bool (or convertible) node map of the
 /// adapted graph. The default type is
-/// \ref concepts::Graph::NodeMap "GR::NodeMap<bool>".
+/// \ref concepts::Graph::NodeMap "GR::NodeMap< bool >".
 /// \tparam EF The type of the edge filter map.
 /// It must be a \c bool (or convertible) edge map of the
 /// adapted graph. The default type is
-/// \ref concepts::Graph::EdgeMap "GR::EdgeMap<bool>".
+/// \ref concepts::Graph::EdgeMap "GR::EdgeMap< bool >".
 ///
 /// \note The \c Node, \c Edge and \c Arc types of this adaptor and the
 /// adapted graph are convertible to each other.
@@ -1574,7 +1574,7 @@ subGraph( const GR & graph , const NF & node_filter ,
 /// \tparam NF The type of the node filter map.
 /// It must be a \c bool (or convertible) node map of the
 /// adapted (di)graph. The default type is
-/// \ref concepts::Graph::NodeMap "GR::NodeMap<bool>".
+/// \ref concepts::Graph::NodeMap "GR::NodeMap< bool >".
 ///
 /// \note The \c Node and <tt>Arc/Edge</tt> types of this adaptor and the
 /// adapted (di)graph are convertible to each other.
@@ -1717,7 +1717,7 @@ FilterNodes< const GR , const NF > filterNodes( const GR & graph ,
 /// \tparam AF The type of the arc filter map.
 /// It must be a \c bool (or convertible) arc map of the
 /// adapted digraph. The default type is
-/// \ref concepts::Digraph::ArcMap "DGR::ArcMap<bool>".
+/// \ref concepts::Digraph::ArcMap "DGR::ArcMap< bool >".
 ///
 /// \note The \c Node and \c Arc types of this adaptor and the adapted
 /// digraph are convertible to each other.
@@ -1826,7 +1826,7 @@ FilterArcs< const DGR , const AF > filterArcs( const DGR & digraph ,
 /// \tparam EF The type of the edge filter map.
 /// It must be a \c bool (or convertible) edge map of the
 /// adapted graph. The default type is
-/// \ref concepts::Graph::EdgeMap "GR::EdgeMap<bool>".
+/// \ref concepts::Graph::EdgeMap "GR::EdgeMap< bool >".
 ///
 /// \note The \c Node, \c Edge and \c Arc types of this adaptor and the
 /// adapted graph are convertible to each other.
@@ -2649,7 +2649,7 @@ class OrienterBase
 /// \tparam DM The type of the direction map.
 /// It must be a \c bool (or convertible) edge map of the
 /// adapted graph. The default type is
-/// \ref concepts::Graph::EdgeMap "GR::EdgeMap<bool>".
+/// \ref concepts::Graph::EdgeMap "GR::EdgeMap< bool >".
 ///
 /// \note The \c Node type of this adaptor and the adapted graph are
 /// convertible to each other, moreover the \c Arc type of the adaptor
@@ -2787,7 +2787,7 @@ class ResBackwardFilter
 /// It must be an arc map of some numerical type, which defines
 /// the capacities in the flow problem. It is implicitly \c const.
 /// The default type is
-/// \ref concepts::Digraph::ArcMap "GR::ArcMap<int>".
+/// \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam FM The type of the flow map.
 /// It must be an arc map of some numerical type, which defines
 /// the flow values in the flow problem. The default type is \c CM.

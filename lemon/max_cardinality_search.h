@@ -89,7 +89,7 @@ struct MaxCardinalitySearchDefaultTraits
  /// \brief The cross reference type used by heap.
  ///
  /// The cross reference type used by heap.
- /// Usually it is \c Digraph::NodeMap<int>.
+ /// Usually it is \c Digraph::NodeMap< int >.
  typedef typename Digraph::template NodeMap< int > HeapCrossRef;
 
  /// \brief Instantiates a HeapCrossRef.

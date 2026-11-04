@@ -251,8 +251,8 @@ class NetworkSimplex
  /// \brief Constant for infinite upper bounds (capacities).
  ///
  /// Constant for infinite upper bounds (capacities).
- /// It is \c std::numeric_limits<Value>::infinity() if available,
- /// \c (std::numeric_limits<Value>::max)() otherwise.
+ /// It is \c std::numeric_limits< Value >::infinity() if available,
+ /// \c (std::numeric_limits< Value >::max)() otherwise.
  const Value INF;
 
  private:

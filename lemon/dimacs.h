@@ -121,9 +121,9 @@ inline DimacsDescriptor dimacsType( std::istream & is )
 /// If the capacity of an arc is less than the lower bound, it will
 /// be set to "infinite" instead. The actual value of "infinite" is
 /// contolled by the \c infty parameter. If it is 0 (the default value),
-/// \c std::numeric_limits<Capacity>::infinity() will be used if available,
-/// \c (std::numeric_limits<Capacity>::max)() otherwise. If \c infty is set to
-/// a non-zero value, that value will be used as "infinite".
+/// \c std::numeric_limits< Capacity >::infinity() will be used if available,
+/// \c (std::numeric_limits< Capacity >::max)() otherwise. If \c infty is
+/// set to a non-zero value, that value will be used as "infinite".
 ///
 /// If the file type was previously evaluated by dimacsType(), then
 /// the descriptor struct should be given by the \c desc parameter.
@@ -272,9 +272,9 @@ void _readDimacs( std::istream & is , Digraph & g , CapacityMap & capacity ,
 /// If the capacity of an arc is negative, it will
 /// be set to "infinite" instead. The actual value of "infinite" is
 /// contolled by the \c infty parameter. If it is 0 (the default value),
-/// \c std::numeric_limits<Capacity>::infinity() will be used if available,
-/// \c (std::numeric_limits<Capacity>::max)() otherwise. If \c infty is set to
-/// a non-zero value, that value will be used as "infinite".
+/// \c std::numeric_limits< Capacity >::infinity() will be used if available,
+/// \c (std::numeric_limits< Capacity >::max)() otherwise. If \c infty is
+/// set to a non-zero value, that value will be used as "infinite".
 ///
 /// If the file type was previously evaluated by dimacsType(), then
 /// the descriptor struct should be given by the \c desc parameter.
@@ -329,9 +329,9 @@ void readDimacsSp( std::istream & is , Digraph & g , LengthMap & length ,
 /// it will
 /// be set to "infinite" instead. The actual value of "infinite" is
 /// contolled by the \c infty parameter. If it is 0 (the default value),
-/// \c std::numeric_limits<Capacity>::infinity() will be used if available,
-/// \c (std::numeric_limits<Capacity>::max)() otherwise. If \c infty is set to
-/// a non-zero value, that value will be used as "infinite".
+/// \c std::numeric_limits< Capacity >::infinity() will be used if available,
+/// \c (std::numeric_limits< Capacity >::max)() otherwise. If \c infty is
+/// set to a non-zero value, that value will be used as "infinite".
 ///
 /// If the file type was previously evaluated by dimacsType(), then
 /// the descriptor struct should be given by the \c desc parameter.

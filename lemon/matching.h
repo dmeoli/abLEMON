@@ -700,7 +700,7 @@ class MaxMatching
 ///
 /// \tparam GR The undirected graph type the algorithm runs on.
 /// \tparam WM The type edge weight map. The default type is
-/// \ref concepts::Graph::EdgeMap "GR::EdgeMap<int>".
+/// \ref concepts::Graph::EdgeMap "GR::EdgeMap< int >".
 #ifdef DOXYGEN
 template< typename GR , typename WM >
 #else
@@ -2233,7 +2233,7 @@ class MaxWeightedMatching
 ///
 /// \tparam GR The undirected graph type the algorithm runs on.
 /// \tparam WM The type edge weight map. The default type is
-/// \ref concepts::Graph::EdgeMap "GR::EdgeMap<int>".
+/// \ref concepts::Graph::EdgeMap "GR::EdgeMap< int >".
 #ifdef DOXYGEN
 template< typename GR , typename WM >
 #else

@@ -84,7 +84,7 @@ struct DijkstraDefaultTraits
  /// The cross reference type used by the heap.
 
  /// The cross reference type used by the heap.
- /// Usually it is \c Digraph::NodeMap<int>.
+ /// Usually it is \c Digraph::NodeMap< int >.
  typedef typename Digraph::template NodeMap< int > HeapCrossRef;
  ///Instantiates a \c HeapCrossRef.
 
@@ -365,10 +365,10 @@ class Dijkstra
    }
   };
  ///\brief \ref named-templ-param "Named parameter" for setting
- ///\c ProcessedMap type to be <tt>Digraph::NodeMap<bool></tt>.
+ ///\c ProcessedMap type to be <tt>Digraph::NodeMap< bool ></tt>.
  ///
  ///\ref named-templ-param "Named parameter" for setting
- ///\c ProcessedMap type to be <tt>Digraph::NodeMap<bool></tt>.
+ ///\c ProcessedMap type to be <tt>Digraph::NodeMap< bool ></tt>.
  ///If you don't set it explicitly, it will be automatically allocated.
  struct SetStandardProcessedMap
      : public Dijkstra< Digraph , LengthMap , SetStandardProcessedMapTraits >
@@ -939,7 +939,7 @@ struct DijkstraWizardDefaultTraits
  /// The cross reference type used by the heap.
 
  /// The cross reference type used by the heap.
- /// Usually it is \c Digraph::NodeMap<int>.
+ /// Usually it is \c Digraph::NodeMap< int >.
  typedef typename Digraph::template NodeMap< int > HeapCrossRef;
  ///Instantiates a \ref HeapCrossRef.
 

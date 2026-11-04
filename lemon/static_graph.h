@@ -398,7 +398,7 @@ class StaticDigraph : public ExtendedStaticDigraphBase
  ///
  /// The list of the arcs must be given in the range <tt>[begin, end)</tt>
  /// specified by STL compatible itartors whose \c value_type must be
- /// <tt>std::pair<int,int></tt>.
+ /// <tt>std::pair< int , int ></tt>.
  /// Each arc must be specified by a pair of integer indices
  /// from the range <tt>[0..n-1]</tt>. <i>The pairs must be in a
  /// non-decreasing order with respect to their first values.</i>
@@ -780,7 +780,7 @@ class StaticGraph : public ExtendedStaticGraphBase
  ///
  /// This function builds the graph with \c n nodes and the edges in the
  /// range <tt>[begin, end)</tt>, given by STL compatible iterators whose
- /// \c value_type is <tt>std::pair<int,int></tt>: if the k-th pair is
+ /// \c value_type is <tt>std::pair< int , int ></tt>: if the k-th pair is
  /// <tt>(i,j)</tt>, then <tt>edge(k-1)</tt> joins <tt>node(i)</tt>, its
  /// \c u(), and <tt>node(j)</tt>, its \c v(). Unlike in
  /// StaticDigraph::build(), the pairs may come in any order. It can be
