@@ -49,27 +49,27 @@ digraph. Default-constructed, the items of the graphs are now `INVALID`, and
 the fields that some classes copied while still uninitialized are now
 initialized.
 
-**Minimum cost flow.** The four algorithms solve problems with
-floating-point costs, capacities and supplies, on which `NetworkSimplex`
-typically pivoted for ever or reported infeasibility, since it compared
-reduced costs and residual flows against an exact zero, and the other three
-asked for integer data. `NetworkSimplex` also updates the potentials on the
-smaller side of the tree at each pivot, `CostScaling` and `CycleCanceling`
-find their starting flow on their residual network, and `CapacityScaling`
-uses a 4-ary heap. Also, the four answer that a digraph without nodes has an
-optimal (empty) flow, and certify an answer that is not optimal:
-`infeasibleCut()` gives a set of nodes whose supply exceeds what the arcs out
-of it can carry, and `unboundedCycle()` a directed cycle of negative cost and
-infinite capacity. Also, `infeasibleCuts()` gives the k most violated such sets
-in order (Lawler's partition, with one maximum flow per part),
-`disjointInfeasibleCuts()` violated sets with no node and no arc in common, and
-`unboundedCycles()` arc-disjoint cycles in the order of their mean costs, since
-the cycle of least total cost is NP-hard to find. A battery runs every algorithm, with each of its methods,
-on limit cases and on random instances, with integer and floating-point
-data, and checks each answer by its certificate and against the others.
-`KBestFlows` gives the K integer flows of least cost in order (the optimal
-ones first, then the suboptimal ones), by the algorithm of Hamacher, from an
-optimal flow that any of the four may find.
+**Minimum cost flow.** The four algorithms solve problems with floating-point
+costs, capacities and supplies, on which `NetworkSimplex` typically pivoted for
+ever or reported infeasibility, since it compared reduced costs and residual
+flows against an exact zero, and the other three asked for integer data.
+`NetworkSimplex` also updates the potentials on the smaller side of the tree at
+each pivot, `CostScaling` and `CycleCanceling` find their starting flow on
+their residual network, and `CapacityScaling` uses a 4-ary heap. Also, the four
+answer that a digraph without nodes has an optimal (empty) flow, and certify an
+answer that is not optimal: `infeasibleCut()` gives a set of nodes whose supply
+exceeds what the arcs out of it can carry, and `unboundedCycle()` a directed
+cycle of negative cost and infinite capacity. Also, `infeasibleCuts()` gives
+the k most violated such sets in order (Lawler's partition, with one maximum
+flow per part), `disjointInfeasibleCuts()` violated sets with no node and no
+arc in common, and `unboundedCycles()` arc-disjoint cycles in the order of
+their mean costs, since the cycle of least total cost is NP-hard to find. A
+battery runs every algorithm, with each of its methods, on limit cases and on
+random instances, with integer and floating-point data, and checks each answer
+by its certificate and against the others. `KBestFlows` gives the K integer
+flows of least cost in order (the optimal ones first, then the suboptimal
+ones), by the algorithm of Hamacher, from an optimal flow that any of the four
+may find.
 
 **New algorithms and structures.** `HopcroftKarp` finds a maximum matching
 of a bipartite graph, with the vertex cover that proves it, and
