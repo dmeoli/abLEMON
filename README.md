@@ -36,18 +36,21 @@ deprecated `std::iterator`, and the dynamic exception specifications are
 `<windows.h>` and `MIN` and `MAX` of `<sys/param.h>`, and each of them
 is self-contained.
 
-**Correctness.** Several defects of the algorithms and of the data
-structures are fixed, most of them with a test that failed before the fix.
-For instance, `RadixHeap` mixed the items of adjacent boxes (the old code
-was wrong on 18892 of 20000 random sequences of operations), and
-`BinomialHeap` truncated fractional priorities and could loop in `pop()`.
-Furthermore, `Vf2` and `Vf2pp` indexed a map with `INVALID`, `CbcMip`
-reported a proven infeasible problem as feasible, and `BellmanFord` could
-delete a map of the user; `GrossoLocatelliPullanMc` ran for ever on a
-graph with a loop, and `Circulation` read past its storage on an empty
-digraph. Default-constructed, the items of the graphs are now `INVALID`, and
-the fields that some classes copied while still uninitialized are now
-initialized.
+**Correctness.** Several defects of the algorithms and of the data structures
+are fixed, most of them with a test that failed before the fix. For instance,
+`RadixHeap` mixed the items of adjacent boxes (the old code was wrong on 18892
+of 20000 random sequences of operations), and `BinomialHeap` truncated
+fractional priorities and could loop in `pop()`. Furthermore, `Vf2` and `Vf2pp`
+indexed a map with `INVALID`, `CbcMip` reported a proven infeasible problem as
+feasible, and `BellmanFord` could delete a map of the user;
+`GrossoLocatelliPullanMc` ran for ever on a graph with a loop, and
+`Circulation` read past its storage on an empty digraph. `SoplexLp` did not
+compile with SoPlex 5 and later and gave the Farkas proof of the dual as its
+primal ray, `GlpkMip` and `CbcMip` misread an integer column with fractional
+bounds, `CapacityScaling` did not compile on types narrower than `int`, and the
+price refinement of `CostScaling` could write past the end of its buckets.
+Default-constructed, the items of the graphs are now `INVALID`, and the fields
+that some classes copied while still uninitialized are now initialized.
 
 **Minimum cost flow.** The four algorithms solve problems with floating-point
 costs, capacities and supplies, on which `NetworkSimplex` typically pivoted for
@@ -59,11 +62,11 @@ their residual network, and `CapacityScaling` uses a 4-ary heap. Also, the four
 answer that a digraph without nodes has an optimal (empty) flow, and certify an
 answer that is not optimal: `infeasibleCut()` gives a set of nodes whose supply
 exceeds what the arcs out of it can carry, and `unboundedCycle()` a directed
-cycle of negative cost and infinite capacity. Also, `infeasibleCuts()` gives
-the k most violated such sets in order (Lawler's partition, with one maximum
-flow per part), `disjointInfeasibleCuts()` violated sets with no node and no
-arc in common, and `unboundedCycles()` arc-disjoint cycles in the order of
-their mean costs, since the cycle of least total cost is NP-hard to find. A
+cycle of negative cost and infinite capacity. Furthermore, `infeasibleCuts()`
+gives the k most violated such sets in order (Lawler's partition, with one
+maximum flow per part), `disjointInfeasibleCuts()` violated sets with no node
+and no arc in common, and `unboundedCycles()` arc-disjoint cycles in the order
+of their mean costs, since the cycle of least total cost is NP-hard to find. A
 battery runs every algorithm, with each of its methods, on limit cases and on
 random instances, with integer and floating-point data, and checks each answer
 by its certificate and against the others. `KBestFlows` gives the K integer
@@ -71,26 +74,33 @@ flows of least cost in order (the optimal ones first, then the suboptimal
 ones), by the algorithm of Hamacher, from an optimal flow that any of the four
 may find.
 
-**New algorithms and structures.** `HopcroftKarp` finds a maximum matching
-of a bipartite graph, with the vertex cover that proves it, and
-`MinCostAssignment` a minimum cost matching that covers the red nodes, with
-its dual potentials. `BidirDijkstra` and `AStar` find a shortest path between
-two nodes, by two searches that meet halfway and by a search guided by an
-admissible heuristic. `TomitaSekiMc` finds a maximum clique and proves it
-maximum, next to the heuristic `GrossoLocatelliPullanMc`, and `StaticGraph`
-is the undirected counterpart of `StaticDigraph`. With
+**New algorithms and structures.** `HopcroftKarp` finds a maximum matching of a
+bipartite graph, with the vertex cover that proves it, and `MinCostAssignment`
+a minimum cost matching that covers the red nodes, with its dual potentials.
+`BidirDijkstra` and `AStar` find a shortest path between two nodes, by two
+searches that meet halfway and by a search guided by an admissible heuristic.
+`TomitaSekiMc` finds a maximum clique and proves it maximum, next to the
+heuristic `GrossoLocatelliPullanMc`, and `StaticGraph` is the undirected
+counterpart of `StaticDigraph`. `Preflow::init()` may start from the maximum
+flow of another `Preflow`, e.g., after a change of the capacities. With
 `-DLEMON_BUILD_MODULE=ON`, on Clang 16 or MSVC 19.34, the library is also the
 C++20 module `lemon`.
 
 **Building and installing.** The build with CMake (3.19 or later) honors
-`CMAKE_CXX_STANDARD`, takes the version from the tag of git, and can leave
-out the tests, the demos, the tools and the documentation; what it installs
-(a CMake configuration with the target `LEMON::lemon`, and `lemon.pc`) may
-be moved to another prefix. Makefiles build the library, the tests, the
-tools and the demos with GNU make and no configuration step. Each change is
-built and tested by the continuous integration on Linux, macOS and Windows,
-with the compilers above, under the address and undefined behavior
-sanitizers, with the makefiles and from an installation.
+`CMAKE_CXX_STANDARD`, takes the version from the tag of git, and can leave out
+the tests, the demos, the tools and the documentation; what it installs (a
+CMake configuration with the target `LEMON::lemon`, and `lemon.pc`) may be
+moved to another prefix and follows `GNUInstallDirs`; another project may also
+take LEMON in by `add_subdirectory()` or `FetchContent`. On Windows LEMON may
+be a DLL. The LP and MIP backends (GLPK, CPLEX, CLP and CBC, SoPlex) are found
+through their own CMake configurations where they have one, and named in the
+installed configuration by their file names. Makefiles build the library, the
+tests, the tools and the demos with GNU make and no configuration step. Each
+change is built and tested by the continuous integration on Linux, macOS and
+Windows, with the compilers above, under the address and undefined behavior
+sanitizers, with the makefiles and from an installation. The packages of
+conda-forge, vcpkg and Conan (in review) and the Homebrew tap `dmeoli/ablemon`
+are built from the recipes of `packaging/` at every release.
 
 The fixes contributed to LEMON by Peter Madarasi (`BinomialHeap`, `Vf2`),
 Jörg Winkler (self-contained headers), Bernhard X. Kausler (the iterable
