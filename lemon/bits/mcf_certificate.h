@@ -21,6 +21,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <set>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -140,6 +141,134 @@ bool cutViolation( const McfData< V > & d , bool leq ,
  return( true );
  }
 
+// Up to k sets of the n nodes of g other than n (the source) and n + 1
+// (the sink) whose union with the source is closed in the residual digraph
+// of the flow f under the capacities cap, i.e., no residual arc leaves it,
+// and does not hold the sink: the source sides of the minimum cuts, if f is
+// a maximum flow (Picard and Queyranne, 1980). They are the unions of the
+// closures of the strongly connected components of the residual digraph
+// that do not reach the sink with that of the source, found by adding the
+// closure of one component at a time, breadth first, the first set being
+// the closure of the source alone.
+template< typename CM , typename FM , typename T >
+void closedSets( const SmartDigraph & g , const CM & cap , const FM & f ,
+		 const T & tol , int n , int k ,
+		 std::vector< std::vector< char > > & sets )
+{
+ sets.clear();
+ const int nn = n + 2 , s = n , t = n + 1;
+ std::vector< std::vector< int > > out( nn );
+ for( SmartDigraph::ArcIt a( g ) ; a != INVALID ; ++a ) {
+  const int u = g.id( g.source( a ) ) , v = g.id( g.target( a ) );
+  if( tol.positive( cap[ a ] - f[ a ] ) )
+   out[ u ].push_back( v );
+  if( tol.positive( f[ a ] ) )
+   out[ v ].push_back( u );
+  }
+
+ // the strongly connected components, by Tarjan's algorithm
+ std::vector< int > comp( nn , -1 ) , index( nn , -1 ) , low( nn , 0 );
+ std::vector< int > stack;
+ std::vector< std::pair< int , std::size_t > > call;
+ int count = 0 , comps = 0;
+ for( int r = 0 ; r != nn ; ++r ) {
+  if( index[ r ] >= 0 )
+   continue;
+  call.push_back( std::make_pair( r , std::size_t( 0 ) ) );
+  index[ r ] = low[ r ] = count++;
+  stack.push_back( r );
+  while( ! call.empty() ) {
+   const int w = call.back().first;
+   std::size_t & h = call.back().second;
+   if( h != out[ w ].size() ) {
+    const int z = out[ w ][ h++ ];
+    if( index[ z ] < 0 ) {
+     index[ z ] = low[ z ] = count++;
+     stack.push_back( z );
+     call.push_back( std::make_pair( z , std::size_t( 0 ) ) );
+     }
+    else if( comp[ z ] < 0 )
+     low[ w ] = ( std::min )( low[ w ] , index[ z ] );
+    continue;
+    }
+   if( low[ w ] == index[ w ] ) {
+    int z;
+    do {
+     z = stack.back();
+     stack.pop_back();
+     comp[ z ] = comps;
+     } while( z != w );
+    ++comps;
+    }
+   call.pop_back();
+   if( ! call.empty() )
+    low[ call.back().first ] =
+      ( std::min )( low[ call.back().first ] , low[ w ] );
+   }
+  }
+
+ // the closure of each component, and whether it holds the sink
+ std::vector< std::vector< int > > next( comps );
+ for( int u = 0 ; u != nn ; ++u )
+  for( std::size_t h = 0 ; h != out[ u ].size() ; ++h )
+   if( comp[ out[ u ][ h ] ] != comp[ u ] )
+    next[ comp[ u ] ].push_back( comp[ out[ u ][ h ] ] );
+ auto closure = [ & ]( int c , std::vector< char > & in ) -> void {
+  std::vector< int > todo( 1 , c );
+  in[ c ] = 1;
+  while( ! todo.empty() ) {
+   const int x = todo.back();
+   todo.pop_back();
+   for( std::size_t h = 0 ; h != next[ x ].size() ; ++h )
+    if( ! in[ next[ x ][ h ] ] ) {
+     in[ next[ x ][ h ] ] = 1;
+     todo.push_back( next[ x ][ h ] );
+     }
+   }
+  };
+ std::vector< char > first( comps , 0 );
+ closure( comp[ s ] , first );
+ if( first[ comp[ t ] ] )
+  return;
+ std::vector< char > sinks( comps , 0 );  // the components reaching the sink
+ {
+  std::vector< std::vector< int > > prev( comps );
+  for( int c = 0 ; c != comps ; ++c )
+   for( std::size_t h = 0 ; h != next[ c ].size() ; ++h )
+    prev[ next[ c ][ h ] ].push_back( c );
+  std::vector< int > todo( 1 , comp[ t ] );
+  sinks[ comp[ t ] ] = 1;
+  while( ! todo.empty() ) {
+   const int x = todo.back();
+   todo.pop_back();
+   for( std::size_t h = 0 ; h != prev[ x ].size() ; ++h )
+    if( ! sinks[ prev[ x ][ h ] ] ) {
+     sinks[ prev[ x ][ h ] ] = 1;
+     todo.push_back( prev[ x ][ h ] );
+     }
+   }
+  }
+
+ std::set< std::vector< char > > seen;
+ std::vector< std::vector< char > > queue( 1 , first );
+ seen.insert( first );
+ for( std::size_t q = 0 ; q != queue.size() && int( sets.size() ) < k ; ++q ) {
+  const std::vector< char > cur = queue[ q ];
+  std::vector< char > set( n , 0 );
+  for( int u = 0 ; u != n ; ++u )
+   set[ u ] = cur[ comp[ u ] ];
+  sets.push_back( set );
+  for( int c = 0 ; c != comps ; ++c ) {
+   if( cur[ c ] || sinks[ c ] )
+    continue;
+   std::vector< char > bigger( cur );
+   closure( c , bigger );
+   if( seen.insert( bigger ).second )
+    queue.push_back( bigger );
+   }
+  }
+ }
+
 // The set of nodes of largest violation [see cutViolation()] among those
 // that contain the nodes u with fix[ u ] == 1 and none of those with
 // fix[ u ] == 0 (fix[ u ] < 0 leaves u free): the side of the source of a
@@ -148,12 +277,20 @@ bool cutViolation( const McfData< V > & d , bool leq ,
 // sink (Gale, 1957; Hoffman, 1960), whose capacity is the sum of the
 // positive supplies less the violation of the side, the nodes fixed in or
 // out by arcs from the source or to the sink that no minimum cut may
-// contain. In in, the characteristic vector of the set.
+// contain. In in, the characteristic vector of the set. If ties is given,
+// up to kties sets of the same, largest, violation are written in it, the
+// first being the smallest one: the minimum cuts are the sets closed in
+// the residual digraph of a maximum flow that contain the source and not
+// the sink, i.e., the unions of the closures of strongly connected
+// components of it (Picard and Queyranne, 1980), all found from the one
+// maximum flow.
 template< typename V >
 void maxViolatedSet( const McfData< V > & d , bool leq ,
 		     const std::vector< int > & fix , std::vector< char > & in ,
 		     const std::vector< V > * warm = nullptr ,
-		     std::vector< V > * flow = nullptr )
+		     std::vector< V > * flow = nullptr ,
+		     std::vector< std::vector< char > > * ties = nullptr ,
+		     int kties = 0 )
 {
  typedef SmartDigraph::Node Node;
  const int n = d.n , m = int( d.source.size() );
@@ -227,6 +364,10 @@ void maxViolatedSet( const McfData< V > & d , bool leq ,
  in.assign( n , 0 );
  for( int u = 0 ; u != n ; ++u )
   in[ u ] = pf.minCut( g.nodeFromId( u ) ) ? 1 : 0;
+ if( ties != nullptr && kties > 0 ) {
+  pf.startSecondPhase();
+  closedSets( g , cap , pf.flowMap() , pf.tolerance() , n , kties , *ties );
+  }
  if( flow != nullptr ) {
   flow->resize( m + 2 * n );
   for( int i = 0 ; i != m + 2 * n ; ++i )
@@ -284,7 +425,9 @@ std::vector< int > infeasibleCut( const McfData< V > & d , bool leq ,
 // promising one, from the maximum flow of its part, which is a preflow of
 // the child since the child only fixes one node more: a maximum flow is
 // made for each part that might hold one of the k sets, rather than for
-// every child of every set given.
+// every child of every set given. The sets that tie for the largest
+// violation come first, all from the maximum flow of the root (Picard and
+// Queyranne, 1980) [see closedSets()], and the partition skips them.
 template< typename V >
 std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
 						  bool leq , int k )
@@ -300,9 +443,12 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
  std::vector< std::vector< int > > cuts;
  if( d.n == 0 || k <= 0 )
   return( cuts );
- auto solve = [ & ]( Part & p ) {
+ std::set< std::vector< int > > given;
+ std::vector< std::vector< char > > ties;
+ auto solve = [ & ]( Part & p , bool root ) {
   std::vector< V > f;
-  maxViolatedSet( d , leq , p.fix , p.in , p.warm.get() , &f );
+  maxViolatedSet( d , leq , p.fix , p.in , p.warm.get() , &f ,
+		  root ? &ties : nullptr , root ? k : 0 );
   p.flow = std::make_shared< const std::vector< V > >( std::move( f ) );
   p.warm.reset();
   bool kept = true;
@@ -318,7 +464,24 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
   };
  std::vector< Part > parts( 1 );
  parts[ 0 ].fix.assign( d.n , -1 );
- solve( parts[ 0 ] );
+ solve( parts[ 0 ] , true );
+
+ // the sets that tie for the largest violation, from the maximum flow of
+ // the root, are given first and are not given again by the partition
+ if( parts[ 0 ].ok )
+  for( std::size_t h = 0 ; h != ties.size() && int( cuts.size() ) < k ; ++h ) {
+   long double gap = 0 , scale = 1;
+   if( ! cutViolation( d , leq , ties[ h ] , gap , scale ) ||
+       ! positiveBeyond< V >( gap , scale , d.feps ) )
+    continue;
+   std::vector< int > cut;
+   for( int u = 0 ; u != d.n ; ++u )
+    if( ties[ h ][ u ] )
+     cut.push_back( u );
+   if( given.insert( cut ).second )
+    cuts.push_back( cut );
+   }
+
  while( int( cuts.size() ) < k ) {
   int best = -1;
   for( int j = 0 ; j != int( parts.size() ) ; ++j )
@@ -330,7 +493,7 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
   if( best < 0 )
    break;
   if( ! parts[ best ].solved ) {
-   solve( parts[ best ] );
+   solve( parts[ best ] , false );
    continue;
    }
   const Part p = parts[ best ];
@@ -339,7 +502,8 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
   for( int u = 0 ; u != d.n ; ++u )
    if( p.in[ u ] )
     cut.push_back( u );
-  cuts.push_back( cut );
+  if( given.insert( cut ).second )
+   cuts.push_back( cut );
 
   std::vector< int > fix = p.fix;
   for( int u = 0 ; u != d.n ; ++u ) {
@@ -482,12 +646,16 @@ std::vector< int > negativeCycle( const McfData< V > & d , const CV & cost )
 
 // Directed cycles of negative cost made of arcs of infinite upper bound,
 // pairwise arc-disjoint, at most k of them, as the indices of their arcs
-// in the direction of the flow: the cycle of minimum mean cost (Howard's
-// algorithm) among the arcs of infinite upper bound, then that among
-// those not yet taken, and so on while the mean is negative beyond the
-// round-off. The most negative cycle would be NP-hard to find (it would
-// decide whether a digraph is Hamiltonian); the minimum mean one is the
-// most negative per arc, and the order is that of the means.
+// in the direction of the flow, in the order of their mean costs. Howard's
+// algorithm, run on the arcs of infinite upper bound, ends on each strongly
+// connected component with a policy whose cycle is one of minimum mean of
+// the component (Dasdan, 2004): those cycles are pairwise node-disjoint,
+// and all those whose mean is negative beyond the round-off are taken from
+// a single run; the algorithm runs again on the arcs not yet taken only if
+// fewer than k were found. The most negative cycle would be NP-hard to
+// find (it would decide whether a digraph is Hamiltonian); the one of
+// minimum mean is the most negative per arc, and the first cycle given is
+// that of minimum mean of all.
 template< typename V , typename CV >
 std::vector< std::vector< int > > negativeCycles( const McfData< V > & d ,
 						  const CV & cost , int k )
@@ -495,6 +663,7 @@ std::vector< std::vector< int > > negativeCycles( const McfData< V > & d ,
  typedef typename CV::value_type Cost;
  typedef SmartDigraph::Arc Arc;
  std::vector< std::vector< int > > cycles;
+ std::vector< long double > means;
  const int m = int( d.source.size() );
  std::vector< char > taken( m , 0 );
  while( int( cycles.size() ) < k ) {
@@ -516,28 +685,53 @@ std::vector< std::vector< int > > negativeCycles( const McfData< V > & d ,
     }
   if( orig.empty() )
    break;
-  Path< SmartDigraph > path;
   typedef HowardMmc< SmartDigraph , SmartDigraph::ArcMap< Cost > > Mmc;
   Mmc mmc( g , len );
   if( d.ceps >= 0 )
    mmc.tolerance(
      makeTolerance( static_cast< typename Mmc::LargeCost >( d.ceps ) ) );
-  mmc.cycle( path );
-  if( ! mmc.findCycleMean() ||
-      ! positiveBeyond< Cost >(
-	-static_cast< long double >( mmc.cycleCost() ) / mmc.cycleSize() ,
-	scale , d.ceps ) ||
-      ! mmc.findCycle() )
+  if( ! mmc.findCycleMean() )
    break;
-  std::vector< int > cycle;
-  for( typename Path< SmartDigraph >::ArcIt a( path ) ; a != INVALID ; ++a ) {
-   const int i = orig[ g.id( Arc( a ) ) ];
-   cycle.push_back( i );
-   taken[ i ] = 1;
+  // the negative cycles of the components, by increasing mean
+  std::vector< std::pair< long double , int > > found;
+  for( int c = 0 ; c != mmc.componentCycleNum() ; ++c ) {
+   const long double mean =
+     static_cast< long double >( mmc.componentCycleCost( c ) ) /
+     mmc.componentCycleSize( c );
+   if( positiveBeyond< Cost >( -mean , scale , d.ceps ) )
+    found.push_back( std::make_pair( mean , c ) );
    }
-  cycles.push_back( cycle );
+  if( found.empty() )
+   break;
+  std::sort( found.begin() , found.end() );
+  for( std::size_t h = 0 ; h != found.size() && int( cycles.size() ) < k ;
+       ++h ) {
+   Path< SmartDigraph > path;
+   mmc.componentCycle( found[ h ].second , path );
+   std::vector< int > cycle;
+   for( typename Path< SmartDigraph >::ArcIt a( path ) ; a != INVALID ; ++a ) {
+    const int i = orig[ g.id( Arc( a ) ) ];
+    cycle.push_back( i );
+    taken[ i ] = 1;
+    }
+   cycles.push_back( cycle );
+   means.push_back( found[ h ].first );
+   }
   }
- return( cycles );
+
+ // the cycles of a later run may have a smaller mean than some of an
+ // earlier one (not than the first one, which is of minimum mean of all)
+ std::vector< int > order( cycles.size() );
+ for( std::size_t h = 0 ; h != order.size() ; ++h )
+  order[ h ] = int( h );
+ std::stable_sort( order.begin() , order.end() ,
+		   [ & ]( int p , int q ) -> bool {
+  return( means[ p ] < means[ q ] );
+  } );
+ std::vector< std::vector< int > > sorted;
+ for( std::size_t h = 0 ; h != order.size() ; ++h )
+  sorted.push_back( cycles[ order[ h ] ] );
+ return( sorted );
  }
 
 // The problem as it was given to CostScaling, CapacityScaling or

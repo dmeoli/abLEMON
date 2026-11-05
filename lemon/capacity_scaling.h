@@ -636,9 +636,12 @@ class CapacityScaling
  ///
  /// This function gives at most k directed cycles of negative cost whose
  /// arcs have infinite upper bounds, pairwise arc-disjoint, in the order
- /// of their mean costs: the cycle of minimum mean cost (Howard's
- /// algorithm) among those arcs, then that among the arcs not yet taken,
- /// and so on. The cycle of minimum total cost would be NP-hard to find.
+ /// of their mean costs: the cycles of minimum mean cost of the strongly
+ /// connected components of those arcs, which one run of Howard's algorithm
+ /// gives together and are pairwise node-disjoint, the first being of
+ /// minimum mean of all, then those of the arcs not yet taken, and so on
+ /// while fewer than k are found. The cycle of minimum total cost would be
+ /// NP-hard to find.
  /// They are empty if the last \ref run() did not return \ref UNBOUNDED.
  std::vector< std::vector< Arc > > unboundedCycles( int k ) const {
   if( _result != UNBOUNDED )

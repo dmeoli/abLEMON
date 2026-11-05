@@ -620,6 +620,49 @@ Instance< V > * randomInstance( unsigned int & r , int seed , V unit )
  return( p );
  }
 
+// Two instances that the general checks do not tell apart from others:
+// in the first, eight sets tie for the largest violation, the two nodes of
+// supply unit, whose arcs to the two of demand unit are closed, with any
+// subset of three nodes of no supply and no arc, and the best five sets
+// are all of them, which come from the one maximum flow of the root
+// [see infeasibleCuts()]; in the second, three node-disjoint cycles of
+// negative cost and infinite capacity are all given, which come from one
+// run of Howard's algorithm [see unboundedCycles()]
+template< typename V >
+void checkMany( V unit , const std::vector< Solver< V > > & s )
+{
+ Instance< V > ties( "eight sets that tie" );
+ for( int h = 0 ; h != 2 ; ++h )
+  ties.arc( ties.node( unit ) , ties.node( -unit ) , unit , 0 );
+ for( int h = 0 ; h != 3 ; ++h )
+  ties.node();
+ Instance< V > rays( "three disjoint negative cycles" );
+ for( int h = 0 ; h != 3 ; ++h ) {
+  const Node u = rays.node() , v = rays.node();
+  rays.arc( u , v , -V( h + 1 ) * unit , rays.inf );
+  rays.arc( v , u , unit / 2 , rays.inf );
+  }
+ for( std::size_t k = 0 ; k != s.size() ; ++k ) {
+  const Answer< V > a = s[ k ].run( ties );
+  expect( a.result == INFEASIBLE && a.cuts.size() == 5 ,
+	  "Not five best cuts of " + s[ k ].name + " on " + ties.name );
+  if( a.result == INFEASIBLE )
+   checkCut( ties , a , s[ k ].name + " on " + ties.name );
+  for( std::size_t j = 0 ; j != a.cuts.size() ; ++j ) {
+   double gap;
+   expect( violation( ties , charOf( ties , a.cuts[ j ] ) , gap ) &&
+	     std::abs( gap - 2 * double( unit ) ) <=
+	       tolerance< V >( scaleOf( ties ) ) ,
+	   "A best cut that does not tie of " + s[ k ].name );
+   }
+  const Answer< V > b = s[ k ].run( rays );
+  expect( b.result == UNBOUNDED && b.cycles.size() == 3 ,
+	  "Not three cycles of " + s[ k ].name + " on " + rays.name );
+  if( b.result == UNBOUNDED )
+   checkCycle( rays , b , s[ k ].name + " on " + rays.name );
+  }
+ }
+
 // The solvers whose name contains this text, all if it is empty
 std::string only;
 
@@ -631,6 +674,7 @@ void runAll( V unit , int seeds )
  for( std::size_t k = 0 ; k != all.size() ; ++k )
   if( k == 0 || all[ k ].name.find( only ) != std::string::npos )
    s.push_back( all[ k ] );
+ checkMany( unit , s );
  std::vector< Instance< V > * > c = limitCases( unit );
  unsigned int r = 2026;
  for( int seed = 0 ; seed != seeds ; ++seed )
