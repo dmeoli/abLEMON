@@ -1887,7 +1887,7 @@ class NetworkSimplex
      in[ u ] = side == 0 ? y[ u ] >= levels[ h ] : y[ u ] <= levels[ h ];
     long double gap , scale;
     if( _mcf_bits::cutViolation( d , _stype == LEQ , in , gap , scale ) &&
-	_mcf_bits::positiveBeyond< Value >( gap , scale ) ) {
+	_mcf_bits::positiveBeyond< Value >( gap , scale , d.feps ) ) {
      for( int u = 0 ; u != _node_num ; ++u )
       if( in[ u ] )
        _cut_hint.push_back( u );
