@@ -1,3 +1,21 @@
+2026-11-05 Version 1.8.0 (abLEMON) released
+
+        The alternative optimal potentials of a minimum cost flow problem
+
+        * New features
+
+          ----: KBestExtremeFlows::runPotentials(k), up to k distinct
+                optimal potentials, the vertices of the dual polyhedron
+                given by the trees of the shortest paths from and to each
+                node on the reduced costs of the residual graph of the
+                optimal flow; potentialNum() and potential(i, node) read
+                them
+
+        * Miscellaneous
+
+          ----: the code in the prose of the comments is spaced as the
+                code, e.g., GR::EdgeMap< bool >
+
 2026-11-04 Version 1.7.0 (abLEMON) released
 
         The K best integer and extreme flows, several certificates of an
