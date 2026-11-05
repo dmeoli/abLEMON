@@ -22,6 +22,7 @@
 #include <iterator>
 #include <limits>
 #include <map>
+#include <memory>
 #include <queue>
 #include <set>
 #include <utility>
@@ -57,13 +58,19 @@ namespace lemon
 /// them), which a vertex is the only flow of: the arcs are taken in a
 /// fixed order, that of their reduced costs at the optimal vertex, a node
 /// of the partition fixes the states of a prefix of the order, its best
-/// flow is found by \ref NetworkSimplex on the bounds that the states set
-/// (a state strictly within the bounds \f$l\f$ and \f$u\f$ being
-/// \f$[l+1,u-1]\f$), given if it is a vertex, and the node is split into
-/// one child for each later arc and each other state of it. A child waits
-/// in a queue with a bound of its cost, that of the flow of its parent
-/// plus the reduced cost of its arc times the least change of its flow,
-/// and is solved only when it leaves the queue, as in the enumeration of
+/// flow within the bounds that the states set (a state strictly within the
+/// bounds \f$l\f$ and \f$u\f$ being \f$[l+1,u-1]\f$) is given if it is
+/// a vertex, and the node is split into one child for each later arc and
+/// each other state of it. A child waits in a queue with a bound of its
+/// cost: that of the flow of its parent plus the least change of the flow
+/// of its arc times the least reduced cost of a cycle through the arc in
+/// the residual graph of that flow within the bounds of the child, which
+/// is a lower bound since the reduced costs are nonnegative there, and is
+/// computed only when the child first leaves the queue. A child is solved
+/// only when it leaves the queue again, from the flow and the potentials
+/// of its parent, by successive shortest paths on the reduced costs, and
+/// made a vertex within its bounds (\ref NetworkSimplex solving it if the
+/// shortest paths are too many), as in the enumeration of
 /// VerySimple01Problem
 /// (https://github.com/frangio68/Very-Simple-01-Problem); the k best
 /// vertices are given exactly, and no basis of a degenerate vertex is
@@ -90,15 +97,17 @@ namespace lemon
 /// \tparam C The number type of the costs; by default, the same as \c V.
 ///
 /// \note On integer data each vertex given costs at most \f$O(m)\f$
-/// minimum cost flow problems, those of the children of its node, and
-/// \f$O(n+m)\f$ memory; their number is bounded by \ref basisLimit()
-/// [see \ref solvedNum()]. On other data the number of the bases of a
-/// degenerate vertex can be large, and all of them are visited when the
-/// vertex is expanded; each pivot takes \f$O(n)\f$ time, and each basis
-/// \f$O(nm)\f$ for all its pivots. A candidate pivot waits in the queue
-/// as its cost alone, the basis it leads to being made when it is taken,
-/// so that the memory is \f$O(n+m)\f$ for each basis expanded, and their
-/// number is bounded by \ref basisLimit().
+/// minimum cost flow problems, those of the children of its node, each
+/// usually a few shortest paths, and \f$O(n+m)\f$ memory; their number
+/// is bounded by \ref basisLimit() [see \ref solvedNum()]. On the
+/// shortest paths of a layered digraph one problem is solved for each
+/// vertex given, and a few on random networks. On other data the number
+/// of the bases of a degenerate vertex can be large, and all of them are
+/// visited when the vertex is expanded; each pivot takes \f$O(n)\f$ time,
+/// and each basis \f$O(nm)\f$ for all its pivots. A candidate pivot waits
+/// in the queue as its cost alone, the basis it leads to being made when
+/// it is taken, so that the memory is \f$O(n+m)\f$ for each basis
+/// expanded, and their number is bounded by \ref basisLimit().
 template< typename GR , typename V = int , typename C = V >
 class KBestExtremeFlows
 {
@@ -137,6 +146,7 @@ class KBestExtremeFlows
  int _method;
  int _pot_method;
  int _solved;
+ int _by_ns;
  bool _exact;
  std::vector< Value > _init;
  Value _feps;
@@ -156,9 +166,8 @@ class KBestExtremeFlows
        _target( _m + _n ) , _lower( _m + _n , 0 ) , _upper( _m + _n , 0 ) ,
        _supply( _n , 0 ) , _inf( _m + _n , 1 ) , _cost( _m + _n , 0 ) ,
        _has_init( false ) , _basis_limit( 1000 ) , _vertex_limit( 0 ) ,
-       _method( RANKING ) , _pot_method( PATHS ) , _solved( 0 ) ,
-       _exact( true ) ,
-       _feps( 0 ) {
+       _method( RANKING ) , _pot_method( PATHS ) , _solved( 0 ) , _by_ns( 0 ) ,
+       _exact( true ) , _feps( 0 ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
    _node_id[ u ] = i++;
@@ -445,6 +454,11 @@ class KBestExtremeFlows
  /// its partition [see \ref method()]; zero otherwise.
  int solvedNum() const { return( _solved ); }
 
+ /// \brief How many of those [see \ref solvedNum()] were solved by
+ /// \ref NetworkSimplex, the successive shortest paths from the flow of
+ /// the parent of the node being too many.
+ int networkSimplexNum() const { return( _by_ns ); }
+
  /// \brief The number of the flows found by the last \ref run().
  int flowNum() const { return( int( _flows.size() ) ); }
 
@@ -614,19 +628,26 @@ class KBestExtremeFlows
  // The run of RANKING on integer data [see method()]: the partition of
  // Lawler on the states of the arcs, taken in the order of their reduced
  // costs under potentials optimal for the optimal vertex. A node of the
- // partition fixes the states of the first arcs of the order; the best
- // flow of a node, found by NetworkSimplex on the bounds that its states
- // set, is given if it is a vertex, and the node is split into one child
+ // partition fixes the states of the first arcs of the order; its best
+ // flow is given if it is a vertex, and the node is split into one child
  // for each later arc and each other state of the arc in that flow, the
- // arcs before it keeping their states in the flow. A child waits in the
- // queue with a bound of its cost, that of the flow of its parent plus the
- // reduced cost of its arc times the least change of its flow, and is
- // solved when it leaves the queue; every vertex is in one node only.
+ // arcs before it keeping their states in the flow, so that every vertex
+ // is in one node only. A child waits in the queue with a bound of its
+ // cost, at first that of the flow of its parent plus the reduced cost of
+ // its arc times the least change of its flow; when it leaves the queue
+ // the bound becomes the cost of its parent plus that change times the
+ // least reduced cost of a cycle through the arc in the residual graph of
+ // the flow of its parent within the bounds of the child (none meaning an
+ // empty child), and when it leaves the queue again it is solved, from the
+ // flow and the potentials of its parent, by successive shortest paths on
+ // the reduced costs, and made a vertex within its bounds; NetworkSimplex
+ // solves it if the shortest paths are too many.
  int runLawler( int k , Cost gap ) {
   _flows.clear();
   _costs.clear();
   _exact = true;
   _solved = 0;
+  _by_ns = 0;
   State s;
   if( k <= 0 || ! firstState( s ) )
    return( 0 );
@@ -638,51 +659,33 @@ class KBestExtremeFlows
   // the arcs in the order of their reduced costs
   std::vector< Cost > pi;
   optimalPotentials( s , ceps , pi );
-  auto absRc = [ & ]( const std::vector< Cost > & p , int i ) -> Cost {
-   const Cost c = _cost[ i ] + p[ _source[ i ] ] - p[ _target[ i ] ];
-   return( c < 0 ? Cost( -c ) : c );
+  auto rcOf = [ & ]( const std::vector< Cost > & p , int r ) -> Cost {
+   const Cost c = resCost( r ) + p[ tail( r ) ] - p[ head( r ) ];
+   return( c < 0 ? Cost( 0 ) : c );
    };
-  std::vector< int > ord( mm );
+  std::vector< int > ord( mm ) , pos( mm );
   for( int i = 0 ; i != mm ; ++i )
    ord[ i ] = i;
   {
    std::vector< Cost > key( mm );
-   for( int i = 0 ; i != mm ; ++i )
-    key[ i ] = absRc( pi , i );
+   for( int i = 0 ; i != mm ; ++i ) {
+    const Cost c = _cost[ i ] + pi[ _source[ i ] ] - pi[ _target[ i ] ];
+    key[ i ] = c < 0 ? Cost( -c ) : c;
+    }
    std::stable_sort( ord.begin() , ord.end() , [ & ]( int a , int b ) -> bool {
     return( key[ a ] < key[ b ] );
     } );
    }
-
-  // the digraph of the arcs and of the root, on which the nodes are solved
-  typedef NetworkSimplex< SmartDigraph , Value , Cost > NS;
-  SmartDigraph aux;
-  aux.reserveNode( nn );
-  aux.reserveArc( mm );
-  std::vector< SmartDigraph::Node > an( nn );
-  for( int u = 0 ; u != nn ; ++u )
-   an[ u ] = aux.addNode();
-  std::vector< SmartDigraph::Arc > aa( mm );
-  for( int i = 0 ; i != mm ; ++i )
-   aa[ i ] = aux.addArc( an[ _source[ i ] ] , an[ _target[ i ] ] );
-  SmartDigraph::ArcMap< Value > alo( aux ) , ahi( aux );
-  SmartDigraph::ArcMap< Cost > acost( aux );
-  SmartDigraph::NodeMap< Value > asup( aux );
-  Value total = 0;
-  for( int u = 0 ; u != _n ; ++u ) {
-   asup[ an[ u ] ] = _supply[ u ];
-   total += _supply[ u ];
-   }
-  asup[ an[ _n ] ] = -total;
-  for( int i = 0 ; i != mm ; ++i )
-   acost[ aa[ i ] ] = _cost[ i ];
-  NS ns( aux );
+  for( int j = 0 ; j != mm ; ++j )
+   pos[ ord[ j ] ] = j;
 
   // a node: its parent, the position in the order of its arc and the
-  // state it sets, the first position it leaves free, and its solution
+  // state it sets, the first position it leaves free, its solution and
+  // whether its bound is the one of the cycles
   struct Part
   {
    int parent , pos , st , free , sol;
+   bool cycle;
    };
   struct Solved
   {
@@ -696,7 +699,7 @@ class KBestExtremeFlows
   std::priority_queue< Item , std::vector< Item > ,
 		       std::greater< Item > > queue;
   {
-   Part r = { -1 , -1 , -1 , 0 , 0 };
+   Part r = { -1 , -1 , -1 , 0 , 0 , true };
    nodes.push_back( r );
    Solved z;
    z.flow = s.flow;
@@ -705,8 +708,180 @@ class KBestExtremeFlows
    sols.push_back( std::move( z ) );
    queue.push( Item( s.cost , 0 ) );
    }
+
+  // the bounds of a node: those of its arc and of the arcs its parent
+  // fixed before it, up the chain
   std::vector< Value > lo( mm ) , hi( mm );
   std::vector< char > inf( mm );
+  auto nodeBounds = [ & ]( int v ) {
+   for( int i = 0 ; i != mm ; ++i ) {
+    lo[ i ] = _lower[ i ];
+    hi[ i ] = _upper[ i ];
+    inf[ i ] = _inf[ i ];
+    }
+   for( int w = v ; nodes[ w ].parent >= 0 ; w = nodes[ w ].parent ) {
+    const Part & nw = nodes[ w ];
+    const Solved & ps = sols[ nodes[ nw.parent ].sol ];
+    bool in;
+    Value l = 0 , h = 0;
+    const int i = ord[ nw.pos ];
+    stateBounds( i , nw.st , l , h , in );
+    lo[ i ] = l;
+    hi[ i ] = h;
+    inf[ i ] = in;
+    for( int j = nodes[ nw.parent ].free ; j != nw.pos ; ++j ) {
+     const int a = ord[ j ];
+     stateBounds( a , arcState( ps.flow , a ) , l , h , in );
+     lo[ a ] = l;
+     hi[ a ] = h;
+     inf[ a ] = in;
+     }
+    }
+   };
+
+  // the shortest paths on the reduced costs under p from src, along the
+  // residual arcs of y within lo, hi and inf, but those of the arc skip,
+  // until dst is reached: whether it is
+  std::vector< Cost > dist;
+  std::vector< int > pred;
+  std::vector< std::vector< int > > adj( nn );
+  auto paths = [ & ]( const std::vector< Value > & y ,
+		      const std::vector< Cost > & p , int src , int dst ,
+		      int skip ) -> bool {
+   for( int u = 0 ; u != nn ; ++u )
+    adj[ u ].clear();
+   for( int i = 0 ; i != mm ; ++i ) {
+    if( i == skip )
+     continue;
+    if( inf[ i ] || y[ i ] < hi[ i ] )
+     adj[ _source[ i ] ].push_back( 2 * i );
+    if( y[ i ] > lo[ i ] )
+     adj[ _target[ i ] ].push_back( 2 * i + 1 );
+    }
+   dist.assign( nn , -1 );
+   pred.assign( nn , -1 );
+   std::vector< char > done( nn , 0 );
+   std::priority_queue< std::pair< Cost , int > ,
+			std::vector< std::pair< Cost , int > > ,
+			std::greater< std::pair< Cost , int > > >
+     q;
+   dist[ src ] = 0;
+   q.push( std::make_pair( Cost( 0 ) , src ) );
+   while( ! q.empty() ) {
+    const int w = q.top().second;
+    q.pop();
+    if( done[ w ] )
+     continue;
+    done[ w ] = 1;
+    if( w == dst )
+     return( true );
+    for( std::size_t t = 0 ; t != adj[ w ].size() ; ++t ) {
+     const int r = adj[ w ][ t ] , z = head( r );
+     const Cost d = dist[ w ] + rcOf( p , r );
+     if( ! done[ z ] && ( dist[ z ] < 0 || d < dist[ z ] ) ) {
+      dist[ z ] = d;
+      pred[ z ] = r;
+      q.push( std::make_pair( d , z ) );
+      }
+     }
+    }
+   return( false );
+   };
+
+  // the flow of the arc i of a child, the nearest one to x in its state
+  auto nearest = [ & ]( int i , Value x ) -> Value {
+   return( x < lo[ i ]                     ? lo[ i ]
+	    : ( ! inf[ i ] && x > hi[ i ] ) ? hi[ i ]
+					    : x );
+   };
+
+  // a node solved from the flow and the potentials of its parent, false
+  // if it is empty; the shortest paths beyond the limit leave it to
+  // NetworkSimplex
+  typedef NetworkSimplex< SmartDigraph , Value , Cost > NS;
+  SmartDigraph aux;
+  std::vector< SmartDigraph::Node > an;
+  std::vector< SmartDigraph::Arc > aa;
+  std::unique_ptr< SmartDigraph::ArcMap< Value > > alo , ahi;
+  std::unique_ptr< SmartDigraph::ArcMap< Cost > > acost;
+  std::unique_ptr< SmartDigraph::NodeMap< Value > > asup;
+  std::unique_ptr< NS > ns;
+  auto byNS = [ & ]( Solved & z ) -> bool {
+   if( ! ns ) {
+    for( int u = 0 ; u != nn ; ++u )
+     an.push_back( aux.addNode() );
+    for( int i = 0 ; i != mm ; ++i )
+     aa.push_back( aux.addArc( an[ _source[ i ] ] , an[ _target[ i ] ] ) );
+    alo.reset( new SmartDigraph::ArcMap< Value >( aux ) );
+    ahi.reset( new SmartDigraph::ArcMap< Value >( aux ) );
+    acost.reset( new SmartDigraph::ArcMap< Cost >( aux ) );
+    asup.reset( new SmartDigraph::NodeMap< Value >( aux ) );
+    Value total = 0;
+    for( int u = 0 ; u != _n ; ++u ) {
+     ( *asup )[ an[ u ] ] = _supply[ u ];
+     total += _supply[ u ];
+     }
+    ( *asup )[ an[ _n ] ] = -total;
+    for( int i = 0 ; i != mm ; ++i )
+     ( *acost )[ aa[ i ] ] = _cost[ i ];
+    ns.reset( new NS( aux ) );
+    }
+   for( int i = 0 ; i != mm ; ++i ) {
+    ( *alo )[ aa[ i ] ] = lo[ i ];
+    ( *ahi )[ aa[ i ] ] = inf[ i ] ? ns->INF : hi[ i ];
+    }
+   ns->reset();
+   ns->lowerMap( *alo ).upperMap( *ahi ).costMap( *acost ).supplyMap( *asup );
+   if( ns->run() != NS::OPTIMAL )
+    return( false );
+   z.flow.resize( mm );
+   for( int i = 0 ; i != mm ; ++i )
+    z.flow[ i ] = ns->flow( aa[ i ] );
+   z.pot.resize( nn );
+   for( int u = 0 ; u != nn ; ++u )
+    z.pot[ u ] = ns->potential( an[ u ] );
+   return( true );
+   };
+  auto solve = [ & ]( int v , Solved & z ) -> bool {
+   const Solved & ps = sols[ nodes[ nodes[ v ].parent ].sol ];
+   const int i = ord[ nodes[ v ].pos ];
+   z.flow = ps.flow;
+   z.pot = ps.pot;
+   const Value x = nearest( i , z.flow[ i ] ) , delta = x - z.flow[ i ];
+   z.flow[ i ] = x;
+   const int src = delta > 0 ? _target[ i ] : _source[ i ] ,
+	     dst = delta > 0 ? _source[ i ] : _target[ i ];
+   Value rem = delta > 0 ? delta : Value( -delta );
+   for( int it = 0 ; rem > 0 ; ++it ) {
+    if( it == 32 ) {
+     ++_by_ns;
+     return( byNS( z ) );
+     }
+    if( ! paths( z.flow , z.pot , src , dst , -1 ) )
+     return( false );
+    Value amount = rem;
+    for( int w = dst ; w != src ; w = tail( pred[ w ] ) ) {
+     const int r = pred[ w ] , a = r / 2;
+     if( r % 2 == 0 ) {
+      if( ! inf[ a ] && hi[ a ] - z.flow[ a ] < amount )
+       amount = hi[ a ] - z.flow[ a ];
+      }
+     else if( z.flow[ a ] - lo[ a ] < amount )
+      amount = z.flow[ a ] - lo[ a ];
+     }
+    for( int w = dst ; w != src ; w = tail( pred[ w ] ) ) {
+     const int r = pred[ w ];
+     z.flow[ r / 2 ] += r % 2 == 0 ? amount : Value( -amount );
+     }
+    rem -= amount;
+    const Cost far = dist[ dst ];
+    for( int u = 0 ; u != nn ; ++u )
+     z.pot[ u ] += ( dist[ u ] >= 0 && dist[ u ] < far ) ? dist[ u ] : far;
+    }
+   purifyWithin( z.flow , lo , hi , inf );
+   return( true );
+   };
+
   while( ! queue.empty() && int( _flows.size() ) < k ) {
    const Item it = queue.top();
    queue.pop();
@@ -714,55 +889,33 @@ class KBestExtremeFlows
     break;
    const int v = it.second;
    if( nodes[ v ].sol < 0 ) {
+    const Solved & ps = sols[ nodes[ nodes[ v ].parent ].sol ];
+    const int i = ord[ nodes[ v ].pos ];
+    nodeBounds( v );
+    if( ! nodes[ v ].cycle ) {
+     // the bound of the cycles: none, an empty child
+     nodes[ v ].cycle = true;
+     const Value x = nearest( i , ps.flow[ i ] ) , d = x - ps.flow[ i ];
+     const int r = d > 0 ? 2 * i : 2 * i + 1;
+     if( ! paths( ps.flow , ps.pot , head( r ) , tail( r ) , i ) )
+      continue;
+     const Cost b = ps.cost + ( d > 0 ? d : Value( -d ) ) *
+				( rcOf( ps.pot , r ) + dist[ tail( r ) ] );
+     if( ! ( bounded && b > limit ) )
+      queue.push( Item( b < it.first ? it.first : b , v ) );
+     continue;
+     }
     if( _solved >= _basis_limit ) {
      _exact = false;
      break;
      }
     ++_solved;
-    // the bounds of the node: those of its arc and of the arcs its parent
-    // fixed before it, up the chain
-    for( int i = 0 ; i != mm ; ++i ) {
-     lo[ i ] = _lower[ i ];
-     hi[ i ] = _upper[ i ];
-     inf[ i ] = _inf[ i ];
-     }
-    for( int w = v ; nodes[ w ].parent >= 0 ; w = nodes[ w ].parent ) {
-     const Part & nw = nodes[ w ];
-     const Solved & ps = sols[ nodes[ nw.parent ].sol ];
-     bool in;
-     Value l = 0 , h = 0;
-     const int i = ord[ nw.pos ];
-     stateBounds( i , nw.st , l , h , in );
-     lo[ i ] = l;
-     hi[ i ] = h;
-     inf[ i ] = in;
-     for( int j = nodes[ nw.parent ].free ; j != nw.pos ; ++j ) {
-      const int a = ord[ j ];
-      stateBounds( a , arcState( ps.flow , a ) , l , h , in );
-      lo[ a ] = l;
-      hi[ a ] = h;
-      inf[ a ] = in;
-      }
-     }
-    for( int i = 0 ; i != mm ; ++i ) {
-     alo[ aa[ i ] ] = lo[ i ];
-     ahi[ aa[ i ] ] = inf[ i ] ? ns.INF : hi[ i ];
-     }
-    ns.reset();
-    ns.lowerMap( alo ).upperMap( ahi ).costMap( acost ).supplyMap( asup );
-    if( ns.run() != NS::OPTIMAL )
-     continue;
     Solved z;
-    z.flow.resize( mm );
+    if( ! solve( v , z ) )
+     continue;
     z.cost = 0;
-    for( int i = 0 ; i != mm ; ++i ) {
-     z.flow[ i ] = ns.flow( aa[ i ] );
-     if( i < _m )
-      z.cost += _cost[ i ] * z.flow[ i ];
-     }
-    z.pot.resize( nn );
-    for( int u = 0 ; u != nn ; ++u )
-     z.pot[ u ] = ns.potential( an[ u ] );
+    for( int a = 0 ; a != _m ; ++a )
+     z.cost += _cost[ a ] * z.flow[ a ];
     nodes[ v ].sol = int( sols.size() );
     const Cost c = z.cost;
     sols.push_back( std::move( z ) );
@@ -781,27 +934,97 @@ class KBestExtremeFlows
     const int i = ord[ j ];
     const Value x = sols[ sv ].flow[ i ];
     const int cur = arcState( sols[ sv ].flow , i );
-    const Cost rc = absRc( sols[ sv ].pot , i );
     for( int st = 0 ; st != 3 ; ++st ) {
      bool in;
      Value l = 0 , h = 0;
      if( st == cur || ! stateBounds( i , st , l , h , in ) )
       continue;
-     // the least change of the flow of the arc into that state
-     const Value d = st == 2   ? Value( 1 )
-		     : st == 0 ? Value( x - _lower[ i ] )
-			       : Value( _upper[ i ] - x );
-     const Cost b = sols[ sv ].cost + rc * d;
+     // the least change of the flow of the arc into that state, along
+     // its residual arc in that direction
+     const Value d = x < l ? Value( l - x ) : Value( x - h );
+     const int r = x < l ? 2 * i : 2 * i + 1;
+     const Cost b = sols[ sv ].cost + rcOf( sols[ sv ].pot , r ) * d;
      if( bounded && b > limit )
       continue;
-     Part c = { v , j , st , j + 1 , -1 };
+     Part c = { v , j , st , j + 1 , -1 , false };
      nodes.push_back( c );
      queue.push( Item( b , int( nodes.size() ) - 1 ) );
      }
     }
-   std::vector< Cost >().swap( sols[ sv ].pot );
    }
   return( int( _flows.size() ) );
+  }
+
+ // Makes y a vertex within the bounds lo, hi and inf: the cycles of the
+ // arcs strictly within them are saturated, in the direction in which the
+ // cost does not grow first
+ void purifyWithin( std::vector< Value > & y ,
+		    const std::vector< Value > & lo ,
+		    const std::vector< Value > & hi ,
+		    const std::vector< char > & inf ) const {
+  const int nn = _n + 1 , mm = _m + _n;
+  for( ; ; ) {
+   std::vector< int > p( nn );
+   for( int u = 0 ; u != nn ; ++u )
+    p[ u ] = u;
+   std::vector< std::vector< int > > tree( nn );
+   int closing = -1;
+   for( int i = 0 ; i != mm && closing < 0 ; ++i ) {
+    if( y[ i ] <= lo[ i ] || ( ! inf[ i ] && y[ i ] >= hi[ i ] ) )
+     continue;
+    const int a = find( p , _source[ i ] ) , b = find( p , _target[ i ] );
+    if( a == b )
+     closing = i;
+    else {
+     p[ a ] = b;
+     tree[ _source[ i ] ].push_back( 2 * i );
+     tree[ _target[ i ] ].push_back( 2 * i + 1 );
+     }
+    }
+   if( closing < 0 )
+    return;
+   // the cycle: the arc, then the path of the forest back to its tail
+   std::vector< int > back( nn , -1 );
+   std::vector< int > queue( 1 , _target[ closing ] );
+   back[ _target[ closing ] ] = -2;
+   for( std::size_t h = 0 ; h != queue.size() ; ++h )
+    for( std::size_t t = 0 ; t != tree[ queue[ h ] ].size() ; ++t ) {
+     const int r = tree[ queue[ h ] ][ t ] , z = head( r );
+     if( back[ z ] == -1 ) {
+      back[ z ] = r;
+      queue.push_back( z );
+      }
+     }
+   std::vector< int > cycle( 1 , 2 * closing );
+   for( int w = _source[ closing ] ; w != _target[ closing ] ;
+	w = tail( back[ w ] ) )
+    cycle.push_back( back[ w ] );
+   Cost cc = 0;
+   for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+    cc += resCost( cycle[ h ] );
+   if( cc > 0 )
+    for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+     cycle[ h ] ^= 1;
+   Value amount = 0;
+   bool found = false;
+   for( int dir = 0 ; dir != 2 && ! found ; ++dir ) {
+    if( dir == 1 )
+     for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+      cycle[ h ] ^= 1;
+    for( std::size_t h = 0 ; h != cycle.size() ; ++h ) {
+     const int r = cycle[ h ] , a = r / 2;
+     if( r % 2 == 0 && inf[ a ] )
+      continue;
+     const Value c =
+       r % 2 == 0 ? Value( hi[ a ] - y[ a ] ) : Value( y[ a ] - lo[ a ] );
+     if( ! found || c < amount )
+      amount = c;
+     found = true;
+     }
+    }
+   for( std::size_t h = 0 ; h != cycle.size() ; ++h )
+    y[ cycle[ h ] / 2 ] += cycle[ h ] % 2 == 0 ? amount : Value( -amount );
+   }
   }
 
  // Adds potentials up to a constant, the one of the root made zero, if
