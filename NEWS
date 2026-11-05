@@ -1,3 +1,19 @@
+2026-11-05 Version 1.8.1 (abLEMON) released
+
+        A faster generation of the flows by the cycles of least reduced
+        cost
+
+        * Implementation improvements
+
+          ----: KBestExtremeFlows::method( CYCLES ) tries only the arcs at a
+                bound of a vertex, finds the cycles of zero reduced cost
+                through the strongly connected components of the arcs of
+                zero reduced cost, and tries the other cycles by increasing
+                reduced cost of their arc, each path looked for by a
+                Dijkstra's algorithm stopped at its end or at the bound;
+                the flows are the same, found 3 to 20 times faster on the
+                subproblems of a multicommodity flow problem
+
 2026-11-05 Version 1.8.0 (abLEMON) released
 
         The alternative optimal potentials of a minimum cost flow problem
