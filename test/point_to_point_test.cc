@@ -27,6 +27,7 @@
 #include <lemon/astar.h>
 #include <lemon/bidir_dijkstra.h>
 #include <lemon/dijkstra.h>
+#include <lemon/fib_heap.h>
 #include <lemon/list_graph.h>
 #include <lemon/maps.h>
 #include <lemon/path.h>
@@ -68,6 +69,14 @@ void checkAStar( const Digraph & g , const IntArcMap & len , const H & h ,
   check( astar.dist() == dist , who );
   checkPathOf( g , len , astar.path() , s , t , dist , who );
   }
+ // the same with a FibHeap in place of the BinHeap [see SetHeap]
+ typename AStar< Digraph , IntArcMap , H >::template SetHeap<
+   FibHeap< int , IntNodeMap > >::Create fib( g , len , h );
+ check( fib.run( s , t ) == reach , who );
+ if( reach ) {
+  check( fib.dist() == dist , who );
+  checkPathOf( g , len , fib.path() , s , t , dist , who );
+  }
  }
 
 void checkDigraph( int n , int m , int maxlen )
@@ -83,6 +92,8 @@ void checkDigraph( int n , int m , int maxlen )
   }
 
  BidirDijkstra< Digraph , IntArcMap > bidir( g , len );
+ BidirDijkstra< Digraph , IntArcMap >::SetHeap<
+   FibHeap< int , IntNodeMap > >::Create fib( g , len );
  for( int q = 0 ; q < 20 ; ++q ) {
   Node s = v[ rnd[ n ] ] , t = v[ rnd[ n ] ];
   Dijkstra< Digraph , IntArcMap > dijkstra( g , len );
@@ -94,6 +105,12 @@ void checkDigraph( int n , int m , int maxlen )
   if( reach ) {
    check( bidir.dist() == dist , "BidirDijkstra: distance" );
    checkPathOf( g , len , bidir.path() , s , t , dist , "BidirDijkstra" );
+   }
+  check( fib.run( s , t ) == reach , "BidirDijkstra with FibHeap" );
+  if( reach ) {
+   check( fib.dist() == dist , "BidirDijkstra with FibHeap: distance" );
+   checkPathOf( g , len , fib.path() , s , t , dist ,
+		"BidirDijkstra with FibHeap" );
    }
 
   // the distances to t, on the reverse digraph, for the heuristics

@@ -19,11 +19,9 @@
 #ifndef LEMON_BIDIR_DIJKSTRA_H
  #define LEMON_BIDIR_DIJKSTRA_H
 
-#include <functional>
-#include <queue>
-#include <utility>
 #include <vector>
 
+#include <lemon/bin_heap.h>
 #include <lemon/core.h>
 #include <lemon/path.h>
 
@@ -33,6 +31,19 @@
 
 namespace lemon
 {
+
+/// \brief The default traits class of \ref BidirDijkstra.
+///
+/// The heaps of its two searches are \ref BinHeap "BinHeaps" on the
+/// lengths, with node maps as cross reference maps.
+template< typename GR , typename LEN >
+struct BidirDijkstraDefaultTraits
+{
+ /// The type of the cross reference maps of the heaps
+ typedef typename GR::template NodeMap< int > HeapCrossRef;
+ /// The type of the heaps of the two searches
+ typedef BinHeap< typename LEN::Value , HeapCrossRef > Heap;
+ };
 
 /// \ingroup shortest_path
 ///
@@ -55,7 +66,10 @@ namespace lemon
 /// \tparam GR The digraph type the algorithm runs on.
 /// \tparam LEN The type of the map of the arc lengths, whose values must
 /// be nonnegative.
-template< typename GR , typename LEN = typename GR::template ArcMap< int > >
+/// \tparam TR The traits class, which gives the type of the heaps of the
+/// two searches [see \ref BidirDijkstraDefaultTraits and \ref SetHeap].
+template< typename GR , typename LEN = typename GR::template ArcMap< int > ,
+	  typename TR = BidirDijkstraDefaultTraits< GR , LEN > >
 class BidirDijkstra
 {
  public:
@@ -67,26 +81,50 @@ class BidirDijkstra
  typedef typename LengthMap::Value Value;
  /// The type of the shortest path
  typedef lemon::Path< Digraph > Path;
+ /// The type of the cross reference maps of the heaps
+ typedef typename TR::HeapCrossRef HeapCrossRef;
+ /// The type of the heaps of the two searches
+ typedef typename TR::Heap Heap;
+
+ /// \brief \ref named-templ-param "Named parameter" for setting the type
+ /// of the heaps.
+ ///
+ /// The heaps of the two searches are of type \c H, with cross
+ /// reference maps of type \c CR, e.g., a \ref FibHeap or a \ref
+ /// RadixHeap in place of the \ref BinHeap of the default.
+ template< typename H ,
+	   typename CR = typename Digraph::template NodeMap< int > >
+ struct SetHeap
+ {
+  struct Traits : public TR
+  {
+   typedef CR HeapCrossRef;
+   typedef H Heap;
+   };
+  typedef BidirDijkstra< GR , LEN , Traits > Create;
+  };
 
  private:
  TEMPLATE_DIGRAPH_TYPEDEFS( Digraph );
 
- typedef std::pair< Value , int > Item;
- typedef std::priority_queue< Item , std::vector< Item > ,
-   std::greater< Item > >
-   Heap;
-
- // one of the two searches: the tentative distances, the arcs that reach
- // the nodes, which are seen or finished
+ // one of the two searches: the tentative distances and the arcs that
+ // reach the nodes, the heap telling those seen (in or past it) and those
+ // finished (past it)
  struct Search
  {
   typename Digraph::template NodeMap< Value > dist;
   typename Digraph::template NodeMap< Arc > pred;
-  BoolNodeMap seen , done;
+  HeapCrossRef cross;
   Heap heap;
   explicit Search( const Digraph & g )
-      : dist( g ) , pred( g , INVALID ) , seen( g , false ) , done( g ,
-								    false ) { }
+      : dist( g ) , pred( g , INVALID ) , cross( g , Heap::PRE_HEAP ) ,
+	heap( cross ) { }
+  bool seen( const Node & y ) const {
+   return( heap.state( y ) != Heap::PRE_HEAP );
+   }
+  bool done( const Node & y ) const {
+   return( heap.state( y ) == Heap::POST_HEAP );
+   }
   };
 
  const Digraph & _graph;
@@ -98,43 +136,32 @@ class BidirDijkstra
 
  // the node y reached by the search at distance d along the arc a
  void relax( Search & s , const Node & y , Value d , const Arc & a ) {
-  if( s.done[ y ] ) {
+  if( s.done( y ) ) {
    return;
    }
-  if( ! s.seen[ y ] ) {
-   s.seen[ y ] = true;
+  if( ! s.seen( y ) ) {
    _touched.push_back( y );
+   s.heap.push( y , d );
    }
-  else if( d >= s.dist[ y ] ) {
+  else if( d < s.dist[ y ] ) {
+   s.heap.decrease( y , d );
+   }
+  else {
    return;
    }
   s.dist[ y ] = d;
   s.pred[ y ] = a;
-  s.heap.push( Item( d , _graph.id( y ) ) );
-  }
-
- // the stale entries off the top of the heap; false if it is empty
- bool clean( Search & s ) {
-  while( ! s.heap.empty() ) {
-   Node x = _graph.nodeFromId( s.heap.top().second );
-   if( ! s.done[ x ] && s.heap.top().first == s.dist[ x ] ) {
-    return( true );
-    }
-   s.heap.pop();
-   }
-  return( false );
   }
 
  void reset() {
+  _fwd.heap.clear();
+  _bwd.heap.clear();
   for( std::size_t i = 0 ; i < _touched.size() ; ++i ) {
    Node n = _touched[ i ];
-   _fwd.seen[ n ] = _fwd.done[ n ] = false;
-   _bwd.seen[ n ] = _bwd.done[ n ] = false;
+   _fwd.cross[ n ] = _bwd.cross[ n ] = Heap::PRE_HEAP;
    _fwd.pred[ n ] = _bwd.pred[ n ] = INVALID;
    }
   _touched.clear();
-  _fwd.heap = Heap();
-  _bwd.heap = Heap();
   _path.clear();
   }
 
@@ -163,23 +190,22 @@ class BidirDijkstra
   relax( _bwd , t , 0 , INVALID );
   bool found = false;
   Arc meet = INVALID;
-  while( clean( _fwd ) && clean( _bwd ) ) {
-   Value top_fwd = _fwd.heap.top().first , top_bwd = _bwd.heap.top().first;
+  while( ! _fwd.heap.empty() && ! _bwd.heap.empty() ) {
+   Value top_fwd = _fwd.heap.prio() , top_bwd = _bwd.heap.prio();
    if( found && top_fwd + top_bwd >= _dist ) {
     break;
     }
    bool forward = top_fwd <= top_bwd;
    Search & s = forward ? _fwd : _bwd;
    Search & o = forward ? _bwd : _fwd;
-   Node x = _graph.nodeFromId( s.heap.top().second );
+   Node x = s.heap.top();
    s.heap.pop();
-   s.done[ x ] = true;
    if( forward ) {
     for( OutArcIt a( _graph , x ) ; a != INVALID ; ++a ) {
      Node y = _graph.target( a );
      Value d = s.dist[ x ] + _length[ a ];
      relax( s , y , d , a );
-     if( o.seen[ y ] && ( ! found || d + o.dist[ y ] < _dist ) ) {
+     if( o.seen( y ) && ( ! found || d + o.dist[ y ] < _dist ) ) {
       found = true;
       _dist = d + o.dist[ y ];
       meet = a;
@@ -191,7 +217,7 @@ class BidirDijkstra
      Node y = _graph.source( a );
      Value d = s.dist[ x ] + _length[ a ];
      relax( s , y , d , a );
-     if( o.seen[ y ] && ( ! found || d + o.dist[ y ] < _dist ) ) {
+     if( o.seen( y ) && ( ! found || d + o.dist[ y ] < _dist ) ) {
       found = true;
       _dist = d + o.dist[ y ];
       meet = a;
