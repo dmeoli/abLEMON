@@ -867,9 +867,8 @@ class KBestExtremeFlows
    const std::vector< Cost > & p = sols[ sv ].pot;
    dist.assign( nn , -1 );
    std::vector< char > done( nn , 0 );
-   std::priority_queue< std::pair< Cost , int > ,
-			std::vector< std::pair< Cost , int > > ,
-			std::greater< std::pair< Cost , int > > > q;
+   typedef std::pair< Cost , int > CI;
+   std::priority_queue< CI , std::vector< CI > , std::greater< CI > > q;
    dist[ src ] = 0;
    q.push( std::make_pair( Cost( 0 ) , src ) );
    while( ! q.empty() ) {
