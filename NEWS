@@ -11,8 +11,10 @@
                 zero reduced cost, and tries the other cycles by increasing
                 reduced cost of their arc, each path looked for by a
                 Dijkstra's algorithm stopped at its end or at the bound;
-                the flows are the same, found 3 to 20 times faster on the
-                subproblems of a multicommodity flow problem
+                the vertices of larger cost kept are those of the cycles of
+                least reduced cost rather than those of least cost, and
+                they are found 3 to 20 times faster on the subproblems of a
+                multicommodity flow problem
 
 2026-11-05 Version 1.8.0 (abLEMON) released
 
