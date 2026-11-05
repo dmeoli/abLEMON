@@ -1017,9 +1017,8 @@ class NetworkSimplex
  std::vector< std::vector< Node > > disjointInfeasibleCuts() const {
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );
-  return( nodeSets( _mcf_bits::disjointInfeasibleCuts( certData() ,
-						       _stype == LEQ ,
-						       _cut_hint ) ) );
+  return( nodeSets( _mcf_bits::disjointInfeasibleCuts(
+    certData() , _stype == LEQ , _cut_hint ) ) );
   }
 
  /// \brief Arc-disjoint cycles that prove the problem unbounded.
@@ -1845,13 +1844,12 @@ class NetworkSimplex
   std::vector< int > y( _node_num + 1 , 0 );
   for( int u = _thread[ _root ] ; u != _root ; u = _thread[ u ] ) {
    const int c = _pred[ u ] >= _search_arc_num ? 1 : 0;
-   y[ u ] = _pred_dir[ u ] == DIR_UP ? y[ _parent[ u ] ] - c
-				     : y[ _parent[ u ] ] + c;
+   y[ u ] =
+     _pred_dir[ u ] == DIR_UP ? y[ _parent[ u ] ] - c : y[ _parent[ u ] ] + c;
    }
   std::vector< int > levels( y.begin() , y.begin() + _node_num );
   std::sort( levels.begin() , levels.end() );
-  levels.erase( std::unique( levels.begin() , levels.end() ) ,
-		levels.end() );
+  levels.erase( std::unique( levels.begin() , levels.end() ) , levels.end() );
   const _mcf_bits::McfData< Value > d = certData();
   std::vector< char > in( _node_num );
   for( std::size_t h = 0 ; h != levels.size() ; ++h )
