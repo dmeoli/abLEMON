@@ -234,6 +234,9 @@ class NetworkSimplex
 
  // The entering arc of the pivot that proved the problem unbounded
  int _unb_arc;
+ // The set of nodes that the algorithm had at hand when it found no
+ // feasible flow, which may prove it [see infeasibleCut()]
+ std::vector< int > _cut_hint;
  // What the last run() returned, and whether there was one
  int _result = -1;
  // The tolerances on the flows and on the reduced costs that were set,
@@ -980,7 +983,7 @@ class NetworkSimplex
   for( NodeIt n( _graph ) ; n != INVALID ; ++n )
    node_of[ _node_id[ n ] ] = n;
   const std::vector< int > ids =
-    _mcf_bits::infeasibleCut( certData() , _stype == LEQ );
+    _mcf_bits::infeasibleCut( certData() , _stype == LEQ , _cut_hint );
   for( std::size_t i = 0 ; i != ids.size() ; ++i )
    cut.push_back( node_of[ ids[ i ] ] );
   return( cut );
@@ -1015,7 +1018,8 @@ class NetworkSimplex
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );
   return( nodeSets( _mcf_bits::disjointInfeasibleCuts( certData() ,
-						       _stype == LEQ ) ) );
+						       _stype == LEQ ,
+						       _cut_hint ) ) );
   }
 
  /// \brief Arc-disjoint cycles that prove the problem unbounded.
@@ -1294,9 +1298,15 @@ class NetworkSimplex
   const Value feps = flowTol();
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
+  _cut_hint.clear();
   if( ! ( ( _stype == GEQ && _sum_supply <= 0 ) ||
-	  ( _stype == LEQ && _sum_supply >= 0 ) ) )
+	  ( _stype == LEQ && _sum_supply >= 0 ) ) ) {
+   // all the nodes, whose supplies exceed what can leave them (whose
+   // demands exceed what can enter them under LEQ), nothing
+   for( int i = 0 ; i != _node_num ; ++i )
+    _cut_hint.push_back( i );
    return( false );
+   }
 
   // Check lower and upper bounds
   LEMON_DEBUG( checkBoundMaps() ,
@@ -1823,6 +1833,42 @@ class NetworkSimplex
   return( start( pivot_rule ) );
   }
 
+ // The set of nodes that proves the problem infeasible out of the tree of
+ // the last basis, which some flow is left on an artificial arc of: the
+ // potentials of the tree under the costs of the first phase, one on the
+ // artificial arcs and zero on the others, are an optimal solution of the
+ // dual of the first phase, and so is the indicator of a level set of
+ // them, i.e., the nodes whose potentials are at least, or at most, a
+ // value; the first such set that proves the problem infeasible is kept
+ void phaseOneCut() {
+  _cut_hint.clear();
+  std::vector< int > y( _node_num + 1 , 0 );
+  for( int u = _thread[ _root ] ; u != _root ; u = _thread[ u ] ) {
+   const int c = _pred[ u ] >= _search_arc_num ? 1 : 0;
+   y[ u ] = _pred_dir[ u ] == DIR_UP ? y[ _parent[ u ] ] - c
+				     : y[ _parent[ u ] ] + c;
+   }
+  std::vector< int > levels( y.begin() , y.begin() + _node_num );
+  std::sort( levels.begin() , levels.end() );
+  levels.erase( std::unique( levels.begin() , levels.end() ) ,
+		levels.end() );
+  const _mcf_bits::McfData< Value > d = certData();
+  std::vector< char > in( _node_num );
+  for( std::size_t h = 0 ; h != levels.size() ; ++h )
+   for( int side = 0 ; side != 2 ; ++side ) {
+    for( int u = 0 ; u != _node_num ; ++u )
+     in[ u ] = side == 0 ? y[ u ] >= levels[ h ] : y[ u ] <= levels[ h ];
+    long double gap , scale;
+    if( _mcf_bits::cutViolation( d , _stype == LEQ , in , gap , scale ) &&
+	_mcf_bits::positiveBeyond< Value >( gap , scale ) ) {
+     for( int u = 0 ; u != _node_num ; ++u )
+      if( in[ u ] )
+       _cut_hint.push_back( u );
+     return;
+     }
+    }
+  }
+
  // Shift the potentials so that the one of the root is zero again
  void alignPotential() {
   const Cost r = _pi[ _root ];
@@ -1988,6 +2034,7 @@ class NetworkSimplex
   for( int e = _search_arc_num ; e != _all_arc_num ; ++e ) {
    if( _flow[ e ] > feps || _flow[ e ] < -feps ) {
     restoreSupply();
+    phaseOneCut();
     return( INFEASIBLE );
     }
    }
