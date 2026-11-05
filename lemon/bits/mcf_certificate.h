@@ -291,7 +291,7 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
   return( cuts );
  auto solve = [ & ]( Part & p ) {
   std::vector< V > f;
-  maxViolatedSet( d , leq , p.fix , p.in , p.warm.get() , & f );
+  maxViolatedSet( d , leq , p.fix , p.in , p.warm.get() , &f );
   p.flow = std::make_shared< const std::vector< V > >( std::move( f ) );
   p.warm.reset();
   bool kept = true;

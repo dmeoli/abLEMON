@@ -128,13 +128,13 @@ class KBestExtremeFlows
  /// The bounds are 0 and infinite, the costs 1 and the supplies 0 until
  /// they are given.
  explicit KBestExtremeFlows( const GR & graph )
-     : _graph( graph ) , _n( countNodes( graph ) ) ,
-       _m( countArcs( graph ) ) , _node_id( graph ) , _arc_id( graph ) ,
-       _source( _m + _n ) , _target( _m + _n ) , _lower( _m + _n , 0 ) ,
-       _upper( _m + _n , 0 ) , _supply( _n , 0 ) , _inf( _m + _n , 1 ) ,
-       _cost( _m + _n , 0 ) , _has_init( false ) , _basis_limit( 1000 ) ,
-       _vertex_limit( 0 ) , _method( RANKING ) , _pot_method( PATHS ) ,
-       _exact( true ) , _feps( 0 ) {
+     : _graph( graph ) , _n( countNodes( graph ) ) , _m( countArcs( graph ) ) ,
+       _node_id( graph ) , _arc_id( graph ) , _source( _m + _n ) ,
+       _target( _m + _n ) , _lower( _m + _n , 0 ) , _upper( _m + _n , 0 ) ,
+       _supply( _n , 0 ) , _inf( _m + _n , 1 ) , _cost( _m + _n , 0 ) ,
+       _has_init( false ) , _basis_limit( 1000 ) , _vertex_limit( 0 ) ,
+       _method( RANKING ) , _pot_method( PATHS ) , _exact( true ) ,
+       _feps( 0 ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
    _node_id[ u ] = i++;
@@ -546,8 +546,8 @@ class KBestExtremeFlows
  // from the root, by a breadth first visit that goes along them either
  // way: tree holds the arc that reaches each node (-1 at the root and at
  // the nodes not reached), and order the nodes in the order of the visit
- void tightTree( const std::vector< Cost > & rc ,
-		 Cost ceps , const std::vector< std::vector< int > > & out ,
+ void tightTree( const std::vector< Cost > & rc , Cost ceps ,
+		 const std::vector< std::vector< int > > & out ,
 		 const std::vector< std::vector< int > > & in ,
 		 std::vector< int > & tree ,
 		 std::vector< int > & order ) const {
@@ -617,8 +617,8 @@ class KBestExtremeFlows
     break;
    }
   addPotentials( pi , ceps );
-  for( std::size_t i = 0 ; i != _pots.size() &&
-		           int( _pots.size() ) < k ; ++i ) {
+  for( std::size_t i = 0 ; i != _pots.size() && int( _pots.size() ) < k ;
+       ++i ) {
    const std::vector< Cost > base = _pots[ i ];
    reducedCosts( base , rc );
    tightTree( rc , ceps , out , in , tree , order );
@@ -642,8 +642,8 @@ class KBestExtremeFlows
     const int z = pre[ h ] , r = tree[ z ];
     size[ tail( r ) == z ? head( r ) : tail( r ) ] += size[ z ];
     }
-   for( std::size_t h = 1 ; h != pre.size() &&
-		            int( _pots.size() ) < k ; ++h ) {
+   for( std::size_t h = 1 ; h != pre.size() && int( _pots.size() ) < k ;
+	++h ) {
     const int z = pre[ h ] , r = tree[ z ];
     if( open( s , r ^ 1 ) )
      continue;
