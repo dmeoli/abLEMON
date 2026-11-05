@@ -22,6 +22,7 @@
 #include <iterator>
 
 #include <lemon/smart_graph.h>
+#include <lemon/fib_heap.h>
 #include <lemon/min_cost_arborescence.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/concepts/digraph.h>
@@ -175,6 +176,13 @@ int main()
 
 
  check( mca.dualValue() == mca.arborescenceCost() , "Invalid dual solution" );
+
+ // the same arborescence cost with a FibHeap in place of the BinHeap
+ MinCostArborescence< Digraph , CostMap >::SetHeap<
+   FibHeap< int , Digraph::NodeMap< int > > >::Create fib( digraph , cost );
+ fib.run( source );
+ check( fib.arborescenceCost() == mca.arborescenceCost() ,
+	"Wrong arborescence with a FibHeap" );
 
  check( mca.reached( source ) , "Invalid arborescence" );
  for( ArcIt a( digraph ) ; a != INVALID ; ++a ) {

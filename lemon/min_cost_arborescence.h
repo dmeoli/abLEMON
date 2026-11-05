@@ -90,6 +90,13 @@ struct MinCostArborescenceDefaultTraits
  static PredMap * createPredMap( const Digraph & digraph ) {
   return( new PredMap( digraph ) );
   }
+
+ /// The type of the cross reference map of the heap of the arcs
+ typedef typename Digraph::template NodeMap< int > HeapCrossRef;
+
+ /// \brief The type of the heap of the arcs entering the nodes, on their
+ /// order in the costs.
+ typedef BinHeap< int , HeapCrossRef > Heap;
  };
 
 /// \ingroup spantree
@@ -201,11 +208,11 @@ class MinCostArborescence
 
  DualVariables _dual_variables;
 
- typedef typename Digraph::template NodeMap< int > HeapCrossRef;
+ typedef typename Traits::HeapCrossRef HeapCrossRef;
 
  HeapCrossRef * _heap_cross_ref;
 
- typedef BinHeap< int , HeapCrossRef > Heap;
+ typedef typename Traits::Heap Heap;
 
  Heap * _heap;
 
@@ -446,6 +453,25 @@ class MinCostArborescence
  template< class T >
  struct SetPredMap
      : public MinCostArborescence< Digraph , CostMap , SetPredMapTraits< T > >
+ { };
+
+ template< class H , class CR >
+ struct SetHeapTraits : public Traits
+ {
+  typedef CR HeapCrossRef;
+  typedef H Heap;
+  };
+
+ /// \brief \ref named-templ-param "Named parameter" for setting the type
+ /// of the heap.
+ ///
+ /// The heap of the arcs entering the nodes, on the order of their costs,
+ /// is of type \c H, with a cross reference map of type \c CR, which is
+ /// constructed on the digraph with -1 as the value of every node.
+ template< class H , class CR = typename Digraph::template NodeMap< int > >
+ struct SetHeap
+     : public MinCostArborescence< Digraph , CostMap ,
+				   SetHeapTraits< H , CR > >
  { };
 
  /// @}

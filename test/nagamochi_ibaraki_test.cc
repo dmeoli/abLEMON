@@ -73,6 +73,7 @@ void checkNagamochiIbarakiCompile()
  ni_test.start();
  b = ni_test.processNextPhase();
  ni_test.run();
+ ni_test.tolerance( const_ni_test.tolerance() );
 
  v = const_ni_test.minCutValue();
  v = const_ni_test.minCutMap( cut );

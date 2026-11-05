@@ -84,6 +84,7 @@ class GomoryHu
  typename Graph::template NodeMap< Node > * _pred;
  typename Graph::template NodeMap< Value > * _weight;
  typename Graph::template NodeMap< int > * _order;
+ Tolerance< Value > _tolerance;
 
  void createStructures() {
   if( ! _pred ) {
@@ -121,6 +122,19 @@ class GomoryHu
   checkConcept< concepts::ReadMap< Edge , Value > , Capacity >();
   }
 
+ /// \brief Sets the tolerance used by the algorithm.
+ ///
+ /// Sets the tolerance object used by the algorithm, i.e., by its maximum
+ /// flows.
+ /// \return <tt>(*this)</tt>
+ GomoryHu & tolerance( const Tolerance< Value > & tolerance ) {
+  _tolerance = tolerance;
+  return( *this );
+  }
+
+ /// \brief Returns a const reference to the tolerance.
+ const Tolerance< Value > & tolerance() const { return( _tolerance ); }
+
 
  /// \brief Destructor
  ///
@@ -145,6 +159,7 @@ class GomoryHu
  // Start the algorithm
  void start() {
   Preflow< Graph , Capacity > fa( _graph , _capacity , _root , INVALID );
+  fa.tolerance( _tolerance );
 
   for( NodeIt n( _graph ) ; n != INVALID ; ++n ) {
    if( n == _root )

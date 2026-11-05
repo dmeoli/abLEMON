@@ -29,6 +29,7 @@
 #include <lemon/bucket_heap.h>
 #include <lemon/maps.h>
 #include <lemon/radix_sort.h>
+#include <lemon/tolerance.h>
 #include <lemon/unionfind.h>
 
 #include <cassert>
@@ -271,6 +272,7 @@ class NagamochiIbaraki
  int _node_num;
 
  Value _min_cut;
+ Tolerance< Value > _tolerance;
 
  HeapCrossRef * _heap_cross_ref;
  bool _local_heap_cross_ref;
@@ -340,6 +342,19 @@ class NagamochiIbaraki
        _arcs() , _edges() , _min_cut() , _heap_cross_ref( 0 ) ,
        _local_heap_cross_ref( false ) , _heap( 0 ) , _local_heap( false ) ,
        _next_rep( 0 ) , _cut_map( 0 ) { }
+
+ /// \brief Sets the tolerance used by the algorithm.
+ ///
+ /// Sets the tolerance object used by the algorithm on the capacities
+ /// and the cut values.
+ /// \return <tt>(*this)</tt>
+ NagamochiIbaraki & tolerance( const Tolerance< Value > & tolerance ) {
+  _tolerance = tolerance;
+  return( *this );
+  }
+
+ /// \brief Returns a const reference to the tolerance.
+ const Tolerance< Value > & tolerance() const { return( _tolerance ); }
 
  /// \brief Destructor.
  ///
@@ -466,13 +481,13 @@ class NagamochiIbaraki
 
   for( typename Graph::Node n = _first_node ; n != INVALID ;
        n = ( *_nodes )[ n ].next ) {
-   if( ( *_nodes )[ n ].sum < _min_cut ) {
+   if( _tolerance.less( ( *_nodes )[ n ].sum , _min_cut ) ) {
     cut_node = n;
     _min_cut = ( *_nodes )[ n ].sum;
     }
    }
   ( *_cut_map )[ cut_node ] = true;
-  if( _min_cut == 0 ) {
+  if( ! _tolerance.nonZero( _min_cut ) ) {
    _first_node = INVALID;
    }
   }
@@ -552,7 +567,7 @@ class NagamochiIbaraki
    return( true );
    }
 
-  if( pmc < _min_cut ) {
+  if( _tolerance.less( pmc , _min_cut ) ) {
    for( typename Graph::NodeIt n( _graph ) ; n != INVALID ; ++n ) {
     ( *_cut_map )[ n ] = false;
     }
