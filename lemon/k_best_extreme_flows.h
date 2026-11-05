@@ -27,6 +27,7 @@
 #include <utility>
 #include <vector>
 
+#include <lemon/bits/mcf_tolerance.h>
 #include <lemon/core.h>
 #include <lemon/network_simplex.h>
 
@@ -809,17 +810,12 @@ class KBestExtremeFlows
   return( int( _flows.size() ) );
   }
 
- // The tolerance on the reduced costs: zero for an exact type, otherwise
- // relative to the largest cost
+ // The tolerance on the reduced costs [see bits/mcf_tolerance.h]
  Cost costTolerance() const {
-  if( std::numeric_limits< Cost >::is_exact )
-   return( 0 );
-  Cost big = 1;
+  _mcf_bits::Largest< Cost > big;
   for( int i = 0 ; i != _m ; ++i )
-   big = ( std::max )( big , _cost[ i ] < 0 ? Cost( -_cost[ i ] )
-					     : _cost[ i ] );
-  return( static_cast< Cost >( big * std::numeric_limits< Cost >::epsilon() *
-			       1e6 ) );
+   big.add( _cost[ i ] );
+  return( _mcf_bits::dataTolerance( big.value() ) );
   }
 
  // Potentials optimal for the vertex s: the distances in its residual graph
@@ -1018,23 +1014,17 @@ class KBestExtremeFlows
    ns.lowerMap( low ).upperMap( up ).costMap( cost ).supplyMap( sup );
    if( ! _has_init && ns.run() != NS::OPTIMAL )
     return( false );
-   // the tolerance on the flows of NetworkSimplex: zero for an exact
-   // type, otherwise relative to the largest supply or finite bound
-   if( ! std::numeric_limits< Value >::is_exact ) {
-    Value big = 1;
+   // the tolerance on the flows [see bits/mcf_tolerance.h]
+   {
+    _mcf_bits::Largest< Value > big;
     for( int i = 0 ; i != _m ; ++i ) {
-     big = ( std::max )( big , Value( _lower[ i ] < 0 ? -_lower[ i ]
-						       : _lower[ i ] ) );
+     big.add( _lower[ i ] );
      if( ! _inf[ i ] )
-      big = ( std::max )( big , Value( _upper[ i ] < 0 ? -_upper[ i ]
-							: _upper[ i ] ) );
+      big.add( _upper[ i ] );
      }
     for( int u = 0 ; u != _n ; ++u )
-     big = ( std::max )( big , Value( _supply[ u ] < 0 ? -_supply[ u ]
-						       : _supply[ u ] ) );
-    _feps = static_cast< Value >( big *
-				  std::numeric_limits< Value >::epsilon() *
-				  1e6 );
+     big.add( _supply[ u ] );
+    _feps = _mcf_bits::dataTolerance( big.value() );
     }
    if( _has_init )
     f = _init;

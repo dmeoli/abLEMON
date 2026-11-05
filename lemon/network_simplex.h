@@ -31,6 +31,7 @@
 #include <lemon/core.h>
 #include <lemon/math.h>
 #include <lemon/bits/mcf_certificate.h>
+#include <lemon/bits/mcf_tolerance.h>
 
 namespace lemon
 {
@@ -264,39 +265,31 @@ class NetworkSimplex
   return( _cost_tol >= 0 ? _cost_tol : pivotTolerance( _cost , _arc_num ) );
   }
  Value flowTol() const {
-  return( _flow_tol >= 0 ? _flow_tol : flowTolerance( _supply , _node_num ) );
+  return( _flow_tol >= 0 ? _flow_tol : flowTolerance() );
   }
 
- // The tolerance of the pivot rules on the reduced costs: zero for an
- // exact cost type, otherwise relative to the largest of the n costs.
+ // The tolerance of the pivot rules on the reduced costs [see
+ // bits/mcf_tolerance.h], on the n costs of the arcs.
  static Cost pivotTolerance( const CostVector & cost , int n ) {
-  if( std::numeric_limits< Cost >::is_exact )
-   return( 0 );
-  Cost m = 1;
-  for( int i = 0 ; i != n ; ++i ) {
-   if( cost[ i ] > m )
-    m = cost[ i ];
-   else if( -cost[ i ] > m )
-    m = -cost[ i ];
-   }
-  return( static_cast< Cost >( m * std::numeric_limits< Cost >::epsilon() *
-			     1e6 ) );
+  _mcf_bits::Largest< Cost > m;
+  for( int i = 0 ; i != n ; ++i )
+   m.add( cost[ i ] );
+  return( _mcf_bits::dataTolerance( m.value() ) );
   }
 
- // The tolerance on the flow left on the artificial arcs: zero for an
- // exact flow type, otherwise relative to the largest of the n supplies.
- static Value flowTolerance( const ValueVector & supply , int n ) {
-  if( std::numeric_limits< Value >::is_exact )
-   return( 0 );
-  Value m = 1;
-  for( int i = 0 ; i != n ; ++i ) {
-   if( supply[ i ] > m )
-    m = supply[ i ];
-   else if( -supply[ i ] > m )
-    m = -supply[ i ];
+ // The tolerance on the flows [see bits/mcf_tolerance.h], on the supplies
+ // and the finite bounds of the arcs, below which the flow left on an
+ // artificial arc is taken as zero.
+ Value flowTolerance() const {
+  _mcf_bits::Largest< Value > m;
+  for( int u = 0 ; u != _node_num ; ++u )
+   m.add( _supply[ u ] );
+  for( int i = 0 ; i != _arc_num ; ++i ) {
+   m.add( _upper[ i ] );
+   if( _has_lower )
+    m.add( _lower[ i ] );
    }
-  return( static_cast< Value >( m * std::numeric_limits< Value >::epsilon() *
-			      1e6 ) );
+  return( _mcf_bits::dataTolerance( m.value() ) );
   }
 
  // Implementation of the First Eligible pivot rule
