@@ -252,6 +252,9 @@ class NetworkSimplex
  // Temporary data used in the current pivot iteration
  int in_arc , join , u_in , v_in , u_out , v_out;
  Value delta;
+ // The tolerance on the flows of the current run, zero for an exact type
+ // [see changeFlow()]
+ Value _pivot_feps = 0;
 
  const Value MAX_VALUE;
 
@@ -1583,11 +1586,22 @@ class NetworkSimplex
     _flow[ _pred[ u ] ] += _pred_dir[ u ] * val;
     }
    }
-  // Update the state of the entering and leaving arcs
+  // Update the state of the entering and leaving arcs: the leaving arc
+  // is at the bound it reached, which in floating point it may miss by a
+  // rounding error, and then it goes at the bound it is nearer to, its
+  // flow being set to the bound, rather than at the upper bound for a
+  // flow of 1e-16
   if( change ) {
    _state[ in_arc ] = STATE_TREE;
-   _state[ _pred[ u_out ] ] =
-     ( _flow[ _pred[ u_out ] ] == 0 ) ? STATE_LOWER : STATE_UPPER;
+   const int out = _pred[ u_out ];
+   if( _pivot_feps > 0 ) {
+    const bool low =
+      _cap[ out ] >= MAX_VALUE || _flow[ out ] <= _cap[ out ] - _flow[ out ];
+    _flow[ out ] = low ? Value( 0 ) : _cap[ out ];
+    _state[ out ] = low ? STATE_LOWER : STATE_UPPER;
+    }
+   else
+    _state[ out ] = ( _flow[ out ] == 0 ) ? STATE_LOWER : STATE_UPPER;
    }
   else {
    _state[ in_arc ] = -_state[ in_arc ];
@@ -2017,6 +2031,7 @@ class NetworkSimplex
  template< typename PivotRuleImpl >
  ProblemType start() {
   PivotRuleImpl pivot( *this );
+  _pivot_feps = flowTol();
 
   // Perform heuristic initial pivots
   if( ! initialPivots() ) {
