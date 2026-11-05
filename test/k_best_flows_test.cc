@@ -220,6 +220,39 @@ std::vector< int > vertexCosts( const Small & p )
  return( costs );
  }
 
+// Whether the flow f of the instance is a vertex: its arcs strictly within
+// their bounds, with the arcs from a root to the nodes that receive more
+// than their demands, form a forest
+bool isVertexFlow( const Small & p , const std::vector< int > & f )
+{
+ const int m = countArcs( p.g ) , n = countNodes( p.g );
+ std::vector< int > net( n , 0 ) , par( n + 1 );
+ for( int u = 0 ; u != n + 1 ; ++u )
+  par[ u ] = u;
+ std::function< int( int ) > find = [ & ]( int u ) {
+  return( par[ u ] == u ? u : par[ u ] = find( par[ u ] ) );
+  };
+ auto join = [ & ]( int u , int v ) -> bool {
+  const int x = find( u ) , y = find( v );
+  if( x == y )
+   return( false );
+  par[ x ] = y;
+  return( true );
+  };
+ for( int i = 0 ; i != m ; ++i ) {
+  const Arc a = p.g.arcFromId( i );
+  net[ p.g.id( p.g.source( a ) ) ] += f[ i ];
+  net[ p.g.id( p.g.target( a ) ) ] -= f[ i ];
+  if( f[ i ] != p.lower[ a ] && f[ i ] != p.upper[ a ] &&
+      ! join( p.g.id( p.g.source( a ) ) , p.g.id( p.g.target( a ) ) ) )
+   return( false );
+  }
+ for( int u = 0 ; u != n ; ++u )
+  if( net[ u ] != p.supply[ p.g.nodeFromId( u ) ] && ! join( n , u ) )
+   return( false );
+ return( true );
+ }
+
 // KBestExtremeFlows against the enumeration of the vertices: the costs of
 // the flows it gives are the smallest ones of the vertices, in order, and
 // the flows are vertices, feasible and all different, without reaching the
@@ -254,6 +287,25 @@ void checkExtremeAgainstEnumeration( int seeds )
 					     all[ 0 ] + 2 ) - all.begin() );
    check( kb.run( 100 , 2 ) == std::min( 100 , within ) ,
 	  "Wrong number of extreme flows within a gap on " + id );
+   for( int j = 0 ; j != kb.flowNum() ; ++j )
+    check( kb.totalCost( j ) == all[ j ] ,
+	   "Wrong cost of an extreme flow within a gap on " + id );
+   }
+
+  // all the vertices, each once, in order
+  {
+   const int got = kb.run( int( all.size() ) + 3 );
+   check( got == int( all.size() ) && kb.exact() ,
+	  "Not all the vertices on " + id );
+   std::set< std::vector< int > > seen;
+   for( int j = 0 ; j != got ; ++j ) {
+    std::vector< int > f;
+    for( int i = 0 ; i != countArcs( p.g ) ; ++i )
+     f.push_back( kb.flow( j , p.g.arcFromId( i ) ) );
+    check( kb.totalCost( j ) == all[ j ] && isVertexFlow( p , f ) ,
+	   "Not the j-th vertex on " + id );
+    check( seen.insert( f ).second , "A vertex given twice on " + id );
+    }
    }
 
   // the cycles of least reduced cost: the same, and a second optimal
@@ -385,6 +437,72 @@ void checkPotentials( int seeds , bool pivots )
    check( seen.insert( pot ).second , "The same potentials twice on " + id );
    }
   }
+ }
+
+// The extreme flows of a shortest path, the most degenerate of the
+// problems: a layered digraph from s to t, every path of which is a vertex
+// whose other arcs carry no flow, with infinite or unit capacities; the
+// k best are the k shortest paths, enumerated by hand
+void checkShortestPaths( int seeds )
+{
+ unsigned int r = 1994;
+ for( int seed = 0 ; seed != seeds ; ++seed )
+  for( int unit = 0 ; unit != 2 ; ++unit ) {
+   const std::string id = "path instance " + std::to_string( seed ) +
+			  ( unit ? " (unit)" : "" );
+   const int layers = 3 , width = 3;
+   Small p;
+   std::vector< std::vector< Node > > lay( layers + 2 );
+   lay[ 0 ].push_back( p.g.addNode() );
+   for( int l = 1 ; l <= layers ; ++l )
+    for( int w = 0 ; w != width ; ++w )
+     lay[ l ].push_back( p.g.addNode() );
+   lay[ layers + 1 ].push_back( p.g.addNode() );
+   for( int l = 0 ; l <= layers ; ++l )
+    for( std::size_t a = 0 ; a != lay[ l ].size() ; ++a )
+     for( std::size_t b = 0 ; b != lay[ l + 1 ].size() ; ++b ) {
+      const Arc e = p.g.addArc( lay[ l ][ a ] , lay[ l + 1 ][ b ] );
+      r = r * 1103515245u + 12345u;
+      p.lower[ e ] = 0;
+      p.upper[ e ] = unit ? 1 : std::numeric_limits< int >::max();
+      p.cost[ e ] = int( ( r >> 16 ) % 4 );
+      }
+   for( Digraph::NodeIt u( p.g ) ; u != INVALID ; ++u )
+    p.supply[ u ] = 0;
+   p.supply[ lay[ 0 ][ 0 ] ] = 1;
+   p.supply[ lay[ layers + 1 ][ 0 ] ] = -1;
+   // the costs of all the paths
+   std::vector< int > paths;
+   std::function< void( Node , int ) > walk = [ & ]( Node u , int c ) {
+    if( u == lay[ layers + 1 ][ 0 ] ) {
+     paths.push_back( c );
+     return;
+     }
+    for( Digraph::OutArcIt e( p.g , u ) ; e != INVALID ; ++e )
+     walk( p.g.target( e ) , c + p.cost[ e ] );
+    };
+   walk( lay[ 0 ][ 0 ] , 0 );
+   std::sort( paths.begin() , paths.end() );
+   KBestExtremeFlows< Digraph > kb( p.g );
+   kb.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+     p.supply );
+   const int got = kb.run( int( paths.size() ) + 5 );
+   check( got == int( paths.size() ) && kb.exact() ,
+	  "Not all the paths on " + id );
+   for( int j = 0 ; j != got ; ++j ) {
+    check( kb.totalCost( j ) == paths[ j ] ,
+	   "Not the j-th shortest path on " + id );
+    int out = 0;
+    for( Digraph::OutArcIt e( p.g , lay[ 0 ][ 0 ] ) ; e != INVALID ; ++e )
+     out += kb.flow( j , e );
+    check( out == 1 , "Not a path on " + id );
+    }
+   const int few = kb.run( 4 );
+   check( few == 4 && kb.exact() , "Not the 4 shortest paths on " + id );
+   for( int j = 0 ; j != few ; ++j )
+    check( kb.totalCost( j ) == paths[ j ] ,
+	   "Not the j-th of the 4 shortest paths on " + id );
+   }
  }
 
 void checkLimitCases()
@@ -527,6 +645,7 @@ int main()
 {
  checkAgainstEnumeration( 2000 );
  checkExtremeAgainstEnumeration( 2000 );
+ checkShortestPaths( 200 );
  checkPotentials( 2000 , false );
  checkPotentials( 2000 , true );
  checkLimitCases();

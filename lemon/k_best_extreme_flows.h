@@ -29,6 +29,7 @@
 
 #include <lemon/core.h>
 #include <lemon/network_simplex.h>
+#include <lemon/smart_graph.h>
 
 ///\ingroup min_cost_flow_algs
 ///\file
@@ -50,13 +51,30 @@ namespace lemon
 /// since each gives a different (sub)gradient, while a flow inside a face
 /// gives a convex combination of those of its vertices.
 ///
-/// The algorithm is the ranking of the vertices of Murty
-/// \cite murty68ranking: the next vertex is adjacent to one of those
-/// already given, i.e., one pivot of the network simplex away from one of
-/// their bases, along the cycle that a nonbasic arc closes with the tree of
-/// the basis, saturated. The candidates are kept in a queue by their
-/// costs, and the bases of a degenerate vertex, which the pivots along a
-/// cycle of zero amount reach, are all expanded. The first vertex is the
+/// On integer data the algorithm is the partition of Lawler
+/// \cite lawler72kbest on the states
+/// of the arcs (at the lower bound, at the upper one, strictly within
+/// them), which a vertex is the only flow of: the arcs are taken in a
+/// fixed order, that of their reduced costs at the optimal vertex, a node
+/// of the partition fixes the states of a prefix of the order, its best
+/// flow is found by \ref NetworkSimplex on the bounds that the states set
+/// (a state strictly within the bounds \f$l\f$ and \f$u\f$ being
+/// \f$[l+1,u-1]\f$), given if it is a vertex, and the node is split into
+/// one child for each later arc and each other state of it. A child waits
+/// in a queue with a bound of its cost, that of the flow of its parent
+/// plus the reduced cost of its arc times the least change of its flow,
+/// and is solved only when it leaves the queue, as in the enumeration of
+/// VerySimple01Problem
+/// (https://github.com/frangio68/Very-Simple-01-Problem); the k best
+/// vertices are given exactly, and no basis of a degenerate vertex is
+/// visited. On other data it is the
+/// ranking of the vertices of Murty \cite murty68ranking: the next vertex
+/// is adjacent to one of those already given, i.e., one pivot of the
+/// network simplex away from one of their bases, along the cycle that a
+/// nonbasic arc closes with the tree of the basis, saturated; the
+/// candidates are kept in a queue by their costs, and the bases of a
+/// degenerate vertex, which the pivots along a cycle of zero amount reach,
+/// are all expanded. The first vertex is the
 /// optimal flow that \ref NetworkSimplex finds, or one given by
 /// \ref initFlow(), brought to a vertex first, if it is not one, by
 /// saturating the cycles of the arcs strictly within their bounds, whose
@@ -71,12 +89,16 @@ namespace lemon
 /// supplies; by default, \c int.
 /// \tparam C The number type of the costs; by default, the same as \c V.
 ///
-/// \note The number of the bases of a degenerate vertex can be large, and
-/// all of them are visited when the vertex is expanded; each pivot takes
-/// \f$O(n)\f$ time, and each basis \f$O(nm)\f$ for all its pivots. A
-/// candidate pivot waits in the queue as its cost alone, the basis it leads
-/// to being made when it is taken, so that the memory is \f$O(n+m)\f$ for
-/// each basis expanded, and their number is bounded by \ref basisLimit().
+/// \note On integer data each vertex given costs at most \f$O(m)\f$
+/// minimum cost flow problems, those of the children of its node, and
+/// \f$O(n+m)\f$ memory; their number is bounded by \ref basisLimit()
+/// [see \ref solvedNum()]. On other data the number of the bases of a
+/// degenerate vertex can be large, and all of them are visited when the
+/// vertex is expanded; each pivot takes \f$O(n)\f$ time, and each basis
+/// \f$O(nm)\f$ for all its pivots. A candidate pivot waits in the queue
+/// as its cost alone, the basis it leads to being made when it is taken,
+/// so that the memory is \f$O(n+m)\f$ for each basis expanded, and their
+/// number is bounded by \ref basisLimit().
 template< typename GR , typename V = int , typename C = V >
 class KBestExtremeFlows
 {
@@ -114,6 +136,7 @@ class KBestExtremeFlows
  int _vertex_limit;
  int _method;
  int _pot_method;
+ int _solved;
  bool _exact;
  std::vector< Value > _init;
  Value _feps;
@@ -134,7 +157,7 @@ class KBestExtremeFlows
        _upper( _m + _n , 0 ) , _supply( _n , 0 ) , _inf( _m + _n , 1 ) ,
        _cost( _m + _n , 0 ) , _has_init( false ) , _basis_limit( 1000 ) ,
        _vertex_limit( 0 ) , _method( RANKING ) , _pot_method( PATHS ) ,
-       _exact( true ) , _feps( 0 ) {
+       _solved( 0 ) , _exact( true ) , _feps( 0 ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
    _node_id[ u ] = i++;
@@ -205,7 +228,8 @@ class KBestExtremeFlows
 
  /// \brief The ways the flows are generated [see \ref method()].
  enum Method {
-  /// The ranking of Murty: the k best vertices, in order.
+  /// The k best vertices, in order: the partition of Lawler on the
+  /// states of the arcs on integer data, the ranking of Murty otherwise.
   RANKING ,
   /// The cycles of least reduced cost: the optimal vertices that the
   /// cycles of zero reduced cost lead to, then the vertices one cycle away
@@ -216,7 +240,7 @@ class KBestExtremeFlows
  /// \brief Sets the way the flows are generated.
  ///
  /// With \ref RANKING, the default, a \ref run() gives the k best
- /// vertices in order, as long as the limits on the bases allow it [see
+ /// vertices in order, as long as the limits allow it [see
  /// \ref basisLimit() and \ref vertexBasisLimit()]. With \ref CYCLES it
  /// enumerates no basis: from the optimal vertex and potentials optimal
  /// for it, the cycles of the residual graph whose arcs have a reduced
@@ -250,8 +274,11 @@ class KBestExtremeFlows
  /// the problem has fewer vertices within the gap, and zero if it has no
  /// optimal flow (it is infeasible or unbounded).
  int run( int k , Cost gap = -1 ) {
+  _solved = 0;
   if( _method == CYCLES )
    return( runCycles( k , gap ) );
+  if( std::numeric_limits< Value >::is_integer )
+   return( runLawler( k , gap ) );
   _flows.clear();
   _costs.clear();
   _exact = true;
@@ -368,13 +395,16 @@ class KBestExtremeFlows
   return( int( _flows.size() ) );
   }
 
- /// \brief Sets the largest number of bases a \ref run() expands.
+ /// \brief Sets the largest number of bases a \ref run() expands, or of
+ /// minimum cost flow problems it solves on integer data.
  ///
- /// A degenerate vertex has many bases, and the ranking expands all of
- /// those it meets, each taking \f$O(n+m)\f$ memory and \f$O(n(n+m))\f$
- /// time; when the limit is reached the run stops, the flows it gives are
- /// still distinct vertices in the order of their costs, but they may not
- /// be the k best ones [see \ref exact()]. By default, 1000.
+ /// On integer data, the nodes of the partition [see \ref method()] are
+ /// each a minimum cost flow problem. On other data, a degenerate vertex
+ /// has many bases, and the ranking expands all of those it meets, each
+ /// taking \f$O(n+m)\f$ memory and \f$O(n(n+m))\f$ time. When the limit
+ /// is reached the run stops, the flows it gives are still distinct
+ /// vertices in the order of their costs, but they may not be the k best
+ /// ones [see \ref exact()]. By default, 1000.
  KBestExtremeFlows & basisLimit( int limit ) {
   _basis_limit = limit;
   return( *this );
@@ -393,7 +423,8 @@ class KBestExtremeFlows
  /// expanded and the degenerate pivots of its last one are not taken: the
  /// flows given are distinct vertices in the order of their costs, the
  /// first one optimal, adjacent to the bases expanded, but they may not be
- /// the k best ones [see \ref exact()]. By default, no limit.
+ /// the k best ones [see \ref exact()]. By default, no limit. It has no
+ /// effect on integer data, where no basis is visited.
  KBestExtremeFlows & vertexBasisLimit( int limit ) {
   _vertex_limit = limit;
   return( *this );
@@ -407,6 +438,11 @@ class KBestExtremeFlows
  /// of the bases of a vertex [see \ref vertexBasisLimit()], so that the
  /// flows it gives may not be the k best ones.
  bool exact() const { return( _exact ); }
+
+ /// \brief The number of the minimum cost flow problems solved by the
+ /// last \ref run() of \ref RANKING on integer data, i.e., of the nodes of
+ /// its partition [see \ref method()]; zero otherwise.
+ int solvedNum() const { return( _solved ); }
 
  /// \brief The number of the flows found by the last \ref run().
  int flowNum() const { return( int( _flows.size() ) ); }
@@ -522,6 +558,252 @@ class KBestExtremeFlows
   }
 
  private:
+ // The state of the arc i in the flow x: 0 at its lower bound, 1 at its
+ // upper one, 2 strictly within them
+ int arcState( const std::vector< Value > & x , int i ) const {
+  if( x[ i ] <= _lower[ i ] )
+   return( 0 );
+  if( ! _inf[ i ] && x[ i ] >= _upper[ i ] )
+   return( 1 );
+  return( 2 );
+  }
+
+ // The bounds that the state st sets on the arc i, on integer data: false
+ // if there is no flow in that state
+ bool stateBounds( int i , int st , Value & lo , Value & hi ,
+		   bool & inf ) const {
+  inf = false;
+  if( st == 0 ) {
+   lo = hi = _lower[ i ];
+   return( true );
+   }
+  if( st == 1 ) {
+   if( _inf[ i ] || _upper[ i ] <= _lower[ i ] )
+    return( false );
+   lo = hi = _upper[ i ];
+   return( true );
+   }
+  lo = _lower[ i ] + 1;
+  if( _inf[ i ] ) {
+   inf = true;
+   hi = lo;
+   return( true );
+   }
+  hi = _upper[ i ] - 1;
+  return( lo <= hi );
+  }
+
+ // Whether the flow x is a vertex: the arcs strictly within their bounds
+ // make no cycle
+ bool isVertex( const std::vector< Value > & x ) const {
+  std::vector< int > p( _n + 1 );
+  for( int u = 0 ; u != _n + 1 ; ++u )
+   p[ u ] = u;
+  for( int i = 0 ; i != _m + _n ; ++i ) {
+   if( arcState( x , i ) != 2 )
+    continue;
+   const int a = find( p , _source[ i ] ) , b = find( p , _target[ i ] );
+   if( a == b )
+    return( false );
+   p[ a ] = b;
+   }
+  return( true );
+  }
+
+ // The run of RANKING on integer data [see method()]: the partition of
+ // Lawler on the states of the arcs, taken in the order of their reduced
+ // costs under potentials optimal for the optimal vertex. A node of the
+ // partition fixes the states of the first arcs of the order; the best
+ // flow of a node, found by NetworkSimplex on the bounds that its states
+ // set, is given if it is a vertex, and the node is split into one child
+ // for each later arc and each other state of the arc in that flow, the
+ // arcs before it keeping their states in the flow. A child waits in the
+ // queue with a bound of its cost, that of the flow of its parent plus the
+ // reduced cost of its arc times the least change of its flow, and is
+ // solved when it leaves the queue; every vertex is in one node only.
+ int runLawler( int k , Cost gap ) {
+  _flows.clear();
+  _costs.clear();
+  _exact = true;
+  _solved = 0;
+  State s;
+  if( k <= 0 || ! firstState( s ) )
+   return( 0 );
+  const bool bounded = gap >= 0;
+  const Cost limit = bounded ? s.cost + gap : s.cost;
+  const int mm = _m + _n , nn = _n + 1;
+  const Cost ceps = costTolerance();
+
+  // the arcs in the order of their reduced costs
+  std::vector< Cost > pi;
+  optimalPotentials( s , ceps , pi );
+  auto absRc = [ & ]( const std::vector< Cost > & p , int i ) -> Cost {
+   const Cost c = _cost[ i ] + p[ _source[ i ] ] - p[ _target[ i ] ];
+   return( c < 0 ? Cost( -c ) : c );
+   };
+  std::vector< int > ord( mm );
+  for( int i = 0 ; i != mm ; ++i )
+   ord[ i ] = i;
+  {
+   std::vector< Cost > key( mm );
+   for( int i = 0 ; i != mm ; ++i )
+    key[ i ] = absRc( pi , i );
+   std::stable_sort( ord.begin() , ord.end() ,
+		     [ & ]( int a , int b ) -> bool {
+		      return( key[ a ] < key[ b ] );
+		      } );
+   }
+
+  // the digraph of the arcs and of the root, on which the nodes are solved
+  typedef NetworkSimplex< SmartDigraph , Value , Cost > NS;
+  SmartDigraph aux;
+  aux.reserveNode( nn );
+  aux.reserveArc( mm );
+  std::vector< SmartDigraph::Node > an( nn );
+  for( int u = 0 ; u != nn ; ++u )
+   an[ u ] = aux.addNode();
+  std::vector< SmartDigraph::Arc > aa( mm );
+  for( int i = 0 ; i != mm ; ++i )
+   aa[ i ] = aux.addArc( an[ _source[ i ] ] , an[ _target[ i ] ] );
+  SmartDigraph::ArcMap< Value > alo( aux ) , ahi( aux );
+  SmartDigraph::ArcMap< Cost > acost( aux );
+  SmartDigraph::NodeMap< Value > asup( aux );
+  Value total = 0;
+  for( int u = 0 ; u != _n ; ++u ) {
+   asup[ an[ u ] ] = _supply[ u ];
+   total += _supply[ u ];
+   }
+  asup[ an[ _n ] ] = -total;
+  for( int i = 0 ; i != mm ; ++i )
+   acost[ aa[ i ] ] = _cost[ i ];
+  NS ns( aux );
+
+  // a node: its parent, the position in the order of its arc and the
+  // state it sets, the first position it leaves free, and its solution
+  struct Part
+  {
+   int parent , pos , st , free , sol;
+   };
+  struct Solved
+  {
+   std::vector< Value > flow;
+   std::vector< Cost > pot;
+   Cost cost;
+   };
+  std::vector< Part > nodes;
+  std::vector< Solved > sols;
+  typedef std::pair< Cost , int > Item;
+  std::priority_queue< Item , std::vector< Item > , std::greater< Item > >
+    queue;
+  {
+   Part r = { -1 , -1 , -1 , 0 , 0 };
+   nodes.push_back( r );
+   Solved z;
+   z.flow = s.flow;
+   z.pot = pi;
+   z.cost = s.cost;
+   sols.push_back( std::move( z ) );
+   queue.push( Item( s.cost , 0 ) );
+   }
+  std::vector< Value > lo( mm ) , hi( mm );
+  std::vector< char > inf( mm );
+  while( ! queue.empty() && int( _flows.size() ) < k ) {
+   const Item it = queue.top();
+   queue.pop();
+   if( bounded && it.first > limit )
+    break;
+   const int v = it.second;
+   if( nodes[ v ].sol < 0 ) {
+    if( _solved >= _basis_limit ) {
+     _exact = false;
+     break;
+     }
+    ++_solved;
+    // the bounds of the node: those of its arc and of the arcs its parent
+    // fixed before it, up the chain
+    for( int i = 0 ; i != mm ; ++i ) {
+     lo[ i ] = _lower[ i ];
+     hi[ i ] = _upper[ i ];
+     inf[ i ] = _inf[ i ];
+     }
+    for( int w = v ; nodes[ w ].parent >= 0 ; w = nodes[ w ].parent ) {
+     const Part & nw = nodes[ w ];
+     const Solved & ps = sols[ nodes[ nw.parent ].sol ];
+     bool in;
+     Value l = 0 , h = 0;
+     const int i = ord[ nw.pos ];
+     stateBounds( i , nw.st , l , h , in );
+     lo[ i ] = l;
+     hi[ i ] = h;
+     inf[ i ] = in;
+     for( int j = nodes[ nw.parent ].free ; j != nw.pos ; ++j ) {
+      const int a = ord[ j ];
+      stateBounds( a , arcState( ps.flow , a ) , l , h , in );
+      lo[ a ] = l;
+      hi[ a ] = h;
+      inf[ a ] = in;
+      }
+     }
+    for( int i = 0 ; i != mm ; ++i ) {
+     alo[ aa[ i ] ] = lo[ i ];
+     ahi[ aa[ i ] ] = inf[ i ] ? ns.INF : hi[ i ];
+     }
+    ns.reset();
+    ns.lowerMap( alo ).upperMap( ahi ).costMap( acost ).supplyMap( asup );
+    if( ns.run() != NS::OPTIMAL )
+     continue;
+    Solved z;
+    z.flow.resize( mm );
+    z.cost = 0;
+    for( int i = 0 ; i != mm ; ++i ) {
+     z.flow[ i ] = ns.flow( aa[ i ] );
+     if( i < _m )
+      z.cost += _cost[ i ] * z.flow[ i ];
+     }
+    z.pot.resize( nn );
+    for( int u = 0 ; u != nn ; ++u )
+     z.pot[ u ] = ns.potential( an[ u ] );
+    nodes[ v ].sol = int( sols.size() );
+    const Cost c = z.cost;
+    sols.push_back( std::move( z ) );
+    if( ! ( bounded && c > limit ) )
+     queue.push( Item( c , v ) );
+    continue;
+    }
+   // the best flow left: given if it is a vertex, and the node split
+   const int sv = nodes[ v ].sol;
+   if( isVertex( sols[ sv ].flow ) ) {
+    _flows.push_back( std::vector< Value >( sols[ sv ].flow.begin() ,
+					    sols[ sv ].flow.begin() + _m ) );
+    _costs.push_back( sols[ sv ].cost );
+    }
+   for( int j = nodes[ v ].free ; j != mm ; ++j ) {
+    const int i = ord[ j ];
+    const Value x = sols[ sv ].flow[ i ];
+    const int cur = arcState( sols[ sv ].flow , i );
+    const Cost rc = absRc( sols[ sv ].pot , i );
+    for( int st = 0 ; st != 3 ; ++st ) {
+     bool in;
+     Value l = 0 , h = 0;
+     if( st == cur || ! stateBounds( i , st , l , h , in ) )
+      continue;
+     // the least change of the flow of the arc into that state
+     const Value d = st == 2 ? Value( 1 ) :
+		     st == 0 ? Value( x - _lower[ i ] ) :
+		     Value( _upper[ i ] - x );
+     const Cost b = sols[ sv ].cost + rc * d;
+     if( bounded && b > limit )
+      continue;
+     Part c = { v , j , st , j + 1 , -1 };
+     nodes.push_back( c );
+     queue.push( Item( b , int( nodes.size() ) - 1 ) );
+     }
+    }
+   std::vector< Cost >().swap( sols[ sv ].pot );
+   }
+  return( int( _flows.size() ) );
+  }
+
  // Adds potentials up to a constant, the one of the root made zero, if
  // they are not there yet; whether they were added
  bool addPotentials( std::vector< Cost > p , Cost ceps ) {
