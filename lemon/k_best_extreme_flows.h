@@ -18,6 +18,7 @@
  #define LEMON_K_BEST_EXTREME_FLOWS_H
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -52,8 +53,10 @@ namespace lemon
 /// since each gives a different (sub)gradient, while a flow inside a face
 /// gives a convex combination of those of its vertices.
 ///
-/// On integer data the algorithm is the partition of Lawler
-/// \cite lawler72kbest on the states
+/// On integer data, i.e., if the bounds, the supplies and the flow given
+/// [see \ref initFlow()] are integer, or integer within the tolerance of
+/// the flows if their type is not (the costs may be any), the algorithm
+/// is the partition of Lawler \cite lawler72kbest on the states
 /// of the arcs (at the lower bound, at the upper one, strictly within
 /// them), which a vertex is the only flow of: the arcs are taken in a
 /// fixed order, that of their reduced costs at the optimal vertex, a node
@@ -289,6 +292,27 @@ class KBestExtremeFlows
    return( runCycles( k , gap ) );
   if( std::numeric_limits< Value >::is_integer )
    return( runLawler( k , gap ) );
+  // data of a type that is not integer, but integer within the tolerance:
+  // the partition of Lawler on the data rounded, then put back
+  if( integralData() ) {
+   const std::vector< Value > lower( _lower ) , upper( _upper ) ,
+     supply( _supply ) , init( _init );
+   for( int i = 0 ; i != _m ; ++i ) {
+    _lower[ i ] = std::floor( _lower[ i ] + Value( 0.5 ) );
+    if( ! _inf[ i ] )
+     _upper[ i ] = std::floor( _upper[ i ] + Value( 0.5 ) );
+    }
+   for( int u = 0 ; u != _n ; ++u )
+    _supply[ u ] = std::floor( _supply[ u ] + Value( 0.5 ) );
+   for( std::size_t i = 0 ; i != _init.size() ; ++i )
+    _init[ i ] = std::floor( _init[ i ] + Value( 0.5 ) );
+   const int got = runLawler( k , gap );
+   _lower = lower;
+   _upper = upper;
+   _supply = supply;
+   _init = init;
+   return( got );
+   }
   _flows.clear();
   _costs.clear();
   _exact = true;
@@ -573,6 +597,36 @@ class KBestExtremeFlows
   }
 
  private:
+ // Whether the bounds, the supplies and the flow given are integer within
+ // the tolerance on the flows [see firstState()]
+ bool integralData() const {
+  Value big = 1;
+  for( int i = 0 ; i != _m ; ++i ) {
+   big = ( std::max )( big , Value( std::abs( _lower[ i ] ) ) );
+   if( ! _inf[ i ] )
+    big = ( std::max )( big , Value( std::abs( _upper[ i ] ) ) );
+   }
+  for( int u = 0 ; u != _n ; ++u )
+   big = ( std::max )( big , Value( std::abs( _supply[ u ] ) ) );
+  const Value eps = static_cast< Value >(
+    big * std::numeric_limits< Value >::epsilon() * 1e6 );
+  auto integral = [ & ]( Value x ) -> bool {
+   return( std::abs( x - std::floor( x + Value( 0.5 ) ) ) <= eps );
+   };
+  for( int i = 0 ; i != _m ; ++i )
+   if( ! integral( _lower[ i ] ) ||
+       ( ! _inf[ i ] && ! integral( _upper[ i ] ) ) )
+    return( false );
+  for( int u = 0 ; u != _n ; ++u )
+   if( ! integral( _supply[ u ] ) )
+    return( false );
+  if( _has_init )
+   for( std::size_t i = 0 ; i != _init.size() ; ++i )
+    if( ! integral( _init[ i ] ) )
+     return( false );
+  return( true );
+  }
+
  // The state of the arc i in the flow x: 0 at its lower bound, 1 at its
  // upper one, 2 strictly within them
  int arcState( const std::vector< Value > & x , int i ) const {

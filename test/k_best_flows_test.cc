@@ -308,6 +308,42 @@ void checkExtremeAgainstEnumeration( int seeds )
     }
    }
 
+  // the same on double data, the costs a quarter of the integer ones and
+  // the bounds and the supplies integer: the partition of Lawler, exact
+  {
+   typedef KBestExtremeFlows< Digraph , double , double > KD;
+   Digraph::ArcMap< double > lo( p.g ) , up( p.g ) , co( p.g );
+   Digraph::NodeMap< double > su( p.g );
+   for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a ) {
+    lo[ a ] = p.lower[ a ];
+    up[ a ] = p.upper[ a ];
+    co[ a ] = p.cost[ a ] / 4.0;
+    }
+   for( Digraph::NodeIt u( p.g ) ; u != INVALID ; ++u )
+    su[ u ] = p.supply[ u ];
+   KD kd( p.g );
+   kd.lowerMap( lo ).upperMap( up ).costMap( co ).supplyMap( su );
+   const int got = kd.run( int( all.size() ) + 3 );
+   check( got == int( all.size() ) && kd.exact() &&
+	    ( all.size() < 2 || kd.solvedNum() > 0 ) ,
+	  "Not all the vertices on double data on " + id );
+   std::set< std::vector< int > > seen;
+   for( int j = 0 ; j != got ; ++j ) {
+    std::vector< int > f;
+    bool integer = true;
+    for( int i = 0 ; i != countArcs( p.g ) ; ++i ) {
+     const double x = kd.flow( j , p.g.arcFromId( i ) );
+     integer = integer && x == double( int( x ) );
+     f.push_back( int( x ) );
+     }
+    check( integer && kd.totalCost( j ) == all[ j ] / 4.0 &&
+	     isVertexFlow( p , f ) ,
+	   "Not the j-th vertex on double data on " + id );
+    check( seen.insert( f ).second ,
+	   "A vertex given twice on double data on " + id );
+    }
+   }
+
   // the cycles of least reduced cost: the same, and a second optimal
   // vertex whenever there is one
   {
@@ -507,6 +543,33 @@ void checkShortestPaths( int seeds )
 
 void checkLimitCases()
 {
+ // a bound that is not integer: the ranking of the bases, which solves no
+ // problem, on two parallel arcs of capacities 2.5 and 2 that carry 2
+ // units, of vertices of costs 4 and 6
+ {
+  typedef KBestExtremeFlows< Digraph , double , double > KD;
+  Digraph g;
+  const Node u = g.addNode() , v = g.addNode();
+  const Arc a = g.addArc( u , v ) , b = g.addArc( u , v );
+  Digraph::ArcMap< double > up( g ) , co( g );
+  Digraph::NodeMap< double > su( g , 0 );
+  up[ a ] = 2.5;
+  up[ b ] = 2;
+  co[ a ] = 3;
+  co[ b ] = 2;
+  su[ u ] = 2;
+  su[ v ] = -2;
+  KD kd( g );
+  kd.upperMap( up ).costMap( co ).supplyMap( su );
+  check( kd.run( 10 ) == 2 && kd.solvedNum() == 0 && kd.totalCost( 0 ) == 4 &&
+	   kd.totalCost( 1 ) == 6 ,
+	 "Wrong vertices with a bound that is not integer" );
+  up[ a ] = 3;
+  kd.upperMap( up );
+  check( kd.run( 10 ) == 2 && kd.solvedNum() > 0 && kd.exact() ,
+	 "Wrong vertices with integer bounds of type double" );
+  }
+
  // no flow asked, and an infeasible problem
  {
   Small p;
@@ -634,9 +697,16 @@ void checkLimitCases()
 	   kb.totalCost( 1 ) == 3 ,
 	 "Wrong extreme flows with an infinite arc" );
 
-  // one basis only: the optimal vertex, and the run says it stopped
-  kb.basisLimit( 1 );
+  // no problem solved beyond the optimal vertex: the run says it stopped
+  kb.basisLimit( 0 );
   check( kb.run( 5 ) == 1 && kb.totalCost( 0 ) == 1.75 && ! kb.exact() ,
+	 "Wrong run at the limit of the problems" );
+
+  // a capacity of 1.5, not integer: one basis only, the optimal vertex
+  // (1.5 units on b and 0.5 on a), and the run says it stopped
+  upper[ b ] = 1.5;
+  kb.upperMap( upper ).basisLimit( 1 );
+  check( kb.run( 5 ) == 1 && kb.totalCost( 0 ) == 1.125 && ! kb.exact() ,
 	 "Wrong run at the limit of the bases" );
   }
  }
