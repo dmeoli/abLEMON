@@ -87,6 +87,10 @@ class NetworkSimplex
  typedef V Value;
  /// The type of the arc costs
  typedef C Cost;
+ /// The type of the tolerance on the flows [see flowTolerance()]
+ typedef lemon::Tolerance< Value > FlowTolerance;
+ /// The type of the tolerance on the reduced costs [see costTolerance()]
+ typedef lemon::Tolerance< Cost > CostTolerance;
 
  public:
  /// \brief Problem type constants for the \c run() function.
@@ -265,7 +269,7 @@ class NetworkSimplex
   return( _cost_tol >= 0 ? _cost_tol : pivotTolerance( _cost , _arc_num ) );
   }
  Value flowTol() const {
-  return( _flow_tol >= 0 ? _flow_tol : flowTolerance() );
+  return( _flow_tol >= 0 ? _flow_tol : dataFlowTolerance() );
   }
 
  // The tolerance of the pivot rules on the reduced costs [see
@@ -280,7 +284,7 @@ class NetworkSimplex
  // The tolerance on the flows [see bits/mcf_tolerance.h], on the supplies
  // and the finite bounds of the arcs, below which the flow left on an
  // artificial arc is taken as zero.
- Value flowTolerance() const {
+ Value dataFlowTolerance() const {
   _mcf_bits::Largest< Value > m;
   for( int u = 0 ; u != _node_num ; ++u )
    m.add( _supply[ u ] );
@@ -1054,6 +1058,22 @@ class NetworkSimplex
   _flow_tol = flow;
   _cost_tol = cost;
   return( *this );
+  }
+
+ /// \brief The tolerance on the flows in use.
+ ///
+ /// The one set by \ref tolerances(), if any, and otherwise the one of
+ /// the data [see \ref tolerances()], as a \ref Tolerance, whose epsilon
+ /// is zero for an exact type.
+ FlowTolerance flowTolerance() const {
+  return( _mcf_bits::makeTolerance< Value >( flowTol() ) );
+  }
+
+ /// \brief The tolerance on the reduced costs in use.
+ ///
+ /// As \ref flowTolerance(), for the reduced costs.
+ CostTolerance costTolerance() const {
+  return( _mcf_bits::makeTolerance< Cost >( costTol() ) );
   }
 
  /// \brief Reset all the parameters that have been given before.

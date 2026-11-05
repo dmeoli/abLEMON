@@ -173,6 +173,9 @@ class McfClassConcept
    const_mcf.flowMap( fm );
    const_mcf.potentialMap( pm );
    mcf.tolerances( v , c );
+   typename MCF::FlowTolerance ft = const_mcf.flowTolerance();
+   typename MCF::CostTolerance ct = const_mcf.costTolerance();
+   ignore_unused_variable_warning( ft , ct );
    std::vector< Node > cut = const_mcf.infeasibleCut();
    std::vector< Arc > cycle = const_mcf.unboundedCycle();
    ignore_unused_variable_warning( cut , cycle );
@@ -503,6 +506,33 @@ struct RandomMcf
 // the instances above: the same result, and an optimal flow that is
 // feasible, potentials that meet complementary slackness and a dual cost
 // equal to the primal one, whose total cost is the one of NetworkSimplex
+// The tolerances in use [see flowTolerance() and costTolerance()]: those
+// set, and otherwise those of the data, 10^6 units in the last place of
+// the largest supply or finite bound and of the largest cost
+template< typename MCF >
+void checkToleranceGetters( const std::string & name )
+{
+ SmartDigraph g;
+ const SmartDigraph::Node a = g.addNode() , b = g.addNode();
+ const SmartDigraph::Arc e = g.addArc( a , b );
+ SmartDigraph::ArcMap< double > up( g , 4 ) , cost( g , 8 );
+ SmartDigraph::NodeMap< double > sup( g , 0 );
+ sup[ a ] = 2;
+ sup[ b ] = -2;
+ MCF mcf( g );
+ mcf.upperMap( up ).costMap( cost ).supplyMap( sup );
+ check( mcf.run() == MCF::OPTIMAL && mcf.flow( e ) == 2 ,
+	"Wrong flow in checkToleranceGetters of " + name );
+ const double eps = std::numeric_limits< double >::epsilon() * 1e6;
+ check( mcf.flowTolerance().epsilon() == 4 * eps &&
+	  mcf.costTolerance().epsilon() == 8 * eps ,
+	"Wrong tolerances of the data in " + name );
+ mcf.tolerances( 0.5 , 0.25 );
+ check( mcf.flowTolerance().epsilon() == 0.5 &&
+	  mcf.costTolerance().epsilon() == 0.25 ,
+	"Wrong tolerances set in " + name );
+ }
+
 template< typename MCF >
 void checkAgainstNetworkSimplex( int seeds , const std::string & name )
 {
@@ -1130,6 +1160,10 @@ int main()
  checkRunAgainOf< CycleCanceling< SmartDigraph , long > >( 100 );
  checkRunAgainOf< CapacityScaling< SmartDigraph , long > >( 100 );
 
+ checkToleranceGetters< NetworkSimplex< SmartDigraph , double > >( "NS" );
+ checkToleranceGetters< CostScaling< SmartDigraph , double > >( "CS" );
+ checkToleranceGetters< CapacityScaling< SmartDigraph , double > >( "CapS" );
+ checkToleranceGetters< CycleCanceling< SmartDigraph , double > >( "CC" );
  checkAgainstNetworkSimplex< CostScaling< SmartDigraph , long > >(
    500 , "CostScaling" );
  checkAgainstNetworkSimplex< CycleCanceling< SmartDigraph , long > >(

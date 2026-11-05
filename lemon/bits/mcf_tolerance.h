@@ -18,6 +18,9 @@
  #define LEMON_BITS_MCF_TOLERANCE_H
 
 #include <limits>
+#include <type_traits>
+
+#include <lemon/tolerance.h>
 
 //\ingroup min_cost_flow_algs
 //\file
@@ -69,6 +72,30 @@ T dataTolerance( T big )
   return( 0 );
  return(
    static_cast< T >( big * std::numeric_limits< T >::epsilon() * 1e6 ) );
+ }
+
+// A Tolerance of epsilon e, the one of an exact type, which has none, if T
+// is such
+template< typename T >
+Tolerance< T > makeTolerance( T , std::true_type )
+{
+ return( Tolerance< T >() );
+ }
+
+template< typename T >
+Tolerance< T > makeTolerance( T e , std::false_type )
+{
+ Tolerance< T > t;
+ t.epsilon( e );
+ return( t );
+ }
+
+template< typename T >
+Tolerance< T > makeTolerance( T e )
+{
+ return( makeTolerance(
+   e ,
+   std::integral_constant< bool , std::numeric_limits< T >::is_exact >() ) );
  }
 
 }  // namespace _mcf_bits
