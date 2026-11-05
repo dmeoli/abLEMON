@@ -307,9 +307,13 @@ class EdmondsKarp
  /// flow to the given \c flowMap. The \c flowMap should
  /// contain a feasible flow, i.e. at each node excluding the source
  /// and the target, the incoming flow should be equal to the
- /// outgoing flow.
+ /// outgoing flow, and on each arc the flow should be within zero and
+ /// the capacity, as \ref Preflow::init(const FlowMap&) "Preflow" checks.
+ /// \return \c false when the given \c flowMap does not contain a
+ /// feasible flow, with the tolerance of the algorithm; the flow is set
+ /// in any case.
  template< typename FlowMap >
- void init( const FlowMap & flowMap ) {
+ bool init( const FlowMap & flowMap ) {
   createStructures();
   for( ArcIt e( _graph ) ; e != INVALID ; ++e ) {
    _flow->set( e , flowMap[ e ] );
@@ -320,23 +324,6 @@ class EdmondsKarp
    }
   for( InArcIt jt( _graph , _source ) ; jt != INVALID ; ++jt ) {
    _flow_value -= ( *_flow )[ jt ];
-   }
-  }
-
- /// \brief Initializes the algorithm using the given flow map.
- ///
- /// Initializes the internal data structures and sets the initial
- /// flow to the given \c flowMap. The \c flowMap should
- /// contain a feasible flow, i.e. at each node excluding the source
- /// and the target, the incoming flow should be equal to the
- /// outgoing flow.
- /// \return \c false when the given \c flowMap does not contain a
- /// feasible flow.
- template< typename FlowMap >
- bool checkedInit( const FlowMap & flowMap ) {
-  createStructures();
-  for( ArcIt e( _graph ) ; e != INVALID ; ++e ) {
-   _flow->set( e , flowMap[ e ] );
    }
   for( NodeIt it( _graph ) ; it != INVALID ; ++it ) {
    if( it == _source || it == _target )
@@ -359,14 +346,18 @@ class EdmondsKarp
    if( _tolerance.less( ( *_capacity )[ it ] , ( *_flow )[ it ] ) )
     return( false );
    }
-  _flow_value = 0;
-  for( OutArcIt jt( _graph , _source ) ; jt != INVALID ; ++jt ) {
-   _flow_value += ( *_flow )[ jt ];
-   }
-  for( InArcIt jt( _graph , _source ) ; jt != INVALID ; ++jt ) {
-   _flow_value -= ( *_flow )[ jt ];
-   }
   return( true );
+  }
+
+ /// \brief Initializes the algorithm using the given flow map.
+ ///
+ /// The same as \ref init(const FlowMap&), which checks the flow as well,
+ /// kept under its old name.
+ /// \return \c false when the given \c flowMap does not contain a
+ /// feasible flow.
+ template< typename FlowMap >
+ bool checkedInit( const FlowMap & flowMap ) {
+  return( init( flowMap ) );
   }
 
  /// \brief Augments the solution along a shortest path.

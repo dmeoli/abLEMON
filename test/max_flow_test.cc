@@ -141,8 +141,8 @@ void checkEdmondsKarpCompile()
 
  EdmondsKarp< Digraph , CapMap > ek_test( g , cap , n , n );
 
- ek_test.init( cap );
- bool b = ek_test.checkedInit( cap );
+ bool b = ek_test.init( cap );
+ b = ek_test.checkedInit( cap );
  b = ek_test.augment();
  ek_test.start();
 
@@ -391,8 +391,28 @@ struct PreflowStartFunctions
  static void startSecondPhase( MF & mf ) { mf.startSecondPhase(); }
  };
 
+// EdmondsKarp::init() of a flow tells whether it is feasible, as Preflow
+// does: a flow that leaves an inner node, or exceeds a capacity, is not
+void checkEdmondsKarpInit()
+{
+ SmartDigraph g;
+ const SmartDigraph::Node s = g.addNode() , u = g.addNode() , t = g.addNode();
+ const SmartDigraph::Arc a = g.addArc( s , u ) , b = g.addArc( u , t );
+ SmartDigraph::ArcMap< int > cap( g , 2 ) , flow( g , 1 );
+ EdmondsKarp< SmartDigraph , SmartDigraph::ArcMap< int > > ek( g , cap , s ,
+							       t );
+ check( ek.init( flow ) && ek.flowValue() == 1 ,
+	"EdmondsKarp::init() rejects a feasible flow" );
+ flow[ b ] = 0;
+ check( ! ek.init( flow ) , "EdmondsKarp::init() takes an unbalanced flow" );
+ flow[ b ] = flow[ a ] = 3;
+ check( ! ek.init( flow ) ,
+	"EdmondsKarp::init() takes a flow over a capacity" );
+ }
+
 int main()
 {
+ checkEdmondsKarpInit();
 
  typedef concepts::Digraph GR;
  typedef concepts::ReadMap< GR::Arc , int > CM1;
