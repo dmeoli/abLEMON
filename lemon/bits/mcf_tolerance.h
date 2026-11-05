@@ -98,6 +98,28 @@ Tolerance< T > makeTolerance( T e )
    std::integral_constant< bool , std::numeric_limits< T >::is_exact >() ) );
  }
 
+// The epsilon of a Tolerance, zero for that of an exact type
+template< typename T >
+long double epsilonOf( const Tolerance< T > & )
+{
+ return( 0 );
+ }
+
+inline long double epsilonOf( const Tolerance< float > & t )
+{
+ return( t.epsilon() );
+ }
+
+inline long double epsilonOf( const Tolerance< double > & t )
+{
+ return( t.epsilon() );
+ }
+
+inline long double epsilonOf( const Tolerance< long double > & t )
+{
+ return( t.epsilon() );
+ }
+
 }  // namespace _mcf_bits
 
 }  // namespace lemon

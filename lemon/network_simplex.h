@@ -1800,6 +1800,8 @@ class NetworkSimplex
  _mcf_bits::McfData< Value > certData() const {
   _mcf_bits::McfData< Value > d;
   d.n = _node_num;
+  d.feps = static_cast< long double >( flowTol() );
+  d.ceps = static_cast< long double >( costTol() );
   d.supply.assign( _supply.begin() , _supply.begin() + _node_num );
   for( int i = 0 ; i != _arc_num ; ++i ) {
    const Value low = _has_lower ? _lower[ i ] : Value( 0 );
