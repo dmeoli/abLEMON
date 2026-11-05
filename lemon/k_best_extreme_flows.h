@@ -842,6 +842,65 @@ class KBestExtremeFlows
    return( false );
    };
 
+  // the least reduced cost of a path from src to dst in the residual graph
+  // of the flow of the solution sv within the bounds of its child of
+  // position at, on the reduced costs of the solution: the arcs after it
+  // have their bounds, those before it keep their states; the residual
+  // arcs of each solution are made once, when the bound of its first child
+  // is computed
+  std::vector< std::vector< std::vector< int > > > res;
+  auto cycleDist = [ & ]( int sv , int at , int src , int dst ) -> bool {
+   if( int( res.size() ) <= sv )
+    res.resize( sv + 1 );
+   if( res[ sv ].empty() ) {
+    const std::vector< Value > & y = sols[ sv ].flow;
+    res[ sv ].resize( nn );
+    for( int i = 0 ; i != mm ; ++i ) {
+     if( _inf[ i ] || y[ i ] < _upper[ i ] )
+      res[ sv ][ _source[ i ] ].push_back( 2 * i );
+     if( y[ i ] > _lower[ i ] )
+      res[ sv ][ _target[ i ] ].push_back( 2 * i + 1 );
+     }
+    }
+   const std::vector< std::vector< int > > & out = res[ sv ];
+   const std::vector< Value > & y = sols[ sv ].flow;
+   const std::vector< Cost > & p = sols[ sv ].pot;
+   dist.assign( nn , -1 );
+   std::vector< char > done( nn , 0 );
+   std::priority_queue< std::pair< Cost , int > ,
+			std::vector< std::pair< Cost , int > > ,
+			std::greater< std::pair< Cost , int > > > q;
+   dist[ src ] = 0;
+   q.push( std::make_pair( Cost( 0 ) , src ) );
+   while( ! q.empty() ) {
+    const int w = q.top().second;
+    q.pop();
+    if( done[ w ] )
+     continue;
+    done[ w ] = 1;
+    if( w == dst )
+     return( true );
+    for( std::size_t t = 0 ; t != out[ w ].size() ; ++t ) {
+     const int r = out[ w ][ t ] , z = head( r ) , a = r / 2;
+     if( pos[ a ] == at || done[ z ] )
+      continue;
+     // an arc before it keeps its state: only one strictly within its
+     // bounds moves, within one unit of them
+     if( pos[ a ] < at &&
+	 ( arcState( y , a ) != 2 ||
+	   ( r % 2 == 0 ? ( ! _inf[ a ] && y[ a ] >= _upper[ a ] - 1 )
+			: y[ a ] <= _lower[ a ] + 1 ) ) )
+      continue;
+     const Cost d = dist[ w ] + rcOf( p , r );
+     if( dist[ z ] < 0 || d < dist[ z ] ) {
+      dist[ z ] = d;
+      q.push( std::make_pair( d , z ) );
+      }
+     }
+    }
+   return( false );
+   };
+
   // the flow of the arc i of a child, the nearest one to x in its state
   auto nearest = [ & ]( int i , Value x ) -> Value {
    return( x < lo[ i ]                     ? lo[ i ]
@@ -945,13 +1004,17 @@ class KBestExtremeFlows
    if( nodes[ v ].sol < 0 ) {
     const Solved & ps = sols[ nodes[ nodes[ v ].parent ].sol ];
     const int i = ord[ nodes[ v ].pos ];
-    nodeBounds( v );
     if( ! nodes[ v ].cycle ) {
      // the bound of the cycles: none, an empty child
      nodes[ v ].cycle = true;
-     const Value x = nearest( i , ps.flow[ i ] ) , d = x - ps.flow[ i ];
+     bool in;
+     Value l = 0 , h = 0;
+     stateBounds( i , nodes[ v ].st , l , h , in );
+     const Value y = ps.flow[ i ];
+     const Value x = y < l ? l : ( ! in && y > h ) ? h : y , d = x - y;
      const int r = d > 0 ? 2 * i : 2 * i + 1;
-     if( ! paths( ps.flow , ps.pot , head( r ) , tail( r ) , i ) )
+     if( ! cycleDist( nodes[ nodes[ v ].parent ].sol , nodes[ v ].pos ,
+		      head( r ) , tail( r ) ) )
       continue;
      const Cost b = ps.cost + ( d > 0 ? d : Value( -d ) ) *
 				( rcOf( ps.pot , r ) + dist[ tail( r ) ] );
@@ -964,6 +1027,7 @@ class KBestExtremeFlows
      break;
      }
     ++_solved;
+    nodeBounds( v );
     Solved z;
     if( ! solve( v , z ) )
      continue;
