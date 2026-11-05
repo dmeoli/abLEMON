@@ -448,8 +448,8 @@ void checkShortestPaths( int seeds )
  unsigned int r = 1994;
  for( int seed = 0 ; seed != seeds ; ++seed )
   for( int unit = 0 ; unit != 2 ; ++unit ) {
-   const std::string id = "path instance " + std::to_string( seed ) +
-			  ( unit ? " (unit)" : "" );
+   const std::string id =
+     "path instance " + std::to_string( seed ) + ( unit ? " (unit)" : "" );
    const int layers = 3 , width = 3;
    Small p;
    std::vector< std::vector< Node > > lay( layers + 2 );

@@ -151,13 +151,14 @@ class KBestExtremeFlows
  /// The bounds are 0 and infinite, the costs 1 and the supplies 0 until
  /// they are given.
  explicit KBestExtremeFlows( const GR & graph )
-     : _graph( graph ) , _n( countNodes( graph ) ) ,
-       _m( countArcs( graph ) ) , _node_id( graph ) , _arc_id( graph ) ,
-       _source( _m + _n ) , _target( _m + _n ) , _lower( _m + _n , 0 ) ,
-       _upper( _m + _n , 0 ) , _supply( _n , 0 ) , _inf( _m + _n , 1 ) ,
-       _cost( _m + _n , 0 ) , _has_init( false ) , _basis_limit( 1000 ) ,
-       _vertex_limit( 0 ) , _method( RANKING ) , _pot_method( PATHS ) ,
-       _solved( 0 ) , _exact( true ) , _feps( 0 ) {
+     : _graph( graph ) , _n( countNodes( graph ) ) , _m( countArcs( graph ) ) ,
+       _node_id( graph ) , _arc_id( graph ) , _source( _m + _n ) ,
+       _target( _m + _n ) , _lower( _m + _n , 0 ) , _upper( _m + _n , 0 ) ,
+       _supply( _n , 0 ) , _inf( _m + _n , 1 ) , _cost( _m + _n , 0 ) ,
+       _has_init( false ) , _basis_limit( 1000 ) , _vertex_limit( 0 ) ,
+       _method( RANKING ) , _pot_method( PATHS ) , _solved( 0 ) ,
+       _exact( true ) ,
+       _feps( 0 ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
    _node_id[ u ] = i++;
@@ -648,10 +649,9 @@ class KBestExtremeFlows
    std::vector< Cost > key( mm );
    for( int i = 0 ; i != mm ; ++i )
     key[ i ] = absRc( pi , i );
-   std::stable_sort( ord.begin() , ord.end() ,
-		     [ & ]( int a , int b ) -> bool {
-		      return( key[ a ] < key[ b ] );
-		      } );
+   std::stable_sort( ord.begin() , ord.end() , [ & ]( int a , int b ) -> bool {
+    return( key[ a ] < key[ b ] );
+    } );
    }
 
   // the digraph of the arcs and of the root, on which the nodes are solved
@@ -693,8 +693,8 @@ class KBestExtremeFlows
   std::vector< Part > nodes;
   std::vector< Solved > sols;
   typedef std::pair< Cost , int > Item;
-  std::priority_queue< Item , std::vector< Item > , std::greater< Item > >
-    queue;
+  std::priority_queue< Item , std::vector< Item > ,
+		       std::greater< Item > > queue;
   {
    Part r = { -1 , -1 , -1 , 0 , 0 };
    nodes.push_back( r );
@@ -788,9 +788,9 @@ class KBestExtremeFlows
      if( st == cur || ! stateBounds( i , st , l , h , in ) )
       continue;
      // the least change of the flow of the arc into that state
-     const Value d = st == 2 ? Value( 1 ) :
-		     st == 0 ? Value( x - _lower[ i ] ) :
-		     Value( _upper[ i ] - x );
+     const Value d = st == 2   ? Value( 1 )
+		     : st == 0 ? Value( x - _lower[ i ] )
+			       : Value( _upper[ i ] - x );
      const Cost b = sols[ sv ].cost + rc * d;
      if( bounded && b > limit )
       continue;
