@@ -221,14 +221,19 @@ class KBestExtremeFlows
  /// for it, the cycles of the residual graph whose arcs have a reduced
  /// cost of zero, saturated and made vertices, are the other optimal
  /// vertices, from which the same is done again; then, from each optimal
- /// vertex and for each residual arc, the cycle of least reduced cost
- /// through the arc (one Dijkstra's algorithm for each node), saturated and
- /// made a vertex, the cost not growing, gives a vertex of larger cost, and
- /// these are given in the order of their costs. The flows are distinct
- /// vertices in the order of their costs, the optimal ones first, but
- /// those of larger cost are only the best of the vertices one cycle away
- /// from an optimal one [see \ref exact()]; each optimal vertex costs
- /// \f$O(nm\log n)\f$ time and \f$O(km)\f$ memory.
+ /// vertex and for each arc at one of its bounds, the cycle of least
+ /// reduced cost through the arc, saturated and made a vertex, the cost not
+ /// growing, gives a vertex of larger cost; those of the cycles of least
+ /// reduced cost are kept, and given in the order of their costs. Only the
+ /// arcs at a bound are tried, since the free arcs of a vertex make no
+ /// cycle, and in the order of their reduced costs, which bound from below
+ /// those of their cycles, until one reaches that of the last cycle kept;
+ /// one Dijkstra's algorithm is made from the head of each arc tried. The
+ /// flows are distinct vertices in the order of their costs, the optimal
+ /// ones first, but those of larger cost are only some of the vertices one
+ /// cycle away from an optimal one [see \ref exact()]; each optimal vertex
+ /// costs at most \f$O(nm\log n)\f$ time, and \f$O(km + pn)\f$ memory for
+ /// the p trees of the shortest paths made.
  KBestExtremeFlows & method( Method m ) {
   _method = m;
   return( *this );
@@ -508,7 +513,6 @@ class KBestExtremeFlows
    return( 0 );
   const bool bounded = gap >= 0;
   const Cost limit = bounded ? s.cost + gap : s.cost;
-  const int nn = _n + 1 , rr = 2 * ( _m + _n );
 
   const Cost ceps = costTolerance();
   std::vector< Cost > pi , rc;
@@ -554,55 +558,92 @@ class KBestExtremeFlows
    return( true );
    };
 
-  // the optimal vertices, through the cycles of zero reduced cost
-  std::vector< State > optimal( 1 , s );
-  give( s );
+  // every cycle that moves the flow of a vertex goes through an arc at one
+  // of its bounds, since the free arcs of a vertex make no cycle: those are
+  // the arcs tried
+  auto bounds = [ & ]( const State & x ) -> std::vector< int > {
+   std::vector< int > arcs;
+   for( int r = 0 ; r != 2 * ( _m + _n ) ; ++r )
+    if( open( x , r ) && ! open( x , r ^ 1 ) )
+     arcs.push_back( r );
+   return( arcs );
+   };
   std::vector< Cost > dist;
   std::vector< int > pred;
+
+  // the optimal vertices, through the cycles of zero reduced cost: an arc of
+  // zero reduced cost closes one if and only if its ends are in the same
+  // strongly connected component of the open arcs of zero reduced cost, and
+  // the path is then found from its head along those arcs
+  std::vector< State > optimal( 1 , s );
+  give( s );
   for( std::size_t i = 0 ; i != optimal.size() &&
-	                   int( _flows.size() ) < k ; ++i ) {
+		           int( _flows.size() ) < k ; ++i ) {
    const State x = optimal[ i ];
    const auto out = openArcs( x , false );
-   for( int v = 0 ; v != nn && int( _flows.size() ) < k ; ++v ) {
-    shortestPaths( out , v , false , rc , true , ceps , dist , pred );
-    for( int r = 0 ; r != rr && int( _flows.size() ) < k ; ++r ) {
-     if( head( r ) != v || rc[ r ] > ceps || ! open( x , r ) ||
-	 ( tail( r ) != v && pred[ tail( r ) ] < 0 ) )
-      continue;
-     State y;
-     if( step( x , r , pred , y ) && y.cost <= s.cost + ceps && give( y ) )
-      optimal.push_back( y );
-     }
+   const auto arcs = bounds( x );
+   std::vector< int > comp;
+   zeroComponents( out , rc , ceps , comp );
+   for( std::size_t h = 0 ; h != arcs.size() &&
+		            int( _flows.size() ) < k ; ++h ) {
+    const int r = arcs[ h ];
+    if( rc[ r ] > ceps || comp[ tail( r ) ] != comp[ head( r ) ] )
+     continue;
+    if( tail( r ) != head( r ) &&
+	! shortestPaths( out , head( r ) , false , rc , true , ceps , dist ,
+			 pred , tail( r ) ) )
+     continue;
+    State y;
+    if( step( x , r , pred , y ) && y.cost <= s.cost + ceps && give( y ) )
+     optimal.push_back( y );
     }
    }
 
   // the vertices one cycle of least reduced cost away from an optimal one,
-  // the best ones kept
-  std::multimap< Cost , std::vector< Value > > cand;
+  // the cycles of least reduced cost kept; the reduced cost of the cycle of
+  // the arc r is at least rc[ r ], so the arcs are tried by increasing
+  // reduced cost until it reaches that of the last cycle kept, and the path
+  // that closes a cycle is looked for only within what is left to that
   const std::size_t want = std::size_t( k ) - _flows.size();
+  std::multimap< Cost , std::pair< Cost , std::vector< Value > > > kept;
   for( std::size_t i = 0 ; i != optimal.size() && want > 0 ; ++i ) {
    const State & x = optimal[ i ];
    const auto out = openArcs( x , false );
-   for( int v = 0 ; v != nn ; ++v ) {
-    shortestPaths( out , v , false , rc , false , ceps , dist , pred );
-    for( int r = 0 ; r != rr ; ++r ) {
-     if( head( r ) != v || ! open( x , r ) ||
-	 ( tail( r ) != v && pred[ tail( r ) ] < 0 ) ||
-	 rc[ r ] + ( tail( r ) != v ? dist[ tail( r ) ] : Cost( 0 ) ) <= ceps )
+   auto arcs = bounds( x );
+   std::stable_sort( arcs.begin() , arcs.end() ,
+		     [ & ]( int p , int q ) -> bool {
+		      return( rc[ p ] < rc[ q ] );
+		      } );
+   for( std::size_t h = 0 ; h != arcs.size() ; ++h ) {
+    const int r = arcs[ h ];
+    const bool full = kept.size() >= 2 * want;
+    const Cost worst = full ? std::prev( kept.end() )->first : Cost( 0 );
+    if( full && rc[ r ] >= worst )
+     break;
+    Cost c = rc[ r ];
+    if( tail( r ) != head( r ) ) {
+     if( ! shortestPaths( out , head( r ) , false , rc , false , ceps , dist ,
+			  pred , tail( r ) , full , worst - rc[ r ] ) )
       continue;
-     State y;
-     if( ! step( x , r , pred , y ) || ( bounded && y.cost > limit ) ||
-	 y.cost <= s.cost + ceps )
-      continue;
-     std::vector< Value > f( y.flow.begin() , y.flow.begin() + _m );
-     if( seen.count( f ) )
-      continue;
-     cand.insert( std::make_pair( y.cost , f ) );
-     while( cand.size() > 2 * want )
-      cand.erase( std::prev( cand.end() ) );
+     c += dist[ tail( r ) ];
      }
+    if( c <= ceps || ( full && c >= worst ) )
+     continue;
+    State y;
+    if( ! step( x , r , pred , y ) || ( bounded && y.cost > limit ) ||
+	y.cost <= s.cost + ceps )
+     continue;
+    std::vector< Value > f( y.flow.begin() , y.flow.begin() + _m );
+    if( seen.count( f ) )
+     continue;
+    kept.insert( std::make_pair( c , std::make_pair( y.cost , f ) ) );
+    while( kept.size() > 2 * want )
+     kept.erase( std::prev( kept.end() ) );
     }
    }
+  std::multimap< Cost , std::vector< Value > > cand;
+  for( auto it = kept.begin() ; it != kept.end() ; ++it )
+   cand.insert( it->second );
   for( auto it = cand.begin() ; it != cand.end() &&
 	                         int( _flows.size() ) < k ; ++it )
    if( seen.insert( it->second ).second ) {
@@ -672,10 +713,11 @@ class KBestExtremeFlows
  // openArcs()], by Dijkstra's algorithm on the reduced costs rc, those of
  // zero reduced cost alone if zero is true; dist is -1 at a node not
  // reached, and pred the arc of the tree that reaches a node
- void shortestPaths( const std::vector< std::vector< int > > & adj , int v ,
+ bool shortestPaths( const std::vector< std::vector< int > > & adj , int v ,
 		     bool into , const std::vector< Cost > & rc , bool zero ,
 		     Cost ceps , std::vector< Cost > & dist ,
-		     std::vector< int > & pred ) const {
+		     std::vector< int > & pred , int target = -1 ,
+		     bool bounded = false , Cost bound = 0 ) const {
   const int nn = _n + 1;
   dist.assign( nn , -1 );
   pred.assign( nn , -1 );
@@ -685,11 +727,15 @@ class KBestExtremeFlows
   dist[ v ] = 0;
   q.push( QI( 0 , v ) );
   while( ! q.empty() ) {
+   if( bounded && q.top().first >= bound )
+    break;
    const int w = q.top().second;
    q.pop();
    if( done[ w ] )
     continue;
    done[ w ] = 1;
+   if( w == target )
+    return( true );
    for( std::size_t t = 0 ; t != adj[ w ].size() ; ++t ) {
     const int r = adj[ w ][ t ] , z = into ? tail( r ) : head( r );
     if( zero && rc[ r ] > ceps )
@@ -700,6 +746,58 @@ class KBestExtremeFlows
      pred[ z ] = r;
      q.push( QI( d , z ) );
      }
+    }
+   }
+  return( target < 0 );
+  }
+
+ // The strongly connected components of the arcs of adj [see openArcs()]
+ // of zero reduced cost, by Tarjan's algorithm: comp holds the component of
+ // each node
+ void zeroComponents( const std::vector< std::vector< int > > & adj ,
+		      const std::vector< Cost > & rc , Cost ceps ,
+		      std::vector< int > & comp ) const {
+  const int nn = _n + 1;
+  comp.assign( nn , -1 );
+  std::vector< int > index( nn , -1 ) , low( nn , 0 ) , stack;
+  std::vector< std::pair< int , std::size_t > > call;
+  int count = 0 , comps = 0;
+  for( int u = 0 ; u != nn ; ++u ) {
+   if( index[ u ] >= 0 )
+    continue;
+   call.push_back( std::make_pair( u , std::size_t( 0 ) ) );
+   index[ u ] = low[ u ] = count++;
+   stack.push_back( u );
+   while( ! call.empty() ) {
+    const int w = call.back().first;
+    std::size_t & t = call.back().second;
+    if( t != adj[ w ].size() ) {
+     const int r = adj[ w ][ t++ ] , z = head( r );
+     if( rc[ r ] > ceps )
+      continue;
+     if( index[ z ] < 0 ) {
+      index[ z ] = low[ z ] = count++;
+      stack.push_back( z );
+      call.push_back( std::make_pair( z , std::size_t( 0 ) ) );
+      }
+     else
+      if( comp[ z ] < 0 )
+       low[ w ] = ( std::min )( low[ w ] , index[ z ] );
+     continue;
+     }
+    if( low[ w ] == index[ w ] ) {
+     int z;
+     do {
+      z = stack.back();
+      stack.pop_back();
+      comp[ z ] = comps;
+      } while( z != w );
+     ++comps;
+     }
+    call.pop_back();
+    if( ! call.empty() )
+     low[ call.back().first ] = ( std::min )( low[ call.back().first ] ,
+					    low[ w ] );
     }
    }
   }
