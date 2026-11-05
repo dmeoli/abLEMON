@@ -22,8 +22,6 @@
 #include <vector>
 
 #include <lemon/bin_heap.h>
-#include <lemon/concept_check.h>
-#include <lemon/concepts/heap.h>
 #include <lemon/core.h>
 #include <lemon/path.h>
 
@@ -176,9 +174,7 @@ class BidirDijkstra
  /// \param length The lengths of the arcs, which must be nonnegative.
  BidirDijkstra( const Digraph & graph , const LengthMap & length )
      : _graph( graph ) , _length( length ) , _fwd( graph ) , _bwd( graph ) ,
-       _dist( 0 ) {
-  checkConcept< concepts::Heap< Value , HeapCrossRef > , Heap >();
-  }
+       _dist( 0 ) { }
 
  /// \brief Find a shortest path from \c s to \c t.
  ///

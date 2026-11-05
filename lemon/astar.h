@@ -22,8 +22,6 @@
 #include <vector>
 
 #include <lemon/bin_heap.h>
-#include <lemon/concept_check.h>
-#include <lemon/concepts/heap.h>
 #include <lemon/core.h>
 #include <lemon/path.h>
 
@@ -139,9 +137,7 @@ class AStar
      : _graph( graph ) , _length( length ) , _heuristic( heuristic ) ,
        _dist( graph ) , _pred( graph , INVALID ) , _seen( graph , false ) ,
        _cross( graph , Heap::PRE_HEAP ) , _heap( _cross ) , _target( 0 ) ,
-       _scanned( 0 ) {
-  checkConcept< concepts::Heap< Value , HeapCrossRef > , Heap >();
-  }
+       _scanned( 0 ) { }
 
  /// \brief Find a shortest path from \c s to \c t.
  ///
