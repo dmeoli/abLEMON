@@ -309,6 +309,53 @@ void checkExtremeAgainstEnumeration( int seeds )
   }
  }
 
+// KBestExtremeFlows::runPotentials() on the random instances: each of the
+// potentials it gives is optimal, i.e., under them the reduced costs of the
+// arcs, those from the root to the nodes included, meet the complementary
+// slackness with the optimal flow, and they are all different
+void checkPotentials( int seeds )
+{
+ unsigned int r = 1972;
+ for( int seed = 0 ; seed != seeds ; ++seed ) {
+  Small p;
+  randomSmall( p , r );
+  const std::string id = "instance " + std::to_string( seed );
+  KBestExtremeFlows< Digraph > kb( p.g );
+  kb.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+    p.supply );
+  if( kb.run( 1 ) == 0 ) {
+   check( kb.runPotentials( 4 ) == 0 , "Potentials of no flow on " + id );
+   continue;
+   }
+  const int got = kb.runPotentials( 8 );
+  check( got >= 1 , "No optimal potentials on " + id );
+  std::set< std::vector< int > > seen;
+  for( int j = 0 ; j != got ; ++j ) {
+   Digraph::NodeMap< int > excess( p.g , 0 );
+   std::vector< int > pot;
+   for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a ) {
+    const int f = kb.flow( 0 , a );
+    const int rc = p.cost[ a ] + kb.potential( j , p.g.source( a ) ) -
+                   kb.potential( j , p.g.target( a ) );
+    check( ( f == p.upper[ a ] || rc >= 0 ) &&
+	   ( f == p.lower[ a ] || rc <= 0 ) ,
+	   "Potentials not optimal on an arc of " + id );
+    excess[ p.g.source( a ) ] += f;
+    excess[ p.g.target( a ) ] -= f;
+    }
+   // the arc from the root to a node, of potential 0, carries what the
+   // node receives beyond its demand
+   for( Digraph::NodeIt u( p.g ) ; u != INVALID ; ++u ) {
+    const int pu = kb.potential( j , u );
+    check( pu <= 0 && ( excess[ u ] == p.supply[ u ] || pu == 0 ) ,
+	   "Potentials not optimal on an arc of the root of " + id );
+    pot.push_back( pu );
+    }
+   check( seen.insert( pot ).second , "The same potentials twice on " + id );
+   }
+  }
+ }
+
 void checkLimitCases()
 {
  // no flow asked, and an infeasible problem
@@ -449,6 +496,7 @@ int main()
 {
  checkAgainstEnumeration( 2000 );
  checkExtremeAgainstEnumeration( 2000 );
+ checkPotentials( 2000 );
  checkLimitCases();
  return( 0 );
  }

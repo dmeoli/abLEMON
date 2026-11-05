@@ -62,6 +62,10 @@ namespace lemon
 /// saturating the cycles of the arcs strictly within their bounds, whose
 /// costs are zero at an optimal flow.
 ///
+/// On the dual side, \ref runPotentials() gives distinct optimal
+/// potentials, the vertices of the dual polyhedron of the trees of the
+/// shortest paths of the reduced costs from and to each node.
+///
 /// \tparam GR The digraph type the algorithm runs on.
 /// \tparam V The number type of the flow amounts, of the bounds and of the
 /// supplies; by default, \c int.
@@ -115,6 +119,7 @@ class KBestExtremeFlows
 
  std::vector< std::vector< Value > > _flows;
  std::vector< Cost > _costs;
+ std::vector< std::vector< Cost > > _pots;
 
  public:
  /// \brief Constructor.
@@ -415,6 +420,83 @@ class KBestExtremeFlows
    map.set( a , _flows[ i ][ _arc_id[ a ] ] );
   }
 
+ /// \brief Finds k distinct optimal potentials.
+ ///
+ /// The potentials (dual solutions) optimal for the problem, i.e., those
+ /// under which the reduced cost of every residual arc of an optimal flow
+ /// is nonnegative: from potentials \f$\pi\f$ optimal for the optimal
+ /// vertex [see \ref run()], \f$\pi + d_s\f$ and \f$\pi - d'_s\f$ for
+ /// each node \f$s\f$ in turn, where \f$d_s\f$ are the distances from
+ /// \f$s\f$ and \f$d'_s\f$ those to \f$s\f$ in the residual graph of the
+ /// flow on the reduced costs (one Dijkstra's algorithm each), the nodes
+ /// that are not reached taking the largest distance. Each is the vertex of
+ /// the dual polyhedron given by the tree of the shortest paths, of zero
+ /// reduced costs; potentials that differ by a constant are the same.
+ ///
+ /// \param k The largest number of potentials to find.
+ ///
+ /// \return The number of the potentials found, zero if the problem has
+ /// no optimal flow.
+ int runPotentials( int k ) {
+  _pots.clear();
+  State s;
+  if( k <= 0 || ! firstState( s ) )
+   return( 0 );
+  const int nn = _n + 1;
+  const Cost ceps = costTolerance();
+  std::vector< Cost > pi , rc;
+  optimalPotentials( s , ceps , pi );
+  reducedCosts( pi , rc );
+
+  // a vector of potentials up to a constant: the one of the root made zero
+  auto add = [ & ]( std::vector< Cost > p ) {
+   const Cost c = p[ _n ];
+   for( int u = 0 ; u != nn ; ++u )
+    p[ u ] -= c;
+   for( std::size_t j = 0 ; j != _pots.size() ; ++j ) {
+    bool same = true;
+    for( int u = 0 ; u != nn && same ; ++u ) {
+     const Cost d = p[ u ] - _pots[ j ][ u ];
+     same = ( d < 0 ? -d : d ) <= ceps;
+     }
+    if( same )
+     return;
+    }
+   _pots.push_back( p );
+   };
+
+  add( pi );
+  const std::vector< std::vector< int > > out = openArcs( s , false ) ,
+					   in = openArcs( s , true );
+  std::vector< Cost > dist;
+  std::vector< int > pred;
+  for( int v = 0 ; v != _n && int( _pots.size() ) < k ; ++v )
+   for( int dir = 0 ; dir != 2 && int( _pots.size() ) < k ; ++dir ) {
+    shortestPaths( dir == 0 ? out : in , v , dir == 1 , rc , false , ceps ,
+		   dist , pred );
+    Cost far = 0;
+    for( int u = 0 ; u != nn ; ++u )
+     far = ( std::max )( far , dist[ u ] );
+    std::vector< Cost > p( pi );
+    for( int u = 0 ; u != nn ; ++u ) {
+     const Cost d = dist[ u ] < 0 ? far : dist[ u ];
+     p[ u ] += dir == 0 ? d : -d;
+     }
+    add( p );
+    }
+  return( int( _pots.size() ) );
+  }
+
+ /// \brief The number of the potentials found by the last
+ /// \ref runPotentials().
+ int potentialNum() const { return( int( _pots.size() ) ); }
+
+ /// \brief The potential of a node in the i-th potentials, the first being
+ /// 0.
+ Cost potential( int i , const Node & u ) const {
+  return( _pots[ i ][ _node_id[ u ] ] );
+  }
+
  private:
  // The run of CYCLES [see method()]
  int runCycles( int k , Cost gap ) {
@@ -428,40 +510,10 @@ class KBestExtremeFlows
   const Cost limit = bounded ? s.cost + gap : s.cost;
   const int nn = _n + 1 , rr = 2 * ( _m + _n );
 
-  // the tolerance on the reduced costs: zero for an exact type, otherwise
-  // relative to the largest cost
-  Cost ceps = 0;
-  if( ! std::numeric_limits< Cost >::is_exact ) {
-   Cost big = 1;
-   for( int i = 0 ; i != _m ; ++i )
-    big = ( std::max )( big , _cost[ i ] < 0 ? Cost( -_cost[ i ] )
-					      : _cost[ i ] );
-   ceps = static_cast< Cost >( big * std::numeric_limits< Cost >::epsilon() *
-			       1e6 );
-   }
-
-  // potentials optimal for the first vertex: the distances in its residual
-  // graph from a source joined to every node, which has no negative cycle
-  std::vector< Cost > pi( nn , 0 );
-  for( int pass = 0 ; pass != nn ; ++pass ) {
-   bool changed = false;
-   for( int r = 0 ; r != rr ; ++r )
-    if( open( s , r ) && pi[ tail( r ) ] + resCost( r ) <
-	                 pi[ head( r ) ] - ceps ) {
-     pi[ head( r ) ] = pi[ tail( r ) ] + resCost( r );
-     changed = true;
-     }
-   if( ! changed )
-    break;
-   }
-  // the reduced costs, nonnegative on the residual arcs of every optimal
-  // vertex, the potentials being optimal for all of them
-  std::vector< Cost > rc( rr );
-  for( int r = 0 ; r != rr ; ++r ) {
-   rc[ r ] = resCost( r ) + pi[ tail( r ) ] - pi[ head( r ) ];
-   if( rc[ r ] < 0 )
-    rc[ r ] = 0;
-   }
+  const Cost ceps = costTolerance();
+  std::vector< Cost > pi , rc;
+  optimalPotentials( s , ceps , pi );
+  reducedCosts( pi , rc );
 
   std::set< std::vector< Value > > seen;
   auto give = [ & ]( const State & x ) -> bool {
@@ -502,48 +554,6 @@ class KBestExtremeFlows
    return( true );
    };
 
-  // the paths from v along the open residual arcs of x, by Dijkstra's
-  // algorithm on the reduced costs, those of zero reduced cost alone if
-  // zero is true
-  auto paths = [ & ]( const std::vector< std::vector< int > > & out , int v ,
-		      bool zero , std::vector< Cost > & dist ,
-		      std::vector< int > & pred ) {
-   dist.assign( nn , -1 );
-   pred.assign( nn , -1 );
-   typedef std::pair< Cost , int > QI;
-   std::priority_queue< QI , std::vector< QI > , std::greater< QI > > q;
-   std::vector< char > done( nn , 0 );
-   dist[ v ] = 0;
-   q.push( QI( 0 , v ) );
-   while( ! q.empty() ) {
-    const int w = q.top().second;
-    q.pop();
-    if( done[ w ] )
-     continue;
-    done[ w ] = 1;
-    for( std::size_t t = 0 ; t != out[ w ].size() ; ++t ) {
-     const int r = out[ w ][ t ] , z = head( r );
-     if( zero && rc[ r ] > ceps )
-      continue;
-     const Cost d = dist[ w ] + rc[ r ];
-     if( ! done[ z ] && ( dist[ z ] < 0 || d < dist[ z ] ) ) {
-      dist[ z ] = d;
-      pred[ z ] = r;
-      q.push( QI( d , z ) );
-      }
-     }
-    }
-   };
-
-  auto outOf = [ & ]( const State & x )
-		      -> std::vector< std::vector< int > > {
-   std::vector< std::vector< int > > out( nn );
-   for( int r = 0 ; r != rr ; ++r )
-    if( open( x , r ) )
-     out[ tail( r ) ].push_back( r );
-   return( out );
-   };
-
   // the optimal vertices, through the cycles of zero reduced cost
   std::vector< State > optimal( 1 , s );
   give( s );
@@ -552,9 +562,9 @@ class KBestExtremeFlows
   for( std::size_t i = 0 ; i != optimal.size() &&
 	                   int( _flows.size() ) < k ; ++i ) {
    const State x = optimal[ i ];
-   const auto out = outOf( x );
+   const auto out = openArcs( x , false );
    for( int v = 0 ; v != nn && int( _flows.size() ) < k ; ++v ) {
-    paths( out , v , true , dist , pred );
+    shortestPaths( out , v , false , rc , true , ceps , dist , pred );
     for( int r = 0 ; r != rr && int( _flows.size() ) < k ; ++r ) {
      if( head( r ) != v || rc[ r ] > ceps || ! open( x , r ) ||
 	 ( tail( r ) != v && pred[ tail( r ) ] < 0 ) )
@@ -572,9 +582,9 @@ class KBestExtremeFlows
   const std::size_t want = std::size_t( k ) - _flows.size();
   for( std::size_t i = 0 ; i != optimal.size() && want > 0 ; ++i ) {
    const State & x = optimal[ i ];
-   const auto out = outOf( x );
+   const auto out = openArcs( x , false );
    for( int v = 0 ; v != nn ; ++v ) {
-    paths( out , v , false , dist , pred );
+    shortestPaths( out , v , false , rc , false , ceps , dist , pred );
     for( int r = 0 ; r != rr ; ++r ) {
      if( head( r ) != v || ! open( x , r ) ||
 	 ( tail( r ) != v && pred[ tail( r ) ] < 0 ) ||
@@ -600,6 +610,98 @@ class KBestExtremeFlows
     _costs.push_back( it->first );
     }
   return( int( _flows.size() ) );
+  }
+
+ // The tolerance on the reduced costs: zero for an exact type, otherwise
+ // relative to the largest cost
+ Cost costTolerance() const {
+  if( std::numeric_limits< Cost >::is_exact )
+   return( 0 );
+  Cost big = 1;
+  for( int i = 0 ; i != _m ; ++i )
+   big = ( std::max )( big , _cost[ i ] < 0 ? Cost( -_cost[ i ] )
+					     : _cost[ i ] );
+  return( static_cast< Cost >( big * std::numeric_limits< Cost >::epsilon() *
+			       1e6 ) );
+  }
+
+ // Potentials optimal for the vertex s: the distances in its residual graph
+ // from a source joined to every node, which has no negative cycle
+ void optimalPotentials( const State & s , Cost ceps ,
+			 std::vector< Cost > & pi ) const {
+  const int nn = _n + 1 , rr = 2 * ( _m + _n );
+  pi.assign( nn , 0 );
+  for( int pass = 0 ; pass != nn ; ++pass ) {
+   bool changed = false;
+   for( int r = 0 ; r != rr ; ++r )
+    if( open( s , r ) && pi[ tail( r ) ] + resCost( r ) <
+	                 pi[ head( r ) ] - ceps ) {
+     pi[ head( r ) ] = pi[ tail( r ) ] + resCost( r );
+     changed = true;
+     }
+   if( ! changed )
+    break;
+   }
+  }
+
+ // The reduced costs of the residual arcs under the potentials pi, those
+ // negative within the tolerance made zero: nonnegative on the residual arcs
+ // of every optimal vertex, if pi is optimal
+ void reducedCosts( const std::vector< Cost > & pi ,
+		    std::vector< Cost > & rc ) const {
+  const int rr = 2 * ( _m + _n );
+  rc.resize( rr );
+  for( int r = 0 ; r != rr ; ++r ) {
+   rc[ r ] = resCost( r ) + pi[ tail( r ) ] - pi[ head( r ) ];
+   if( rc[ r ] < 0 )
+    rc[ r ] = 0;
+   }
+  }
+
+ // The open residual arcs of x out of each node, or into each node if into
+ std::vector< std::vector< int > > openArcs( const State & x ,
+					     bool into ) const {
+  std::vector< std::vector< int > > adj( _n + 1 );
+  for( int r = 0 ; r != 2 * ( _m + _n ) ; ++r )
+   if( open( x , r ) )
+    adj[ into ? head( r ) : tail( r ) ].push_back( r );
+  return( adj );
+  }
+
+ // The paths from v, or to v if into, along the arcs of adj [see
+ // openArcs()], by Dijkstra's algorithm on the reduced costs rc, those of
+ // zero reduced cost alone if zero is true; dist is -1 at a node not
+ // reached, and pred the arc of the tree that reaches a node
+ void shortestPaths( const std::vector< std::vector< int > > & adj , int v ,
+		     bool into , const std::vector< Cost > & rc , bool zero ,
+		     Cost ceps , std::vector< Cost > & dist ,
+		     std::vector< int > & pred ) const {
+  const int nn = _n + 1;
+  dist.assign( nn , -1 );
+  pred.assign( nn , -1 );
+  typedef std::pair< Cost , int > QI;
+  std::priority_queue< QI , std::vector< QI > , std::greater< QI > > q;
+  std::vector< char > done( nn , 0 );
+  dist[ v ] = 0;
+  q.push( QI( 0 , v ) );
+  while( ! q.empty() ) {
+   const int w = q.top().second;
+   q.pop();
+   if( done[ w ] )
+    continue;
+   done[ w ] = 1;
+   for( std::size_t t = 0 ; t != adj[ w ].size() ; ++t ) {
+    const int r = adj[ w ][ t ] , z = into ? tail( r ) : head( r );
+    if( zero && rc[ r ] > ceps )
+     continue;
+    const Cost d = dist[ w ] + rc[ r ];
+    if( ! done[ z ] && ( dist[ z ] < 0 || d < dist[ z ] ) ) {
+     dist[ z ] = d;
+     pred[ z ] = r;
+     q.push( QI( d , z ) );
+     }
+    }
+   }
   }
 
  // Whether the arc i is strictly within its bounds
