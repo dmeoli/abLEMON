@@ -27,6 +27,8 @@
 #include <lemon/list_graph.h>
 #include <lemon/bin_heap.h>
 #include <lemon/bits/path_dump.h>
+#include <lemon/concept_check.h>
+#include <lemon/concepts/heap.h>
 #include <lemon/core.h>
 #include <lemon/error.h>
 #include <lemon/maps.h>
@@ -476,7 +478,9 @@ class Dijkstra
      : G( &g ) , _length( &length ) , _pred( NULL ) , local_pred( false ) ,
        _dist( NULL ) , local_dist( false ) , _processed( NULL ) ,
        local_processed( false ) , _heap_cross_ref( NULL ) ,
-       local_heap_cross_ref( false ) , _heap( NULL ) , local_heap( false ) { }
+       local_heap_cross_ref( false ) , _heap( NULL ) , local_heap( false ) {
+  checkConcept< concepts::Heap< Value , HeapCrossRef > , Heap >();
+  }
 
  ///Destructor.
  ~Dijkstra() {

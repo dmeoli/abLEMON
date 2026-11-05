@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include <lemon/concepts/min_cost_flow.h>
 #include <lemon/list_graph.h>
 #include <lemon/smart_graph.h>
 #include <lemon/lgf_reader.h>
@@ -141,71 +142,6 @@ Digraph::NodeMap< int > neg2_s( neg2_gr );
 enum SupplyType { EQ , GEQ , LEQ };
 
 
-// Check the interface of an MCF algorithm
-template< typename GR , typename Value , typename Cost >
-class McfClassConcept
-{
- public:
- template< typename MCF >
- struct Constraints
- {
-  void constraints() {
-   checkConcept< concepts::Digraph , GR >();
-
-   const Constraints & me = *this;
-
-   MCF mcf( me.g );
-   const MCF & const_mcf = mcf;
-
-   b = mcf.reset()
-	 .resetParams()
-	 .lowerMap( me.lower )
-	 .upperMap( me.upper )
-	 .costMap( me.cost )
-	 .supplyMap( me.sup )
-	 .stSupply( me.n , me.n , me.k )
-	 .run();
-
-   c = const_mcf.totalCost();
-   x = const_mcf.template totalCost< double >();
-   v = const_mcf.flow( me.a );
-   c = const_mcf.potential( me.n );
-   const_mcf.flowMap( fm );
-   const_mcf.potentialMap( pm );
-   mcf.tolerances( v , c );
-   typename MCF::FlowTolerance ft = const_mcf.flowTolerance();
-   typename MCF::CostTolerance ct = const_mcf.costTolerance();
-   ignore_unused_variable_warning( ft , ct );
-   std::vector< Node > cut = const_mcf.infeasibleCut();
-   std::vector< Arc > cycle = const_mcf.unboundedCycle();
-   ignore_unused_variable_warning( cut , cycle );
-   }
-
-  typedef typename GR::Node Node;
-  typedef typename GR::Arc Arc;
-  typedef concepts::ReadMap< Node , Value > NM;
-  typedef concepts::ReadMap< Arc , Value > VAM;
-  typedef concepts::ReadMap< Arc , Cost > CAM;
-  typedef concepts::WriteMap< Arc , Value > FlowMap;
-  typedef concepts::WriteMap< Node , Cost > PotMap;
-
-  GR g;
-  VAM lower;
-  VAM upper;
-  CAM cost;
-  NM sup;
-  Node n;
-  Arc a;
-  Value k;
-
-  FlowMap fm;
-  PotMap pm;
-  bool b;
-  double x;
-  typename MCF::Value v;
-  typename MCF::Cost c;
-  };
- };
 
 
 // Check the feasibility of the given flow (primal soluiton)
@@ -966,45 +902,49 @@ int main()
  // Check the interface of NetworkSimplex
  {
   typedef concepts::Digraph GR;
-  checkConcept< McfClassConcept< GR , int , int > , NetworkSimplex< GR > >();
-  checkConcept< McfClassConcept< GR , double , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , int > ,
+		NetworkSimplex< GR > >();
+  checkConcept< concepts::MinCostFlow< GR , double , double > ,
 		NetworkSimplex< GR , double > >();
-  checkConcept< McfClassConcept< GR , int , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , double > ,
 		NetworkSimplex< GR , int , double > >();
   }
 
  // Check the interface of CapacityScaling
  {
   typedef concepts::Digraph GR;
-  checkConcept< McfClassConcept< GR , int , int > , CapacityScaling< GR > >();
-  checkConcept< McfClassConcept< GR , double , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , int > ,
+		CapacityScaling< GR > >();
+  checkConcept< concepts::MinCostFlow< GR , double , double > ,
 		CapacityScaling< GR , double > >();
-  checkConcept< McfClassConcept< GR , int , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , double > ,
 		CapacityScaling< GR , int , double > >();
   typedef CapacityScaling< GR >::SetHeap<
     concepts::Heap< int , RangeMap< int > > >::Create CAS;
-  checkConcept< McfClassConcept< GR , int , int > , CAS >();
+  checkConcept< concepts::MinCostFlow< GR , int , int > , CAS >();
   }
 
  // Check the interface of CostScaling
  {
   typedef concepts::Digraph GR;
-  checkConcept< McfClassConcept< GR , int , int > , CostScaling< GR > >();
-  checkConcept< McfClassConcept< GR , double , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , int > ,
+		CostScaling< GR > >();
+  checkConcept< concepts::MinCostFlow< GR , double , double > ,
 		CostScaling< GR , double > >();
-  checkConcept< McfClassConcept< GR , int , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , double > ,
 		CostScaling< GR , int , double > >();
   typedef CostScaling< GR >::SetLargeCost< double >::Create COS;
-  checkConcept< McfClassConcept< GR , int , int > , COS >();
+  checkConcept< concepts::MinCostFlow< GR , int , int > , COS >();
   }
 
  // Check the interface of CycleCanceling
  {
   typedef concepts::Digraph GR;
-  checkConcept< McfClassConcept< GR , int , int > , CycleCanceling< GR > >();
-  checkConcept< McfClassConcept< GR , double , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , int > ,
+		CycleCanceling< GR > >();
+  checkConcept< concepts::MinCostFlow< GR , double , double > ,
 		CycleCanceling< GR , double > >();
-  checkConcept< McfClassConcept< GR , int , double > ,
+  checkConcept< concepts::MinCostFlow< GR , int , double > ,
 		CycleCanceling< GR , int , double > >();
   }
 

@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "test_tools.h"
+#include <lemon/concepts/max_flow.h>
 #include <lemon/smart_graph.h>
 #include <lemon/preflow.h>
 #include <lemon/edmonds_karp.h>
@@ -97,61 +98,6 @@ char test_lgf_float[] = "@nodes\n"
 			"source 0\n"
 			"target 9\n";
 
-// Checks the general interface of a max flow algorithm
-template< typename GR , typename CAP >
-struct MaxFlowClassConcept
-{
-
- template< typename MF >
- struct Constraints
- {
-
-  typedef typename GR::Node Node;
-  typedef typename GR::Arc Arc;
-  typedef typename CAP::Value Value;
-  typedef concepts::ReadWriteMap< Arc , Value > FlowMap;
-  typedef concepts::WriteMap< Node , bool > CutMap;
-
-  GR g;
-  Node n;
-  Arc e;
-  CAP cap;
-  FlowMap flow;
-  CutMap cut;
-  Value v;
-  bool b;
-
-  void constraints() {
-   checkConcept< concepts::Digraph , GR >();
-
-   const Constraints & me = *this;
-
-   typedef typename MF ::template SetFlowMap< FlowMap >::Create MaxFlowType;
-   // MF::Create has to be a type
-   typedef typename MF::Create MaxFlowType2 LEMON_UNUSED_TYPEDEF;
-   MaxFlowType max_flow( me.g , me.cap , me.n , me.n );
-   const MaxFlowType & const_max_flow = max_flow;
-
-   max_flow.capacityMap( cap ).flowMap( flow ).source( n ).target( n );
-
-   typename MaxFlowType::Tolerance tol = const_max_flow.tolerance();
-   max_flow.tolerance( tol );
-
-   max_flow.init();
-   max_flow.init( cap );
-   max_flow.run();
-
-   v = const_max_flow.flowValue();
-   v = const_max_flow.flow( e );
-   const FlowMap & fm = const_max_flow.flowMap();
-
-   b = const_max_flow.minCut( n );
-   const_max_flow.minCutMap( cut );
-
-   ::lemon::ignore_unused_variable_warning( fm );
-   }
-  };
- };
 
 // Checks the specific parts of Preflow's interface
 void checkPreflowCompile()
@@ -453,12 +399,12 @@ int main()
  typedef concepts::ReadMap< GR::Arc , double > CM2;
 
  // Check the interface of Preflow
- checkConcept< MaxFlowClassConcept< GR , CM1 > , Preflow< GR , CM1 > >();
- checkConcept< MaxFlowClassConcept< GR , CM2 > , Preflow< GR , CM2 > >();
+ checkConcept< concepts::MaxFlow< GR , CM1 > , Preflow< GR , CM1 > >();
+ checkConcept< concepts::MaxFlow< GR , CM2 > , Preflow< GR , CM2 > >();
 
  // Check the interface of EdmondsKarp
- checkConcept< MaxFlowClassConcept< GR , CM1 > , EdmondsKarp< GR , CM1 > >();
- checkConcept< MaxFlowClassConcept< GR , CM2 > , EdmondsKarp< GR , CM2 > >();
+ checkConcept< concepts::MaxFlow< GR , CM1 > , EdmondsKarp< GR , CM1 > >();
+ checkConcept< concepts::MaxFlow< GR , CM2 > , EdmondsKarp< GR , CM2 > >();
 
  // Check Preflow
  typedef Preflow< SmartDigraph , SmartDigraph::ArcMap< int > > PType1;

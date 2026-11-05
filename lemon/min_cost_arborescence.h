@@ -28,6 +28,8 @@
 #include <lemon/list_graph.h>
 #include <lemon/bin_heap.h>
 #include <lemon/assert.h>
+#include <lemon/concept_check.h>
+#include <lemon/concepts/heap.h>
 
 namespace lemon
 {
@@ -484,8 +486,9 @@ class MinCostArborescence
      : _digraph( &digraph ) , _cost( &cost ) , _pred( 0 ) ,
        local_pred( false ) ,
        _arborescence( 0 ) , local_arborescence( false ) , _arc_order( 0 ) ,
-       _node_order( 0 ) , _cost_arcs( 0 ) , _heap_cross_ref( 0 ) ,
-	 _heap( 0 ) { }
+       _node_order( 0 ) , _cost_arcs( 0 ) , _heap_cross_ref( 0 ) , _heap( 0 ) {
+  checkConcept< concepts::Heap< int , HeapCrossRef > , Heap >();
+  }
 
  /// \brief Destructor.
  ~MinCostArborescence() { destroyStructures(); }
