@@ -20,7 +20,9 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <lemon/howard_mmc.h>
@@ -265,10 +267,13 @@ std::vector< int > infeasibleCut( const McfData< V > & d , bool leq ,
 // part, in which some nodes are fixed in or out, is given, the part is
 // split by the free nodes in turn, the j-th child keeping the first j - 1
 // of them as in the set and taking the j-th one out if the set has it,
-// in otherwise; the best set of each child is found by maxViolatedSet(),
-// from the maximum flow of the part, which is a preflow of the child since
-// the child only fixes one node more, and the next set is the best one of
-// the children not yet given.
+// in otherwise. The best set of a child is no more violated than that of
+// its part, so a child waits with the violation of its part as a bound and
+// its best set is found by maxViolatedSet() only when it is the most
+// promising one, from the maximum flow of its part, which is a preflow of
+// the child since the child only fixes one node more: a maximum flow is
+// made for each part that might hold one of the k sets, rather than for
+// every child of every set given.
 template< typename V >
 std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
 						  bool leq , int k )
@@ -277,29 +282,46 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
  {
   std::vector< int > fix;
   std::vector< char > in;
-  std::vector< V > flow;
+  std::shared_ptr< const std::vector< V > > warm , flow;
   long double gap , scale;
-  bool ok;
+  bool solved , ok;
   };
  std::vector< std::vector< int > > cuts;
  if( d.n == 0 || k <= 0 )
   return( cuts );
+ auto solve = [ & ]( Part & p ) {
+  std::vector< V > f;
+  maxViolatedSet( d , leq , p.fix , p.in , p.warm.get() , & f );
+  p.flow = std::make_shared< const std::vector< V > >( std::move( f ) );
+  p.warm.reset();
+  bool kept = true;
+  for( int w = 0 ; w != d.n && kept ; ++w )
+   if( p.fix[ w ] >= 0 && p.in[ w ] != p.fix[ w ] )
+    kept = false;
+  long double gap = 0 , scale = 1;
+  p.ok = kept && cutViolation( d , leq , p.in , gap , scale ) &&
+	 positiveBeyond< V >( gap , scale );
+  p.gap = gap;
+  p.scale = scale;
+  p.solved = true;
+  };
  std::vector< Part > parts( 1 );
  parts[ 0 ].fix.assign( d.n , -1 );
- const std::vector< V > * none = nullptr;
- maxViolatedSet( d , leq , parts[ 0 ].fix , parts[ 0 ].in , none ,
-		 & parts[ 0 ].flow );
- parts[ 0 ].ok = cutViolation( d , leq , parts[ 0 ].in , parts[ 0 ].gap ,
-			       parts[ 0 ].scale );
+ solve( parts[ 0 ] );
  while( int( cuts.size() ) < k ) {
   int best = -1;
   for( int j = 0 ; j != int( parts.size() ) ; ++j )
-   if( parts[ j ].ok && positiveBeyond< V >( parts[ j ].gap ,
-					      parts[ j ].scale ) &&
-       ( best < 0 || parts[ j ].gap > parts[ best ].gap ) )
+   if( ( ! parts[ j ].solved || parts[ j ].ok ) &&
+       ( best < 0 || parts[ j ].gap > parts[ best ].gap ||
+	 ( parts[ j ].gap == parts[ best ].gap && parts[ j ].solved &&
+	   ! parts[ best ].solved ) ) )
     best = j;
   if( best < 0 )
    break;
+  if( ! parts[ best ].solved ) {
+   solve( parts[ best ] );
+   continue;
+   }
   const Part p = parts[ best ];
   parts.erase( parts.begin() + best );
   std::vector< int > cut;
@@ -315,14 +337,12 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
    Part c;
    c.fix = fix;
    c.fix[ u ] = p.in[ u ] ? 0 : 1;
-   maxViolatedSet( d , leq , c.fix , c.in , & p.flow , & c.flow );
-   bool kept = true;
-   for( int w = 0 ; w != d.n && kept ; ++w )
-    if( c.fix[ w ] >= 0 && c.in[ w ] != c.fix[ w ] )
-     kept = false;
-   c.ok = kept && cutViolation( d , leq , c.in , c.gap , c.scale );
-   if( c.ok )
-    parts.push_back( c );
+   c.warm = p.flow;
+   c.gap = p.gap;
+   c.scale = p.scale;
+   c.solved = false;
+   c.ok = false;
+   parts.push_back( c );
    fix[ u ] = p.in[ u ];
    }
   }
