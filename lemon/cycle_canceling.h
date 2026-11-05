@@ -1121,6 +1121,8 @@ class CycleCanceling
 
   SPath cycle;
   HwMmc hw_mmc( _sgr , _cost_map );
+  hw_mmc.tolerance( _mcf_bits::makeTolerance(
+    static_cast< typename HwMmc::LargeCost >( _ceps ) ) );
   hw_mmc.cycle( cycle );
   buildResidualNetwork();
   while( true ) {
@@ -1131,6 +1133,8 @@ class CycleCanceling
     // Howard's algorithm reached the iteration limit, start a
     // strongly polynomial algorithm instead
     HoMmc ho_mmc( _sgr , _cost_map );
+    ho_mmc.tolerance( _mcf_bits::makeTolerance(
+      static_cast< typename HoMmc::LargeCost >( _ceps ) ) );
     ho_mmc.cycle( cycle );
     // Find a minimum mean cycle (Hartmann-Orlin algorithm)
     if( ! ( ho_mmc.findCycleMean() &&
@@ -1382,10 +1386,14 @@ class CycleCanceling
     int cycle_size = 1;
     buildResidualNetwork();
     HwMmc hw_mmc( _sgr , _cost_map );
+    hw_mmc.tolerance( _mcf_bits::makeTolerance(
+      static_cast< typename HwMmc::LargeCost >( _ceps ) ) );
     if( hw_mmc.findCycleMean( hw_iter_limit ) == HwMmc::ITERATION_LIMIT ) {
      // Howard's algorithm reached the iteration limit, start a
      // strongly polynomial algorithm instead
      HoMmc ho_mmc( _sgr , _cost_map );
+     ho_mmc.tolerance( _mcf_bits::makeTolerance(
+       static_cast< typename HoMmc::LargeCost >( _ceps ) ) );
      ho_mmc.findCycleMean();
      epsilon = -ho_mmc.cycleMean();
      cycle_cost = ho_mmc.cycleCost();
