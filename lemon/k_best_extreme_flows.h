@@ -849,7 +849,13 @@ class KBestExtremeFlows
   // arcs of each solution are made once, when the bound of its first child
   // is computed
   std::vector< std::vector< std::vector< int > > > res;
-  auto cycleDist = [ & ]( int sv , int at , int src , int dst ) -> bool {
+  // 1 if dst is reached, 0 if it cannot be; if stop is true, the search
+  // stops as soon as the least distance left exceeds cap, which is then put
+  // in least, and 2 is returned
+  std::vector< std::map< std::pair< int , int > , Cost > > memo;
+  Cost least = 0;
+  auto cycleDist = [ & ]( int sv , int at , int src , int dst , bool stop ,
+			  Cost cap ) -> int {
    if( int( res.size() ) <= sv )
     res.resize( sv + 1 );
    if( res[ sv ].empty() ) {
@@ -878,7 +884,11 @@ class KBestExtremeFlows
      continue;
     done[ w ] = 1;
     if( w == dst )
-     return( true );
+     return( 1 );
+    if( stop && dist[ w ] > cap ) {
+     least = dist[ w ];
+     return( 2 );
+     }
     for( std::size_t t = 0 ; t != out[ w ].size() ; ++t ) {
      const int r = out[ w ][ t ] , z = head( r ) , a = r / 2;
      if( pos[ a ] == at || done[ z ] )
@@ -897,7 +907,7 @@ class KBestExtremeFlows
       }
      }
     }
-   return( false );
+   return( 0 );
    };
 
   // the flow of the arc i of a child, the nearest one to x in its state
@@ -1012,11 +1022,44 @@ class KBestExtremeFlows
      const Value y = ps.flow[ i ];
      const Value x = y < l ? l : ( ! in && y > h ) ? h : y , d = x - y;
      const int r = d > 0 ? 2 * i : 2 * i + 1;
-     if( ! cycleDist( nodes[ nodes[ v ].parent ].sol , nodes[ v ].pos ,
-		      head( r ) , tail( r ) ) )
-      continue;
-     const Cost b = ps.cost + ( d > 0 ? d : Value( -d ) ) *
-				( rcOf( ps.pot , r ) + dist[ tail( r ) ] );
+     const Value dd = d > 0 ? d : Value( -d );
+     const Cost rr = rcOf( ps.pot , r );
+     const int sv = nodes[ nodes[ v ].parent ].sol;
+     // the search may stop once the child cannot be the next one out of
+     // the queue: its bound then grows by what it found, and the bound is
+     // computed again when it leaves the queue next; the paths found are
+     // kept for the children of the same parent, position and direction
+     const bool stop = ! queue.empty();
+     const Cost cap =
+       stop ? ( queue.top().first - ps.cost ) / dd - rr : Cost( 0 );
+     if( int( memo.size() ) <= sv )
+      memo.resize( sv + 1 );
+     const auto key = std::make_pair( nodes[ v ].pos , r % 2 );
+     const auto known = memo[ sv ].find( key );
+     Cost c;
+     if( known != memo[ sv ].end() ) {
+      if( known->second < 0 )
+       continue;
+      c = known->second;
+      }
+     else {
+      const int got =
+	cycleDist( sv , nodes[ v ].pos , head( r ) , tail( r ) , stop , cap );
+      if( got == 0 ) {
+       memo[ sv ][ key ] = -1;
+       continue;
+       }
+      if( got == 2 ) {
+       nodes[ v ].cycle = false;
+       const Cost b = ps.cost + dd * ( rr + least );
+       if( ! ( bounded && b > limit ) )
+	queue.push( Item( b < it.first ? it.first : b , v ) );
+       continue;
+       }
+      c = dist[ tail( r ) ];
+      memo[ sv ][ key ] = c;
+      }
+     const Cost b = ps.cost + dd * ( rr + c );
      if( ! ( bounded && b > limit ) )
       queue.push( Item( b < it.first ? it.first : b , v ) );
      continue;
