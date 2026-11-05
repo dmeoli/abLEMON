@@ -396,7 +396,7 @@ class HaoOrlin
 
     ( *_excess )[ n ] = excess;
 
-    if( excess != 0 ) {
+    if( _tolerance.nonZero( excess ) ) {
      if( ( *_next )[ n ] == INVALID ) {
       typename std::list< std::list< int > >::iterator new_set =
 	_sets.insert( --_sets.end() , std::list< int >() );
@@ -716,7 +716,7 @@ class HaoOrlin
 
     ( *_excess )[ n ] = excess;
 
-    if( excess != 0 ) {
+    if( _tolerance.nonZero( excess ) ) {
      if( ( *_next )[ n ] == INVALID ) {
       typename std::list< std::list< int > >::iterator new_set =
 	_sets.insert( --_sets.end() , std::list< int >() );

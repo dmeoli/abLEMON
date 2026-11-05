@@ -73,6 +73,7 @@ void checkGomoryHuCompile()
  const GomoryHu< Graph , CapMap > & const_gh_test = gh_test;
 
  gh_test.run();
+ gh_test.tolerance( const_gh_test.tolerance() );
 
  n = const_gh_test.predNode( n );
  v = const_gh_test.predValue( n );

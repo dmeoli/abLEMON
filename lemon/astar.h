@@ -19,11 +19,11 @@
 #ifndef LEMON_ASTAR_H
  #define LEMON_ASTAR_H
 
-#include <functional>
-#include <queue>
-#include <utility>
 #include <vector>
 
+#include <lemon/bin_heap.h>
+#include <lemon/concept_check.h>
+#include <lemon/concepts/heap.h>
 #include <lemon/core.h>
 #include <lemon/path.h>
 
@@ -33,6 +33,19 @@
 
 namespace lemon
 {
+
+/// \brief The default traits class of \ref AStar.
+///
+/// The heap is a \ref BinHeap on the tentative distances plus the
+/// heuristic values, with a node map as cross reference map.
+template< typename GR , typename LEN >
+struct AStarDefaultTraits
+{
+ /// The type of the cross reference map of the heap
+ typedef typename GR::template NodeMap< int > HeapCrossRef;
+ /// The type of the heap
+ typedef BinHeap< typename LEN::Value , HeapCrossRef > Heap;
+ };
 
 /// \ingroup shortest_path
 ///
@@ -57,7 +70,10 @@ namespace lemon
 /// be nonnegative.
 /// \tparam HM The type of the map of the heuristic values of the nodes,
 /// whose value type is that of the lengths.
-template< typename GR , typename LEN , typename HM >
+/// \tparam TR The traits class, which gives the type of the heap [see
+/// \ref AStarDefaultTraits and \ref SetHeap].
+template< typename GR , typename LEN , typename HM ,
+	  typename TR = AStarDefaultTraits< GR , LEN > >
 class AStar
 {
  public:
@@ -71,14 +87,30 @@ class AStar
  typedef typename LengthMap::Value Value;
  /// The type of the shortest path
  typedef lemon::Path< Digraph > Path;
+ /// The type of the cross reference map of the heap
+ typedef typename TR::HeapCrossRef HeapCrossRef;
+ /// The type of the heap
+ typedef typename TR::Heap Heap;
+
+ /// \brief \ref named-templ-param "Named parameter" for setting the type
+ /// of the heap.
+ ///
+ /// The heap is of type \c H, with a cross reference map of type \c CR.
+ template< typename H ,
+	   typename CR = typename Digraph::template NodeMap< int > >
+ struct SetHeap
+ {
+  struct Traits : public TR
+  {
+   typedef CR HeapCrossRef;
+   typedef H Heap;
+   };
+  typedef AStar< GR , LEN , HM , Traits > Create;
+  };
 
  private:
  TEMPLATE_DIGRAPH_TYPEDEFS( Digraph );
 
- typedef std::pair< Value , int > Item;
- typedef std::priority_queue< Item , std::vector< Item > ,
-   std::greater< Item > >
-   Heap;
 
  const Digraph & _graph;
  const LengthMap & _length;
@@ -86,6 +118,8 @@ class AStar
  typename Digraph::template NodeMap< Value > _dist;
  typename Digraph::template NodeMap< Arc > _pred;
  BoolNodeMap _seen;
+ HeapCrossRef _cross;
+ Heap _heap;
  std::vector< Node > _touched;
  Path _path;
  Value _target;
@@ -104,32 +138,32 @@ class AStar
 	const HeuristicMap & heuristic )
      : _graph( graph ) , _length( length ) , _heuristic( heuristic ) ,
        _dist( graph ) , _pred( graph , INVALID ) , _seen( graph , false ) ,
-       _target( 0 ) , _scanned( 0 ) { }
+       _cross( graph , Heap::PRE_HEAP ) , _heap( _cross ) , _target( 0 ) ,
+       _scanned( 0 ) {
+  checkConcept< concepts::Heap< Value , HeapCrossRef > , Heap >();
+  }
 
  /// \brief Find a shortest path from \c s to \c t.
  ///
  /// \return \c true if \c t is reachable from \c s; its distance and a
  /// shortest path are then given by \ref dist() and \ref path().
  bool run( const Node & s , const Node & t ) {
+  _heap.clear();
   for( std::size_t i = 0 ; i < _touched.size() ; ++i ) {
    _seen[ _touched[ i ] ] = false;
    _pred[ _touched[ i ] ] = INVALID;
+   _cross[ _touched[ i ] ] = Heap::PRE_HEAP;
    }
   _touched.clear();
   _path.clear();
   _scanned = 0;
-  Heap heap;
   _seen[ s ] = true;
   _touched.push_back( s );
   _dist[ s ] = 0;
-  heap.push( Item( _heuristic[ s ] , _graph.id( s ) ) );
-  while( ! heap.empty() ) {
-   Item top = heap.top();
-   heap.pop();
-   Node x = _graph.nodeFromId( top.second );
-   if( top.first != _dist[ x ] + _heuristic[ x ] ) {
-    continue;  // a stale entry, of a distance improved since
-    }
+  _heap.push( s , _heuristic[ s ] );
+  while( ! _heap.empty() ) {
+   Node x = _heap.top();
+   _heap.pop();
    ++_scanned;
    if( x == t ) {
     _target = _dist[ t ];
@@ -145,13 +179,19 @@ class AStar
     if( ! _seen[ y ] ) {
      _seen[ y ] = true;
      _touched.push_back( y );
+     _heap.push( y , d + _heuristic[ y ] );
      }
     else if( d >= _dist[ y ] ) {
      continue;
      }
+    else if( _heap.state( y ) == Heap::IN_HEAP ) {
+     _heap.decrease( y , d + _heuristic[ y ] );
+     }
+    else {  // scanned already, with a heuristic that is not consistent
+     _heap.push( y , d + _heuristic[ y ] );
+     }
     _dist[ y ] = d;
     _pred[ y ] = a;
-    heap.push( Item( d + _heuristic[ y ] , _graph.id( y ) ) );
     }
    }
   return( false );

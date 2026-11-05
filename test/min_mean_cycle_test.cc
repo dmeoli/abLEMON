@@ -19,6 +19,7 @@
 #include <iostream>
 #include <sstream>
 
+#include <lemon/concepts/min_mean_cycle.h>
 #include <lemon/smart_graph.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/path.h>
@@ -61,45 +62,6 @@ char test_lgf[] = "@nodes\n"
 		  "7 7    4    4    4   -1   0  0  0  1\n";
 
 
-// Check the interface of an MMC algorithm
-template< typename GR , typename Cost >
-struct MmcClassConcept
-{
- template< typename MMC >
- struct Constraints
- {
-  void constraints() {
-   const Constraints & me = *this;
-
-   typedef typename MMC ::template SetPath<
-     ListPath< GR > >::template SetLargeCost< Cost >::Create MmcAlg;
-   MmcAlg mmc( me.g , me.cost );
-   const MmcAlg & const_mmc = mmc;
-
-   typename MmcAlg::Tolerance tol = const_mmc.tolerance();
-   mmc.tolerance( tol );
-
-   b = mmc.cycle( p ).run();
-   b = mmc.findCycleMean();
-   b = mmc.findCycle();
-
-   v = const_mmc.cycleCost();
-   i = const_mmc.cycleSize();
-   d = const_mmc.cycleMean();
-   p = const_mmc.cycle();
-   }
-
-  typedef concepts::ReadMap< typename GR::Arc , Cost > CM;
-
-  GR g;
-  CM cost;
-  ListPath< GR > p;
-  Cost v;
-  int i;
-  double d;
-  bool b;
-  };
- };
 
 // Perform a test with the given parameters
 template< typename MMC >
@@ -150,23 +112,23 @@ int main()
   typedef concepts::Digraph GR;
 
   // KarpMmc
-  checkConcept< MmcClassConcept< GR , int > ,
+  checkConcept< concepts::MinMeanCycle< GR , int > ,
 		KarpMmc< GR , concepts::ReadMap< GR::Arc , int > > >();
-  checkConcept< MmcClassConcept< GR , float > ,
+  checkConcept< concepts::MinMeanCycle< GR , float > ,
 		KarpMmc< GR , concepts::ReadMap< GR::Arc , float > > >();
 
   // HartmannOrlinMmc
-  checkConcept< MmcClassConcept< GR , int > ,
+  checkConcept< concepts::MinMeanCycle< GR , int > ,
 		HartmannOrlinMmc< GR , concepts::ReadMap< GR::Arc ,
     int > > >();
   checkConcept<
-    MmcClassConcept< GR , float > ,
+    concepts::MinMeanCycle< GR , float > ,
     HartmannOrlinMmc< GR , concepts::ReadMap< GR::Arc , float > > >();
 
   // HowardMmc
-  checkConcept< MmcClassConcept< GR , int > ,
+  checkConcept< concepts::MinMeanCycle< GR , int > ,
 		HowardMmc< GR , concepts::ReadMap< GR::Arc , int > > >();
-  checkConcept< MmcClassConcept< GR , float > ,
+  checkConcept< concepts::MinMeanCycle< GR , float > ,
 		HowardMmc< GR , concepts::ReadMap< GR::Arc , float > > >();
 
   check( ( IsSameType<

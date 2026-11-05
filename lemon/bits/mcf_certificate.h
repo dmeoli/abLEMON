@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include <lemon/bits/mcf_tolerance.h>
 #include <lemon/howard_mmc.h>
 #include <lemon/path.h>
 #include <lemon/preflow.h>
@@ -45,11 +46,14 @@ namespace _mcf_bits
 // A minimum cost flow problem as a list of arcs, which each algorithm
 // copies out of its own data: the arcs go from source[ i ] to
 // target[ i ] between lower[ i ] and upper[ i ], the latter being
-// infinite if inf[ i ], and the nodes are 0, ..., n - 1.
+// infinite if inf[ i ], and the nodes are 0, ..., n - 1; feps and ceps
+// are the tolerances of the algorithm on the flows and on the reduced costs
+// [see bits/mcf_tolerance.h], negative if there are none.
 template< typename V >
 struct McfData
 {
  int n;
+ long double feps = -1 , ceps = -1;
  std::vector< int > source , target;
  std::vector< V > lower , upper , supply;
  std::vector< char > inf;
@@ -68,26 +72,31 @@ struct McfData
  };
 
 // Whether x is larger than zero by more than the round-off of a sum
-// whose terms have absolute values that sum to scale: exactly for an
-// integer type, beyond the epsilon of Tolerance otherwise.
+// whose terms have absolute values that sum to scale and by more than the
+// tolerance tol of the algorithm, if it is not negative: exactly for an
+// integer type, beyond the larger of tol and the epsilon of Tolerance
+// times the scale otherwise.
 template< typename V >
-bool positiveBeyond( long double x , long double , std::true_type )
+bool positiveBeyond( long double x , long double , long double ,
+		     std::true_type )
 {
  return( x > 0 );
  }
 
 template< typename V >
-bool positiveBeyond( long double x , long double scale , std::false_type )
+bool positiveBeyond( long double x , long double scale , long double tol ,
+		     std::false_type )
 {
- return( x > static_cast< long double >( Tolerance< V >::defaultEpsilon() ) *
-	   ( 1 + scale ) );
+ return( x > ( std::max )( tol , static_cast< long double >(
+				   Tolerance< V >::defaultEpsilon() ) *
+				   ( 1 + scale ) ) );
  }
 
 template< typename V >
-bool positiveBeyond( long double x , long double scale )
+bool positiveBeyond( long double x , long double scale , long double tol = -1 )
 {
  return( positiveBeyond< V >(
-   x , scale ,
+   x , scale , tol ,
    std::integral_constant< bool ,
 			   std::numeric_limits< V >::is_integer >() ) );
  }
@@ -203,6 +212,8 @@ void maxViolatedSet( const McfData< V > & d , bool leq ,
   }
 
  Preflow< SmartDigraph , SmartDigraph::ArcMap< V > > pf( g , cap , s , t );
+ if( d.feps >= 0 )
+  pf.tolerance( makeTolerance( static_cast< V >( d.feps ) ) );
  bool started = false;
  if( warm != nullptr && int( warm->size() ) == m + 2 * n ) {
   SmartDigraph::ArcMap< V > f0( g );
@@ -247,12 +258,12 @@ std::vector< int > infeasibleCut( const McfData< V > & d , bool leq ,
   for( std::size_t h = 0 ; h != hint.size() ; ++h )
    in[ hint[ h ] ] = 1;
   if( cutViolation( d , leq , in , gap , scale ) &&
-      positiveBeyond< V >( gap , scale ) )
+      positiveBeyond< V >( gap , scale , d.feps ) )
    return( hint );
   }
  maxViolatedSet( d , leq , std::vector< int >() , in );
  if( ! cutViolation( d , leq , in , gap , scale ) ||
-     ! positiveBeyond< V >( gap , scale ) )
+     ! positiveBeyond< V >( gap , scale , d.feps ) )
   return( cut );
  for( int u = 0 ; u != d.n ; ++u )
   if( in[ u ] )
@@ -291,7 +302,7 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
   return( cuts );
  auto solve = [ & ]( Part & p ) {
   std::vector< V > f;
-  maxViolatedSet( d , leq , p.fix , p.in , p.warm.get() , & f );
+  maxViolatedSet( d , leq , p.fix , p.in , p.warm.get() , &f );
   p.flow = std::make_shared< const std::vector< V > >( std::move( f ) );
   p.warm.reset();
   bool kept = true;
@@ -300,7 +311,7 @@ std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
     kept = false;
   long double gap = 0 , scale = 1;
   p.ok = kept && cutViolation( d , leq , p.in , gap , scale ) &&
-	 positiveBeyond< V >( gap , scale );
+	 positiveBeyond< V >( gap , scale , d.feps );
   p.gap = gap;
   p.scale = scale;
   p.solved = true;
@@ -397,7 +408,7 @@ std::vector< std::vector< int > > disjointInfeasibleCuts(
    one[ groups[ j ][ h ] ] = 1;
   long double gap , scale;
   if( cutViolation( d , leq , one , gap , scale ) &&
-      positiveBeyond< V >( gap , scale ) )
+      positiveBeyond< V >( gap , scale , d.feps ) )
    order.push_back( std::make_pair( -gap , j ) );
   }
  std::sort( order.begin() , order.end() );
@@ -419,7 +430,9 @@ std::vector< int > negativeCycle( const McfData< V > & d , const CV & cost )
  typedef typename CV::value_type Cost;
  const int n = d.n , m = int( d.source.size() );
  std::vector< int > cycle;
- const Tolerance< Cost > tol;
+ const Tolerance< Cost > tol =
+   d.ceps >= 0 ? makeTolerance( static_cast< Cost >( d.ceps ) )
+	       : Tolerance< Cost >();
  std::vector< Cost > dist( n , Cost( 0 ) );
  std::vector< int > pred( n , -1 ) , mark( n );
  int v = -1;
@@ -462,7 +475,7 @@ std::vector< int > negativeCycle( const McfData< V > & d , const CV & cost )
    break;
   }
  std::reverse( cycle.begin() , cycle.end() );
- if( ! positiveBeyond< Cost >( -c , scale ) )
+ if( ! positiveBeyond< Cost >( -c , scale , d.ceps ) )
   cycle.clear();
  return( cycle );
  }
@@ -504,12 +517,16 @@ std::vector< std::vector< int > > negativeCycles( const McfData< V > & d ,
   if( orig.empty() )
    break;
   Path< SmartDigraph > path;
-  HowardMmc< SmartDigraph , SmartDigraph::ArcMap< Cost > > mmc( g , len );
+  typedef HowardMmc< SmartDigraph , SmartDigraph::ArcMap< Cost > > Mmc;
+  Mmc mmc( g , len );
+  if( d.ceps >= 0 )
+   mmc.tolerance(
+     makeTolerance( static_cast< typename Mmc::LargeCost >( d.ceps ) ) );
   mmc.cycle( path );
   if( ! mmc.findCycleMean() ||
       ! positiveBeyond< Cost >(
 	-static_cast< long double >( mmc.cycleCost() ) / mmc.cycleSize() ,
-	scale ) ||
+	scale , d.ceps ) ||
       ! mmc.findCycle() )
    break;
   std::vector< int > cycle;
@@ -539,6 +556,8 @@ McfData< typename MCF::Value > residualData( const MCF & mcf ,
   was_inf[ inf_upper[ k ] ] = 1;
  McfData< Value > d;
  d.n = mcf._root;
+ d.feps = epsilonOf( mcf.flowTolerance() );
+ d.ceps = epsilonOf( mcf.costTolerance() );
  d.supply.assign( mcf._supply.begin() , mcf._supply.begin() + d.n );
  for( int u = 0 ; u != d.n ; ++u )
   for( int j = mcf._first_out[ u ] ; j != mcf._first_out[ u + 1 ] ; ++j ) {

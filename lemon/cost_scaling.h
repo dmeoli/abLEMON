@@ -179,6 +179,10 @@ class CostScaling
  typedef typename TR::Value Value;
  /// The type of the arc costs
  typedef typename TR::Cost Cost;
+ /// The type of the tolerance on the flows [see flowTolerance()]
+ typedef lemon::Tolerance< Value > FlowTolerance;
+ /// The type of the tolerance on the reduced costs [see costTolerance()]
+ typedef lemon::Tolerance< Cost > CostTolerance;
 
  /// \brief The large cost type
  ///
@@ -334,7 +338,7 @@ class CostScaling
  // types [see bits/mcf_feasible_flow.h]: an excess or a residual
  // capacity within the former is zero
  Value _feps = 0;
- Cost _ceps;
+ Cost _ceps = 0;
  int _alpha;
 
  IntVector _buckets;
@@ -680,6 +684,25 @@ class CostScaling
   _flow_tol = flow;
   _cost_tol = cost;
   return( *this );
+  }
+
+ /// \brief The tolerance on the flows in use.
+ ///
+ /// The one set by \ref tolerances(), if any, and otherwise the one of
+ /// the data [see \ref tolerances()] that the last \ref run() used
+ /// (zero before the first one), as a \ref Tolerance, whose epsilon is
+ /// zero for an exact type.
+ FlowTolerance flowTolerance() const {
+  return(
+    _mcf_bits::makeTolerance< Value >( _flow_tol >= 0 ? _flow_tol : _feps ) );
+  }
+
+ /// \brief The tolerance on the reduced costs in use.
+ ///
+ /// As \ref flowTolerance(), for the reduced costs.
+ CostTolerance costTolerance() const {
+  return(
+    _mcf_bits::makeTolerance< Cost >( _cost_tol >= 0 ? _cost_tol : _ceps ) );
   }
 
  /// \brief Reset all the parameters that have been given before.
@@ -1095,9 +1118,9 @@ class CostScaling
    sgr.build( _res_node_num , arc_vec.begin() , arc_vec.end() );
 
    typedef _mcf_bits::ToleranceBfOperationTraits< LargeCost > BfOps;
-   BfOps::epsilon() = _ceps;
    typename BellmanFord< StaticDigraph , LargeCostArcMap >::
      template SetOperationTraits< BfOps >::Create bf( sgr , cost_map );
+   bf.operationTraits( BfOps( _ceps ) );
    bf.init( 0 );
    bf.start();
 
@@ -1137,7 +1160,7 @@ class CostScaling
    LargeCost pi_u = _pi[ u ];
    for( int a = _first_out[ u ] ; a != last_out ; ++a ) {
     Value delta = _res_cap[ a ];
-    if( delta > 0 ) {
+    if( delta > _feps ) {
      int v = _target[ a ];
      if( _cost[ a ] + pi_u - _pi[ v ] < 0 ) {
       _excess[ u ] -= delta;

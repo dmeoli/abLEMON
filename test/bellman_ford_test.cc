@@ -288,10 +288,45 @@ void checkBellmanFordNegativeCycle()
   }
  }
 
+// Operations whose comparison has a tolerance of the object: an
+// improvement within it is no improvement
+struct ToleranceOps : public BellmanFordDefaultOperationTraits< double >
+{
+ ToleranceOps( double e = 0 ) : eps( e ) { }
+
+ bool less( double a , double b ) const { return( a < b - eps ); }
+
+ double eps;
+ };
+
+// The operations of the object given by operationTraits(): on two paths
+// to t, of lengths 3 and 2.5, the second one improves on the first only
+// with a tolerance below 0.5
+void checkBellmanFordOperationObject()
+{
+ SmartDigraph g;
+ const SmartDigraph::Node s = g.addNode() , u = g.addNode() , t = g.addNode();
+ SmartDigraph::ArcMap< double > len( g );
+ len[ g.addArc( s , t ) ] = 3;
+ len[ g.addArc( s , u ) ] = 1;
+ len[ g.addArc( u , t ) ] = 1.5;
+ for( int k = 0 ; k != 2 ; ++k ) {
+  typename BellmanFord< SmartDigraph , SmartDigraph::ArcMap< double > >::
+    template SetOperationTraits< ToleranceOps >::Create bf( g , len );
+  bf.operationTraits( ToleranceOps( k == 0 ? 0.1 : 0.9 ) );
+  check( bf.operationTraits().eps == ( k == 0 ? 0.1 : 0.9 ) ,
+	 "Wrong operation traits object" );
+  bf.run( s );
+  check( bf.dist( t ) == ( k == 0 ? 2.5 : 3 ) ,
+	 "The tolerance of the operation traits object not used" );
+  }
+ }
+
 int main()
 {
  checkBellmanFord< ListDigraph , int >();
  checkBellmanFord< SmartDigraph , double >();
  checkBellmanFordNegativeCycle();
+ checkBellmanFordOperationObject();
  return( 0 );
  }

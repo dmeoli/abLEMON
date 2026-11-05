@@ -28,6 +28,8 @@
 #include <lemon/list_graph.h>
 #include <lemon/bin_heap.h>
 #include <lemon/assert.h>
+#include <lemon/concept_check.h>
+#include <lemon/concepts/heap.h>
 
 namespace lemon
 {
@@ -90,6 +92,13 @@ struct MinCostArborescenceDefaultTraits
  static PredMap * createPredMap( const Digraph & digraph ) {
   return( new PredMap( digraph ) );
   }
+
+ /// The type of the cross reference map of the heap of the arcs
+ typedef typename Digraph::template NodeMap< int > HeapCrossRef;
+
+ /// \brief The type of the heap of the arcs entering the nodes, on their
+ /// order in the costs.
+ typedef BinHeap< int , HeapCrossRef > Heap;
  };
 
 /// \ingroup spantree
@@ -201,11 +210,11 @@ class MinCostArborescence
 
  DualVariables _dual_variables;
 
- typedef typename Digraph::template NodeMap< int > HeapCrossRef;
+ typedef typename Traits::HeapCrossRef HeapCrossRef;
 
  HeapCrossRef * _heap_cross_ref;
 
- typedef BinHeap< int , HeapCrossRef > Heap;
+ typedef typename Traits::Heap Heap;
 
  Heap * _heap;
 
@@ -448,6 +457,25 @@ class MinCostArborescence
      : public MinCostArborescence< Digraph , CostMap , SetPredMapTraits< T > >
  { };
 
+ template< class H , class CR >
+ struct SetHeapTraits : public Traits
+ {
+  typedef CR HeapCrossRef;
+  typedef H Heap;
+  };
+
+ /// \brief \ref named-templ-param "Named parameter" for setting the type
+ /// of the heap.
+ ///
+ /// The heap of the arcs entering the nodes, on the order of their costs,
+ /// is of type \c H, with a cross reference map of type \c CR, which is
+ /// constructed on the digraph with -1 as the value of every node.
+ template< class H , class CR = typename Digraph::template NodeMap< int > >
+ struct SetHeap
+     : public MinCostArborescence< Digraph , CostMap ,
+				   SetHeapTraits< H , CR > >
+ { };
+
  /// @}
 
  /// \brief Constructor.
@@ -458,8 +486,9 @@ class MinCostArborescence
      : _digraph( &digraph ) , _cost( &cost ) , _pred( 0 ) ,
        local_pred( false ) ,
        _arborescence( 0 ) , local_arborescence( false ) , _arc_order( 0 ) ,
-       _node_order( 0 ) , _cost_arcs( 0 ) , _heap_cross_ref( 0 ) ,
-	 _heap( 0 ) { }
+       _node_order( 0 ) , _cost_arcs( 0 ) , _heap_cross_ref( 0 ) , _heap( 0 ) {
+  checkConcept< concepts::Heap< int , HeapCrossRef > , Heap >();
+  }
 
  /// \brief Destructor.
  ~MinCostArborescence() { destroyStructures(); }

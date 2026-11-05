@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <lemon/bellman_ford.h>
+#include <lemon/bits/mcf_tolerance.h>
 
 //\ingroup min_cost_flow_algs
 //\file
@@ -35,10 +36,9 @@ namespace lemon
 namespace _mcf_bits
 {
 
-// The tolerance on the flows: zero for an exact value type, otherwise
-// relative to the largest absolute value of the supplies and of the
-// finite bounds, as the one of NetworkSimplex. Below it, an excess, a
-// deficit or a residual capacity is taken as zero.
+// The tolerance on the flows [see bits/mcf_tolerance.h], on the supplies
+// and the finite bounds. Below it, an excess, a deficit or a residual
+// capacity is taken as zero.
 template< typename IV , typename BV , typename VV >
 typename VV::value_type flowTolerance( int root , const IV & first_out ,
 				       const IV & target , const BV & forward ,
@@ -48,27 +48,23 @@ typename VV::value_type flowTolerance( int root , const IV & first_out ,
  typedef typename VV::value_type Value;
  if( std::numeric_limits< Value >::is_exact )
   return( 0 );
- const Value MAX = ( std::numeric_limits< Value >::max )();
- Value m = 1;
+ Largest< Value > m;
  for( int u = 0 ; u != root ; ++u ) {
-  m = ( std::max )( m , Value( std::abs( supply[ u ] ) ) );
+  m.add( supply[ u ] );
   for( int j = first_out[ u ] ; j != first_out[ u + 1 ] ; ++j ) {
    if( ! forward[ j ] || target[ j ] == root )
     continue;
-   if( upper[ j ] < MAX )
-    m = ( std::max )( m , Value( std::abs( upper[ j ] ) ) );
+   m.add( upper[ j ] );
    if( has_lower )
-    m = ( std::max )( m , Value( std::abs( lower[ j ] ) ) );
+    m.add( lower[ j ] );
    }
   }
- return( static_cast< Value >( m * std::numeric_limits< Value >::epsilon() *
-			      1e6 ) );
+ return( dataTolerance( m.value() ) );
  }
 
-// The tolerance on the reduced costs: zero for an exact cost type,
-// otherwise relative to the largest absolute value of the costs of the
-// arcs of the digraph. A reduced cost above its opposite is taken as
-// nonnegative.
+// The tolerance on the reduced costs [see bits/mcf_tolerance.h], on the
+// costs of the arcs of the digraph. A reduced cost above its opposite is
+// taken as nonnegative.
 template< typename IV , typename BV , typename CV >
 typename CV::value_type costTolerance( int root , const IV & first_out ,
 				       const IV & target , const BV & forward ,
@@ -77,13 +73,12 @@ typename CV::value_type costTolerance( int root , const IV & first_out ,
  typedef typename CV::value_type Cost;
  if( std::numeric_limits< Cost >::is_exact )
   return( 0 );
- Cost m = 1;
+ Largest< Cost > m;
  for( int u = 0 ; u != root ; ++u )
   for( int j = first_out[ u ] ; j != first_out[ u + 1 ] ; ++j )
    if( forward[ j ] && target[ j ] != root )
-    m = ( std::max )( m , Cost( std::abs( cost[ j ] ) ) );
- return( static_cast< Cost >( m * std::numeric_limits< Cost >::epsilon() *
-			     1e6 ) );
+    m.add( cost[ j ] );
+ return( dataTolerance( m.value() ) );
  }
 
 // Finds a flow within the bounds that meets the supplies on the
@@ -296,18 +291,18 @@ bool negativeInfiniteCycle( int root , const IV & first_out ,
 // which is zero for an exact cost type, since in floating point the
 // round-off of the sums of the distances can make a cycle of cost zero
 // (e.g., an arc and its reverse) look negative for ever. The tolerance is
-// the one of the run of this thread.
+// that of the object [see BellmanFord::operationTraits()].
 template< typename C >
 struct ToleranceBfOperationTraits
     : public BellmanFordDefaultOperationTraits< C >
 {
- static C & epsilon() {
-  static thread_local C eps = 0;
-  return( eps );
+ ToleranceBfOperationTraits( C eps = 0 ) : epsilon( eps ) { }
+
+ bool less( const C & left , const C & right ) const {
+  return( left < right - epsilon );
   }
- static bool less( const C & left , const C & right ) {
-  return( left < right - epsilon() );
-  }
+
+ C epsilon;
  };
 
 // The bound, net of the lower bound, that replaces an infinite upper

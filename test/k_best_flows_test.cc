@@ -541,6 +541,34 @@ void checkShortestPaths( int seeds )
    }
  }
 
+// The tolerances in use of KBestFlows and KBestExtremeFlows: those of the
+// data, 10^6 units in the last place of the largest supply or finite bound
+// and of the largest cost, and those set [see tolerances()]
+template< typename KB >
+void checkTolerancesOf( const std::string & name )
+{
+ Digraph g;
+ const Node u = g.addNode() , v = g.addNode();
+ const Arc a = g.addArc( u , v );
+ Digraph::ArcMap< double > up( g ) , cost( g );
+ Digraph::NodeMap< double > sup( g , 0 );
+ up[ a ] = 4;
+ cost[ a ] = 8;
+ sup[ u ] = 2;
+ sup[ v ] = -2;
+ KB kb( g );
+ kb.upperMap( up ).costMap( cost ).supplyMap( sup );
+ const double eps = std::numeric_limits< double >::epsilon() * 1e6;
+ check( kb.flowTolerance().epsilon() == 4 * eps &&
+	  kb.costTolerance().epsilon() == 8 * eps ,
+	"Wrong tolerances of the data of " + name );
+ kb.tolerances( 0.5 , 0.25 );
+ check( kb.flowTolerance().epsilon() == 0.5 &&
+	  kb.costTolerance().epsilon() == 0.25 ,
+	"Wrong tolerances set of " + name );
+ check( kb.run( 2 ) >= 1 , "No flow with the tolerances set of " + name );
+ }
+
 void checkLimitCases()
 {
  // a bound that is not integer: the ranking of the bases, which solves no
@@ -719,5 +747,8 @@ int main()
  checkPotentials( 2000 , false );
  checkPotentials( 2000 , true );
  checkLimitCases();
+ checkTolerancesOf< KBestFlows< Digraph , double , double > >( "KBestFlows" );
+ checkTolerancesOf< KBestExtremeFlows< Digraph , double , double > >(
+   "KBestExtremeFlows" );
  return( 0 );
  }

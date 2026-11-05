@@ -231,7 +231,7 @@ class Circulation
  typedef typename Digraph::template NodeMap< Value > ExcessMap;
  ExcessMap * _excess;
 
- Tolerance _tol;
+ Tolerance _tolerance;
  int _el;
 
  public:
@@ -352,7 +352,7 @@ class Circulation
  private:
  bool checkBoundMaps() {
   for( ArcIt e( _g ) ; e != INVALID ; ++e ) {
-   if( _tol.less( ( *_up )[ e ] , ( *_lo )[ e ] ) )
+   if( _tolerance.less( ( *_up )[ e ] , ( *_lo )[ e ] ) )
     return( false );
    }
   return( true );
@@ -461,7 +461,7 @@ class Circulation
  /// Sets the tolerance object used by the algorithm.
  /// \return <tt>(*this)</tt>
  Circulation & tolerance( const Tolerance & tolerance ) {
-  _tol = tolerance;
+  _tolerance = tolerance;
   return( *this );
   }
 
@@ -469,7 +469,7 @@ class Circulation
  ///
  /// Returns a const reference to the tolerance object used by
  /// the algorithm.
- const Tolerance & tolerance() const { return( _tol ); }
+ const Tolerance & tolerance() const { return( _tolerance ); }
 
  /// \name Execution Control
  /// The simplest way to execute the algorithm is to call \ref run().\n
@@ -506,7 +506,7 @@ class Circulation
    _level->initAddItem( n );
   _level->initFinish();
   for( NodeIt n( _g ) ; n != INVALID ; ++n )
-   if( _tol.positive( ( *_excess )[ n ] ) )
+   if( _tolerance.positive( ( *_excess )[ n ] ) )
     _level->activate( n );
   }
 
@@ -525,12 +525,13 @@ class Circulation
    }
 
   for( ArcIt e( _g ) ; e != INVALID ; ++e ) {
-   if( ! _tol.less( -( *_excess )[ _g.target( e ) ] , ( *_up )[ e ] ) ) {
+   if( ! _tolerance.less( -( *_excess )[ _g.target( e ) ] , ( *_up )[ e ] ) ) {
     _flow->set( e , ( *_up )[ e ] );
     ( *_excess )[ _g.target( e ) ] += ( *_up )[ e ];
     ( *_excess )[ _g.source( e ) ] -= ( *_up )[ e ];
     }
-   else if( _tol.less( -( *_excess )[ _g.target( e ) ] , ( *_lo )[ e ] ) ) {
+   else if( _tolerance.less( -( *_excess )[ _g.target( e ) ] ,
+			     ( *_lo )[ e ] ) ) {
     _flow->set( e , ( *_lo )[ e ] );
     ( *_excess )[ _g.target( e ) ] += ( *_lo )[ e ];
     ( *_excess )[ _g.source( e ) ] -= ( *_lo )[ e ];
@@ -548,7 +549,7 @@ class Circulation
    _level->initAddItem( n );
   _level->initFinish();
   for( NodeIt n( _g ) ; n != INVALID ; ++n )
-   if( _tol.positive( ( *_excess )[ n ] ) )
+   if( _tolerance.positive( ( *_excess )[ n ] ) )
     _level->activate( n );
   }
 
@@ -571,13 +572,13 @@ class Circulation
    for( OutArcIt e( _g , act ) ; e != INVALID ; ++e ) {
     Node v = _g.target( e );
     Value fc = ( *_up )[ e ] - ( *_flow )[ e ];
-    if( ! _tol.positive( fc ) )
+    if( ! _tolerance.positive( fc ) )
      continue;
     if( ( *_level )[ v ] < actlevel ) {
-     if( ! _tol.less( fc , exc ) ) {
+     if( ! _tolerance.less( fc , exc ) ) {
       _flow->set( e , ( *_flow )[ e ] + exc );
       ( *_excess )[ v ] += exc;
-      if( ! _level->active( v ) && _tol.positive( ( *_excess )[ v ] ) )
+      if( ! _level->active( v ) && _tolerance.positive( ( *_excess )[ v ] ) )
        _level->activate( v );
       ( *_excess )[ act ] = 0;
       _level->deactivate( act );
@@ -586,7 +587,7 @@ class Circulation
      else {
       _flow->set( e , ( *_up )[ e ] );
       ( *_excess )[ v ] += fc;
-      if( ! _level->active( v ) && _tol.positive( ( *_excess )[ v ] ) )
+      if( ! _level->active( v ) && _tolerance.positive( ( *_excess )[ v ] ) )
        _level->activate( v );
       exc -= fc;
       }
@@ -597,13 +598,13 @@ class Circulation
    for( InArcIt e( _g , act ) ; e != INVALID ; ++e ) {
     Node v = _g.source( e );
     Value fc = ( *_flow )[ e ] - ( *_lo )[ e ];
-    if( ! _tol.positive( fc ) )
+    if( ! _tolerance.positive( fc ) )
      continue;
     if( ( *_level )[ v ] < actlevel ) {
-     if( ! _tol.less( fc , exc ) ) {
+     if( ! _tolerance.less( fc , exc ) ) {
       _flow->set( e , ( *_flow )[ e ] - exc );
       ( *_excess )[ v ] += exc;
-      if( ! _level->active( v ) && _tol.positive( ( *_excess )[ v ] ) )
+      if( ! _level->active( v ) && _tolerance.positive( ( *_excess )[ v ] ) )
        _level->activate( v );
       ( *_excess )[ act ] = 0;
       _level->deactivate( act );
@@ -612,7 +613,7 @@ class Circulation
      else {
       _flow->set( e , ( *_lo )[ e ] );
       ( *_excess )[ v ] += fc;
-      if( ! _level->active( v ) && _tol.positive( ( *_excess )[ v ] ) )
+      if( ! _level->active( v ) && _tolerance.positive( ( *_excess )[ v ] ) )
        _level->activate( v );
       exc -= fc;
       }
@@ -622,7 +623,7 @@ class Circulation
     }
 
    ( *_excess )[ act ] = exc;
-   if( ! _tol.positive( exc ) )
+   if( ! _tolerance.positive( exc ) )
     _level->deactivate( act );
    else if( mlevel == _node_num ) {
     _level->liftHighestActiveToTop();
@@ -756,7 +757,7 @@ class Circulation
     dif -= ( *_flow )[ e ];
    for( OutArcIt e( _g , n ) ; e != INVALID ; ++e )
     dif += ( *_flow )[ e ];
-   if( _tol.negative( dif ) )
+   if( _tolerance.negative( dif ) )
     return( false );
    }
   return( true );
@@ -779,14 +780,14 @@ class Circulation
    Node s = _g.source( e );
    Node t = _g.target( e );
    if( barrier( s ) && ! barrier( t ) ) {
-    if( _tol.less( inf_cap - ( *_up )[ e ] , delta ) )
+    if( _tolerance.less( inf_cap - ( *_up )[ e ] , delta ) )
      return( false );
     delta += ( *_up )[ e ];
     }
    else if( barrier( t ) && ! barrier( s ) )
     delta -= ( *_lo )[ e ];
    }
-  return( _tol.negative( delta ) );
+  return( _tolerance.negative( delta ) );
   }
 
  /// @}

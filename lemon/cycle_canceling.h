@@ -123,6 +123,10 @@ class CycleCanceling
  typedef V Value;
  /// The type of the arc costs
  typedef C Cost;
+ /// The type of the tolerance on the flows [see flowTolerance()]
+ typedef lemon::Tolerance< Value > FlowTolerance;
+ /// The type of the tolerance on the reduced costs [see costTolerance()]
+ typedef lemon::Tolerance< Cost > CostTolerance;
 
  public:
  /// \brief Problem type constants for the \c run() function.
@@ -231,8 +235,8 @@ class CycleCanceling
  Cost _cost_tol = -1;
  // The tolerances on the flows and on the reduced costs, zero for exact
  // types [see bits/mcf_feasible_flow.h]
- Value _feps;
- Cost _ceps;
+ Value _feps = 0;
+ Cost _ceps = 0;
 
  // Parameters of the problem
  bool _has_lower;
@@ -576,6 +580,25 @@ class CycleCanceling
   _flow_tol = flow;
   _cost_tol = cost;
   return( *this );
+  }
+
+ /// \brief The tolerance on the flows in use.
+ ///
+ /// The one set by \ref tolerances(), if any, and otherwise the one of
+ /// the data [see \ref tolerances()] that the last \ref run() used
+ /// (zero before the first one), as a \ref Tolerance, whose epsilon is
+ /// zero for an exact type.
+ FlowTolerance flowTolerance() const {
+  return(
+    _mcf_bits::makeTolerance< Value >( _flow_tol >= 0 ? _flow_tol : _feps ) );
+  }
+
+ /// \brief The tolerance on the reduced costs in use.
+ ///
+ /// As \ref flowTolerance(), for the reduced costs.
+ CostTolerance costTolerance() const {
+  return(
+    _mcf_bits::makeTolerance< Cost >( _cost_tol >= 0 ? _cost_tol : _ceps ) );
   }
 
  /// \brief Reset all the parameters that have been given before.
@@ -935,7 +958,7 @@ class CycleCanceling
   _cost_vec.clear();
   _id_vec.clear();
   for( int j = 0 ; j != _res_arc_num ; ++j ) {
-   if( _res_cap[ j ] > 0 ) {
+   if( _res_cap[ j ] > _feps ) {
     _arc_vec.push_back( IntPair( _source[ j ] , _target[ j ] ) );
     _cost_vec.push_back( _cost[ j ] );
     _id_vec.push_back( j );
@@ -946,7 +969,6 @@ class CycleCanceling
 
  // Execute the algorithm and transform the results
  void start( Method method ) {
-  BfOps::epsilon() = _ceps;
   // Execute the algorithm
   switch( method ) {
    case SIMPLE_CYCLE_CANCELING:
@@ -966,6 +988,7 @@ class CycleCanceling
    typename BellmanFord< StaticDigraph , CostArcMap >::template SetDistMap<
      CostNodeMap >::template SetOperationTraits< BfOps >::Create bf(
      _sgr , _cost_map );
+   bf.operationTraits( BfOps( _ceps ) );
    bf.distMap( _pi_map );
    bf.init( 0 );
    bf.start();
@@ -1009,6 +1032,7 @@ class CycleCanceling
   std::vector< StaticDigraph::Arc > pred( _res_arc_num );
   PredMap pred_map( pred );
   BF bf( rgr , _cost_map );
+  bf.operationTraits( BfOps( _ceps ) );
   bf.distMap( _pi_map ).predMap( pred_map );
 
   int length_bound = BF_FIRST_LIMIT;
@@ -1098,6 +1122,8 @@ class CycleCanceling
 
   SPath cycle;
   HwMmc hw_mmc( _sgr , _cost_map );
+  hw_mmc.tolerance( _mcf_bits::makeTolerance(
+    static_cast< typename HwMmc::LargeCost >( _ceps ) ) );
   hw_mmc.cycle( cycle );
   buildResidualNetwork();
   while( true ) {
@@ -1108,6 +1134,8 @@ class CycleCanceling
     // Howard's algorithm reached the iteration limit, start a
     // strongly polynomial algorithm instead
     HoMmc ho_mmc( _sgr , _cost_map );
+    ho_mmc.tolerance( _mcf_bits::makeTolerance(
+      static_cast< typename HoMmc::LargeCost >( _ceps ) ) );
     ho_mmc.cycle( cycle );
     // Find a minimum mean cycle (Hartmann-Orlin algorithm)
     if( ! ( ho_mmc.findCycleMean() &&
@@ -1165,7 +1193,7 @@ class CycleCanceling
   // Initialize epsilon
   double epsilon = 0;
   for( int a = 0 ; a != _res_arc_num ; ++a ) {
-   if( _res_cap[ a ] > 0 && -_cost[ a ] > epsilon )
+   if( _res_cap[ a ] > _feps && -_cost[ a ] > epsilon )
     epsilon = -_cost[ a ];
    }
 
@@ -1173,6 +1201,9 @@ class CycleCanceling
   // With an exact cost type, epsilon below 1/n proves the flow optimal;
   // otherwise, the phases go on until epsilon is within the tolerance on
   // the reduced costs, and so does the test of admissibility
+  // the potentials are double, fractional even with an exact cost type,
+  // and the reduced costs are compared with 1e-6 then, as in LEMON 1.3.1,
+  // and with the tolerance on the costs otherwise
   const bool exact = std::numeric_limits< Cost >::is_exact;
   Tolerance< double > tol;
   tol.epsilon( exact ? 1e-6 : double( _ceps ) );
@@ -1202,7 +1233,7 @@ class CycleCanceling
     int a = _first_out[ start ];
     int last_out = _first_out[ start + 1 ];
     for( ; a != last_out &&
-	   ( _res_cap[ a ] == 0 ||
+	   ( _res_cap[ a ] <= _feps ||
 	     ! tol.negative( _cost[ a ] + p - pi[ _target[ a ] ] ) ) ;
 	 ++a )
      ;
@@ -1227,7 +1258,7 @@ class CycleCanceling
       a = _first_out[ v ];
       last_out = _first_out[ v + 1 ];
       for( ; a != last_out &&
-	     ( _res_cap[ a ] == 0 ||
+	     ( _res_cap[ a ] <= _feps ||
 	       ! tol.negative( _cost[ a ] + p - pi[ _target[ a ] ] ) ) ;
 	   ++a )
        ;
@@ -1263,7 +1294,7 @@ class CycleCanceling
       a = stack[ stack_head ] + 1;
       last_out = _first_out[ v + 1 ];
       for( ; a != last_out &&
-	     ( _res_cap[ a ] == 0 ||
+	     ( _res_cap[ a ] <= _feps ||
 	       ! tol.negative( _cost[ a ] + p - pi[ _target[ a ] ] ) ) ;
 	   ++a )
        ;
@@ -1280,7 +1311,7 @@ class CycleCanceling
        a = stack[ stack_head ] + 1;
        last_out = _first_out[ v + 1 ];
        for( ; a != last_out &&
-	      ( _res_cap[ a ] == 0 ||
+	      ( _res_cap[ a ] <= _feps ||
 		! tol.negative( _cost[ a ] + p - pi[ _target[ a ] ] ) ) ;
 	    ++a )
 	;
@@ -1302,7 +1333,7 @@ class CycleCanceling
      int last_out = _first_out[ u + 1 ];
      for( int a = _first_out[ u ] ; a != last_out ; ++a ) {
       int v = _target[ a ];
-      if( _res_cap[ a ] > 0 && tol.negative( _cost[ a ] + p - pi[ v ] ) &&
+      if( _res_cap[ a ] > _feps && tol.negative( _cost[ a ] + p - pi[ v ] ) &&
 	  l > level[ v ] )
        level[ v ] = l;
       }
@@ -1315,7 +1346,7 @@ class CycleCanceling
      double p , pu = pi[ u ];
      int last_out = _first_out[ u + 1 ];
      for( int a = _first_out[ u ] ; a != last_out ; ++a ) {
-      if( _res_cap[ a ] == 0 )
+      if( _res_cap[ a ] <= _feps )
        continue;
       int v = _target[ a ];
       int ld = lu - level[ v ];
@@ -1336,7 +1367,7 @@ class CycleCanceling
      double curr , pu = pi[ u ];
      int last_out = _first_out[ u + 1 ];
      for( int a = _first_out[ u ] ; a != last_out ; ++a ) {
-      if( _res_cap[ a ] == 0 )
+      if( _res_cap[ a ] <= _feps )
        continue;
       curr = _cost[ a ] + pu - pi[ _target[ a ] ];
       if( -curr > epsilon )
@@ -1356,10 +1387,14 @@ class CycleCanceling
     int cycle_size = 1;
     buildResidualNetwork();
     HwMmc hw_mmc( _sgr , _cost_map );
+    hw_mmc.tolerance( _mcf_bits::makeTolerance(
+      static_cast< typename HwMmc::LargeCost >( _ceps ) ) );
     if( hw_mmc.findCycleMean( hw_iter_limit ) == HwMmc::ITERATION_LIMIT ) {
      // Howard's algorithm reached the iteration limit, start a
      // strongly polynomial algorithm instead
      HoMmc ho_mmc( _sgr , _cost_map );
+     ho_mmc.tolerance( _mcf_bits::makeTolerance(
+       static_cast< typename HoMmc::LargeCost >( _ceps ) ) );
      ho_mmc.findCycleMean();
      epsilon = -ho_mmc.cycleMean();
      cycle_cost = ho_mmc.cycleCost();
@@ -1377,6 +1412,7 @@ class CycleCanceling
      _cost_vec[ i ] = cycle_size * _cost_vec[ i ] - cycle_cost;
      }
     BF bf( _sgr , _cost_map );
+    bf.operationTraits( BfOps( _ceps ) );
     bf.distMap( _pi_map );
     bf.init( 0 );
     bf.start();

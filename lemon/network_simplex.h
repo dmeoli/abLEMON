@@ -31,6 +31,7 @@
 #include <lemon/core.h>
 #include <lemon/math.h>
 #include <lemon/bits/mcf_certificate.h>
+#include <lemon/bits/mcf_tolerance.h>
 
 namespace lemon
 {
@@ -86,6 +87,10 @@ class NetworkSimplex
  typedef V Value;
  /// The type of the arc costs
  typedef C Cost;
+ /// The type of the tolerance on the flows [see flowTolerance()]
+ typedef lemon::Tolerance< Value > FlowTolerance;
+ /// The type of the tolerance on the reduced costs [see costTolerance()]
+ typedef lemon::Tolerance< Cost > CostTolerance;
 
  public:
  /// \brief Problem type constants for the \c run() function.
@@ -234,6 +239,9 @@ class NetworkSimplex
 
  // The entering arc of the pivot that proved the problem unbounded
  int _unb_arc;
+ // The set of nodes that the algorithm had at hand when it found no
+ // feasible flow, which may prove it [see infeasibleCut()]
+ std::vector< int > _cut_hint;
  // What the last run() returned, and whether there was one
  int _result = -1;
  // The tolerances on the flows and on the reduced costs that were set,
@@ -244,6 +252,9 @@ class NetworkSimplex
  // Temporary data used in the current pivot iteration
  int in_arc , join , u_in , v_in , u_out , v_out;
  Value delta;
+ // The tolerance on the flows of the current run, zero for an exact type
+ // [see changeFlow()]
+ Value _pivot_feps = 0;
 
  const Value MAX_VALUE;
 
@@ -261,39 +272,31 @@ class NetworkSimplex
   return( _cost_tol >= 0 ? _cost_tol : pivotTolerance( _cost , _arc_num ) );
   }
  Value flowTol() const {
-  return( _flow_tol >= 0 ? _flow_tol : flowTolerance( _supply , _node_num ) );
+  return( _flow_tol >= 0 ? _flow_tol : dataFlowTolerance() );
   }
 
- // The tolerance of the pivot rules on the reduced costs: zero for an
- // exact cost type, otherwise relative to the largest of the n costs.
+ // The tolerance of the pivot rules on the reduced costs [see
+ // bits/mcf_tolerance.h], on the n costs of the arcs.
  static Cost pivotTolerance( const CostVector & cost , int n ) {
-  if( std::numeric_limits< Cost >::is_exact )
-   return( 0 );
-  Cost m = 1;
-  for( int i = 0 ; i != n ; ++i ) {
-   if( cost[ i ] > m )
-    m = cost[ i ];
-   else if( -cost[ i ] > m )
-    m = -cost[ i ];
-   }
-  return( static_cast< Cost >( m * std::numeric_limits< Cost >::epsilon() *
-			     1e6 ) );
+  _mcf_bits::Largest< Cost > m;
+  for( int i = 0 ; i != n ; ++i )
+   m.add( cost[ i ] );
+  return( _mcf_bits::dataTolerance( m.value() ) );
   }
 
- // The tolerance on the flow left on the artificial arcs: zero for an
- // exact flow type, otherwise relative to the largest of the n supplies.
- static Value flowTolerance( const ValueVector & supply , int n ) {
-  if( std::numeric_limits< Value >::is_exact )
-   return( 0 );
-  Value m = 1;
-  for( int i = 0 ; i != n ; ++i ) {
-   if( supply[ i ] > m )
-    m = supply[ i ];
-   else if( -supply[ i ] > m )
-    m = -supply[ i ];
+ // The tolerance on the flows [see bits/mcf_tolerance.h], on the supplies
+ // and the finite bounds of the arcs, below which the flow left on an
+ // artificial arc is taken as zero.
+ Value dataFlowTolerance() const {
+  _mcf_bits::Largest< Value > m;
+  for( int u = 0 ; u != _node_num ; ++u )
+   m.add( _supply[ u ] );
+  for( int i = 0 ; i != _arc_num ; ++i ) {
+   m.add( _upper[ i ] );
+   if( _has_lower )
+    m.add( _lower[ i ] );
    }
-  return( static_cast< Value >( m * std::numeric_limits< Value >::epsilon() *
-			      1e6 ) );
+  return( _mcf_bits::dataTolerance( m.value() ) );
   }
 
  // Implementation of the First Eligible pivot rule
@@ -980,7 +983,7 @@ class NetworkSimplex
   for( NodeIt n( _graph ) ; n != INVALID ; ++n )
    node_of[ _node_id[ n ] ] = n;
   const std::vector< int > ids =
-    _mcf_bits::infeasibleCut( certData() , _stype == LEQ );
+    _mcf_bits::infeasibleCut( certData() , _stype == LEQ , _cut_hint );
   for( std::size_t i = 0 ; i != ids.size() ; ++i )
    cut.push_back( node_of[ ids[ i ] ] );
   return( cut );
@@ -1014,8 +1017,8 @@ class NetworkSimplex
  std::vector< std::vector< Node > > disjointInfeasibleCuts() const {
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );
-  return( nodeSets( _mcf_bits::disjointInfeasibleCuts( certData() ,
-						       _stype == LEQ ) ) );
+  return( nodeSets( _mcf_bits::disjointInfeasibleCuts(
+    certData() , _stype == LEQ , _cut_hint ) ) );
   }
 
  /// \brief Arc-disjoint cycles that prove the problem unbounded.
@@ -1058,6 +1061,22 @@ class NetworkSimplex
   _flow_tol = flow;
   _cost_tol = cost;
   return( *this );
+  }
+
+ /// \brief The tolerance on the flows in use.
+ ///
+ /// The one set by \ref tolerances(), if any, and otherwise the one of
+ /// the data [see \ref tolerances()], as a \ref Tolerance, whose epsilon
+ /// is zero for an exact type.
+ FlowTolerance flowTolerance() const {
+  return( _mcf_bits::makeTolerance< Value >( flowTol() ) );
+  }
+
+ /// \brief The tolerance on the reduced costs in use.
+ ///
+ /// As \ref flowTolerance(), for the reduced costs.
+ CostTolerance costTolerance() const {
+  return( _mcf_bits::makeTolerance< Cost >( costTol() ) );
   }
 
  /// \brief Reset all the parameters that have been given before.
@@ -1294,9 +1313,15 @@ class NetworkSimplex
   const Value feps = flowTol();
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
+  _cut_hint.clear();
   if( ! ( ( _stype == GEQ && _sum_supply <= 0 ) ||
-	  ( _stype == LEQ && _sum_supply >= 0 ) ) )
+	  ( _stype == LEQ && _sum_supply >= 0 ) ) ) {
+   // all the nodes, whose supplies exceed what can leave them (whose
+   // demands exceed what can enter them under LEQ), nothing
+   for( int i = 0 ; i != _node_num ; ++i )
+    _cut_hint.push_back( i );
    return( false );
+   }
 
   // Check lower and upper bounds
   LEMON_DEBUG( checkBoundMaps() ,
@@ -1561,11 +1586,22 @@ class NetworkSimplex
     _flow[ _pred[ u ] ] += _pred_dir[ u ] * val;
     }
    }
-  // Update the state of the entering and leaving arcs
+  // Update the state of the entering and leaving arcs: the leaving arc
+  // is at the bound it reached, which in floating point it may miss by a
+  // rounding error, and then it goes at the bound it is nearer to, its
+  // flow being set to the bound, rather than at the upper bound for a
+  // flow of 1e-16
   if( change ) {
    _state[ in_arc ] = STATE_TREE;
-   _state[ _pred[ u_out ] ] =
-     ( _flow[ _pred[ u_out ] ] == 0 ) ? STATE_LOWER : STATE_UPPER;
+   const int out = _pred[ u_out ];
+   if( _pivot_feps > 0 ) {
+    const bool low =
+      _cap[ out ] >= MAX_VALUE || _flow[ out ] <= _cap[ out ] - _flow[ out ];
+    _flow[ out ] = low ? Value( 0 ) : _cap[ out ];
+    _state[ out ] = low ? STATE_LOWER : STATE_UPPER;
+    }
+   else
+    _state[ out ] = ( _flow[ out ] == 0 ) ? STATE_LOWER : STATE_UPPER;
    }
   else {
    _state[ in_arc ] = -_state[ in_arc ];
@@ -1778,6 +1814,8 @@ class NetworkSimplex
  _mcf_bits::McfData< Value > certData() const {
   _mcf_bits::McfData< Value > d;
   d.n = _node_num;
+  d.feps = static_cast< long double >( flowTol() );
+  d.ceps = static_cast< long double >( costTol() );
   d.supply.assign( _supply.begin() , _supply.begin() + _node_num );
   for( int i = 0 ; i != _arc_num ; ++i ) {
    const Value low = _has_lower ? _lower[ i ] : Value( 0 );
@@ -1821,6 +1859,41 @@ class NetworkSimplex
    return( INFEASIBLE );
   init();
   return( start( pivot_rule ) );
+  }
+
+ // The set of nodes that proves the problem infeasible out of the tree of
+ // the last basis, which some flow is left on an artificial arc of: the
+ // potentials of the tree under the costs of the first phase, one on the
+ // artificial arcs and zero on the others, are an optimal solution of the
+ // dual of the first phase, and so is the indicator of a level set of
+ // them, i.e., the nodes whose potentials are at least, or at most, a
+ // value; the first such set that proves the problem infeasible is kept
+ void phaseOneCut() {
+  _cut_hint.clear();
+  std::vector< int > y( _node_num + 1 , 0 );
+  for( int u = _thread[ _root ] ; u != _root ; u = _thread[ u ] ) {
+   const int c = _pred[ u ] >= _search_arc_num ? 1 : 0;
+   y[ u ] =
+     _pred_dir[ u ] == DIR_UP ? y[ _parent[ u ] ] - c : y[ _parent[ u ] ] + c;
+   }
+  std::vector< int > levels( y.begin() , y.begin() + _node_num );
+  std::sort( levels.begin() , levels.end() );
+  levels.erase( std::unique( levels.begin() , levels.end() ) , levels.end() );
+  const _mcf_bits::McfData< Value > d = certData();
+  std::vector< char > in( _node_num );
+  for( std::size_t h = 0 ; h != levels.size() ; ++h )
+   for( int side = 0 ; side != 2 ; ++side ) {
+    for( int u = 0 ; u != _node_num ; ++u )
+     in[ u ] = side == 0 ? y[ u ] >= levels[ h ] : y[ u ] <= levels[ h ];
+    long double gap , scale;
+    if( _mcf_bits::cutViolation( d , _stype == LEQ , in , gap , scale ) &&
+	_mcf_bits::positiveBeyond< Value >( gap , scale , d.feps ) ) {
+     for( int u = 0 ; u != _node_num ; ++u )
+      if( in[ u ] )
+       _cut_hint.push_back( u );
+     return;
+     }
+    }
   }
 
  // Shift the potentials so that the one of the root is zero again
@@ -1958,6 +2031,7 @@ class NetworkSimplex
  template< typename PivotRuleImpl >
  ProblemType start() {
   PivotRuleImpl pivot( *this );
+  _pivot_feps = flowTol();
 
   // Perform heuristic initial pivots
   if( ! initialPivots() ) {
@@ -1988,6 +2062,7 @@ class NetworkSimplex
   for( int e = _search_arc_num ; e != _all_arc_num ; ++e ) {
    if( _flow[ e ] > feps || _flow[ e ] < -feps ) {
     restoreSupply();
+    phaseOneCut();
     return( INFEASIBLE );
     }
    }

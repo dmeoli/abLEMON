@@ -145,6 +145,10 @@ class CapacityScaling
  typedef typename TR::Value Value;
  /// The type of the arc costs
  typedef typename TR::Cost Cost;
+ /// The type of the tolerance on the flows [see flowTolerance()]
+ typedef lemon::Tolerance< Value > FlowTolerance;
+ /// The type of the tolerance on the reduced costs [see costTolerance()]
+ typedef lemon::Tolerance< Cost > CostTolerance;
 
  /// The type of the heap used for internal Dijkstra computations
  typedef typename TR::Heap Heap;
@@ -231,9 +235,9 @@ class CapacityScaling
  // The smallest delta: one for an integer value type, the tolerance on
  // the flows otherwise, below which an excess or a residual capacity is
  // zero [see bits/mcf_feasible_flow.h]
- Value _unit;
+ Value _unit = 0;
  // The tolerance on the reduced costs
- Cost _ceps;
+ Cost _ceps = 0;
  IntVector _pred;
 
  public:
@@ -662,6 +666,25 @@ class CapacityScaling
   _flow_tol = flow;
   _cost_tol = cost;
   return( *this );
+  }
+
+ /// \brief The tolerance on the flows in use.
+ ///
+ /// The one set by \ref tolerances(), if any, and otherwise the one of
+ /// the data [see \ref tolerances()] that the last \ref run() used
+ /// (zero before the first one), as a \ref Tolerance, whose epsilon is
+ /// zero for an exact type.
+ FlowTolerance flowTolerance() const {
+  return(
+    _mcf_bits::makeTolerance< Value >( _flow_tol >= 0 ? _flow_tol : _unit ) );
+  }
+
+ /// \brief The tolerance on the reduced costs in use.
+ ///
+ /// As \ref flowTolerance(), for the reduced costs.
+ CostTolerance costTolerance() const {
+  return(
+    _mcf_bits::makeTolerance< Cost >( _cost_tol >= 0 ? _cost_tol : _ceps ) );
   }
 
  /// \brief Reset all the parameters that have been given before.

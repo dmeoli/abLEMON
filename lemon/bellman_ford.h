@@ -228,6 +228,9 @@ class BellmanFord
  DistMap * _dist;
  // The map of distances allocated here, if any, as _local_pred
  std::unique_ptr< DistMap > _local_dist;
+ // The operations on the distances, those of the traits class or those
+ // given [see operationTraits()]
+ OperationTraits _ops;
 
  typedef typename Digraph::template NodeMap< bool > MaskMap;
  MaskMap * _mask;
@@ -353,6 +356,21 @@ class BellmanFord
   return( *this );
   }
 
+ /// \brief Sets the object of the operation traits class.
+ ///
+ /// The operations on the distances are those of an object of the
+ /// operation traits class [see \ref SetOperationTraits], default
+ /// constructed unless one is given here, which lets them depend on the
+ /// instance, e.g., on a tolerance of its own.
+ /// \return <tt>(*this)</tt>
+ BellmanFord & operationTraits( const OperationTraits & ops ) {
+  _ops = ops;
+  return( *this );
+  }
+
+ /// \brief The object of the operation traits class in use.
+ const OperationTraits & operationTraits() const { return( _ops ); }
+
  /// \brief Sets the map that stores the predecessor arcs.
  ///
  /// Sets the map that stores the predecessor arcs.
@@ -404,7 +422,7 @@ class BellmanFord
    _dist->set( it , value );
    }
   _process.clear();
-  if( OperationTraits::less( value , OperationTraits::infinity() ) ) {
+  if( _ops.less( value , OperationTraits::infinity() ) ) {
    for( NodeIt it( *_gr ) ; it != INVALID ; ++it ) {
     _process.push_back( it );
     _mask->set( it , true );
@@ -460,8 +478,8 @@ class BellmanFord
   for( int i = 0 ; i < int( _process.size() ) ; ++i ) {
    for( OutArcIt it( *_gr , _process[ i ] ) ; it != INVALID ; ++it ) {
     Node target = _gr->target( it );
-    Value relaxed = OperationTraits::plus( values[ i ] , ( *_length )[ it ] );
-    if( OperationTraits::less( relaxed , ( *_dist )[ target ] ) ) {
+    Value relaxed = _ops.plus( values[ i ] , ( *_length )[ it ] );
+    if( _ops.less( relaxed , ( *_dist )[ target ] ) ) {
      _pred->set( target , it );
      _dist->set( target , relaxed );
      if( ! ( *_mask )[ target ] ) {
@@ -498,9 +516,8 @@ class BellmanFord
    for( OutArcIt it( *_gr , _process[ i ] ) ; it != INVALID ; ++it ) {
     Node target = _gr->target( it );
     Value relaxed =
-      OperationTraits::plus( ( *_dist )[ _process[ i ] ] ,
-			     ( *_length )[ it ] );
-    if( OperationTraits::less( relaxed , ( *_dist )[ target ] ) ) {
+      _ops.plus( ( *_dist )[ _process[ i ] ] , ( *_length )[ it ] );
+    if( _ops.less( relaxed , ( *_dist )[ target ] ) ) {
      _pred->set( target , it );
      _dist->set( target , relaxed );
      if( ! ( *_mask )[ target ] ) {
