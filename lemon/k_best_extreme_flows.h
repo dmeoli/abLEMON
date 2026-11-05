@@ -111,6 +111,9 @@ class KBestExtremeFlows
  std::vector< char > _inf;
  std::vector< Cost > _cost;
  bool _has_init;
+ // the tolerances set, negative if left to the data [see tolerances()]
+ Value _flow_tol = -1;
+ Cost _cost_tol = -1;
  int _basis_limit;
  int _vertex_limit;
  int _method;
@@ -203,6 +206,36 @@ class KBestExtremeFlows
   _has_init = true;
   return( *this );
   }
+
+ /// \brief Sets the tolerances on the flows and on the reduced costs.
+ ///
+ /// Those of the minimum cost flow algorithms [see
+ /// NetworkSimplex::tolerances()], given to the NetworkSimplex that finds
+ /// the optimal flow and used in the comparisons of this class; a negative
+ /// value, the default, leaves the tolerance to the data.
+ ///
+ /// \return <tt>(*this)</tt>
+ KBestExtremeFlows & tolerances( Value flow , Cost cost ) {
+  _flow_tol = flow;
+  _cost_tol = cost;
+  return( *this );
+  }
+
+ /// \brief The tolerance on the flows in use, as a \ref Tolerance.
+ ///
+ /// The one set by \ref tolerances(), if any, and otherwise the one of
+ /// the data, whose epsilon is zero for an exact type.
+ Tolerance< Value > flowTolerance() const {
+  return( _mcf_bits::makeTolerance< Value >( flowEps() ) );
+  }
+
+ /// \brief The tolerance on the reduced costs in use, as a \ref Tolerance.
+ ///
+ /// As \ref flowTolerance(), for the reduced costs.
+ Tolerance< Cost > costTolerance() const {
+  return( _mcf_bits::makeTolerance< Cost >( costEps() ) );
+  }
+
 
  /// \brief The ways the flows are generated [see \ref method()].
  enum Method {
@@ -480,7 +513,7 @@ class KBestExtremeFlows
   if( k <= 0 || ! firstState( s ) )
    return( 0 );
   const int nn = _n + 1;
-  const Cost ceps = costTolerance();
+  const Cost ceps = costEps();
   std::vector< Cost > pi , rc;
   optimalPotentials( s , ceps , pi );
   if( _pot_method == PIVOTS )
@@ -671,7 +704,7 @@ class KBestExtremeFlows
   const bool bounded = gap >= 0;
   const Cost limit = bounded ? s.cost + gap : s.cost;
 
-  const Cost ceps = costTolerance();
+  const Cost ceps = costEps();
   std::vector< Cost > pi , rc;
   optimalPotentials( s , ceps , pi );
   reducedCosts( pi , rc );
@@ -810,8 +843,24 @@ class KBestExtremeFlows
   return( int( _flows.size() ) );
   }
 
- // The tolerance on the reduced costs [see bits/mcf_tolerance.h]
- Cost costTolerance() const {
+ // The tolerances in use [see tolerances()]
+ Value flowEps() const {
+  if( _flow_tol >= 0 )
+   return( _flow_tol );
+  _mcf_bits::Largest< Value > big;
+  for( int i = 0 ; i != _m ; ++i ) {
+   big.add( _lower[ i ] );
+   if( ! _inf[ i ] )
+    big.add( _upper[ i ] );
+   }
+  for( int u = 0 ; u != _n ; ++u )
+   big.add( _supply[ u ] );
+  return( _mcf_bits::dataTolerance( big.value() ) );
+  }
+
+ Cost costEps() const {
+  if( _cost_tol >= 0 )
+   return( _cost_tol );
   _mcf_bits::Largest< Cost > big;
   for( int i = 0 ; i != _m ; ++i )
    big.add( _cost[ i ] );
@@ -1012,20 +1061,10 @@ class KBestExtremeFlows
    for( NodeIt u( _graph ) ; u != INVALID ; ++u )
     sup[ u ] = _supply[ _node_id[ u ] ];
    ns.lowerMap( low ).upperMap( up ).costMap( cost ).supplyMap( sup );
+   ns.tolerances( _flow_tol , _cost_tol );
    if( ! _has_init && ns.run() != NS::OPTIMAL )
     return( false );
-   // the tolerance on the flows [see bits/mcf_tolerance.h]
-   {
-    _mcf_bits::Largest< Value > big;
-    for( int i = 0 ; i != _m ; ++i ) {
-     big.add( _lower[ i ] );
-     if( ! _inf[ i ] )
-      big.add( _upper[ i ] );
-     }
-    for( int u = 0 ; u != _n ; ++u )
-     big.add( _supply[ u ] );
-    _feps = _mcf_bits::dataTolerance( big.value() );
-    }
+   _feps = flowEps();
    if( _has_init )
     f = _init;
    else

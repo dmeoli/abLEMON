@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include <lemon/bits/mcf_tolerance.h>
 #include <lemon/core.h>
 #include <lemon/network_simplex.h>
 
@@ -116,6 +117,9 @@ class KBestFlows
  std::vector< Cost > _cost;
  bool _has_init;
  std::vector< Value > _init;
+ // the tolerances set, negative if left to the data [see tolerances()]
+ Value _flow_tol = -1;
+ Cost _cost_tol = -1;
 
  std::vector< std::vector< Value > > _flows;
  std::vector< Cost > _costs;
@@ -193,6 +197,36 @@ class KBestFlows
   _has_init = true;
   return( *this );
   }
+
+ /// \brief Sets the tolerances on the flows and on the reduced costs.
+ ///
+ /// Those of the minimum cost flow algorithms [see
+ /// NetworkSimplex::tolerances()], given to the NetworkSimplex that finds
+ /// the optimal flow and used in the comparisons of this class; a negative
+ /// value, the default, leaves the tolerance to the data.
+ ///
+ /// \return <tt>(*this)</tt>
+ KBestFlows & tolerances( Value flow , Cost cost ) {
+  _flow_tol = flow;
+  _cost_tol = cost;
+  return( *this );
+  }
+
+ /// \brief The tolerance on the flows in use, as a \ref Tolerance.
+ ///
+ /// The one set by \ref tolerances(), if any, and otherwise the one of
+ /// the data, whose epsilon is zero for an exact type.
+ Tolerance< Value > flowTolerance() const {
+  return( _mcf_bits::makeTolerance< Value >( flowEps() ) );
+  }
+
+ /// \brief The tolerance on the reduced costs in use, as a \ref Tolerance.
+ ///
+ /// As \ref flowTolerance(), for the reduced costs.
+ Tolerance< Cost > costTolerance() const {
+  return( _mcf_bits::makeTolerance< Cost >( costEps() ) );
+  }
+
 
  /// \brief Finds the k best flows.
  ///
@@ -289,6 +323,30 @@ class KBestFlows
  private:
  // An optimal flow, the given one or that of NetworkSimplex, as the
  // first flow; false if there is none
+ // The tolerances in use [see tolerances()]
+ Value flowEps() const {
+  if( _flow_tol >= 0 )
+   return( _flow_tol );
+  _mcf_bits::Largest< Value > big;
+  for( int i = 0 ; i != _m ; ++i ) {
+   big.add( _lower[ i ] );
+   if( ! _inf[ i ] )
+    big.add( _upper[ i ] );
+   }
+  for( int u = 0 ; u != _n ; ++u )
+   big.add( _supply[ u ] );
+  return( _mcf_bits::dataTolerance( big.value() ) );
+  }
+
+ Cost costEps() const {
+  if( _cost_tol >= 0 )
+   return( _cost_tol );
+  _mcf_bits::Largest< Cost > big;
+  for( int i = 0 ; i != _m ; ++i )
+   big.add( _cost[ i ] );
+  return( _mcf_bits::dataTolerance( big.value() ) );
+  }
+
  bool firstFlow() {
   std::vector< Value > f( _m , 0 );
   if( _has_init )
@@ -308,6 +366,7 @@ class KBestFlows
    for( NodeIt u( _graph ) ; u != INVALID ; ++u )
     sup[ u ] = _supply[ _node_id[ u ] ];
    ns.lowerMap( low ).upperMap( up ).costMap( cost ).supplyMap( sup );
+   ns.tolerances( _flow_tol , _cost_tol );
    if( ns.run() != NS::OPTIMAL )
     return( false );
    for( ArcIt a( _graph ) ; a != INVALID ; ++a )
