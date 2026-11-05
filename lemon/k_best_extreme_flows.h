@@ -113,6 +113,7 @@ class KBestExtremeFlows
  int _basis_limit;
  int _vertex_limit;
  int _method;
+ int _pot_method;
  bool _exact;
  std::vector< Value > _init;
  Value _feps;
@@ -132,7 +133,7 @@ class KBestExtremeFlows
        _source( _m + _n ) , _target( _m + _n ) , _lower( _m + _n , 0 ) ,
        _upper( _m + _n , 0 ) , _supply( _n , 0 ) , _inf( _m + _n , 1 ) ,
        _cost( _m + _n , 0 ) , _has_init( false ) , _basis_limit( 1000 ) ,
-       _vertex_limit( 0 ) , _method( RANKING ) ,
+       _vertex_limit( 0 ) , _method( RANKING ) , _pot_method( PATHS ) ,
        _exact( true ) , _feps( 0 ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
@@ -425,6 +426,33 @@ class KBestExtremeFlows
    map.set( a , _flows[ i ][ _arc_id[ a ] ] );
   }
 
+ /// \brief The ways the optimal potentials are generated [see
+ /// \ref potentialMethod()].
+ enum PotentialMethod {
+  /// The trees of the shortest paths from and to each node.
+  PATHS ,
+  /// The pivots of the dual simplex from the optimal vertex.
+  PIVOTS
+  };
+
+ /// \brief Sets the way the optimal potentials are generated.
+ ///
+ /// With \ref PATHS, the default, \ref runPotentials() gives the
+ /// vertices of the trees of the shortest paths, from and to each node,
+ /// of the reduced costs of the residual graph of the optimal flow. With
+ /// \ref PIVOTS it gives the vertices of the polyhedron of the optimal
+ /// potentials reached from that of the optimal vertex by the pivots of the
+ /// dual simplex, breadth first: in a tree of arcs of zero reduced cost, an
+ /// arc whose opposite residual arc is closed (an arc at a bound, i.e., a
+ /// degenerate one of the primal) leaves, the side of its tail is raised
+ /// until an arc into it reaches a zero reduced cost and enters, and the
+ /// potentials change if the step is not zero; each vertex costs
+ /// \f$O(nm)\f$ time.
+ KBestExtremeFlows & potentialMethod( PotentialMethod m ) {
+  _pot_method = m;
+  return( *this );
+  }
+
  /// \brief Finds k distinct optimal potentials.
  ///
  /// The potentials (dual solutions) optimal for the problem, i.e., those
@@ -437,6 +465,9 @@ class KBestExtremeFlows
  /// that are not reached taking the largest distance. Each is the vertex of
  /// the dual polyhedron given by the tree of the shortest paths, of zero
  /// reduced costs; potentials that differ by a constant are the same.
+ ///
+ /// With \ref PIVOTS [see \ref potentialMethod()] they are instead the
+ /// vertices reached by the pivots of the dual simplex.
  ///
  /// \param k The largest number of potentials to find.
  ///
@@ -451,23 +482,11 @@ class KBestExtremeFlows
   const Cost ceps = costTolerance();
   std::vector< Cost > pi , rc;
   optimalPotentials( s , ceps , pi );
+  if( _pot_method == PIVOTS )
+   return( runPivots( k , s , ceps , pi ) );
   reducedCosts( pi , rc );
-
-  // a vector of potentials up to a constant: the one of the root made zero
-  auto add = [ & ]( std::vector< Cost > p ) {
-   const Cost c = p[ _n ];
-   for( int u = 0 ; u != nn ; ++u )
-    p[ u ] -= c;
-   for( std::size_t j = 0 ; j != _pots.size() ; ++j ) {
-    bool same = true;
-    for( int u = 0 ; u != nn && same ; ++u ) {
-     const Cost d = p[ u ] - _pots[ j ][ u ];
-     same = ( d < 0 ? -d : d ) <= ceps;
-     }
-    if( same )
-     return;
-    }
-   _pots.push_back( p );
+  auto add = [ & ]( const std::vector< Cost > & p ) {
+   addPotentials( p , ceps );
    };
 
   add( pi );
@@ -503,6 +522,143 @@ class KBestExtremeFlows
   }
 
  private:
+ // Adds potentials up to a constant, the one of the root made zero, if
+ // they are not there yet; whether they were added
+ bool addPotentials( std::vector< Cost > p , Cost ceps ) {
+  const int nn = _n + 1;
+  const Cost c = p[ _n ];
+  for( int u = 0 ; u != nn ; ++u )
+   p[ u ] -= c;
+  for( std::size_t j = 0 ; j != _pots.size() ; ++j ) {
+   bool same = true;
+   for( int u = 0 ; u != nn && same ; ++u ) {
+    const Cost d = p[ u ] - _pots[ j ][ u ];
+    same = ( d < 0 ? -d : d ) <= ceps;
+    }
+   if( same )
+    return( false );
+   }
+  _pots.push_back( p );
+  return( true );
+  }
+
+ // The tree of the open residual arcs of s of zero reduced cost under pi,
+ // from the root, by a breadth first visit that goes along them either
+ // way: tree holds the arc that reaches each node (-1 at the root and at
+ // the nodes not reached), and order the nodes in the order of the visit
+ void tightTree( const std::vector< Cost > & rc ,
+		 Cost ceps , const std::vector< std::vector< int > > & out ,
+		 const std::vector< std::vector< int > > & in ,
+		 std::vector< int > & tree ,
+		 std::vector< int > & order ) const {
+  const int nn = _n + 1;
+  tree.assign( nn , -1 );
+  order.assign( 1 , _n );
+  std::vector< char > seen( nn , 0 );
+  seen[ _n ] = 1;
+  for( std::size_t h = 0 ; h != order.size() ; ++h ) {
+   const int w = order[ h ];
+   for( int dir = 0 ; dir != 2 ; ++dir ) {
+    const std::vector< int > & adj = dir == 0 ? out[ w ] : in[ w ];
+    for( std::size_t t = 0 ; t != adj.size() ; ++t ) {
+     const int r = adj[ t ] , z = dir == 0 ? head( r ) : tail( r );
+     if( seen[ z ] || rc[ r ] > ceps )
+      continue;
+     seen[ z ] = 1;
+     tree[ z ] = r;
+     order.push_back( z );
+     }
+    }
+   }
+  }
+
+ // Raises the potentials of the nodes in the set side by the least reduced
+ // cost of the open arcs of s into it, which is returned, or does nothing
+ // and returns a negative value if no arc enters it
+ Cost raise( const State & s , const std::vector< char > & side ,
+	     const std::vector< Cost > & rc ,
+	     std::vector< Cost > & pi ) const {
+  bool any = false;
+  Cost delta = 0;
+  for( int r = 0 ; r != 2 * ( _m + _n ) ; ++r )
+   if( side[ head( r ) ] && ! side[ tail( r ) ] && open( s , r ) &&
+       ( ! any || rc[ r ] < delta ) ) {
+    delta = rc[ r ];
+    any = true;
+    }
+  if( ! any )
+   return( -1 );
+  for( int u = 0 ; u != _n + 1 ; ++u )
+   if( side[ u ] )
+    pi[ u ] += delta;
+  return( delta );
+  }
+
+ // The run of PIVOTS [see potentialMethod()]: pi, optimal for the optimal
+ // vertex s, is first made a vertex, by raising the parts that the tree of
+ // zero reduced cost does not reach (the arcs from the root to every node
+ // being open, one always enters them), then the vertices adjacent to each
+ // vertex found are looked for in turn
+ int runPivots( int k , const State & s , Cost ceps ,
+		std::vector< Cost > pi ) {
+  const int nn = _n + 1;
+  const auto out = openArcs( s , false ) , in = openArcs( s , true );
+  std::vector< Cost > rc;
+  std::vector< int > tree , order;
+  for( ; ; ) {
+   reducedCosts( pi , rc );
+   tightTree( rc , ceps , out , in , tree , order );
+   if( int( order.size() ) == nn )
+    break;
+   std::vector< char > side( nn , 1 );
+   for( std::size_t h = 0 ; h != order.size() ; ++h )
+    side[ order[ h ] ] = 0;
+   if( raise( s , side , rc , pi ) < 0 )
+    break;
+   }
+  addPotentials( pi , ceps );
+  for( std::size_t i = 0 ; i != _pots.size() &&
+		           int( _pots.size() ) < k ; ++i ) {
+   const std::vector< Cost > base = _pots[ i ];
+   reducedCosts( base , rc );
+   tightTree( rc , ceps , out , in , tree , order );
+   // the subtree of each node: the nodes after it in the order of a
+   // visit by depth, within its size
+   std::vector< std::vector< int > > kids( nn );
+   for( std::size_t h = 1 ; h != order.size() ; ++h ) {
+    const int z = order[ h ] , r = tree[ z ];
+    kids[ tail( r ) == z ? head( r ) : tail( r ) ].push_back( z );
+    }
+   std::vector< int > pre , size( nn , 1 ) , stack( 1 , _n ) , at( nn , -1 );
+   while( ! stack.empty() ) {
+    const int w = stack.back();
+    stack.pop_back();
+    at[ w ] = int( pre.size() );
+    pre.push_back( w );
+    for( std::size_t t = 0 ; t != kids[ w ].size() ; ++t )
+     stack.push_back( kids[ w ][ t ] );
+    }
+   for( std::size_t h = pre.size() ; h-- > 1 ; ) {
+    const int z = pre[ h ] , r = tree[ z ];
+    size[ tail( r ) == z ? head( r ) : tail( r ) ] += size[ z ];
+    }
+   for( std::size_t h = 1 ; h != pre.size() &&
+		            int( _pots.size() ) < k ; ++h ) {
+    const int z = pre[ h ] , r = tree[ z ];
+    if( open( s , r ^ 1 ) )
+     continue;
+    // the side of the tail of r: the subtree of z if z is the tail
+    std::vector< char > side( nn , tail( r ) == z ? 0 : 1 );
+    for( int g = at[ z ] ; g != at[ z ] + size[ z ] ; ++g )
+     side[ pre[ g ] ] = tail( r ) == z ? 1 : 0;
+    std::vector< Cost > p( base );
+    if( raise( s , side , rc , p ) > ceps )
+     addPotentials( p , ceps );
+    }
+   }
+  return( int( _pots.size() ) );
+  }
+
  // The run of CYCLES [see method()]
  int runCycles( int k , Cost gap ) {
   _flows.clear();

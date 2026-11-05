@@ -313,7 +313,7 @@ void checkExtremeAgainstEnumeration( int seeds )
 // potentials it gives is optimal, i.e., under them the reduced costs of the
 // arcs, those from the root to the nodes included, meet the complementary
 // slackness with the optimal flow, and they are all different
-void checkPotentials( int seeds )
+void checkPotentials( int seeds , bool pivots )
 {
  unsigned int r = 1972;
  for( int seed = 0 ; seed != seeds ; ++seed ) {
@@ -323,6 +323,8 @@ void checkPotentials( int seeds )
   KBestExtremeFlows< Digraph > kb( p.g );
   kb.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
     p.supply );
+  if( pivots )
+   kb.potentialMethod( KBestExtremeFlows< Digraph >::PIVOTS );
   if( kb.run( 1 ) == 0 ) {
    check( kb.runPotentials( 4 ) == 0 , "Potentials of no flow on " + id );
    continue;
@@ -333,10 +335,35 @@ void checkPotentials( int seeds )
   for( int j = 0 ; j != got ; ++j ) {
    Digraph::NodeMap< int > excess( p.g , 0 );
    std::vector< int > pot;
+   // a vertex: the arcs of zero reduced cost that are not fixed, and those
+   // from the root to the nodes of potential 0, join all the nodes
+   Digraph::NodeMap< int > comp( p.g );
+   int n = 0;
+   for( Digraph::NodeIt u( p.g ) ; u != INVALID ; ++u )
+    comp[ u ] = n++;
+   int root = n , parts = n + 1;
+   std::vector< int > uf( n + 1 );
+   for( int i = 0 ; i != n + 1 ; ++i )
+    uf[ i ] = i;
+   auto find = [ & ]( int x ) -> int {
+    while( uf[ x ] != x )
+     x = uf[ x ] = uf[ uf[ x ] ];
+    return( x );
+    };
+   auto join = [ & ]( int x , int y ) {
+    x = find( x );
+    y = find( y );
+    if( x != y ) {
+     uf[ x ] = y;
+     --parts;
+     }
+    };
    for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a ) {
     const int f = kb.flow( 0 , a );
     const int rc = p.cost[ a ] + kb.potential( j , p.g.source( a ) ) -
                    kb.potential( j , p.g.target( a ) );
+    if( rc == 0 && p.lower[ a ] < p.upper[ a ] )
+     join( comp[ p.g.source( a ) ] , comp[ p.g.target( a ) ] );
     check( ( f == p.upper[ a ] || rc >= 0 ) &&
 	   ( f == p.lower[ a ] || rc <= 0 ) ,
 	   "Potentials not optimal on an arc of " + id );
@@ -349,8 +376,12 @@ void checkPotentials( int seeds )
     const int pu = kb.potential( j , u );
     check( pu <= 0 && ( excess[ u ] == p.supply[ u ] || pu == 0 ) ,
 	   "Potentials not optimal on an arc of the root of " + id );
+    if( pu == 0 )
+     join( root , comp[ u ] );
     pot.push_back( pu );
     }
+   if( pivots )
+    check( parts == 1 , "Potentials not a vertex on " + id );
    check( seen.insert( pot ).second , "The same potentials twice on " + id );
    }
   }
@@ -496,7 +527,8 @@ int main()
 {
  checkAgainstEnumeration( 2000 );
  checkExtremeAgainstEnumeration( 2000 );
- checkPotentials( 2000 );
+ checkPotentials( 2000 , false );
+ checkPotentials( 2000 , true );
  checkLimitCases();
  return( 0 );
  }
