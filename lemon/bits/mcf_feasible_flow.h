@@ -291,18 +291,18 @@ bool negativeInfiniteCycle( int root , const IV & first_out ,
 // which is zero for an exact cost type, since in floating point the
 // round-off of the sums of the distances can make a cycle of cost zero
 // (e.g., an arc and its reverse) look negative for ever. The tolerance is
-// the one of the run of this thread.
+// that of the object [see BellmanFord::operationTraits()].
 template< typename C >
 struct ToleranceBfOperationTraits
     : public BellmanFordDefaultOperationTraits< C >
 {
- static C & epsilon() {
-  static thread_local C eps = 0;
-  return( eps );
+ ToleranceBfOperationTraits( C eps = 0 ) : epsilon( eps ) { }
+
+ bool less( const C & left , const C & right ) const {
+  return( left < right - epsilon );
   }
- static bool less( const C & left , const C & right ) {
-  return( left < right - epsilon() );
-  }
+
+ C epsilon;
  };
 
 // The bound, net of the lower bound, that replaces an infinite upper

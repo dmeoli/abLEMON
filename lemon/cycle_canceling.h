@@ -969,7 +969,6 @@ class CycleCanceling
 
  // Execute the algorithm and transform the results
  void start( Method method ) {
-  BfOps::epsilon() = _ceps;
   // Execute the algorithm
   switch( method ) {
    case SIMPLE_CYCLE_CANCELING:
@@ -989,6 +988,7 @@ class CycleCanceling
    typename BellmanFord< StaticDigraph , CostArcMap >::template SetDistMap<
      CostNodeMap >::template SetOperationTraits< BfOps >::Create bf(
      _sgr , _cost_map );
+   bf.operationTraits( BfOps( _ceps ) );
    bf.distMap( _pi_map );
    bf.init( 0 );
    bf.start();
@@ -1032,6 +1032,7 @@ class CycleCanceling
   std::vector< StaticDigraph::Arc > pred( _res_arc_num );
   PredMap pred_map( pred );
   BF bf( rgr , _cost_map );
+  bf.operationTraits( BfOps( _ceps ) );
   bf.distMap( _pi_map ).predMap( pred_map );
 
   int length_bound = BF_FIRST_LIMIT;
@@ -1411,6 +1412,7 @@ class CycleCanceling
      _cost_vec[ i ] = cycle_size * _cost_vec[ i ] - cycle_cost;
      }
     BF bf( _sgr , _cost_map );
+    bf.operationTraits( BfOps( _ceps ) );
     bf.distMap( _pi_map );
     bf.init( 0 );
     bf.start();

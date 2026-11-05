@@ -1118,9 +1118,9 @@ class CostScaling
    sgr.build( _res_node_num , arc_vec.begin() , arc_vec.end() );
 
    typedef _mcf_bits::ToleranceBfOperationTraits< LargeCost > BfOps;
-   BfOps::epsilon() = _ceps;
    typename BellmanFord< StaticDigraph , LargeCostArcMap >::
      template SetOperationTraits< BfOps >::Create bf( sgr , cost_map );
+   bf.operationTraits( BfOps( _ceps ) );
    bf.init( 0 );
    bf.start();
 

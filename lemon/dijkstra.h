@@ -253,6 +253,9 @@ class Dijkstra
  bool local_processed;
  //Pointer to the heap cross references.
  HeapCrossRef * _heap_cross_ref;
+ // The operations on the distances, those of the traits class or those
+ // given [see operationTraits()]
+ OperationTraits _ops;
  //Indicates if _heap_cross_ref is locally allocated (true) or not.
  bool local_heap_cross_ref;
  //Pointer to the heap.
@@ -498,6 +501,21 @@ class Dijkstra
   return( *this );
   }
 
+ ///Sets the object of the operation traits class.
+
+ ///The operations on the distances are those of an object of the
+ ///operation traits class [see \ref SetOperationTraits], default
+ ///constructed unless one is given here, which lets them depend on the
+ ///instance, e.g., on a tolerance of its own.
+ ///\return <tt> (*this) </tt>
+ Dijkstra & operationTraits( const OperationTraits & ops ) {
+  _ops = ops;
+  return( *this );
+  }
+
+ ///The object of the operation traits class in use.
+ const OperationTraits & operationTraits() const { return( _ops ); }
+
  ///Sets the map that stores the predecessor arcs.
 
  ///Sets the map that stores the predecessor arcs.
@@ -615,7 +633,7 @@ class Dijkstra
   if( _heap->state( s ) != Heap::IN_HEAP ) {
    _heap->push( s , dst );
    }
-  else if( OperationTraits::less( ( *_heap )[ s ] , dst ) ) {
+  else if( _ops.less( ( *_heap )[ s ] , dst ) ) {
    _heap->set( s , dst );
    _pred->set( s , INVALID );
    }
@@ -638,12 +656,12 @@ class Dijkstra
    Node w = G->target( e );
    switch( _heap->state( w ) ) {
     case Heap::PRE_HEAP:
-     _heap->push( w , OperationTraits::plus( oldvalue , ( *_length )[ e ] ) );
+     _heap->push( w , _ops.plus( oldvalue , ( *_length )[ e ] ) );
      _pred->set( w , e );
      break;
     case Heap::IN_HEAP: {
-     Value newvalue = OperationTraits::plus( oldvalue , ( *_length )[ e ] );
-     if( OperationTraits::less( newvalue , ( *_heap )[ w ] ) ) {
+     Value newvalue = _ops.plus( oldvalue , ( *_length )[ e ] );
+     if( _ops.less( newvalue , ( *_heap )[ w ] ) ) {
       _heap->decrease( w , newvalue );
       _pred->set( w , e );
       }
