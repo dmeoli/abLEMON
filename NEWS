@@ -1,3 +1,57 @@
+2026-11-12 Version 1.9.0 (abLEMON) released
+
+        Alternative optimal potentials by the dual simplex, the
+        certificates taken from the algorithms and judged with their
+        tolerances, and the tolerances and the traits of the library used
+        consistently
+
+        * New features
+
+          ----: KBestExtremeFlows::potentialMethod( PIVOTS ), the optimal
+                potentials reached from those of the optimal vertex by the
+                pivots of the dual simplex, breadth first, each a vertex of
+                the polyhedron of the optimal potentials
+          ----: NetworkSimplex::infeasibleCut() gives the set that the last
+                tree proves infeasible, a level set of its potentials under
+                the costs of the first phase, as the other three algorithms
+                give their own; the maximum flow is left as a fallback
+          ----: infeasibleCuts(k) gives first the sets that tie for the
+                largest violation, the closed sets of the residual graph of
+                one maximum flow (Picard and Queyranne, 1980), and then
+                finds the best set of a part of Lawler's partition only
+                when the part is the most promising one
+          ----: unboundedCycles(k) takes the negative cycles of all the
+                strongly connected components from one run of HowardMmc,
+                which gives them through componentCycleNum() and
+                componentCycle()
+          ----: the four minimum cost flow algorithms, KBestFlows and
+                KBestExtremeFlows give the tolerances in use with
+                flowTolerance() and costTolerance(); KBestFlows and
+                KBestExtremeFlows take them with tolerances()
+          ----: BellmanFord and Dijkstra keep an object of their operation
+                traits, set with operationTraits(); BidirDijkstra, AStar
+                and MinCostArborescence take the type of their heap from
+                their traits (SetHeap); GomoryHu and NagamochiIbaraki have
+                tolerance()
+          ----: the concepts of the minimum cost flow, maximum flow and
+                minimum mean cycle classes are in lemon/concepts
+                (MinCostFlow, MaxFlow and MinMeanCycle)
+
+        * Implementation improvements
+
+          ----: one definition of the default tolerances of the four
+                minimum cost flow algorithms; those of NetworkSimplex on
+                the flows now count the finite bounds too
+          ----: every comparison of cycle canceling and cost scaling with
+                zero goes through the tolerance; the inner minimum mean
+                cycle of cycle canceling, the maximum flow and the minimum
+                mean cycle of the certificates use the tolerances of the
+                algorithm
+          ----: in floating point NetworkSimplex puts the leaving arc at
+                the bound it is nearer, which may change its pivots
+          ----: EdmondsKarp::init() of a flow returns whether the flow is
+                feasible, as Preflow::init() does
+
 2026-11-05 Version 1.8.1 (abLEMON) released
 
         A faster generation of the flows by the cycles of least reduced
