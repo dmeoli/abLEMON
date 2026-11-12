@@ -114,9 +114,21 @@ void solve_min( ArgParser & ap , std::istream & is , std::ostream & ,
  readDimacsMin( is , g , lower , cap , cost , sup , infty , desc );
  ti.stop();
  Value sum_sup = 0;
+ _mcf_bits::Largest< Value > big;
  for( Digraph::NodeIt n( g ) ; n != INVALID ; ++n ) {
   sum_sup += sup[ n ];
+  big.add( sup[ n ] );
   }
+ for( Digraph::ArcIt a( g ) ; a != INVALID ; ++a ) {
+  big.add( lower[ a ] );
+  if( cap[ a ] != infty )
+   big.add( cap[ a ] );
+  }
+ // a sum within the tolerance of NetworkSimplex is zero, up to the rounding
+ // of the supplies, which are then balanced
+ const Value feps = _mcf_bits::dataTolerance( big.value() );
+ if( sum_sup <= feps && sum_sup >= -feps )
+  sum_sup = 0;
  if( report ) {
   std::cerr << "Sum of supply values: " << sum_sup << "\n";
   if( sum_sup <= 0 )
