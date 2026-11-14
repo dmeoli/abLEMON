@@ -172,13 +172,14 @@ $O(\sqrt n)$ phases suffice.
  3     for each red r do d(r) <- 0 if r is uncovered, d(r) <- inf otherwise
  4     breadth-first search from the uncovered red nodes, from a red x, for
         each edge xb, if b is covered by the edge yb of M and d(y) = inf,
-        then d(y) <- d(x) + 1; note whether an uncovered b was seen
+        then d(y) <- d(x) + 1; L <- d(x) at the first x with an uncovered
+        b, and the search stops before the red nodes with d > L
  5     if no uncovered blue node was seen then exit the loop
  6     for each uncovered red node s do
  7        depth-first search from s, from a red x, scan the edges xb from
-           the one it stopped at; if b is uncovered, augment M along the
-           path found and stop; if b is matched to y with d(y) = d(x)+1,
-           go down to y
+           the one it stopped at; if b is uncovered and d(x) = L, augment
+           M along the path found and stop; if b is matched to y with
+           d(y) = d(x)+1 <= L, go down to y
  8        a red node all of whose edges fail gets d <- inf
  9  R* <- nodes reached by alternating paths from the uncovered red nodes
 10  cover <- (red nodes not in R*) + (blue nodes in R*)
@@ -187,11 +188,11 @@ $O(\sqrt n)$ phases suffice.
 Steps 3 to 5 are `bfs()`, steps 6 to 8 `dfs()`, and steps 9 and 10
 `findCover()`, which is called once at the end of `start()`. Note that the
 depth-first search is written without recursion, and each red node keeps the
-edge it has reached in a map; hence, each edge is scanned once per phase. We
-remark that the breadth-first search is not stopped at the layer of the first
-uncovered blue node, and therefore a depth-first search may also augment along
-a layered path longer than the shortest one. This affects neither the
-correctness of the result nor its certificate, which step 10 builds from the
+edge it has reached in a map; hence, each edge is scanned once per phase. The
+breadth-first search stops at the layer $L$ of the first uncovered blue node,
+and the depth-first searches augment only along paths of that length; hence,
+the paths of a phase are shortest augmenting paths, as the bound requires.
+The certificate does not depend on them, since step 10 builds it from the
 final matching alone. Indeed, the set of step 10 is a cover because an edge
 from a red node of $R^*$ to a blue node outside $R^*$ would extend an
 alternating path. Furthermore, it has $|M|$ nodes. Its nodes are all covered
