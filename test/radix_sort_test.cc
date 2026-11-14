@@ -29,6 +29,7 @@
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <limits>
 
 using namespace lemon;
 
@@ -260,10 +261,43 @@ void checkStableRadixSort()
   }
  }
 
+// keys of 64 bits, whose top digit is beyond the 31 bits of an int (the
+// mask 1 << max_digit was an int, and overflowed), and the extremes of the
+// signed type
+void checkWideKeys()
+{
+ std::vector< long long > s;
+ s.push_back( 1LL << 40 );
+ s.push_back( 5 );
+ s.push_back( -( 1LL << 45 ) );
+ s.push_back( ( 1LL << 62 ) + 7 );
+ s.push_back( -3 );
+ s.push_back( 0 );
+ s.push_back( std::numeric_limits< long long >::max() );
+ s.push_back( std::numeric_limits< long long >::min() );
+ s.push_back( 1LL << 33 );
+ std::vector< long long > r( s );
+ std::sort( r.begin() , r.end() );
+ radixSort( s.begin() , s.end() );
+ check( s == r , "Wrong order of keys of 64 bits" );
+
+ std::vector< unsigned long long > u;
+ u.push_back( ~0ULL );
+ u.push_back( 1ULL << 63 );
+ u.push_back( 12 );
+ u.push_back( 1ULL << 35 );
+ u.push_back( 0 );
+ std::vector< unsigned long long > v( u );
+ std::sort( v.begin() , v.end() );
+ radixSort( u.begin() , u.end() );
+ check( u == v , "Wrong order of unsigned keys of 64 bits" );
+ }
+
 int main()
 {
 
  checkRadixSort();
+ checkWideKeys();
  checkStableRadixSort();
 
  return( 0 );

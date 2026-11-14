@@ -133,54 +133,68 @@ void radixIntroSort( Iterator first , Iterator last , Functor functor ,
   }
  }
 
+// the mask of the highest of the max_digit lowest bits, or 0 if max_digit
+// is 0; the masks are computed on the unsigned type of the keys, since a
+// shift of a negative value, or into the sign bit, is undefined (and
+// 1 << max_digit, an int, overflowed on the keys of more than 31 bits)
+template< typename Value >
+Value radixTopMask( int max_digit )
+{
+ typedef typename std::make_unsigned< Value >::type UValue;
+ return( max_digit > 0 ? Value( UValue( 1 ) << ( max_digit - 1 ) )
+			: Value( 0 ) );
+ }
+
 template< typename Value , typename Iterator , typename Functor >
 void radixSignedSort( Iterator first , Iterator last , Functor functor )
 {
+ typedef typename std::make_unsigned< Value >::type UValue;
 
  Iterator cut = radixSortSignPartition( first , last , functor );
 
- Value mask;
+ UValue mask;
  int max_digit;
  Iterator it;
 
- mask = ~0;
+ mask = ~UValue( 0 );
  max_digit = 0;
  for( it = first ; it != cut ; ++it ) {
-  while( ( mask & functor( *it ) ) != mask ) {
+  while( ( mask & UValue( functor( *it ) ) ) != mask ) {
    ++max_digit;
    mask <<= 1;
    }
   }
- radixIntroSort( first , cut , functor , 1 << max_digit );
+ radixIntroSort( first , cut , functor , radixTopMask< Value >( max_digit ) );
 
  mask = 0;
  max_digit = 0;
  for( it = cut ; it != last ; ++it ) {
-  while( ( mask | functor( *it ) ) != mask ) {
+  while( ( mask | UValue( functor( *it ) ) ) != mask ) {
    ++max_digit;
    mask <<= 1;
    mask |= 1;
    }
   }
- radixIntroSort( cut , last , functor , 1 << max_digit );
+ radixIntroSort( cut , last , functor , radixTopMask< Value >( max_digit ) );
  }
 
 template< typename Value , typename Iterator , typename Functor >
 void radixUnsignedSort( Iterator first , Iterator last , Functor functor )
 {
+ typedef typename std::make_unsigned< Value >::type UValue;
 
- Value mask = 0;
+ UValue mask = 0;
  int max_digit = 0;
 
  Iterator it;
  for( it = first ; it != last ; ++it ) {
-  while( ( mask | functor( *it ) ) != mask ) {
+  while( ( mask | UValue( functor( *it ) ) ) != mask ) {
    ++max_digit;
    mask <<= 1;
    mask |= 1;
    }
   }
- radixIntroSort( first , last , functor , 1 << max_digit );
+ radixIntroSort( first , last , functor , radixTopMask< Value >( max_digit ) );
  }
 
 

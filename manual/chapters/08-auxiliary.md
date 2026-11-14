@@ -412,10 +412,13 @@ chosen at compile time, from the type of the key, by the helpers
     the function objects of the standard library; a lambda or any other
     callable may therefore be passed, which LEMON 1.3.1 did not accept.
 
-We remark that `radixSort()` builds the mask of the highest bit as the `int`
-expression `1 << max_digit`, which overflows for the keys of a 64-bit type
-that use more than 31 bits. For such keys, `stableRadixSort()` is the safe
-choice.
+!!! note "abLEMON"
+    In LEMON 1.3.1, `radixSort()` built the mask of the highest bit as the
+    `int` expression `1 << max_digit`, which overflowed for the keys of a
+    64-bit type that use more than 31 bits (and the sort then did not end),
+    and shifted negative values to the left; the masks are now computed on
+    the unsigned type of the keys, and the test `radix_sort_test` sorts keys
+    of 64 bits, the extremes of the type included.
 
 ## 8.6 Random numbers {#sec-8-6}
 
