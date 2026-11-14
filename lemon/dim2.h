@@ -514,7 +514,7 @@ template< typename T >
 inline std::istream & operator>>( std::istream & is , Box< T > & b )
 {
  char c;
- Point< T > p;
+ Point< T > p , q;
  if( is >> c ) {
   if( c != '(' )
    is.putback( c );
@@ -524,7 +524,6 @@ inline std::istream & operator>>( std::istream & is , Box< T > & b )
   }
  if( ! ( is >> p ) )
   return( is );
- b.bottomLeft( p );
  if( is >> c ) {
   if( c != ',' )
    is.putback( c );
@@ -532,9 +531,11 @@ inline std::istream & operator>>( std::istream & is , Box< T > & b )
  else {
   is.clear();
   }
- if( ! ( is >> p ) )
+ if( ! ( is >> q ) )
   return( is );
- b.topRight( p );
+ // the box of the two corners, not empty: the setters of the corners
+ // leave a default-constructed box empty
+ b = Box< T >( p , q );
  if( is >> c ) {
   if( c != ')' )
    is.putback( c );

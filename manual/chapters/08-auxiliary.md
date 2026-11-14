@@ -350,9 +350,10 @@ emptiness. Its corners and sides are read by `bottomLeft()`, `topRight()`,
 `bottomRight()`, `topLeft()`, `bottom()`, `top()`, `left()` and `right()`, and
 set by the members of the same names that take the new value; `width()` and
 `height()` give the sizes. Values of an empty box are undefined, and the
-setters require a box that is not empty; note that the stream operator `>>`,
-which reads `((l,b),(r,t))`, sets the corners by these setters and therefore
-leaves an empty box empty. Finally, the maps `XMap` and `YMap` (read and
+setters require a box that is not empty; the stream operator `>>`, which
+reads `((l,b),(r,t))`, gives the box of the two corners, which is not empty
+(in LEMON 1.3.1 it set the corners by the setters, and therefore left an empty
+box empty; the test `dim_test` reads one). Finally, the maps `XMap` and `YMap` (read and
 write) and `ConstXMap`, `ConstYMap` and `NormSquareMap` (read only) turn a map
 whose values are points into a map of their coordinates or of their squared
 norm, and are made by `xMap()`, `yMap()` and `normSquareMap()`.
