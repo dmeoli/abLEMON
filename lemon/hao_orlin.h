@@ -895,6 +895,7 @@ class HaoOrlin
  /// the maps and some bucket structures for the algorithm.
  /// The first node is used as the source node for the push-relabel
  /// algorithm.
+ /// \pre The digraph has at least two nodes.
  void init() { init( NodeIt( _graph ) ); }
 
  /// \brief Initialize the internal data structures.
@@ -903,10 +904,14 @@ class HaoOrlin
  /// the maps and some bucket structures for the algorithm.
  /// The given node is used as the source node for the push-relabel
  /// algorithm.
+ /// \pre The digraph has at least two nodes, since a cut is a nonempty
+ /// proper subset of them.
  void init( const Node & source ) {
   _source = source;
 
   _node_num = countNodes( _graph );
+  LEMON_ASSERT( _node_num >= 2 , "HaoOrlin: a digraph of fewer than two "
+				"nodes has no cut" );
 
   _first.resize( _node_num );
   _last.resize( _node_num );
