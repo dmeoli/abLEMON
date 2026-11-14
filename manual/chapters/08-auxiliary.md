@@ -430,14 +430,16 @@ $l'$ takes $O(l'-l)$, and `liftToTop(l)` takes $O(k+L)$, where $k$ is the
 number of the items moved and $L$ the number of levels; the lowering of
 $\mathit{highest}$ costs one step per level passed. In a `LinkedElevator`, the
 activations and the lifts take $O(1)$ time (apart from the lowering of
-$\mathit{highest}$), and `onLevel()`, `aboveLevel()` and `activesOnLevel()`
-are proportional to the number of the items they count.*
+$\mathit{highest}$), `liftToTop(l)` takes $O(k+L)$ as well, and `onLevel()`,
+`aboveLevel()` and `activesOnLevel()` are proportional to the number of the
+items they count.*
 
 *Proof.* By Lemma 8.2, each of the first operations swaps two places or reads
 two boundaries, and a lift moves one item per level crossed. In a
 `LinkedElevator`, each level is a doubly linked list with the active items at
 its front. An activation or a lift relinks one item, and the counts walk the
-lists. $\square$
+lists, and `liftToTop(l)` walks the list of each level from $l$ to the one
+below the top. $\square$
 
 !!! note "abLEMON"
     `Elevator` allocates one place more than the items of the graph, so that
@@ -449,12 +451,10 @@ smaller than the number of the items, in which case the items not listed by
 the initialization stay on the largest level. In a `LinkedElevator` the items
 of the largest level are kept in no list, so that `onLevel()` and
 `aboveLevel()` count only those below it, as the flow algorithms expect. Also,
-`liftToTop(l)` of a `LinkedElevator` moves the items of the levels from $l+1$
-up to the first empty one, which is what the gap heuristic needs (it calls it
-on an empty level $l$, and the levels above are then without gaps), while
-that of an `Elevator` moves all the items from level $l$ on. The two classes
-define `Key` (the item) and `Value` (`int`), so that they can be read as maps
-of the levels.
+`liftToTop(l)` of both classes moves all the items from level $l$ on to the
+top level and deactivates them; the gap heuristic calls it on an empty level
+$l$. The two classes define `Key` (the item) and `Value` (`int`), so that they
+can be read as maps of the levels.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 the constructors with a largest label also took it as the
@@ -467,10 +467,12 @@ of the levels.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 `liftActiveOn(l)` of both classes was declared to return
-    an item but returned none, and `LinkedElevator::activeOn(l)` read the map
-    of the active items at `INVALID` on an empty level. The test
-    `elevator_test` checks both, the second with the checks of the standard
-    library enabled.
+    an item but returned none, `LinkedElevator::activeOn(l)` read the map of
+    the active items at `INVALID` on an empty level, and
+    `LinkedElevator::liftToTop(l)` moved only the items of the levels from
+    $l+1$ up to the first empty one, leaving them active. The test
+    `elevator_test` checks the three, the second with the checks of the
+    standard library enabled.
 
 ## 8.4 Two-dimensional geometry {#sec-8-4}
 

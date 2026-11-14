@@ -17,8 +17,8 @@
  */
 
 // Elevator with fewer levels than items, the lift of an item of
-// LinkedElevator from the end or the start of its level, and the active item
-// of a level
+// LinkedElevator from the end or the start of its level, the active item of
+// a level, and the lift of the levels to the top
 
 #ifndef _GLIBCXX_ASSERTIONS
  #define _GLIBCXX_ASSERTIONS
@@ -100,6 +100,35 @@ void checkActiveOn( const Digraph & g , const std::vector< Node > & v )
 	"Wrong levels after liftActiveOn()." );
  }
 
+// liftToTop( l ) lifts every item on and above level l to the top level and
+// deactivates it, also above an empty level
+template< typename E >
+void checkLiftToTop( const Digraph & g , const std::vector< Node > & v )
+{
+ // v[ 0 ] on level 0, v[ 1 ] on level 1, v[ 2 ] on level 3, level 2 empty
+ E e( g , 5 );
+ e.initStart();
+ e.initAddItem( v[ 0 ] );
+ e.initNewLevel();
+ e.initAddItem( v[ 1 ] );
+ e.initNewLevel();
+ e.initNewLevel();
+ e.initAddItem( v[ 2 ] );
+ e.initFinish();
+ for( int i = 0 ; i < 3 ; ++i )
+  e.activate( v[ i ] );
+ e.liftToTop( 1 );
+ check( e[ v[ 0 ] ] == 0 && e.active( v[ 0 ] ) ,
+	"liftToTop() moved an item below its level." );
+ for( int i = 1 ; i < 3 ; ++i )
+  check( e[ v[ i ] ] == 5 && ! e.active( v[ i ] ) ,
+	 "liftToTop() did not lift an item to the top level." );
+ check( e.highestActive() == v[ 0 ] && e.highestActiveLevel() == 0 ,
+	"Wrong highest active item after liftToTop()." );
+ check( e.emptyLevel( 1 ) && e.emptyLevel( 3 ) ,
+	"liftToTop() left an item on its level." );
+ }
+
 int main()
 {
  Digraph g;
@@ -110,5 +139,7 @@ int main()
  checkLinkedLift( g , v );
  checkActiveOn< Elevator< Digraph , Node > >( g , v );
  checkActiveOn< LinkedElevator< Digraph , Node > >( g , v );
+ checkLiftToTop< Elevator< Digraph , Node > >( g , v );
+ checkLiftToTop< LinkedElevator< Digraph , Node > >( g , v );
  return( 0 );
  }

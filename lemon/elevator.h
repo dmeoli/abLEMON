@@ -855,10 +855,11 @@ class LinkedElevator
  ///This function lifts all items on and above level \c l to the top
  ///level and deactivates them.
  void liftToTop( int l ) {
-  for( int i = l + 1 ; _first[ i ] != INVALID ; ++i ) {
+  for( int i = l ; i < _max_level ; ++i ) {
    Item n = _first[ i ];
    while( n != INVALID ) {
     _level[ n ] = _max_level;
+    _active[ n ] = false;
     n = _next[ n ];
     }
    _first[ i ] = INVALID;
