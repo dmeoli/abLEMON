@@ -144,10 +144,15 @@ connected component of n nodes).
 This schedule of the checks is the one of `processRounds()` in
 `lemon/hartmann_orlin_mmc.h` (the first check after round 4, then at rounds 6,
 9, 13, and so on, rounded down), and the test of step 6 goes through the
-tolerance. Also, step 6 scans the arcs of the whole digraph, although the
-potentials are computed only for the nodes of the component; since the arcs
-inside the component are tested as well, this can only make the test fail more
-often, and hence possibly delay the stop. In the worst case the checks add to
+tolerance; step 6 scans the arcs inside the component, the only ones whose
+ends have potentials.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 step 6 scanned the arcs of the whole digraph, whose ends
+    outside the component have no potentials computed, so that the test could
+    fail more often and delay the stop.
+
+In the worst case the checks add to
 the work of Karp's algorithm, and the bounds of the header are the same,
 $O(nm)$ time and $O(n^2+m)$ space. According to the header, the early
 termination makes the algorithm significantly faster on some instances, but

@@ -624,13 +624,18 @@ class HartmannOrlinMmc
      }
     }
 
-   // Check the optimality condition for all arcs
+   // Check the optimality condition for the arcs of the component, the
+   // only ones whose ends have potentials
    bool done = true;
-   for( ArcIt a( _gr ) ; a != INVALID ; ++a ) {
-    if( _tolerance.less( _cost[ a ] * _curr_size - _curr_cost ,
-			 pi[ _gr.target( a ) ] - pi[ _gr.source( a ) ] ) ) {
-     done = false;
-     break;
+   for( int i = 0 ; i < n && done ; ++i ) {
+    const std::vector< Arc > & out = _out_arcs[ ( *_nodes )[ i ] ];
+    for( std::size_t j = 0 ; j < out.size() ; ++j ) {
+     const Arc a = out[ j ];
+     if( _tolerance.less( _cost[ a ] * _curr_size - _curr_cost ,
+			  pi[ _gr.target( a ) ] - pi[ _gr.source( a ) ] ) ) {
+      done = false;
+      break;
+      }
      }
     }
    return( done );
