@@ -1646,6 +1646,7 @@ class LpBase
   _clear();
   _rows.clear();
   _cols.clear();
+  obj_const_comp = 0;
   }
 
  /// Set the message level of the solver

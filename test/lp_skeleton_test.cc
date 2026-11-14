@@ -36,5 +36,21 @@ int main()
   check( mip.solve() == MipSkeleton::SOLVED , "MipSkeleton did not solve" );
   }
 
+ // clear() also resets the constant term of the objective
+ {
+  LpSkeleton lp;
+  LpSkeleton::Col x = lp.addCol();
+  lp.obj( x + 5 );
+  check( lp.primal() == 5 , "Wrong constant term of the objective" );
+  lp.clear();
+  check( lp.primal() == 0 , "clear() kept the constant term" );
+  MipSkeleton mip;
+  MipSkeleton::Col y = mip.addCol();
+  mip.obj( y + 5 );
+  check( mip.solValue() == 5 , "Wrong constant term of the objective" );
+  mip.clear();
+  check( mip.solValue() == 0 , "clear() kept the constant term" );
+  }
+
  return( 0 );
  }
