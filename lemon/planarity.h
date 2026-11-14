@@ -2623,9 +2623,10 @@ class PlanarColoring
 
  /// \brief Return the node map of color indices
  ///
- /// This function returns the node map of color indices. The values are
- /// in the range \c [0..4] or \c [0..5] according to the coloring method.
- IndexMap colorIndexMap() const { return( _color_map ); }
+ /// This function returns a const reference to the node map of color
+ /// indices, rather than a copy of it. The values are in the range
+ /// \c [0..4] or \c [0..5] according to the coloring method.
+ const IndexMap & colorIndexMap() const { return( _color_map ); }
 
  /// \brief Return the node map of colors
  ///

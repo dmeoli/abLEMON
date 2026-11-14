@@ -465,7 +465,8 @@ has no return value; `runFiveColoring()` computes the embedding with
 results with `colorIndex(node)`, between $0$ and $4$ or $5$, and with
 `color(node)`, a `Color` of a palette of six (red, green, blue, yellow,
 magenta and cyan, in the order of the indices). As maps, `colorIndexMap()`
-returns a copy of the node map of the indices (the type `IndexMap`), and
+returns a const reference to the node map of the indices (the type
+`IndexMap`; in LEMON 1.3.1 it returned a copy, made in $O(n)$), and
 `colorMap()` the map of the colors (the type `ColorMap`, a `ComposeMap` of the
 palette and of the indices). In all, the six coloring costs $O(n+m)$, whereas
 the five coloring adds a breadth-first search of a Kempe chain at each failure
