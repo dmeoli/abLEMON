@@ -256,8 +256,8 @@ inline int valueOct( char c )
 
 inline bool isHex( char c )
 {
- return( ( '0' <= c && c <= '9' ) || ( 'a' <= c && c <= 'z' ) ||
-	  ( 'A' <= c && c <= 'Z' ) );
+ return( ( '0' <= c && c <= '9' ) || ( 'a' <= c && c <= 'f' ) ||
+	  ( 'A' <= c && c <= 'F' ) );
  }
 
 inline int valueHex( char c )
@@ -265,7 +265,7 @@ inline int valueHex( char c )
  LEMON_ASSERT( isHex( c ) , "The character is not hexadecimal." );
  if( '0' <= c && c <= '9' )
   return( c - '0' );
- if( 'a' <= c && c <= 'z' )
+ if( 'a' <= c && c <= 'f' )
   return( c - 'a' + 10 );
  return( c - 'A' + 10 );
  }

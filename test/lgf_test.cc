@@ -152,4 +152,26 @@ int main()
    }
   check( ok , "FormatError exception should have occured" );
   }
+
+ // only 0-9, a-f and A-F are hexadecimal digits after \x
+ {
+  ListDigraph d;
+  ListDigraph::NodeMap< std::string > name( d );
+  std::istringstream input( "@nodes\nlabel name\n0 \\x4g\n@arcs\n -\n" );
+  digraphReader( d , input ).nodeMap( "name" , name ).run();
+  check( name[ ListDigraph::NodeIt( d ) ] == std::string( "\x04" ) + "g" ,
+	 "Wrong hexadecimal escape" );
+  }
+ {
+  ListDigraph d;
+  std::istringstream input( "@nodes\nlabel\n\\xg\n@arcs\n -\n" );
+  bool ok = false;
+  try {
+   digraphReader( d , input ).run();
+   }
+  catch( FormatError & ) {
+   ok = true;
+   }
+  check( ok , "FormatError exception should have occured" );
+  }
  }
