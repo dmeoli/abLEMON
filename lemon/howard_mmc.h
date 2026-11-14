@@ -607,6 +607,8 @@ class HowardMmc
   LargeCost ccost;
   int csize;
   Node u , v;
+  // The root of the previous iteration, kept on a tie of the means
+  const Node root = _curr_found ? _curr_node : INVALID;
   _curr_found = false;
   for( int i = 0 ; i < int( _nodes->size() ) ; ++i ) {
    u = ( *_nodes )[ i ];
@@ -619,15 +621,19 @@ class HowardMmc
     // A cycle is found
     ccost = _cost[ _policy[ u ] ];
     csize = 1;
+    bool has_root = ( u == root );
     for( v = u ; ( v = _gr.target( _policy[ v ] ) ) != u ; ) {
      ccost += _cost[ _policy[ v ] ];
      ++csize;
+     if( v == root )
+      has_root = true;
      }
-    if( ! _curr_found || ( ccost * _curr_size < _curr_cost * csize ) ) {
+    if( ! _curr_found || ( ccost * _curr_size < _curr_cost * csize ) ||
+	( has_root && ccost * _curr_size == _curr_cost * csize ) ) {
      _curr_found = true;
      _curr_cost = ccost;
      _curr_size = csize;
-     _curr_node = u;
+     _curr_node = has_root ? root : u;
      }
     }
    }

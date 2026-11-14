@@ -348,7 +348,8 @@ component).
 1  for each node u: p(u) <- an arc (u, v) of least cost
 2  loop
 3    find the cycles of the policy graph; C <- the one of least mean,
-     v0 <- the first node of C met
+     v0 <- the first node of C met, or the v0 of the previous iteration
+     if it lies on a cycle of the same least mean (then C is that cycle)
 4    d(v0) <- 0; backwards from v0 along the policy arcs (u, v),
      breadth-first: d(u) <- d(v) + w(u, v)
 5    backwards, breadth-first, from the nodes reached, along any arc
@@ -364,7 +365,8 @@ Steps 1, 3 and 4 to 9 are `buildPolicyGraph()`, `findPolicyCycle()` and
 one iteration. In step 3 the nodes are taken in the order of the component,
 each one followed along the policy until a node already met, and $C$ is
 replaced only by a cycle of strictly smaller mean (compared by
-cross-multiplication). The test of step 7 goes through the tolerance, and the
+cross-multiplication), or of the same mean if it contains the root of the
+previous iteration. The test of step 7 goes through the tolerance, and the
 updates of step 8 are made in place, i.e., an arc scanned later reads the
 distances already decreased; step 1 compares the costs exactly.
 
@@ -424,19 +426,22 @@ rules of their Algorithms 4.3 and 4.4; it adapts the proof of [Denardo and
 Fox (1968)](Z-bibliography.md#ref-denardo1968multichain) for Markov renewal
 programs. $\square$
 
-We remark that `HowardMmc` replaces a policy arc only when the distance
-decreases by more than the tolerance, as the variant requires, but it takes as
-root $v_0$ the first node met of the cycle of least mean, without preferring
-the root of the previous iteration. Theorem 16.7 bounds the number of the
-iterations in which the mean decreases by the number of the distinct cycle
-means; however, we know of no bound for the code as written on the
-iterations in which the mean stays the same (no instance of cycling is known
-to us, and the limit on the iterations described below bounds them in any
-case). As the header remarks, the best known bound on the number of
-iterations is exponential, while the documentation of the group reports that
-in practice Howard's algorithm is by far the most efficient of the three, in
-agreement with the experiments of [Dasdan
+We remark that `HowardMmc` is that variant: it replaces a policy arc only when
+the distance decreases by more than the tolerance, and step 3 keeps the root
+of the previous iteration whenever it is still on a cycle of least mean. As
+the header remarks, the best known bound on the number of iterations is
+exponential, while the documentation of the group reports that in practice
+Howard's algorithm is by far the most efficient of the three, in agreement
+with the experiments of [Dasdan
 (2004)](Z-bibliography.md#ref-dasdan04experimental).
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 step 3 took as root the first node met of the cycle of
+    least mean, also when the root of the previous iteration was still on a
+    cycle of the same mean, so that Theorem 16.8 did not apply to the code.
+    No instance on which this made the iterations cycle is known, and hence
+    no test checks it; `min_mean_cycle_test` checks that the results of
+    `HowardMmc` are unchanged.
 
 One can also limit the iterations, and then the algorithm returns a cycle that
 is usually good, but not necessarily optimal. Indeed, `findCycleMean(limit)`
