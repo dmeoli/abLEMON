@@ -25,6 +25,10 @@ doi:10.1090/qam/102435
 theory. Proceedings of the National Academy of Sciences of the United States
 of America, 43(9):842–844, 1957. doi:10.1073/pnas.43.9.842
 
+<span id="ref-bertsimas1997introduction"></span> D. Bertsimas and J. N.
+Tsitsiklis. Introduction to Linear Optimization. Athena Scientific, Belmont,
+MA, 1997.
+
 <span id="ref-box1958note"></span> George E. P. Box and Mervin E. Muller. A
 note on the generation of random normal deviates. The Annals of Mathematical
 Statistics, 29(2):610–611, 1958. doi:10.1214/aoms/1177706645
@@ -41,6 +45,10 @@ doi:10.1080/10556789808805709
 <span id="ref-cbc"></span> Cbc, the COIN-OR Branch and Cut solver.
 https://github.com/coin-or/Cbc
 
+<span id="ref-cheriyan1989analysis"></span> Joseph Cheriyan and S. N.
+Maheshwari. Analysis of preflow push algorithms for maximum network flow. SIAM
+Journal on Computing, 18(6):1057–1086, 1989. doi:10.1137/0218072
+
 <span id="ref-cherkassky97implementing"></span> Boris V. Cherkassky and Andrew
 V. Goldberg. On implementing the push-relabel method for the maximum flow
 problem. Algorithmica, 19(4):390–410, 1997. doi:10.1007/PL00009180
@@ -48,7 +56,7 @@ problem. Algorithmica, 19(4):390–410, 1997. doi:10.1007/PL00009180
 <span id="ref-christofides1976worst"></span> N. Christofides. Worst-case
 analysis of a new heuristic for the travelling salesman problem. Report 388,
 Graduate School of Industrial Administration, Carnegie Mellon University,
-1976.  Reprinted in Operations Research Forum, 3(1):20, 2022.
+1976. Reprinted in Operations Research Forum, 3(1):20, 2022.
 doi:10.1007/s43069-021-00101-z
 
 <span id="ref-chu1965shortest"></span> Yoeng-Jin Chu and Tseng-Hong Liu. On
@@ -76,6 +84,10 @@ Leiserson, Ronald L. Rivest and Clifford Stein. Introduction to Algorithms,
 traveling-salesman problems. Operations Research, 6(6):791–812, 1958.
 doi:10.1287/opre.6.6.791
 
+<span id="ref-cunningham1976network"></span> William H. Cunningham. A network
+simplex method. Mathematical Programming, 11(1):105–116, 1976.
+doi:10.1007/BF01580379
+
 <span id="ref-dantzig63linearprog"></span> George B. Dantzig. Linear
 Programming and Extensions. Princeton University Press, 1963.
 
@@ -89,6 +101,10 @@ Faster maximum and minimum mean cycle algorithms for system-performance
 analysis. IEEE Transactions on Computer-Aided Design of Integrated Circuits
 and Systems, 17(10):889–899, 1998. doi:10.1109/43.728912
 
+<span id="ref-denardo1968multichain"></span> Eric V. Denardo and Bennett L.
+Fox. Multichain Markov renewal programs. SIAM Journal on Applied Mathematics,
+16(3):468–487, 1968. doi:10.1137/0116038
+
 <span id="ref-DezsoJuttnerKovacs11Lemon"></span> B. Dezső, A. Jüttner and P.
 Kovács. LEMON – an open source C++ graph template library. Electronic Notes in
 Theoretical Computer Science, 264(5):23–45, 2011.
@@ -97,6 +113,10 @@ doi:10.1016/j.entcs.2011.06.003
 <span id="ref-dial1969algorithm"></span> Robert B. Dial. Algorithm 360:
 shortest-path forest with topological ordering. Communications of the ACM,
 12(11):632–633, 1969. doi:10.1145/363269.363610
+
+<span id="ref-diestel2017graph"></span> Reinhard Diestel. Graph Theory, 5th
+edition. Graduate Texts in Mathematics 173, Springer, 2017.
+doi:10.1007/978-3-662-53622-3
 
 <span id="ref-dijkstra1959note"></span> Edsger W. Dijkstra. A note on two
 problems in connexion with graphs. Numerische Mathematik, 1(1):269–271, 1959.
@@ -117,6 +137,10 @@ doi:10.6028/jres.071B.032
 <span id="ref-edmondskarp72theoretical"></span> Jack Edmonds and Richard M.
 Karp. Theoretical improvements in algorithmic efficiency for network flow
 problems. Journal of the ACM, 19(2):248–264, 1972. doi:10.1145/321694.321699
+
+<span id="ref-englert2014worst"></span> M. Englert, H. Röglin, and B. Vöcking.
+Worst case and probabilistic analysis of the 2-Opt algorithm for the TSP.
+Algorithmica, 68(1):190–264, 2014. doi:10.1007/s00453-013-9801-4
 
 <span id="ref-ford1956maximal"></span> Lester R. Ford and Delbert R.
 Fulkerson. Maximal flow through a network. Canadian Journal of Mathematics,
@@ -141,7 +165,7 @@ doi:10.1007/BF01840439
 <span id="ref-gabow1986efficient"></span> Harold N. Gabow, Zvi Galil, Thomas
 Spencer and Robert E. Tarjan. Efficient algorithms for finding minimum
 spanning trees in undirected and directed graphs. Combinatorica, 6(2):109–122,
-1986.  doi:10.1007/BF02579168
+1986. doi:10.1007/BF02579168
 
 <span id="ref-gale1957theorem"></span> David Gale. A theorem on flows in
 networks. Pacific Journal of Mathematics, 7(2):1073–1082, 1957.
@@ -159,6 +183,10 @@ doi:10.1137/0215009
 <span id="ref-gallai1964maximale"></span> Tibor Gallai. Maximale Systeme
 unabhängiger Kanten. A Magyar Tudományos Akadémia Matematikai Kutató
 Intézetének Közleményei, 9:401–413, 1964.
+
+<span id="ref-garey1976some"></span> M. R. Garey, D. S. Johnson and L.
+Stockmeyer. Some simplified NP-complete graph problems. Theoretical Computer
+Science, 1(3):237–267, 1976. doi:10.1016/0304-3975(76)90059-1
 
 <span id="ref-glpk"></span> GLPK, the GNU Linear Programming Kit.
 https://www.gnu.org/software/glpk/
@@ -191,7 +219,7 @@ doi:10.1007/s10732-007-9055-x
 
 <span id="ref-gusfield1990very"></span> Dan Gusfield. Very simple methods for
 all pairs network flow analysis. SIAM Journal on Computing, 19(1):143–155,
-1990.  doi:10.1137/0219009
+1990. doi:10.1137/0219009
 
 <span id="ref-hamacher95kbestflows"></span> Horst W. Hamacher. A note on K
 best network flows. Annals of Operations Research, 57(1):65–72, 1995.
@@ -214,6 +242,9 @@ cost paths. IEEE Transactions on Systems Science and Cybernetics,
 <span id="ref-hartmann93finding"></span> Mark Hartmann and James B. Orlin.
 Finding minimum cost to time ratio cycles with small integral transit times.
 Networks, 23(6):567–574, 1993. doi:10.1002/net.3230230607
+
+<span id="ref-heawood1890map"></span> P. J. Heawood. Map-colour theorem. The
+Quarterly Journal of Pure and Applied Mathematics, 24:332–338, 1890.
 
 <span id="ref-hierholzer1873moglichkeit"></span> C. Hierholzer and C. Wiener.
 Ueber die Möglichkeit, einen Linienzug ohne Wiederholung und ohne
@@ -239,7 +270,7 @@ and Markov Processes. MIT Press, 1960.
 <span id="ref-johnson1993network"></span> D. S. Johnson and C. C. McGeoch
 (editors). Network Flows and Matching: First DIMACS Implementation Challenge.
 DIMACS Series in Discrete Mathematics and Theoretical Computer Science, volume
-12.  American Mathematical Society, 1993. doi:10.1090/dimacs/012
+12. American Mathematical Society, 1993. doi:10.1090/dimacs/012
 
 <span id="ref-johnson75heap"></span> Donald B. Johnson. Priority queues with
 update and finding minimum spanning trees. Information Processing Letters,
@@ -259,7 +290,7 @@ Master's thesis, University College, Dublin, 1991.
 
 <span id="ref-kempe1879geographical"></span> A. B. Kempe. On the geographical
 problem of the four colours. American Journal of Mathematics, 2(3):193–200,
-1879.  doi:10.2307/2369235
+1879. doi:10.2307/2369235
 
 <span id="ref-KiralyKovacs12MCF"></span> Zoltán Király and Péter Kovács.
 Efficient implementations of minimum-cost flow algorithms. Acta Universitatis
@@ -288,7 +319,7 @@ doi:10.4064/fm-15-1-271-283
 <span id="ref-lawler72kbest"></span> Eugene L. Lawler. A procedure for
 computing the K best solutions to discrete optimization problems and its
 application to the shortest path problem. Management Science, 18(7):401–405,
-1972.  doi:10.1287/mnsc.18.7.401
+1972. doi:10.1287/mnsc.18.7.401
 
 <span id="ref-marsaglia1964convenient"></span> George Marsaglia and Thomas A.
 Bray. A convenient method for generating normal variables. SIAM Review,
@@ -305,7 +336,7 @@ of the ACM, 30(3):417–427, 1983. doi:10.1145/2402.322385
 
 <span id="ref-mckay2014practical"></span> B. D. McKay and A. Piperno.
 Practical graph isomorphism, II. Journal of Symbolic Computation, 60:94–112,
-2014.  doi:10.1016/j.jsc.2013.09.003
+2014. doi:10.1016/j.jsc.2013.09.003
 
 <span id="ref-menger1927allgemeinen"></span> Karl Menger. Zur allgemeinen
 Kurventheorie. Fundamenta Mathematicae, 10:96–115, 1927.
@@ -313,7 +344,7 @@ doi:10.4064/fm-10-1-96-115
 
 <span id="ref-murty68ranking"></span> Katta G. Murty. Solving the fixed charge
 problem by ranking the extreme points. Operations Research, 16(2):268–279,
-1968.  doi:10.1287/opre.16.2.268
+1968. doi:10.1287/opre.16.2.268
 
 <span id="ref-nagamochi1992computing"></span> Hiroshi Nagamochi and Toshihide
 Ibaraki. Computing edge-connectivity in multigraphs and capacitated graphs.
@@ -352,10 +383,14 @@ with Applications, 7(1):67–72, 1981. doi:10.1016/0898-1221(81)90008-0
 
 <span id="ref-sleator1985selfadjusting"></span> D. D. Sleator and R. E.
 Tarjan. Self-adjusting binary search trees. Journal of the ACM, 32(3):652–686,
-1985.  doi:10.1145/3828.3835
+1985. doi:10.1145/3828.3835
 
 <span id="ref-soplex"></span> SoPlex, the Sequential object-oriented simPlex.
 https://soplex.zib.de/
+
+<span id="ref-stoer1997simple"></span> Mechthild Stoer and Frank Wagner. A
+simple min-cut algorithm. Journal of the ACM, 44(4):585–591, 1997.
+doi:10.1145/263867.263872
 
 <span id="ref-cplex"></span> IBM ILOG CPLEX Optimization Studio.
 https://www.ibm.com/products/ilog-cplex-optimization-studio
@@ -373,10 +408,14 @@ doi:10.1137/0201010
 
 <span id="ref-tarjan1975efficiency"></span> Robert E. Tarjan. Efficiency of a
 good but not linear set union algorithm. Journal of the ACM, 22(2):215–225,
-1975.  doi:10.1145/321879.321884
+1975. doi:10.1145/321879.321884
 
 <span id="ref-tarjan1983data"></span> Robert E. Tarjan. Data Structures and
 Network Algorithms. SIAM, 1983. doi:10.1137/1.9781611970265
+
+<span id="ref-tarjan1984worst"></span> Robert E. Tarjan and Jan van Leeuwen.
+Worst-case analysis of set union algorithms. Journal of the ACM,
+31(2):245–281, 1984. doi:10.1145/62.2160
 
 <span id="ref-tarjan1984simple"></span> Robert E. Tarjan and Mihalis
 Yannakakis. Simple linear-time algorithms to test chordality of graphs, test

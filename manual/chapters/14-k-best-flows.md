@@ -4,7 +4,7 @@ We now turn to what the library gives besides one optimal flow. When a minimum
 cost flow problem has no optimal flow, the four algorithms of [chapter
 13](13-min-cost-flow.md#ch-13) give a certificate of the answer, i.e., a set
 of nodes that proves it infeasible or a cycle that proves it unbounded, which
-a program can check on the data. They can also give several such certificates,
+a program can check on the data; they can also give several such certificates,
 in a definite order. When the problem has an optimal flow, the class
 `KBestFlows` of `lemon/k_best_flows.h` gives the $k$ integer flows of least
 cost, and the class `KBestExtremeFlows` of `lemon/k_best_extreme_flows.h`
@@ -13,9 +13,10 @@ with distinct optimal potentials. Section 14.1 treats the certificates of
 infeasibility and section 14.2 those of unboundedness, both implemented in
 `lemon/bits/mcf_certificate.h`; sections 14.3 and 14.4 describe the two
 classes of the $k$ best flows, and section 14.5 the alternative optimal
-potentials. We keep the notation of [section 13.1](13-min-cost-flow.md#ch-13):
-the GEQ form (13.1), the reduced costs (13.3), and the residual network of a
-flow.
+potentials. We keep the notation of [section
+13.1](13-min-cost-flow.md#sec-13-1), i.e., the GEQ form (13.1), the reduced
+costs (13.3), the optimality conditions (13.5) and the residual network of a
+flow, and, as there, we state the results in exact arithmetic.
 
 !!! note "abLEMON"
     The content of this chapter is new with respect to LEMON 1.3.1, which gave
@@ -32,94 +33,104 @@ flow.
 ### 14.1.1 Violated sets {#sec-14-1-1}
 
 For a set $N'\subseteq V$ of nodes, the *violation* of $N'$ under GEQ is its
-supply less what can leave it:
+supply less what can leave it,
 
 $$
 viol(N') = \sum_{u\in N'} sup(u) - \sum_{uv\in A,\ u\in N',\ v\notin N'} upper(uv) + \sum_{uv\in A,\ u\notin N',\ v\in N'} lower(uv) ,
 \tag{14.1}
 $$
 
-where no arc out of $N'$ may have an infinite upper bound (such a set would
-prove no infeasibility). Under LEQ the same holds with $-sup$ in place of
-$sup$ and the arcs taken backwards, i.e., the demand of $N'$ less what can
-enter it. A set of positive violation clearly proves (13.1) infeasible, since
-its supply cannot leave it, and the converse holds too.
+where no arc out of $N'$ may have an infinite upper bound (such a set proves
+no infeasibility). Under LEQ the same holds with $-sup$ in place of $sup$ and
+the arcs taken backwards, i.e., the demand of $N'$ less what can enter it. A
+set of positive violation proves (13.1) infeasible, since its supply cannot
+leave it, and the converse holds too. As in section 12.4, let $sup'$ be the
+supplies net of the lower bounds and $P$ the sum of their positive values. Let
+also $N$ be the network that joins a source $\sigma$ to each node $u$ with
+$sup'(u)>0$ by an arc of capacity $sup'(u)$, each node $u$ with $sup'(u)<0$ to
+a target $\tau$ by an arc of capacity $-sup'(u)$, and that gives each arc $uv$
+the capacity $upper(uv)-lower(uv)$.
 
 <span id="thm-14-1"></span>**Theorem 14.1.** *(Gale, Hoffman.) Problem (13.1)
-is infeasible if and only if some set $N'$ has $viol(N')>0$. Moreover, let
-$sup'$ be the supplies net of the lower bounds, with $P$ the sum of their
-positive values. Consider the network that joins a source $\sigma$ to each
-node $u$ with $sup'(u)>0$ by an arc of capacity $sup'(u)$, each node $u$ with
-$sup'(u)<0$ to a target $\tau$ by an arc of capacity $-sup'(u)$, and that
-gives each arc $uv$ the capacity $upper(uv)-lower(uv)$. Then, for each cut
-$\{\sigma\}\cup N'$ of this network, $viol(N') = P - cap(\{\sigma\}\cup N')$;
-hence, the largest violation is $P$ minus the value of a maximum flow, and the
-source side of a minimum cut, without $\sigma$, is a set of largest
-violation.* Its first part is the feasibility theorem of [Gale
+is infeasible if and only if some set $N'$ has $viol(N')>0$. For each cut
+$\{\sigma\}\cup N'$ of $N$, $viol(N')=P-cap(\{\sigma\}\cup N')$; hence, the
+largest violation is $P$ less the value of a maximum flow of $N$, and the
+source side of each minimum cut, without $\sigma$, is a set of largest
+violation.*
+
+*Proof.* The constraints of (13.1) are those of (12.5), and (14.1) is the
+right-hand side less the left-hand side of (12.6). The first statement is
+therefore Theorem 12.5, and the identity is (12.7). By Theorem 12.1, the
+smallest capacity of a cut of $N$ is the value of a maximum flow, which gives
+the rest. $\square$
+
+This is the feasibility theorem of [Gale
 1957](Z-bibliography.md#ref-gale1957theorem) and [Hoffman
-1960](Z-bibliography.md#ref-hoffman1960some) (Theorem 12.2 in [chapter
-12](12-max-flow.md#ch-12)); the identity follows by expanding the capacity of
-the cut, in which the lower bounds of the arcs inside $N'$ cancel.
+1960](Z-bibliography.md#ref-hoffman1960some). Under LEQ the same holds on the
+reversed network with the negated supplies.
 
 ### 14.1.2 The interface {#sec-14-1-2}
 
 After a `run()` that returned `INFEASIBLE`, the four classes give three kinds
-of certificates, all as sets of nodes of the digraph, and all empty after any
-other answer.
+of certificates, as sets of nodes of the digraph (vectors of `Node`); after
+any other answer they are empty.
 
 -   `infeasibleCut()` returns one set $N'$ with $viol(N')>0$.
 -   `infeasibleCuts(k)` returns the $k$ sets of largest violation, in the
-   order
-of their violations, at most $k$ and only those that prove the problem
+order of their violations, at most $k$ and only those that prove the problem
 infeasible.
 -   `disjointInfeasibleCuts()` returns sets of positive violation that are
 pairwise disjoint, with no arc between any two of them.
 
-Each set is checked on the data as they were given, by (14.1), before it is
-returned. In floating point the check requires the violation to exceed both
-the tolerance on the flows and the round-off of the sum, i.e., the default
-epsilon of `Tolerance` times one plus the sum of the absolute values of the
-terms of (14.1). When the violation does not exceed them, no set is returned;
-hence, a set that only round-off makes violated is never given as a
-certificate. `NetworkSimplex` gives its sets under the supply type, i.e., by
-(14.1) with the arcs reversed and the supplies negated under LEQ; the other
-three classes use the GEQ form. In all of them the sets are computed and
-checked on the data as they are when the function is called, which must
-therefore be those of the last `run()` (the supply type included).
+Each set is checked on the data, by (14.1), before it is returned. In floating
+point the check requires the violation to exceed both the tolerance on the
+flows and the round-off of the sum, i.e., the default epsilon of `Tolerance`
+times one plus the sum of the absolute values of the terms of (14.1); when it
+does not, no set is returned. Hence, a set that only round-off makes violated
+is never given as a certificate. `NetworkSimplex` gives its sets under the
+supply type, i.e., by (14.1) with the arcs reversed and the supplies negated
+under LEQ, and the other three classes use the GEQ form. In all of them the
+sets are computed and checked on the data as they are when the function is
+called, which must therefore be those of the last `run()` (the supply type
+included).
 
 If it proves the answer, the set of `infeasibleCut()` is the one that the
 algorithm has at hand when it finds no feasible flow, at no further cost. It
 is the set of all the nodes when the supplies sum to the wrong sign (positive
-under GEQ, negative under LEQ). Otherwise, it depends on the class:
+under GEQ, negative under LEQ). Otherwise, it depends on the class, as
+follows.
 
--   `NetworkSimplex` takes it from its last tree, whose potentials under the
-costs of the first phase (one on the artificial arcs that should carry no
-flow, zero on the others) are an optimal solution of the dual of the first
-phase; so is the indicator of each level set of them, i.e., the nodes whose
-potential is at least, or at most, a value, and the first level set that
-proves the answer is kept;
+-   `NetworkSimplex` takes it from its last tree. By the proof of Theorem
+13.3, the tree potentials $y$ under the costs of the first phase (one on the
+artificial arcs that should carry no flow, zero on the others) are an optimal
+solution of the dual of the first phase; so is the indicator of each level set
+of them, i.e., of the nodes whose potential is at least, or at most, a value,
+and the first level set that proves the answer is kept.
 -   `CostScaling` and `CycleCanceling` take the nodes above the level that the
 push-relabel algorithm of their starting flow leaves empty, together with the
 node it was lifting, from which no residual arc leaves ([section
-13.5](13-min-cost-flow.md#ch-13));
--   `CapacityScaling` takes the nodes that its last search for a shortest
-augmenting path reached from a node with excess without finding a deficit,
-from which no residual arc leaves.
+13.5](13-min-cost-flow.md#sec-13-5)); by Theorem 12.6 this set has a positive
+violation.
+-   `CapacityScaling` takes the nodes, other than the root, that its last
+search for a shortest augmenting path reached from a node with excess without
+finding a deficit; by the proof of Theorem 13.7, no residual arc leaves this
+set, and it has a positive violation.
 
 If that set does not prove the answer (which may happen, although rarely, in
 floating point), the class falls back on a set of largest violation, by one
 maximum flow of `Preflow` on the network of Theorem 14.1. Thus,
-`infeasibleCut()` usually costs no more than the run, and one maximum flow at
-most; we remark that one can therefore call it without concern even on "large"
-problems.
+`infeasibleCut()` costs nothing beyond the run in exact arithmetic, and one
+maximum flow at most; we remark that one can therefore call it without concern
+even on "large" problems.
 
 In turn, the sets of `disjointInfeasibleCuts()` are the weakly connected
 components of the set of `infeasibleCut()` whose violation is positive, in the
-order of their violations. Since no arc joins two of them, their violations
-sum to at least that of the set. Note that they depend on the set that the
-class has at hand. In the example of section 14.1.4, `NetworkSimplex` gives a
-set of violation 4, whose two components are violated, while the other three
-classes give a set of violation 2, which is a single component.
+order of their violations. Since no arc joins two components, the violation of
+the set is the sum of those of its components; hence, the violations of the
+sets given sum to at least that of the set. Note that they depend on the set
+that the class has at hand: in the example of section 14.1.4, `NetworkSimplex`
+gives a set of violation 4, whose two components are violated, while the other
+three classes give a set of violation 2, which is a single component.
 
 ### 14.1.3 The k most violated sets {#sec-14-1-3}
 
@@ -128,26 +139,28 @@ We find the sets of `infeasibleCuts(k)` by the partition of [Lawler
 of Theorem 14.1 as in [Hamacher, Picard and Queyranne
 1984](Z-bibliography.md#ref-hamacher1984finding). Here the space of the sets
 is split into *parts*, in each of which some nodes are fixed in the set and
-some out of it. As in Theorem 14.1, the best set of a part is found by a
-maximum flow in which a fixed node is joined to the source or to the target by
-an arc that no minimum cut may contain, and its violation bounds from above
-those of all the sets of the part. Once the best set of a part is given, the
-part is split by its free nodes in turn. The $j$-th child keeps the first
-$j-1$ of them as they are in the set, and takes the $j$-th one out of the set
-if the set has it, in otherwise.
+some out of it. The best set of a part is found by a maximum flow in which a
+node fixed in the set is joined to the source, and a node fixed out of it to
+the target, by an extra capacity of $2P+3$, which no minimum cut may contain.
+Its violation bounds from above those of all the sets of the part. Once the
+best set of a part is given, the part is split by its free nodes
+$u_1,u_2,\ldots$ in turn: the $j$-th child keeps $u_1,\ldots,u_{j-1}$ as they
+are in the set, and takes $u_j$ out of the set if the set has it, in
+otherwise.
 
 <span id="alg-14-1"></span>**Algorithm 14.1** (The k most violated sets).
 
 ```
 1  root part: no node fixed; solve it by one maximum flow (Theorem 14.1)
 2  give the sets that tie for the largest violation, from the residual
-   digraph of that flow (the closed sets, see below), up to k of them
+   digraph of that flow (the closed sets, Lemma 14.1), up to k of them
 3  while fewer than k sets are given:
 4      p := the part of largest bound (its own violation, or that of its
-           parent if it is not solved yet)
+           parent if it is not solved yet; a solved part first on ties)
 5      if p is not solved: solve it, from the maximum flow of its parent;
-           if its best set is not violated, drop p; continue
-6      give the best set of p (unless already given); remove p
+           if its best set violates a fix or is not violated, drop p;
+           continue
+6      give the best set of p unless it was already given; remove p
 7      for each free node u_j of p, j = 1, 2, ...:
 8          add the child that fixes u_1 .. u_{j-1} as in the set of p and
            u_j opposite to it, with the bound of p, not solved
@@ -155,25 +168,67 @@ if the set has it, in otherwise.
 
 Two devices keep the number of maximum flows rather small. First, a child
 waits in the list with the violation of its parent as a bound, and its best
-set is computed only when it is the most promising part. Hence, a maximum flow
+set is computed only when it is the most promising part; hence, a maximum flow
 is made only for the parts that might hold one of the $k$ sets, rather than
 for each child of each set given. Second, the maximum flow of a part is a
 preflow of each of its children, whose capacities are only larger (one more
-fixed node adds capacity on one arc from the source or to the target). Hence,
+fixed node adds capacity on one arc from the source or to the target); hence,
 `Preflow::init(flowMap)` starts each child from the flow of its parent
-([chapter 12](12-max-flow.md#ch-12)). In the worst case, as the header states,
-a set costs at most $n$ maximum flows, although typically far fewer are made,
-since most children are never solved.
+([chapter 12](12-max-flow.md#ch-12)). The ties of step 2 come from Lemma 12.1,
+as [Picard and Queyranne 1980](Z-bibliography.md#ref-picard1980structure)
+observed; the partition then runs as usual, and a set that it finds again is
+not given twice.
 
-In step 2 the ties come from a result of [Picard and Queyranne
-1980](Z-bibliography.md#ref-picard1980structure): the minimum cuts of a
-network are the sets closed in the residual digraph of any maximum flow (no
-residual arc leaves them) that contain the source but not the target. In other
-words, they are the unions of closures of strongly connected components of
-that digraph. Also, the function `closedSets()` finds them from the maximum
-flow of the root, by adding the closure of one component at a time, breadth
-first, starting from the closure of the source. The partition then skips them
-instead of finding each of them again by a maximum flow of its own.
+<span id="lem-14-1"></span>**Lemma 14.1.** *(Closed sets.) Let $x$ be a
+maximum flow of $N$. The minimum cuts of $N$ are the sets that contain
+$\sigma$, do not contain $\tau$, and are closed in the residual digraph of
+$x$, i.e., the unions of the closure of $\sigma$ with the closures of strongly
+connected components of that digraph that do not reach $\tau$. The function
+`closedSets()` lists them breadth first, from the closure of $\sigma$, by
+adding the closure of one component at a time.*
+
+*Proof.* The first statement is Lemma 12.1. The closure of a node (the set of
+the nodes it reaches) is closed, and so is a union of closed sets; conversely,
+a closed set contains the closure of each of its nodes, and hence equals the
+union of the closures of its components. A closed set holds $\tau$ if and only
+if one of its components reaches $\tau$, which the function excludes.
+$\square$
+
+<span id="lem-14-2"></span>**Lemma 14.2.** *A part that contains a set of
+positive violation has, as its best set, a minimum cut that respects its
+fixes, and that set has the largest violation in the part; a part whose
+minimum cut violates a fix contains no set of positive violation.*
+
+*Proof.* A cut $\{\sigma\}\cup N'$ that respects the fixes cuts none of the
+extra capacities, and its capacity is $P-viol(N')$ by Theorem 14.1; it is
+below $P$ if $viol(N')>0$. A cut that violates a fix cuts an extra capacity of
+$2P+3>P$, and so does not attain the minimum when some set of the part has a
+positive violation. The same holds for the arcs of infinite capacity, which
+the network replaces by $P+1$: a cut that contains one has a capacity above
+$P$. $\square$
+
+<span id="thm-14-2"></span>**Theorem 14.2.** *(The k most violated sets.)
+`infeasibleCuts(k)` returns the $\min\{k,q\}$ sets of largest violation, where
+$q$ is the number of sets of positive violation, distinct and in a
+nonincreasing order of violation. It makes at most $1+n\,s$ maximum flows,
+where $s$ is the number of parts whose best set was given; i.e., at most $n$
+maximum flows for each set, as the header states.*
+
+*Proof.* We show by induction that the parts in the list partition the sets of
+positive violation not yet given (the ties of step 2 aside, which are the sets
+of largest violation by Lemma 14.1 and are given first). This holds for the
+root part. When a part $p$ with best set $S$ is removed, its children are
+pairwise disjoint (the $j$-th one differs from the earlier ones on $u_j$), and
+they are contained in $p$. A set of $p$ other than $S$ differs from $S$ on
+some free node, the first of which places it in exactly one child; hence, the
+children partition $p\setminus\{S\}$. A dropped part contains no set of
+positive violation by Lemma 14.2. The bound of each part is at least the
+largest violation of its sets, since a child's sets are sets of its parent.
+Hence, when the part of largest bound is solved and its best set is violated,
+that set has a violation at least that of every set left, and the sets are
+given in a nonincreasing order. Each part is solved at most once, and each
+part whose best set is given adds at most $n$ children, which proves the
+count. $\square$
 
 ### 14.1.4 An example {#sec-14-1-4}
 
@@ -186,41 +241,51 @@ have the violations 4, 4, 2 and 2.
 
 ![Figure 14.1. An infeasible problem: the supply of each node next to it, the capacity on each arc; the sets {a, b} and {d}, each of violation 2, are disjoint and joined by no arc, and their union, of violation 4, is a set of largest violation.](../figures/14-infeasible-cut.svg){#fig-14-1}
 
-Our program solves the problem of Figure 14.1, and the unbounded problem of
-section 14.2, with the four classes, and it checks each certificate against
-the data. For `infeasibleCuts()` it checks positive violations (14.1) in a
+The program `manual/examples/14-certificates.cc` (the test
+`manual_14_certificates`) solves the problem of Figure 14.1, and the unbounded
+problem of section 14.2, with the four classes, and it checks each certificate
+on the data. For `infeasibleCuts()` it checks positive violations (14.1) in a
 nonincreasing order and distinct sets, and for `disjointInfeasibleCuts()`
-pairwise disjoint sets with no arc between them. In the unbounded case it
-checks closed cycles of negative cost, made of arcs of infinite capacity.
-
-```cpp
---8<-- "examples/14-certificates.cc"
-```
+pairwise disjoint sets with no arc between them; in the unbounded case it
+checks closed cycles of negative cost made of arcs of infinite capacity,
+pairwise arc-disjoint.
 
 ## 14.2 Certificates of unboundedness {#sec-14-2}
 
 A run returns `UNBOUNDED` only on a feasible problem with a directed cycle
 whose arcs have infinite upper bounds and whose cost is negative; along such a
 cycle the flow may grow without limit while the cost decreases ([section
-13.1](13-min-cost-flow.md#ch-13)). After such a run the four classes give two
-kinds of certificates, both empty after any other answer.
+13.1](13-min-cost-flow.md#sec-13-1)). After such a run the four classes give
+two kinds of certificates, both empty after any other answer.
 
 -   `unboundedCycle()` returns one such cycle, as the vector of its arcs in
-   the
-direction of the flow.
+the direction of the flow.
 -   `unboundedCycles(k)` returns at most $k$ such cycles, pairwise
 arc-disjoint, in the order of their mean costs.
 
 In `NetworkSimplex` the cycle is the one of the pivot that it could not
 perform, i.e., its entering arc and the path of the tree between the two ends
-of it, unless that path goes through an artificial arc. In that case, and
-always in the other three classes, the cycle is found by the algorithm of
+of it, unless that path goes through an artificial arc, which by the proof of
+Theorem 13.3 does not happen in exact arithmetic when $M>nK$. In that case,
+and always in the other three classes, the cycle is found by the algorithm of
 Bellman and Ford on the arcs of infinite upper bound, run from a virtual node
 joined to all the others. After each round the graph of the predecessors is
-searched for a cycle, which has a negative cost if it exists ([Tarjan
-1983](Z-bibliography.md#ref-tarjan1983data)), and the search gives up after
-$4n+4$ rounds. In floating point the cycle is returned only if its cost is
-negative beyond the round-off.
+searched for a cycle, which is then returned (Lemma 14.3), and the search
+gives up, returning no cycle, after $4n+4$ rounds or when a round improves no
+distance. In floating point the cycle is returned only if its cost is negative
+beyond the round-off.
+
+<span id="lem-14-3"></span>**Lemma 14.3.** *(Tarjan.) If the graph of the
+predecessors of the algorithm of Bellman and Ford contains a cycle, the cost
+of that cycle is negative.*
+
+*Proof.* Let $C$ be the cycle, and consider the moment just before the last of
+its arcs, $p(v)v$, was set, by a strict improvement $d(v)>d(p(v))+c(p(v)v)$.
+For each other arc $p(w)w$ of $C$, $d(w)$ was set to $d(p(w))+c(p(w)w)$ when
+the arc was set, and $d(p(w))$ can only have decreased since; hence, $d(w)\geq
+d(p(w))+c(p(w)w)$. Summing over the arcs of $C$, in which each node appears
+once as a head and once as a tail, the distances cancel, and $0>\sum_{a\in
+C}c(a)$. $\square$
 
 One might think of the cycle of least total cost as the natural choice for
 several cycles, but it is NP-hard to find, since it would decide whether a
@@ -246,13 +311,20 @@ cycles through `componentCycleNum()` and `componentCycle()`.
 7  sort C by mean; return C
 ```
 
-Note that the cycles of one run are node-disjoint, and those of later runs use
-only the arcs not yet taken; hence, the cycles are arc-disjoint, and the first
-one has the minimum mean of all. A cycle of a later run may have a smaller
-mean than some of an earlier one (never than the first one), which is why step
-7 sorts them. Since one run of Howard's algorithm gives the cycles of all the
-components, the algorithm runs again only when fewer than $k$ cycles were
-found.
+<span id="lem-14-4"></span>**Lemma 14.4.** *The cycles of Algorithm 14.2 are
+pairwise arc-disjoint, each of negative cost, and the first one has the
+minimum mean of all the cycles of infinite upper bound.*
+
+*Proof.* The cycles of one run lie in distinct strongly connected components,
+and are therefore node-disjoint, and those of later runs use only the arcs not
+yet taken. The minimum cycle mean of a digraph is the least of those of its
+components, and the first run is made on all the arcs of infinite upper bound.
+A negative mean means a negative cost. $\square$
+
+A cycle of a later run may have a smaller mean than some of an earlier one
+(never than the first one), which is why step 7 sorts them. Since one run of
+Howard's algorithm gives the cycles of all the components, the algorithm runs
+again only when fewer than $k$ cycles were found.
 
 ![Figure 14.2. An unbounded problem: the cost on each arc; the arcs of infinite capacity are drawn full, and the arc (q,p), of cost -10 but capacity 5, dashed. The cycle (r,s,r), of mean -1, is the one of minimum mean; the cycle (p,q,r,p), of mean -1/3, is found by the second run on the arcs left.](../figures/14-unbounded.svg){#fig-14-2}
 
@@ -270,27 +342,40 @@ it bounds the flow on that cycle, and it never appears in a certificate.
 
 We now describe the class `KBestFlows`, which finds the $k$ integer flows of
 least cost of (13.1), in the order of their costs: first an optimal flow, then
-the other optimal flows, if any, and then the suboptimal ones. Its algorithm
-is the one of [Hamacher 1995](Z-bibliography.md#ref-hamacher95kbestflows),
-which rests on the following property of the integer flows.
+the other optimal flows, if any, and then the suboptimal ones. The constraints
+are brought to the equality form by an extra node, the root, with an arc of no
+cost and no upper bound into each node, whose flow is the slack
+$N_f(u)-sup(u)$ of the node (i.e., the unmet demand). Its algorithm is the one
+of [Hamacher 1995](Z-bibliography.md#ref-hamacher95kbestflows), which rests on
+the following property of the integer flows.
 
-<span id="thm-14-2"></span>**Theorem 14.2.** *(Hamacher.) Let $f$ be a flow of
+<span id="thm-14-3"></span>**Theorem 14.3.** *(Hamacher.) Let $f$ be a flow of
 least cost in a set of integer flows defined by integer bounds on the arcs.
-Then a second best flow of the set is obtained from $f$ by sending one unit
-along a cycle of least cost of the residual network of $f$ (an arc together
-with its reverse not being a cycle).* Indeed, the difference between $f$ and a
-second best flow is an integer circulation of the residual network, which
-decomposes into cycles, each of nonnegative cost; one unit along any of them
-gives a flow of the set that is no costlier than the second best one. For a
-proof see [Hamacher 1995](Z-bibliography.md#ref-hamacher95kbestflows).
+Then a second best flow of the set, if there is one, is obtained from $f$ by
+sending one unit along a cycle of least cost of the residual network of $f$,
+where an arc together with its own reverse does not count as a cycle.*
+
+*Proof.* Let $g$ be a second best flow, i.e., one of least cost among the
+flows of the set other than $f$. The difference $g-f$ is an integer
+circulation that, on each arc, goes forward only where $g>f$ and backward only
+where $g<f$. It decomposes into unit cycles $C_1,\ldots,C_p$ of the residual
+network of $f$, each conformal to it; hence, no cycle uses an arc and its own
+reverse, and $f+\chi(C_j)$ is a flow of the set for each $j$, $\chi$ denoting
+the unit flow along the cycle. Each $C_j$ has a nonnegative cost, since $f$ is
+a best flow, and $f+\chi(C_j)\neq f$, so that its cost is at least that of
+$g$. Hence, $cost(g)=cost(f)+\sum_j cost(C_j)\geq
+cost(f)+cost(C_1)=cost(f+\chi(C_1))\geq cost(g)$, and $f+\chi(C_1)$ is a
+second best flow; a cycle of least cost costs at most $cost(C_1)$, and one
+unit along it gives a flow of the set different from $f$. $\square$
 
 Then the set of all the integer flows is split as in the partition of [Lawler
 1972](Z-bibliography.md#ref-lawler72kbest), on an arc where the best flow and
-the second best flow differ, i.e., the first arc of the cycle. On one side the
-flow of the arc keeps its value in the best flow, which remains the best of
-that side; on the other it takes the value of the second best flow, which
-becomes the best of that side. Hence, the next flow of the sequence is the
-cheapest of the second best flows of the sides.
+the second best flow differ, i.e., the arc $a$ of the first residual arc of
+the cycle. On one side the flow of $a$ stays on the side of its value in the
+best flow, which remains the best of that side; on the other it lies on the
+side of the value of the second best flow, which becomes the best of that
+side. Hence, the next flow of the sequence is the cheapest of the second best
+flows of the sides.
 
 <span id="alg-14-3"></span>**Algorithm 14.3** (K best integer flows).
 
@@ -300,60 +385,78 @@ cheapest of the second best flows of the sides.
 3  for i = 2, ..., k:
 4      (B, f) := the set of S whose second best flow g is the cheapest;
        if no set has one: stop
-5      f_i := g; let a be the first arc of the cycle from f to g
-6      B' := B with lower(a) := f(a) + 1 (if g(a) > f(a)),
-             or with upper(a) := f(a) - 1 (if g(a) < f(a))
-7      B  := B with the flow of a fixed to f(a)
-8      add (B', g) to S; compute the second best flows of (B, f), (B', g)
+5      f_i := g; let a be the arc of the first residual arc of the cycle
+6      if g(a) > f(a): B' := B with lower(a) := f(a) + 1;
+                       B  := B with upper(a) := f(a)
+       else:           B' := B with upper(a) := f(a) - 1;
+                       B  := B with lower(a) := f(a)
+7      add (B', g) to S; compute the second best flows of (B, f), (B', g)
 ```
 
+<span id="thm-14-4"></span>**Theorem 14.4.** *(KBestFlows.) `run(k)` gives the
+$\min\{k,q\}$ integer flows of least cost of (13.1) in a nondecreasing order
+of cost, where $q$ is the number of integer flows, provided that the first
+flow is optimal.*
+
+*Proof.* We show by induction that the sets of $S$ partition the integer flows
+not yet given, and that the given flow of each set is its best flow. This
+holds at the start. When the set $B$ with best flow $f$ and second best flow
+$g$ is split, $B$ (with the new bound on $a$) and $B'$ are disjoint and their
+union is $B$, since the flow of $a$ is an integer. Also, $f$ stays in $B$ and
+is still its best flow, while $g$ is in $B'$ and is its best flow, since
+$B'\subseteq B\setminus\{f\}$ and $g$ is a best flow of $B\setminus\{f\}$ by
+Theorem 14.3. The flows not yet given are those of the sets other than their
+best flows, and the cheapest of them is the cheapest of the second best flows.
+Hence, each flow given is a cheapest one among those not yet given. $\square$
+
 In `secondBest()`, the second best flow of a set is found as follows. First,
-the potentials of the residual network of the best flow of the set are
-computed by the algorithm of Bellman and Ford, from a virtual node joined to
-all the others. Since the best flow of the set leaves no cycle of negative
-cost, the reduced costs are nonnegative. Then, for each node $v$, the
+potentials of the residual network of the best flow of the set are computed by
+the algorithm of Bellman and Ford, from a virtual node joined to all the
+others; since the best flow of the set leaves no cycle of negative cost, the
+reduced costs are nonnegative (Theorem 13.2). Then, for each node $v$, the
 algorithm of Dijkstra computes the shortest paths from $v$ on the reduced
 costs, and for each residual arc $(u,v)$ the cycle of least cost through it is
-the arc and a shortest path from $v$ back to $u$. When that path is just the
-reverse of the arc, which is not a cycle, one more search is made without the
-reverse arc. Hence, as stated in the header, the $k$-th flow takes
-$O(nm\log n)$ time after the $(k-1)$-th, and $O(m^2\log n)$ at worst. Of
-course, the sequence does not depend on the algorithm that found the first
-flow, but for the order of the flows of equal cost.
+the arc and a shortest path from $v$ back to $u$. A shortest path from $v$ to
+$u$ is simple, so that the cycle is simple and contains the reverse of $(u,v)$
+only if the path is that reverse and nothing else; then one more search is
+made without the reverse arc. Hence, as stated in the header, the $k$-th flow
+takes $O(nm\log n)$ time after the $(k-1)$-th when few such searches are made,
+and $O(m^2\log n)$ at worst, with one search for each residual arc. Of course,
+the sequence does not depend on the algorithm that found the first flow, but
+for the order of the flows of equal cost.
 
 ### 14.3.2 The interface {#sec-14-3-2}
 
 `KBestFlows<GR, V, C>` takes the type of the digraph, the number type `V` of
 the flows, of the bounds and of the supplies (by default `int`), and the
-number type `C` of the costs (by default `V`). Its constructor takes the
-digraph, whose nodes and arcs it numbers at once; the digraph must not change
-afterwards. Until they are given, the bounds are 0 and infinite, the costs 1
-and the supplies 0. Its setters, each returning the object, are the following
-ones:
+number type `C` of the costs (by default `V`), which it names `Digraph`,
+`Value` and `Cost`. Its constructor takes the digraph, whose nodes and arcs it
+numbers at once; the digraph must not change afterwards. Until they are given,
+the bounds are 0 and infinite, the costs 1 and the supplies 0. Its setters,
+each returning the object, are the following ones.
 
--   `lowerMap(map)`, `upperMap(map)`, `costMap(map)` and `supplyMap(map)`,
-which copy the data as in [chapter 13](13-min-cost-flow.md#ch-13), an upper
-bound that is infinite or the largest value of `Value` meaning no bound;
--   `initFlow(map)`, an optimal flow to start from, which must be optimal for
-the data given, and after which no minimum cost flow algorithm is run;
--   `tolerances(flow, cost)`, the tolerances of [section
-13.3](13-min-cost-flow.md#ch-13) given to the `NetworkSimplex` that finds the
-optimal flow, a negative value leaving them to the data; `flowTolerance()` and
-`costTolerance()` return those in use.
+-   `lowerMap(map)`, `upperMap(map)`, `costMap(map)` and `supplyMap(map)` copy
+the data as in [chapter 13](13-min-cost-flow.md#ch-13), an upper bound that is
+infinite or the largest value of `Value` meaning no bound.
+-   `initFlow(map)` gives an optimal flow to start from, which must be optimal
+for the data given, and after which no minimum cost flow algorithm is run.
+-   `tolerances(flow, cost)` sets the tolerances of [section
+13.3](13-min-cost-flow.md#sec-13-3), which are given to the `NetworkSimplex`
+that finds the optimal flow, a negative value leaving them to the data;
+`flowTolerance()` and `costTolerance()` return those in use, as a `Tolerance<
+Value >` and a `Tolerance< Cost >`.
 
 Then `run(k)` finds the flows and returns their number, which is less than $k$
-if the problem has fewer integer flows, and zero if it has no optimal flow (it
-is infeasible or unbounded). Its queries are `flowNum()`, the number of flows
-of the last run, `totalCost(i)`, `flow(i, arc)` and `flowMap(i, map)`, for the
-$i$-th flow, where the first one is the flow 0. The constraints are of the GEQ
-form: by an arc of no cost and no upper bound into each node, an extra node
-supplies the demand that the flow leaves unmet. Both the bounds and the
-supplies must be integer, also with a floating-point `V` (whose values are
-then integer ones), since the flows differ from each other by whole units.
-Also, an infinite upper bound is allowed only if no cycle of negative cost is
-made of arcs of infinite upper bound, or the problem has no optimal flow. We
-remark that the comparisons of the search for the second best flows are exact
-on such data.
+if the problem has fewer integer flows, and zero if $k\leq 0$ or the problem
+has no optimal flow (it is infeasible or unbounded). Its queries are
+`flowNum()`, the number of flows of the last run, `totalCost(i)`, `flow(i,
+arc)` and `flowMap(i, map)`, for the $i$-th flow, where the first one is the
+flow 0. Both the bounds and the supplies must be integer, also with a
+floating-point `V` (whose values are then integer ones), since the flows
+differ from each other by whole units. Also, an infinite upper bound is
+allowed only if no cycle of negative cost is made of arcs of infinite upper
+bound, or the problem has no optimal flow. We remark that the comparisons of
+the search for the second best flows are exact on such data.
 
 ## 14.4 The k best extreme flows: KBestExtremeFlows {#sec-14-4}
 
@@ -365,11 +468,24 @@ optimal vertex, then the other optimal ones, if any, and then those whose cost
 exceeds the optimum by at most a given gap. As the header remarks, these are
 the flows that a Lagrangian or a Benders decomposition may want several of,
 since each vertex gives a different (sub)gradient, while a flow inside a face
-gives a convex combination of those of its vertices. A flow is a vertex if and
-only if the arcs strictly within their bounds (the *free* arcs) form a forest;
-a *basis* of a vertex is a spanning tree that contains its free arcs, the
-other arcs being at a bound. A vertex is *degenerate* when it has more than
-one basis, i.e., when its free arcs do not span the nodes.
+gives a convex combination of those of its vertices. The class works, as
+`KBestFlows`, on the network with the root and its arcs into the nodes, in the
+equality form. A flow is a vertex if and only if the arcs strictly within
+their bounds (the *free* arcs) form a forest (Lemma 14.5); a *basis* of a
+vertex is a spanning tree that contains its free arcs, the other arcs being at
+a bound. A vertex is *degenerate* when it has more than one basis, i.e., when
+its free arcs do not span the nodes.
+
+<span id="lem-14-5"></span>**Lemma 14.5.** *A feasible flow is a vertex of the
+polyhedron of the flows if and only if its free arcs form a forest.*
+
+*Proof.* If the free arcs contain a cycle, sending a small amount $\pm\delta$
+around it gives two feasible flows whose midpoint is the flow, which is then
+no vertex. If they form a forest, fixing every other arc at its bound leaves a
+system of conservation equations on the arcs of a forest, which has at most
+one solution (a leaf of the forest determines the flow of its arc, and so on).
+Hence, the flow is the only feasible flow on which those bounds are tight,
+i.e., a vertex. $\square$
 
 Its algorithm is the ranking of the extreme points of [Murty
 1968](Z-bibliography.md#ref-murty68ranking), which rests on the fact that the
@@ -389,26 +505,87 @@ expanded.
 4      take from Q the candidate of least cost; stop if beyond the gap
 5      make its basis (one pivot from the expanded basis it came from)
 6      skip it if the basis was already expanded
-7      if the basis limit is reached: exact := false; stop
+7      if basisLimit() bases were expanded: exact := false; stop
 8      give its vertex if it is new
-9      for each nonbasic residual arc r of the basis:
-10         c := the cost after the pivot of r (if its cycle is bounded)
-11         put (c, r) in Q, unless c exceeds the gap
-12 if not exact: sort the vertices given by cost
+9      if its vertex already used up vertexBasisLimit(): exact := false;
+       skip it
+10     for each nonbasic residual arc r of the basis:
+11         c := the cost after the pivot of r (if its cycle is bounded)
+12         put (c, r) in Q unless c exceeds the gap (the degenerate pivots
+           only if the vertex has not used up its limit)
+13 if not exact: sort the vertices given by cost
 ```
 
 A candidate is kept in the queue only as its cost, with the index of the
 expanded basis and of the arc of its pivot; the basis it leads to is made only
 when it leaves the queue. Thus, the memory is $O(n+m)$ for each basis
-expanded. Each pivot takes $O(n)$ time, and each basis $O(nm)$ for all its
-pivots (or $O(n(n+m))$, as the documentation of `basisLimit()` puts it).
+expanded. Each pivot takes $O(n)$ time for its cycle, and each basis
+$O(n(n+m))$ for all its pivots, as the documentation of `basisLimit()` puts
+it.
 
 As in `KBestFlows`, the first vertex is the optimal flow that `NetworkSimplex`
 finds, or the one given by `initFlow()`, which need not be a vertex. It is
 made a vertex by `purify()`: while the free arcs close a cycle, the cycle is
 saturated in a direction in which it is bounded, the direction in which the
-cost does not grow being tried first. At an optimal flow such a cycle has a
-reduced cost of zero, and the cost of the flow does not change.
+cost does not grow being tried first.
+
+<span id="lem-14-6"></span>**Lemma 14.6.** *`purify()` ends after at most
+$n+m$ saturations with a vertex whose cost is not larger than that of the flow
+it started from, and equal to it if that flow is optimal.*
+
+*Proof.* A cycle of free arcs is bounded in at least one direction, since in
+each direction the arcs traversed backward have a finite residual capacity,
+and all the arcs traversed forward in one direction are traversed backward in
+the other. Saturating it leaves the other arcs as they are and takes at least
+one of its arcs to a bound, so that the number of free arcs decreases; at the
+end the free arcs form a forest, and the flow is a vertex by Lemma 14.5. The
+direction in which the cost does not grow is bounded unless the cycle is one
+of infinite capacity and negative cost, which a feasible problem with an
+optimal flow does not have, or of zero cost, in which case the other direction
+costs nothing either. At an optimal flow the free arcs have a zero reduced
+cost by (13.5), so that a cycle of them costs zero. $\square$
+
+<span id="lem-14-7"></span>**Lemma 14.7.** *At a nondegenerate vertex $x$ with
+basis $T$, the edges of the polyhedron at $x$ are the directions of the cycles
+that the nonbasic arcs close with $T$, each in the direction allowed by the
+bound of its arc, and the adjacent vertices are the vertices reached by
+saturating those of them that are bounded.*
+
+*Proof.* Every arc of $T$ is free at $x$. A direction $d$ is feasible at $x$
+if and only if it is a circulation that moves each nonbasic arc only away from
+its bound. Such a circulation is determined by its values on the nonbasic arcs
+(the tree arcs follow), and it is therefore the nonnegative combination
+$\sum_e d(e)\,\chi(C_e)$ of the cycles $C_e$, oriented as allowed, with
+coefficients the moves of the nonbasic arcs. These cycles are linearly
+independent, each containing a nonbasic arc that the others do not; hence, the
+cone of the feasible directions is simplicial, and its extreme rays, the edges
+at $x$, are the directions $\chi(C_e)$. Moving along a bounded one up to the
+first bound reached gives the adjacent vertex. $\square$
+
+<span id="thm-14-5"></span>**Theorem 14.5.** *(Murty.) Suppose that the
+vertices that Algorithm 14.4 expands are nondegenerate and that no limit acts.
+Then it gives the vertices of the polyhedron of the flows, up to $k$ and
+within the gap, in a nondecreasing order of cost, the first one optimal.*
+
+*Proof.* Let $X$ be the set of the vertices given so far, which contains an
+optimal one, and let $w$ be a vertex of least cost among those not in $X$. If
+some edge at $w$ leads to a vertex of smaller cost, that vertex is in $X$ (by
+the choice of $w$), and $w$ is adjacent to $X$. Otherwise no edge at $w$
+decreases the cost, and no unbounded edge does either, since the problem has
+an optimal flow; as the cone of the feasible directions at $w$ is generated by
+its edges, $w$ is optimal. The optimal vertices are those of the optimal face,
+whose graph of vertices and edges is connected; since $X$ contains an optimal
+vertex, some optimal vertex outside $X$ is adjacent to an optimal vertex of
+$X$, and its cost is that of $w$. In both cases the cheapest vertex adjacent
+to $X$ and outside $X$ has the cost of $w$, and by Lemma 14.7 it is among the
+candidates of the queue, which gives the next vertex in the order of cost.
+$\square$
+
+We remark that, at a degenerate vertex, the edges are the pivots of some of
+its bases, and the algorithm expands every basis that the degenerate pivots of
+its leaving rule reach from the first one. We do not prove that these are all
+the bases of the vertex; the tests compare the ranking with an enumeration of
+the vertices on small problems (Exercise 14.5).
 
 ### 14.4.2 Degeneracy and the limits on the bases {#sec-14-4-2}
 
@@ -434,7 +611,7 @@ adjacent to the bases expanded, but they may not be the $k$ best ones.
 
 When a limit has acted, a vertex reached only through a basis left out may
 have come after one of larger cost; hence, the flows are sorted by their costs
-at the end (step 12). Thus, `exact()` returns `false` when the last run
+at the end (step 13). Thus, `exact()` returns `false` when the last run
 stopped at `basisLimit()`, or left out a basis or a pivot for
 `vertexBasisLimit()`.
 
@@ -452,7 +629,7 @@ vertex and for each arc at one of its bounds, the cycle of least reduced cost
 through the arc, saturated and made a vertex, gives a vertex of larger cost.
 Only the arcs at a bound are tried, since the free arcs of a vertex make no
 cycle; they are tried in the order of their reduced costs, which bound from
-below those of their cycles, until one reaches the reduced cost of the last
+below those of their cycles, until one reaches the reduced cost of the worst
 cycle kept.
 
 <span id="alg-14-5"></span>**Algorithm 14.5** (Vertices by the cycles of least
@@ -470,16 +647,32 @@ reduced cost).
        by increasing reduced cost while it is below the worst kept:
 8      c := rc(r) + shortest path from head(r) to tail(r) (Dijkstra,
             stopped at the end or at the bound)
-9      if c > 0: saturate the cycle, make it a vertex z; keep (c, z)
+9      if c > 0: saturate the cycle, make it a vertex z; keep (c, z) if
+            its cost exceeds the optimum and is within the gap
 10 give the vertices of K in the order of their costs, up to k
 ```
+
+<span id="lem-14-8"></span>**Lemma 14.8.** *An open residual arc $r$ of zero
+reduced cost lies on a cycle of open residual arcs of zero reduced cost if and
+only if its ends are in the same strongly connected component of those arcs.
+Saturating such a cycle at an optimal flow, and then purifying, gives an
+optimal vertex.*
+
+*Proof.* The arc $r$ goes from its tail to its head, and a cycle through it
+exists if and only if the head reaches the tail along such arcs, i.e., if and
+only if the two ends are in one component. A cycle of zero reduced cost has a
+zero cost (the potentials cancel around it), so that saturating it keeps the
+cost, and the flow stays optimal; by Lemma 14.6 purifying keeps it optimal and
+makes it a vertex. $\square$
 
 With this method, too, the flows are distinct vertices in the order of their
 costs, the optimal ones first, but those of larger cost are only some of the
 vertices one cycle away from an optimal one; hence, `exact()` is always
-`false` with this method. According to the header, each optimal vertex costs
-at most $O(nm\log n)$ time, and the method needs $O(km+pn)$ memory for the $p$
-trees of shortest paths made.
+`false` with this method. Each arc tried costs one search of $O(m\log n)$
+time; the header states $O(nm\log n)$ time for each optimal vertex, while with
+one search for each arc at a bound the bound is $O(m^2\log n)$ at worst. The
+method needs $O(km+pn)$ memory for the $p$ trees of shortest paths made, as
+the header states.
 
 !!! note "abLEMON"
     Since version 1.8.1 the method `CYCLES` tries only the arcs at a bound of
@@ -492,60 +685,87 @@ trees of shortest paths made.
 
 ### 14.4.4 The interface {#sec-14-4-4}
 
-`KBestExtremeFlows<GR, V, C>` has the template parameters, the constructor,
-the setters `lowerMap()`, `upperMap()`, `costMap()`, `supplyMap()` and
-`tolerances()`, and the queries `flowTolerance()`, `costTolerance()`,
-`flowNum()`, `totalCost(i)`, `flow(i, arc)` and `flowMap(i, map)` of
-`KBestFlows`; its `initFlow(map)` takes an optimal flow that need not be a
-vertex. Its tolerances are given to the `NetworkSimplex` that finds the
-optimal flow, and they are also used in its own comparisons. A flow within the
-tolerance on the flows of a bound is at the bound, and a reduced cost within
-the tolerance on the costs of zero is zero. The method is set by `method(m)`,
-with `RANKING` (the default) or `CYCLES`, and the limits by `basisLimit()` and
-`vertexBasisLimit()`, and `run(k, gap)` finds at most $k$ vertices, and a
-negative `gap`, the default, sets no limit on the excess of their cost over
+`KBestExtremeFlows<GR, V, C>` has the template parameters and typedefs, the
+constructor, the setters `lowerMap()`, `upperMap()`, `costMap()`,
+`supplyMap()` and `tolerances()`, and the queries `flowTolerance()`,
+`costTolerance()`, `flowNum()`, `totalCost(i)`, `flow(i, arc)` and `flowMap(i,
+map)` of `KBestFlows`. Its `initFlow(map)` takes a flow that must be optimal
+for the data given but need not be a vertex. Its tolerances are given to the
+`NetworkSimplex` that finds the optimal flow, and they are also used in its
+own comparisons: a flow within the tolerance on the flows of a bound is at the
+bound, and a reduced cost within the tolerance on the costs of zero is zero.
+The method is set by `method(m)`, with the constants `RANKING` (the default)
+and `CYCLES` of the nested enum `Method`, and the limits by `basisLimit()` and
+`vertexBasisLimit()`. Then `run(k, gap)` finds at most $k$ vertices, a
+negative `gap`, the default, setting no limit on the excess of their cost over
 the optimum. It returns the number of vertices found, which is less than $k$
-if the problem has fewer vertices within the gap, and zero if it has no
-optimal flow; `exact()` returns whether the run was exact. Its constraints are
-of the GEQ form, with an extra node as in `KBestFlows`.
+if the problem has fewer vertices within the gap, and zero if $k\leq 0$ or the
+problem has no optimal flow; `exact()` returns whether the run was exact.
 
-Our last program solves a problem of four nodes and five arcs, small enough to
-enumerate all its integer flows. It has 5 integer flows, of costs 5, 6, 6, 7
-and 8, of which 4 are vertices (the flow of cost 7, the midpoint of the
-vertices of costs 6 and 8, has four free arcs, which make a cycle).
-`KBestFlows` gives the 5 costs in order, and `RANKING` gives the 4 costs of
-the vertices with `exact()` true. Then `CYCLES` gives the optimal vertex and
-two more, and finally the program checks the potentials of section 14.5.
-
-```cpp
---8<-- "examples/14-k-best.cc"
-```
+The program `manual/examples/14-k-best.cc` (the test `manual_14_k_best`)
+solves a problem of four nodes and five arcs, small enough to enumerate all
+its integer flows. It has 5 integer flows, of costs 5, 6, 6, 7 and 8, of which
+4 are vertices (the flow of cost 7, the midpoint of the vertices of costs 6
+and 8, has four free arcs, which make a cycle). The program checks that
+`KBestFlows` gives the 5 costs in order and that `RANKING` gives the 4 costs
+of the vertices with `exact()` true; then `CYCLES`, asked for 3 vertices,
+gives the costs 5, 6 and 6, and finally the program checks the potentials of
+section 14.5 against (13.5).
 
 ## 14.5 Alternative optimal potentials {#sec-14-5}
 
 By Theorem 13.1, potentials are optimal if and only if, together with an
-optimal flow $f$, they satisfy (13.4); for the GEQ form with the extra node,
-this means that the reduced cost of each open residual arc of $f$ is
-nonnegative. These potentials form a polyhedron (up to a constant, which the
-class fixes by making the potential of the extra node zero), which has, in
-general, many vertices: an optimal flow that is degenerate in the primal has
-several optimal potentials. A program may want several of them, e.g., distinct
-dual solutions for a sensitivity analysis, or different cuts in a
-decomposition (somewhat as for the extreme flows of section 14.4).
-`runPotentials(k)` finds at most $k$ distinct vertices of that polyhedron, and
-returns their number (zero if the problem has no optimal flow);
+optimal flow $f$, they satisfy (13.5); for the network with the root, in which
+the arcs of the root are open, this means that the reduced cost of each open
+residual arc of $f$ is nonnegative. These potentials form a polyhedron (up to
+a constant, which the class fixes by making the potential of the root zero),
+which has, in general, many vertices: an optimal flow that is degenerate in
+the primal has several optimal potentials. A program may want several of them,
+e.g., distinct dual solutions for a sensitivity analysis, or different cuts in
+a decomposition (somewhat as for the extreme flows of section 14.4).
+
+<span id="lem-14-9"></span>**Lemma 14.9.** *The set of the optimal potentials,
+with the potential of the root fixed to zero, is the set of the potentials
+under which every open residual arc of one optimal flow has a nonnegative
+reduced cost; it is the same for every optimal flow. A potential of this set
+is a vertex of it if the arcs of zero reduced cost contain a spanning tree.*
+
+*Proof.* The first statement is Theorem 13.1 on the network with the root, in
+the equality form. The set does not depend on the optimal flow, since by the
+sufficiency part of that proof a potential satisfying (13.5) with one optimal
+flow makes every optimal flow attain the same lower bound, i.e., satisfies
+(13.5) with each of them. If the tight arcs contain a spanning tree, the
+equations $cost^\pi=0$ on the tree, with the root fixed, have a unique
+solution. Hence, $\pi$ is the only point of the set at which those
+inequalities are tight. $\square$
+
+`runPotentials(k)` finds at most $k$ distinct optimal potentials, and returns
+their number (zero if $k\leq 0$ or the problem has no optimal flow);
 `potentialNum()` and `potential(i, node)` read them, and the first ones are
 the potentials 0. Two potentials that differ by a constant are the same, and
-two within the tolerance on the costs of each other are the same too.
+two within the tolerance on the costs of each other are the same too. One sets
+the method by `potentialMethod(m)`, with the constants `PATHS` and `PIVOTS` of
+the nested enum `PotentialMethod`.
 
-One sets the method by `potentialMethod(m)`. With `PATHS`, the default, the
-potentials are computed from potentials $\pi$ optimal for the optimal vertex
-of section 14.4. They are $\pi+d_s$ and $\pi-d'_s$, for each node $s$ in turn,
-where $d_s$ are the distances from $s$ and $d'_s$ the distances to $s$ in the
-residual network of the flow on the reduced costs (one Dijkstra's algorithm
-each), the nodes not reached taking the largest distance. Each of them is the
-vertex of the dual polyhedron given by the tree of the shortest paths, whose
-arcs have zero reduced cost under it.
+With `PATHS`, the default, the potentials are computed from potentials $\pi$
+optimal for the optimal vertex of section 14.4, found by the algorithm of
+Bellman and Ford. They are $\pi+d_s$ and $\pi-d'_s$, for each node $s$ in
+turn, where $d_s$ are the distances from $s$ and $d'_s$ the distances to $s$
+in the residual network of the flow on the reduced costs (one Dijkstra's
+algorithm each), the nodes not reached taking the largest distance found.
+
+<span id="lem-14-10"></span>**Lemma 14.10.** *The potentials $\pi+d_s$ and
+$\pi-d'_s$ are optimal, and each is a vertex of the polyhedron of the optimal
+potentials when its search reaches every node.*
+
+*Proof.* For $\pi+d_s$, let $D$ be the largest distance found. An open
+residual arc $uv$ with $u$ reached has $v$ reached and $d_s(v)\leq
+d_s(u)+cost^\pi(uv)$, so that its new reduced cost is nonnegative; if $u$ is
+not reached, the new reduced cost is $cost^\pi(uv)+D-d_s(v)\geq 0$ when $v$ is
+reached, and $cost^\pi(uv)$ when it is not. For $\pi-d'_s$ the argument is
+symmetric: an arc from a node that does not reach $s$ to one that does cannot
+be open. When every node is reached, the arcs of the tree of the shortest
+paths have a zero reduced cost, and Lemma 14.9 applies. $\square$
 
 With `PIVOTS` the potentials are the vertices reached from that of the optimal
 vertex by the pivots of the dual simplex method, breadth first. In a tree of
@@ -560,7 +780,7 @@ pivots).
 ```
 1  pi := optimal potentials for the optimal vertex (Bellman-Ford)
 2  while the tree of zero reduced cost from the root misses some nodes:
-       raise the nodes it misses by the least reduced cost of an arc
+       raise the nodes it misses by the least reduced cost of an open arc
        entering them
 3  P := (pi); for each pi' of P, in turn, while fewer than k:
 4      build the tree of zero reduced cost under pi'
@@ -570,9 +790,27 @@ pivots).
 7          if the step is positive: add the new potentials to P if new
 ```
 
-Step 2 first makes $\pi$ a vertex: the arcs from the extra node to the nodes
-are always open, so that one of them enters any set of missed nodes. According
-to the header, each vertex costs $O(nm)$ time with this method.
+<span id="lem-14-11"></span>**Lemma 14.11.** *Each raise of Algorithm 14.6
+keeps the potentials optimal. After step 2 the potentials are a vertex of the
+polyhedron of the optimal potentials, and so is each potential added in step
+7.*
+
+*Proof.* Raising the potentials of a set $Q$ by $\delta$ decreases by $\delta$
+the reduced costs of the arcs entering $Q$, increases those of the arcs
+leaving it, and leaves the others unchanged; with $\delta$ the least reduced
+cost of an open arc entering $Q$, every open arc keeps a nonnegative reduced
+cost (Lemma 14.9). In step 2 the arc that reaches the least reduced cost
+becomes tight and joins the tree, which therefore grows. Since the arcs from
+the root to the nodes are always open, some open arc enters any set of missed
+nodes; at the end the tight arcs span the nodes, which by Lemma 14.9 gives a
+vertex. In step 6 the arc $r$ goes from $Q$ to the other side and becomes
+looser, which is allowed since its opposite arc, which would enter $Q$ with a
+zero reduced cost, is closed; the entering arc replaces $r$, and the tight
+arcs again contain a spanning tree. $\square$
+
+According to the header, each vertex costs $O(nm)$ time with this method; more
+precisely, it costs one search for the tight tree and one raise for each of
+its arcs, each of $O(n+m)$ time.
 
 !!! note "abLEMON"
     `runPotentials()` appeared in version 1.8.0 with the method `PATHS`, and
@@ -613,7 +851,7 @@ flows are checked against an enumeration by
 `checkLimitCases()`, in `test/k_best_flows_test.cc`.)
 
 <span id="ex-14-6"></span>**Exercise 14.6.** Verify that the potentials of
-`runPotentials()` satisfy (13.4) with any optimal flow, not only with the one
-they were computed from, and that both methods give vertices of the polyhedron
-of the optimal potentials. (Solved by `checkPotentials()` in
+`runPotentials()` satisfy (13.5) with any optimal flow, not only with the one
+they were computed from (Lemma 14.9), and that both methods give optimal
+potentials (Lemmas 14.10 and 14.11). (Solved by `checkPotentials()` in
 `test/k_best_flows_test.cc`, and in part by `manual/examples/14-k-best.cc`.)

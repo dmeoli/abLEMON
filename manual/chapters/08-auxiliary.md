@@ -50,7 +50,7 @@ amortized, "no" for an operation that the class does not have).
 In `Path` the arcs added at the front are kept in one vector, in reverse
 order, and those added at the back in another. When one of the two vectors is
 empty and an arc must be erased from its end, half of the other vector is
-moved into it; hence, `eraseFront()` and `eraseBack()` cost $O(1)$ amortized
+moved into it. Hence, `eraseFront()` and `eraseBack()` cost $O(1)$ amortized
 over any sequence of operations. `SimplePath` keeps one vector and grows only
 at the back, which makes it somewhat faster than `Path` when the arcs are only
 added at the back. A `ListPath` allocates one node per arc; hence, `nth()`
@@ -64,7 +64,29 @@ arcs from `it` on into `tpath`, after clearing it (the clearing being the only
 part that may cost more than $O(1)$). Finally, a `StaticPath` is an array of
 exactly $k$ arcs, which can only be built from another path or assigned; it is
 the most compact of the four, and usually the one to choose for storing many
-paths.
+paths. The bounds of Table 8.1 follow from the storage, except the amortized
+one of `Path`, which needs an argument.
+
+<span id="thm-8-1"></span>**Theorem 8.1.** *Starting from an empty `Path`,
+any sequence of $q$ calls of `addFront()`, `addBack()`, `eraseFront()` and
+`eraseBack()` takes $O(q)$ time.*
+
+*Proof.* Let $f$ and $b$ be the numbers of arcs in the vector of the front and
+in that of the back, and let $\Phi=|f-b|$, which is 0 at the start and never
+negative. An addition, or an erasure from a vector that is not empty, takes
+$O(1)$ time (amortized over the growth of the vector) and changes $\Phi$ by at
+most 1. An erasure from an empty vector, say the front one, with $b=r\ge 1$
+arcs in the other, erases the first arc of the back vector, moves the next
+$\lfloor r/2\rfloor$ arcs into the front vector and shifts the remaining
+$r-1-\lfloor r/2\rfloor$ down, in $O(r)$ time; afterwards $\Phi\le 1$, while
+it was $r$ before. Hence, with a suitable constant $c$, the amortized cost
+(the actual cost plus $c$ times the change of $\Phi$) of each call is $O(1)$.
+The total actual cost is at most the total amortized cost, since $\Phi\ge 0$
+at the end. $\square$
+
+We remark that the copy assignment of each path class calls `pathCopy()`,
+which clears the target before reading the source; hence, assigning a path to
+itself (`p = p`) leaves it empty.
 
 The concept `concepts::Path` of `lemon/concepts/path.h` states this common
 interface (a path type, the copy from another path, `length()`, `empty()`,
@@ -112,14 +134,11 @@ arcs. Also, `pathNodes(g, p)` wraps this iterator in a range, and
     and the ranges of `arcs()` and `pathNodes()` come from the development of
     LEMON after its release 1.3.1, which did not distribute them.
 
-In the following program we build a path at both ends and copy it into the
-other three classes. Then we split and splice a `ListPath`, list the nodes of
-a path, and copy the path dumper of a search of Dijkstra
-(cf. [§10.2](10-shortest-paths.md#sec-10-2)) into a `Path`.
-
-```cpp
---8<-- "examples/08-paths.cc"
-```
+The program `manual/examples/08-paths.cc` (the test `manual_08_paths`) builds
+a path at both ends and copies it into the other three classes. Then it splits
+and splices a `ListPath`, lists the nodes of a path, and copies the path
+dumper of a search of Dijkstra (cf. [§10.2](10-shortest-paths.md#sec-10-2))
+into a `Path`.
 
 ## 8.2 Union-find structures {#sec-8-2}
 
@@ -132,21 +151,45 @@ the forest grown so far, and behind the blossoms of the weighted matching
 algorithms of chapter 17. Each class is stored as a tree whose root is the
 representative and whose other items point to their parents. A find walks from
 the item to the root, and a union makes one root the child of the other. Two
-rules keep the trees shallow: the union by size (or by rank) puts the root of
-the smaller tree under the root of the larger, so that the depth of a tree of
-$s$ items is at most $\log_2 s$, and the path compression makes the items met
-during a find point to the root (Figure 8.1).
+rules keep the trees shallow: the union by size puts the root of the tree
+with fewer items under the root of the other, and the path compression makes
+the items met during a find point to the root (Figure 8.1).
 
 ![Figure 8.1. A class of a union-find structure as a tree, the root r carrying the size of the class: find(x) follows the path x, y, z, r (left), and the compression of that path makes x and y children of r (right).](../figures/08-union-find.svg){#fig-8-1}
 
-<span id="thm-8-1"></span>**Theorem 8.1.** *With the union by size (or by
-rank) and the path compression, any sequence of $m$ finds and unions on $n$
-items takes $O(m\,\alpha(m,n))$ time, where $\alpha$ is the inverse of
+<span id="lem-8-1"></span>**Lemma 8.1.** *With the union by size, a tree of
+$s$ items has depth at most $\log_2 s$, whatever finds (with or without
+compression) are made.*
+
+*Proof.* The compression only shortens paths, and we may ignore it. An item
+gets deeper only when the root of its tree is put under another root, by a
+union with a tree at least as large; the tree that contains it then at least
+doubles. Since a tree has at most $s$ items, this happens at most $\log_2 s$
+times to each item. $\square$
+
+<span id="thm-8-2"></span>**Theorem 8.2.** *With the union by size and the
+path compression, any sequence of $n$ insertions and $m\ge n$ finds and
+unions takes $O(m\,\alpha(m,n))$ time, where $\alpha$ is the inverse of
 Ackermann's function, which is at most 4 for any $n$ that can be stored.*
 
-We refer to [Tarjan 1975](Z-bibliography.md#ref-tarjan1975efficiency) for the
-proof. In practice, the cost of an operation is usually a small constant, and
-one may take it as such when choosing an algorithm.
+*Proof sketch.* Each union costs $O(1)$ after its two finds, and a find costs
+$O(1)$ plus the number of items whose parent it changes. One groups the items
+by the logarithm of the size of their subtree, which by Lemma 8.1 grows along
+each path to the root, and then the levels into blocks of exponentially
+growing ranges, as many as the inverse of Ackermann's function allows. A
+compression changes the parent of an item either for the last time in its
+block, which is charged to the find (at most $\alpha(m,n)$ such items per
+find), or to a parent in a strictly higher level of the same block, which is
+charged to the item. The charges to the items of each block add up to $O(m)$
+over the blocks. The bound was proved in [Tarjan
+1975](Z-bibliography.md#ref-tarjan1975efficiency) for the union by rank, and
+in [Tarjan and van Leeuwen 1984](Z-bibliography.md#ref-tarjan1984worst),
+section 3, for the union by size and the other linking rules. A textbook
+proof, for the union by rank, is in [Cormen et al. 2001,
+§21.4](Z-bibliography.md#ref-clrs01algorithms). $\square$
+
+In practice, the cost of an operation is usually a small constant, and one
+may take it as such when choosing an algorithm.
 
 All the classes of `lemon/unionfind.h` take as template parameter the type
 `IM` of a map from items to integers. The items are the keys of `IM`
@@ -159,12 +202,16 @@ is used in another operation.
 `UnionFind<IM>` is the plain structure, with four operations and `clear()`.
 Here `insert(a)` makes `a` a singleton class and returns its index, and
 `find(a)` returns the index of the representative of the class of `a`, an
-integer between 0 and the number of the items inserted, minus one. A call
+integer between 0 and the number of the items inserted, minus one (the index
+that `insert()` returned for that item). A call
 `join(a, b)` returns `false` if `a` and `b` are already in the same class, and
 otherwise unites the two classes and returns `true`; `size(a)` is the number
 of items of the class of `a`. Algorithm 8.1 gives `find()` and `join()` as the
-code has them. The union is by size, the sizes being stored, negated, at the
-roots; the bound of Theorem 8.1 holds for it.
+code has them, $\mathit{parent}$ and $\mathit{size}$ being stored in one
+vector of integers (a root holds its size, negated, and any other item the
+index of its parent); Lemma 8.1 and Theorem 8.2 apply to it. Note that
+`clear()` empties the vector but leaves the map, whose old values must not be
+used before the items are inserted again.
 
 <span id="alg-8-1"></span>**Algorithm 8.1** (Find and union in `UnionFind`).
 
@@ -184,43 +231,89 @@ join(a, b):
 ```
 
 Next, `UnionFindEnum<IM>` adds the enumeration of the classes and of the items
-of each class, at the price of some memory and time per operation: each class
-keeps a doubly linked list of its items, and the classes are linked in a
-second list. Its classes are identified by integer ids rather than by
-representatives. Thus, `insert(item)` makes a new class and returns its id,
-`insert(item, cls)` adds the item to the class `cls`, `find(item)` returns the
-id of the class of the item, and `join(a, b)` returns the id of the united
-class, or $-1$ if the two items were already together. Also, `size(cls)` is
-the number of items of a class, and `item(cls)` returns one of its items. This
-structure can also undo: `split(cls)` breaks a class into singletons, and
-`erase(item)` removes an item from its class, deleting the class if it becomes
-empty, in time proportional to the size of the class (as the documentation
-warns). Finally, `eraseClass(cls)` removes a whole class, and `clear()` all of
-them. Its iterator `ClassIt` lists the ids of the classes, and `ItemIt`,
-constructed from the structure and a class id, lists the items of that class.
+of each class, at the price of some memory and time per operation. Each class
+keeps a circular doubly linked list of its items (its private records `ItemT`
+and `ClassT`), and the classes are linked in a second list; it joins by size
+and compresses the paths as `UnionFind` does. Its classes are identified by
+integer ids rather than by representatives. Thus, `insert(item)` makes a new
+class and returns its id, `insert(item, cls)` adds the item to the class
+`cls`, `find(item)` returns the id of the class of the item, and `join(a, b)`
+returns the id of the united class, or $-1$ if the two items were already
+together. Also, `size(cls)` is the number of items of a class, and `item(cls)`
+returns one of its items. This structure can also undo: `split(cls)` breaks a
+class into singletons, and `erase(item)` removes an item from its class,
+deleting the class if it becomes empty. Finally, `eraseClass(cls)` removes a
+whole class, and `clear()` all of them. Its iterator `ClassIt` lists the ids
+of the classes, and `ItemIt`, constructed from the structure and a class id,
+lists the items of that class; both are compared with `INVALID` to stop.
+
+<span id="thm-8-3"></span>**Theorem 8.3.** *In a `UnionFindEnum`, `insert()`,
+`size()`, `item()` and `eraseClass()` take $O(1)$ time, `find()` and `join()`
+the time of the finds of Theorem 8.2 plus $O(1)$, and `split(cls)` and
+`erase(item)` $O(s)$, where $s$ is the size of the class. In an
+`ExtendFindEnum`, all the operations take $O(1)$ time.*
+
+*Proof.* A join links the two roots and splices the two circular lists, in
+$O(1)$ after the finds. The split walks the list of the class once, making
+each item a root of its own class, and the erasure makes the next item of the
+list the root and walks the list once to point every other item to it, which
+keeps the trees of depth one. The other operations of `UnionFindEnum` read or
+relink a constant number of records. An `ExtendFindEnum` stores in each item
+its class, which never changes; its other operations relink lists.
+$\square$
+
+We remark that `clear()` of `UnionFindEnum` empties the vector of the items
+and the list of the classes, but neither the vector of the classes nor its
+list of free records; hence, the records of the classes alive before the call
+are never reused, which costs memory but no correctness.
 
 `ExtendFindEnum<IM>` is the simplification of `UnionFindEnum` in which the
 classes are never united. It has the same two forms of `insert()`, `find()`,
 `item()`, `erase()`, `eraseClass()`, `clear()`, `ClassIt` and `ItemIt`, and no
 `join()`, a class therefore growing only by insertion; in exchange, `find()`
-reads the class of an item in $O(1)$.
+reads the class of an item in $O(1)$ (Theorem 8.3). All three classes define
+the types `ItemIntMap` (that is, `IM`) and `Item`.
 
 `HeapUnionFind<V, IM, Comp>` attaches a priority of type `V` to each item and
 keeps the item of least priority of each class, where `Comp` (by default
 `std::less<V>`) decides what least means. It is stored as a $(2,16)$-tree
 whose leaves are the items, with a tournament for the minimum on the internal
-nodes. Besides the union, it supports the split of a class into the classes it
-was made of, which the blossoms of the weighted matching algorithms need. Its
-documentation gives the costs: $O(1)$ for `insert(item, prio)`, which returns
-the id of the new class, and $O(\log n)$ for `find(item)` and for the changes
-of a priority, where $n$ is the number of the items of the class. A call
+nodes, i.e., each internal node has between 2 and 16 children (the root
+excepted) and stores the least priority of its subtree and its item. Besides
+the union, it supports the split of a class into the classes it was made of,
+which the blossoms of the weighted matching algorithms need. A call
+`insert(item, prio)` makes a class of one item and returns its id, and
+`find(item)` returns the id of the alive class of the item. A call
 `join(begin, end)` unites the $k$ classes whose ids are in the range (at least
-two) and returns the id of the new class, in $O(k\log n)$ time;
-`split(cls, out)` restores the $k$ classes of which `cls` was made, at the
-same cost, and writes their ids into the output iterator `out`.
+two) and returns the id of the new class, and `split(cls, out)` restores the
+$k$ classes of which `cls` was made, and writes their ids into the output
+iterator `out`.
+
+<span id="thm-8-4"></span>**Theorem 8.4.** *In a `HeapUnionFind`, `insert()`
+takes $O(1)$ time, `find()` and the changes of a priority $O(\log n)$, where
+$n$ is the number of the items of the class, and `join()` and `split()` of $k$
+classes $O(k\log n)$, where $n$ is the number of the items involved.*
+
+*Proof sketch.* A tree whose internal nodes have at least two children has
+height at most $\log_2 n$. A find walks from the leaf of the item to the root;
+a decrease walks up from the leaf while the new priority beats the minimum of
+the node, and an increase recomputes the minimum of the at most 16 children of
+each ancestor whose minimum was the item; each of them is therefore
+$O(\log n)$. A join hangs the trees of the $k$ classes on one another, in the
+order of the range, under nodes of the right height, and splits a node into
+two when it exceeds 16 children. This costs $O(\log n)$ per class joined; a
+split cuts the tree along the paths of the $k$ subtrees that the join
+recorded, and repairs the degrees and the minima along them (the private
+members `repairLeft()` and `repairRight()`), with the same cost. The bounds
+are those of the documentation of the class. The argument is the usual one for
+the B-trees and their variants ([Cormen et al.
+2001](Z-bibliography.md#ref-clrs01algorithms), chapter 18). $\square$
 
 Priorities are read by `operator[](item)` and written by `set(item, prio)`,
-`decrease(item, prio)` and `increase(item, prio)`. The least priority of a
+`decrease(item, prio)` and `increase(item, prio)`, the last two requiring a
+priority that is not larger, or not smaller, than the present one (and `set()`
+choosing between them); the class defines `Value`, `Item`, `ItemIntMap` and
+`Compare`. The least priority of a
 class and its item are given by `classPrio(cls)` and `classTop(cls)`, and
 `classRep(cls)` gives an item of the class that does not depend on the
 priorities. Furthermore, `alive(cls)` is true if a class is not nested into
@@ -231,14 +324,11 @@ constructed with a class id, the classes of which `cls` is made. Finally, the
 structures `ItemT`, `ClassT`, `ItemNode` and `ClassNode` of the header are the
 internal records of these classes.
 
-In the following program we compute the components of a small graph with
-`UnionFind`, counting the edges that close a cycle, and enumerate them with
-`UnionFindEnum`; then we follow the minimum of a class of `HeapUnionFind`
+The program `manual/examples/08-union-find.cc` (the test
+`manual_08_union_find`) computes the components of a small graph with
+`UnionFind`, counting the edges that close a cycle. It also enumerates them
+with `UnionFindEnum`, and follows the minimum of a class of `HeapUnionFind`
 through a join, a decrease and a split.
-
-```cpp
---8<-- "examples/08-union-find.cc"
-```
 
 ## 8.3 The elevator {#sec-8-3}
 
@@ -297,9 +387,45 @@ the items on level `l` and above to the top level and deactivates them (the
 gap heuristic), and `activeFree(l)` is true if a level has no active item.
 Also, `dirtyTopButOne(i)` moves an inactive item from the top level to the
 level below it without updating the structure, and the documentation reserves
-it to those who know what it is for. In an `Elevator`, a lift from a level $l$
-to a level $l'$ costs $O(l'-l)$, since one place is shifted on each level in
-between; in a `LinkedElevator` it costs $O(1)$.
+it to those who know what it is for. The costs of these operations follow
+from the invariant of the array.
+
+<span id="lem-8-2"></span>**Lemma 8.2.** *After `initFinish()` and after each
+operation other than `dirtyTopButOne()`, the array of an `Elevator` holds the
+items in nondecreasing order of level. For each level $l$, its items occupy
+the places from $\mathit{first}(l)$ to $\mathit{first}(l+1)-1$, the active
+ones before the others, the last active one at $\mathit{lastActive}(l)$; and
+$\mathit{highest}$ is the highest level with an active item ($-1$ if none).*
+
+*Proof.* The initialization lists the items level by level and puts the others
+on the top level, all inactive. An activation swaps the item with the first
+inactive item of its level and increments $\mathit{lastActive}$, and a
+deactivation does the converse. A lift of an active item from level $l$ to
+level $l'>l$ first moves it to the end of the active part of $l$. Then, for
+each level from $l$ to $l'-1$, it moves the last item of that level (after its
+active part has been shifted by one place) to the first place of the next one,
+shifting the boundary $\mathit{first}$ of each level crossed by one place to
+the left. The item lands in the first place of $l'$, among the active ones.
+`liftToTop(l)` relabels all the items from level $l$ on and moves all the
+boundaries of these levels to the first place of $l$. In each case
+$\mathit{highest}$ is raised to a new active level, or lowered past the levels
+left without active items. $\square$
+
+<span id="thm-8-5"></span>**Theorem 8.5.** *In an `Elevator`, `activate()`,
+`deactivate()` (apart from the lowering of $\mathit{highest}$), the queries
+and `liftHighestActive()` take $O(1)$ time, a lift from level $l$ to level
+$l'$ takes $O(l'-l)$, and `liftToTop(l)` takes $O(k+L)$, where $k$ is the
+number of the items moved and $L$ the number of levels; the lowering of
+$\mathit{highest}$ costs one step per level passed. In a `LinkedElevator`, the
+activations and the lifts take $O(1)$ time (apart from the lowering of
+$\mathit{highest}$), and `onLevel()`, `aboveLevel()` and `activesOnLevel()`
+are proportional to the number of the items they count.*
+
+*Proof.* By Lemma 8.2, each of the first operations swaps two places or reads
+two boundaries, and a lift moves one item per level crossed. In a
+`LinkedElevator`, each level is a doubly linked list with the active items at
+its front. An activation or a lift relinks one item, and the counts walk the
+lists. $\square$
 
 !!! note "abLEMON"
     `Elevator` allocates one place more than the items of the graph, so that
@@ -310,7 +436,13 @@ We remark that the constructor with a given largest label may take a label
 smaller than the number of the items, in which case the items not listed by
 the initialization stay on the largest level. In a `LinkedElevator` the items
 of the largest level are kept in no list, so that `onLevel()` and
-`aboveLevel()` count only those below it, as the flow algorithms expect.
+`aboveLevel()` count only those below it, as the flow algorithms expect. Also,
+`liftToTop(l)` of a `LinkedElevator` moves the items of the levels from $l+1$
+up to the first empty one, which is what the gap heuristic needs (it calls it
+on an empty level $l$, and the levels above are then without gaps), while
+that of an `Elevator` moves all the items from level $l$ on. The two classes
+define `Key` (the item) and `Value` (`int`), so that they can be read as maps
+of the levels.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 the constructors with a largest label also took it as the
@@ -371,10 +503,8 @@ A call `radixSort(first, last, functor)` runs a quicksort whose pivots are the
 powers of two. For a signed type, it first separates the items with a negative
 key from the others. Then it finds the highest bit $b$ of the keys of each
 part, partitions the part on bit $b$ by the swaps of the partition of
-quicksort, then each half on bit $b-1$, and so on (Algorithm 8.2). Its time is
-$O(n\log c)$ and its extra space $O(\log c)$ (the recursion), where $n$ is the
-number of items and $c$ the largest absolute value of a key; it is not stable,
-and it needs bidirectional iterators.
+quicksort, then each half on bit $b-1$, and so on (Algorithm 8.2). It is not
+stable, and it needs bidirectional iterators.
 
 <span id="alg-8-2"></span>**Algorithm 8.2** (Radix sort by bit partitions,
 `radixSort()`).
@@ -392,19 +522,57 @@ sort(P, b):
 3     sort(P0, b - 1); P := P1; b := b - 1
 ```
 
+<span id="thm-8-6"></span>**Theorem 8.6.** *`radixSort()` sorts the range in
+nondecreasing order of the keys in $O(n\,(1+\log_2 c))$ time and with
+$O(1+\log_2 c)$ extra space, where $n$ is the number of items and $c$ the
+largest absolute value of a key.*
+
+*Proof.* In two's complement, the negative keys precede the nonnegative ones,
+and, within each of the two parts, the order of the keys is the order of the
+bit strings of their lowest $b+1$ bits, since all the higher bits are equal
+(to 1 in $R^-$, to 0 in $R^+$) by the choice of $b$ in step 3. The procedure
+`sort(P, b)` sorts the items of $P$, whose keys agree on all the bits above
+$b$, by these bit strings: by induction on $b$, after the split the keys of
+$P_0$ precede those of $P_1$, and each part is sorted on the lower bits by the
+recursive call or by the next round of the loop. Each item takes part in one
+split per bit, from $b$ down, and a split is linear in its range; hence, the
+time is $O(n)$ per bit, and there are at most $1+\log_2 c$ bits (one more for
+the negative keys). The recursion is made only on $P_0$, with one bit less,
+which bounds its depth. $\square$
 A call `stableRadixSort(first, last, functor)` sorts by the bytes of the keys,
 from the least significant to the most significant, with one counting pass per
 byte. Each pass counts the items of each of the 256 values of the byte,
 computes where the items of each value begin, and copies the items in that
 order into a second buffer, which keeps the relative order of the items with
 the same byte; on a signed type, the last pass puts the negative keys first.
-This sort is stable and takes $O(b\,(n+256))$ time, where $b$ is the number of
-bytes of the type of the key (whatever the largest key), and it allocates a
-buffer of $2n$ items. Both functions have overloads for a plain function
-pointer, and both accept a lambda; the signed or unsigned version of each is
-chosen at compile time, from the type of the key, by the helpers
-`RadixSortSelector` and `StableRadixSortSelector` of the namespace
-`_radix_sort_bits`.
+It allocates a buffer of $2n$ items, into which it copies the range and
+between whose two halves the passes alternate.
+
+<span id="thm-8-7"></span>**Theorem 8.7.** *`stableRadixSort()` sorts the
+range in nondecreasing order of the keys, keeps the relative order of the
+items with equal keys, and takes $O(B\,(n+256))$ time, where $B$ is the number
+of bytes of the type of the key (whatever the largest key).*
+
+*Proof.* A counting pass on byte $j$ is stable: the items of each value of the
+byte are copied in the order in which they are read. By induction on $j$,
+after the pass on byte $j$ the items are sorted by their lowest $j+1$ bytes,
+read as an unsigned number, with ties in the original order: the pass orders
+them by byte $j$, and, being stable, keeps the order of the previous passes
+among the items with the same byte $j$. For a signed type, the last pass
+puts the values 128 to 255 of the top byte, i.e., those of the negative keys
+in two's complement, before the values 0 to 127, which gives the order of the
+signed keys. Each pass reads the items twice and the 256 counters once.
+$\square$
+
+We remark that the buffer is raw memory, obtained by `allocate()` of a
+`std::allocator`, into which the items are copied by assignment and from which
+they are never destroyed. Hence, the function is right only for the items of a
+trivially copyable type (e.g., integers or plain structures), and
+`radixSort()`, which sorts in place by swaps, is the one to use for the
+others. Both functions have overloads for a plain function pointer, and both
+accept a lambda. The signed or unsigned version of each is chosen at compile
+time, from the type of the key, by the helpers `RadixSortSelector` and
+`StableRadixSortSelector` of the namespace `_radix_sort_bits`.
 
 !!! note "abLEMON"
     The type of the key is deduced with `decltype` from the call of `functor`,
@@ -473,13 +641,48 @@ exponential of a normal variable of the given parameters, and
 standard deviation, whose parameters `lognormalParamsFromMD()` computes. Next
 come `exponential(lambda)` (of mean $1/\lambda$, with $\lambda=1$ by default),
 `gamma(k)` for an integer shape (a sum of $k$ exponentials), `gamma(k, theta)`
-for any positive shape (by rejection), `weibull(k, lambda)`,
-`pareto(k, x_min)` and `poisson(lambda)`; the last is the method of [Knuth
-1969](Z-bibliography.md#ref-knuth1969seminumerical), whose time is linear in
-the value returned. In the plane, `disc()` is uniform on the unit disc,
-`gauss2()` gives the two (dependent) normal coordinates of one step of the
-polar method, and `exponential2()` is a rotationally symmetric distribution
-whose coordinates are, conditionally on the other being zero, exponential.
+for any positive shape (by rejection), `weibull(k, lambda)`, `pareto(k,
+x_min)` and `poisson(lambda)`; the last is the method of [Knuth
+1969](Z-bibliography.md#ref-knuth1969seminumerical). In the plane, `disc()` is
+uniform on the unit disc (by rejection from the square). Next, `gauss2()`
+gives the two normal coordinates of one step of the polar method, and
+`exponential2()` gives the point $(-\ln S/S)\,(V_1,V_2)$ of the same step, a
+rotationally symmetric distribution whose distance from the origin is
+$-\ln S/\sqrt S$ with $S$ uniform on $(0,1)$. The two lemmas below justify
+`gauss()` and `poisson()`, where $U_1,U_2,\dots$ are the independent uniform
+numbers of $[0,1)$ that `real()` returns.
+
+<span id="lem-8-3"></span>**Lemma 8.3.** *Let $V_1=2U_1-1$ and $V_2=2U_2-1$ be
+drawn again until $S=V_1^2+V_2^2$ is in $(0,1)$, and let
+$W=\sqrt{-2\ln S/S}$. Then $WV_1$ and $WV_2$ are independent standard normal
+variables.*
+
+*Proof.* The accepted point $(V_1,V_2)$ is uniform on the punctured unit disc;
+in polar coordinates $(\sqrt S\cos\Theta,\sqrt S\sin\Theta)$, the angle
+$\Theta$ is uniform on $[0,2\pi)$, the area $\pi S$ of the disc inside the
+point is uniform, i.e., $S$ is uniform on $(0,1)$, and the two are
+independent. The output is $(R\cos\Theta,R\sin\Theta)$ with
+$R=\sqrt{-2\ln S}$, and $P(R>r)=P(S<e^{-r^2/2})=e^{-r^2/2}$. Hence, $R$ has
+the density $re^{-r^2/2}$, and the output has the density
+$\frac{1}{2\pi}e^{-(x^2+y^2)/2}$, the product of two standard normal
+densities. $\square$
+
+Thus, the two coordinates of `gauss2()` are independent, although the
+documentation of the function states the contrary, and `gauss()` returns the
+first of them. The case $S=0$, which `gauss()` and `gauss2()` do not exclude,
+has probability $2^{-2b}$, where $b$ is the number of random bits of the
+`double` that `real()` returns, and would give a NaN.
+
+<span id="lem-8-4"></span>**Lemma 8.4.** *`poisson(lambda)` returns the least
+$k\ge 0$ such that $U_1\cdots U_{k+1}<e^{-\lambda}$, which is a Poisson
+variable of mean $\lambda$, after $k+1$ draws; its expected time is therefore
+$O(1+\lambda)$.*
+
+*Proof.* With $E_i=-\ln U_i$, which are independent exponential variables of
+mean 1, the condition reads $E_1+\cdots+E_{k+1}>\lambda$; hence, $k$ is the
+number of the points of a Poisson process of unit rate that fall in
+$[0,\lambda]$, which is a Poisson variable of mean $\lambda$. The loop draws
+one number per point and one more. $\square$
 
 !!! note "abLEMON"
     The packages of abLEMON declare, next to the Boost Software License, the
@@ -526,9 +729,10 @@ that prints a title and its times when it is destroyed (unless `active(false)`
 has been called), and `NoTimeReport` is the version that measures no time. The
 granularity of the clocks is typically 10 ms (as the documentation warns),
 which makes a single measure of a short function rather unreliable. For a
-short function, `runningTimeTest(f, min_time, num, full_time)` calls `f` 1, 2,
-4, ... times until the total real time exceeds `min_time` seconds (10 by
-default), and returns the average time of one call; the number of calls and
+short function, `runningTimeTest(f, min_time, num, full_time)` calls `f` until
+the number of calls reaches a power of two (1, 2, 4, ..., at most $2^{31}$)
+at which the total real time exceeds `min_time` seconds (10 by default), and
+returns the average time of one call; the number of calls and
 the total time are written into the two optional pointers.
 
 ## 8.8 Colors {#sec-8-8}
@@ -609,20 +813,18 @@ instead an `ArgParserException`, whose `reason()` is `HELP`, `UNKNOWN_OPT` or
 `INVALID_OPT`. Its records `GroupData` and `OtherArg` of the header hold the
 groups and the help of the other arguments.
 
-The last program of the chapter uses an elevator, the two radix sorts, two
-generators seeded alike and a box; it also uses a counter that writes into a
-string, a timer, and a parser of a command line given as an array.
-
-```cpp
---8<-- "examples/08-utilities.cc"
-```
+The program `manual/examples/08-utilities.cc` (the test
+`manual_08_utilities`) uses an elevator, the two radix sorts, two generators
+seeded alike and a box, a counter that writes into a string, a timer, and a
+parser of a command line given as an array, and checks the result of each.
 
 ## 8.10 Exercises {#sec-8-10}
 
-<span id="ex-8-1"></span>**Exercise 8.1.** Prove the amortized bound of `Path`
-of Table 8.1: show that any sequence of $q$ calls of `addFront()`,
-`addBack()`, `eraseFront()` and `eraseBack()` on an empty `Path` takes $O(q)$
-time, although an erasure from an empty end moves half of the other vector.
+<span id="ex-8-1"></span>**Exercise 8.1.** Show that, if an erasure from an
+empty end of a `Path` moved all the arcs of the other vector instead of half
+of them, a sequence of $q$ calls made of $q/2$ calls of `addBack()` followed
+by alternate calls of `eraseFront()` and `eraseBack()` would take
+$\Theta(q^2)$ time, and explain which step of the proof of Theorem 8.1 fails.
 (The test `test/path_test.cc` checks the four path classes.)
 
 <span id="ex-8-2"></span>**Exercise 8.2.** Write a function that reverses a

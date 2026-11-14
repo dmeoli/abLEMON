@@ -1,7 +1,7 @@
-# The programs of the manual, which the chapters include with --8<--: each
-# is built and run as the test manual_<name>, so that what the manual shows
-# compiles and does what the text says. A program checks its own results
-# and returns nonzero if one is wrong.
+# The programs of the manual, which the chapters name: each is built and run
+# as the test manual_<name>, so that what the manual states of a class is
+# checked by a program. A program checks its own results and returns nonzero
+# if one is wrong.
 
 INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}

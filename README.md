@@ -123,10 +123,10 @@ lists all the changes.
 ## User manual
 
 A user manual, which describes every class of the library family by family
-(the problem each algorithm solves, its theory, its complexity as
-implemented, its pseudocode and complete programs, which are compiled and
-run as tests), lives in [`manual/`](manual/), in two forms built from the
-same Markdown sources:
+(the problem each algorithm solves, its theory with the proofs, its
+complexity as implemented and its pseudocode), with programs that are
+compiled and run as tests, lives in [`manual/`](manual/), in two forms built
+from the same Markdown sources:
 
 - **PDF**: [abLEMON - A User Manual](manual/abLEMON-manual.pdf), also
   attached to each release;

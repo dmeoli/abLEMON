@@ -66,16 +66,19 @@ written. When the code changes, the chapter changes in the same commit.
   (with `\cite` or in prose), every work the README and NEWS name, and every
   work the chapters cite; it holds no entry for other libraries (some keys
   of `doc/references.bib` are such, and are left out).
-- **Code.** Programs are never written into a chapter: they live in
-  `manual/examples/NN-name.cc` and a chapter includes them with a fenced
-  block whose only line is `--8<-- "examples/NN-name.cc"` (with the
-  language `cpp`). MkDocs expands it with `pymdownx.snippets`, Pandoc with
-  `build/snippets.lua`. Each example is a complete program, built and run
-  by ctest as `manual_NN_name` (the hyphens become underscores); it checks
-  its own results and returns nonzero if one is wrong, so an example that
-  stops matching the library fails the tests. Short fragments of a
-  signature or of a call (a few lines, not a program) may be written in
-  place.
+- **Code.** The chapters hold no programs and no extracts of the
+  implementation: an algorithm is given by its pseudocode, and the use of a
+  class by its interface in the prose, with real C++ only as signatures of
+  the API and short examples of use (a few lines that show how a class is
+  called), the same rule as the other manuals of the family. The programs of the manual live in
+  `manual/examples/NN-name.cc`, each a complete program in the style of
+  code-style, built and run by ctest as `manual_NN_name` (the hyphens
+  become underscores), which checks its own results and returns nonzero if
+  one is wrong; a chapter names the program that shows a class at work
+  (and the exercises name the programs and tests that check them), so that
+  what the manual states is checked by the tests without being printed.
+  (`build/snippets.lua` and `pymdownx.snippets` still expand a line
+  `--8<-- "path"`, should a file ever need to be included.)
 - **Pseudocode** is written in place, as a numbered algorithm in a fenced
   block without a language, introduced by its label
   (`<span id="alg-13-1"></span>**Algorithm 13.1** (Network simplex).`),
@@ -86,8 +89,12 @@ written. When the code changes, the chapter changes in the same commit.
   optimality conditions the algorithm maintains, its invariants, its
   complexity (worst case and, where the header or the literature states
   it, the behavior in practice), and what each variant of the library
-  changes. Lemmas and theorems are paragraphs, `**Theorem 13.1.**
-  *statement*`, with a proof or a citation of one.
+  changes. Every claim of correctness, of termination, of optimality or of
+  complexity is a lemma or a theorem, a paragraph `**Theorem 13.1.**
+  *statement*`, followed by its proof (`*Proof.* ... $\square$`), complete
+  and self-contained, or, for a result whose proof would take pages (e.g.,
+  the bound of a data structure from the literature), a sketch of the
+  argument with the precise citation of the full proof.
 - **Exercises** close each chapter of Parts II to IV, under `## N.k
   Exercises {#sec-N-k}`, each one labelled and, when a test of `test/` or an
   example of `manual/examples/` solves it or checks it, naming that file.

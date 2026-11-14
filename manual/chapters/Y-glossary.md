@@ -12,12 +12,14 @@ node whose distance changed in the last round
 ([§8.3](08-auxiliary.md#sec-8-3), [§10.4](10-shortest-paths.md#sec-10-4)).
 
 **admissible arc**: in a push-relabel or cost scaling algorithm, a residual
-arc along which flow may be pushed: one whose tail is one level above its head
-(maximum flow), or one of negative reduced cost (cost scaling)
+arc along which flow may be pushed: one whose head is on a lower level than
+its tail (maximum flow), or one of negative reduced cost (cost scaling)
 ([§12.2](12-max-flow.md#sec-12-2), [§13.6](13-min-cost-flow.md#sec-13-6)).
 
-**admissible heuristic**: a heuristic of A* that never exceeds the distance of
-a node to the target ([§10.3](10-shortest-paths.md#sec-10-3)).
+**admissible heuristic**: a heuristic $h$ of A* with
+$h(v) - h(t) \le \delta(v,t)$ for each node $v$, i.e., one that never
+overestimates the distance of a node to the target when $h(t)=0$
+([§10.3](10-shortest-paths.md#sec-10-3)).
 
 **alteration notifier**: the object of a graph, one for each kind of item,
 that informs the attached observers (the maps among them) of each item added
@@ -27,6 +29,10 @@ or erased, and of the graph being built or cleared
 **alternating path**: a path whose edges are alternately in a matching and out
 of it; it is augmenting when neither of its ends is covered by the matching
 ([§17.1](17-matching.md#sec-17-1)).
+
+**amortized cost**: a bound on the total cost of any sequence of operations
+from the empty structure, divided among its operations, e.g., by means of a
+potential function ([§7.1](07-heaps.md#sec-7-1)).
 
 **arborescence**: a set of arcs in which each node reachable from the root,
 the root excepted, has one entering arc and can be reached from the root
@@ -50,6 +56,10 @@ increases the value of the flow ([§5.4](05-adaptors.md#sec-5-4)).
 **awake set**: in the Hao-Orlin algorithm, the nodes among which the preflow
 is pushed towards the current sink, as opposed to the sources and to the
 dormant sets ([§15.2](15-min-cut.md#sec-15-2)).
+
+**back arc**: in a depth-first search of a digraph, an arc whose target has
+been reached and not yet left; a digraph is a DAG if and only if no search
+meets one ([§18.3](18-properties.md#sec-18-3)).
 
 **barrier (circulation)**: a set of nodes whose supply exceeds what the upper
 bounds of the arcs leaving it, less the lower bounds of the arcs entering it,
@@ -77,6 +87,14 @@ joined by two edge-disjoint paths; the components are separated by the bridges
 **bind arc**: the arc of a SplitNodes adaptor from the in-node to the out-node
 of a node of the digraph, which carries the data of the node
 ([§5.5](05-adaptors.md#sec-5-5)).
+
+**binomial heap**: a heap made of a list of heap-ordered binomial trees of
+distinct degrees, like the binary digits of the number of items
+([§7.3](07-heaps.md#sec-7-3)).
+
+**bipartite graph**: a graph whose nodes split into two sets with no edge
+inside either of them, i.e., a graph without cycles of odd length
+([§18.1](18-properties.md#sec-18-1)).
 
 **block**: a bi-node-connected component of an undirected graph, i.e., a class
 of the edges that lie on a common cycle; the blocks are separated by the cut
@@ -108,6 +126,11 @@ second child since it became a child, repeated upwards
 **clique**: a set of pairwise adjacent nodes of an undirected graph
 ([§19.5](19-tsp-clique.md#sec-19-5)).
 
+**closed set (residual digraph)**: a set of nodes that no residual arc of a
+flow leaves; for a maximum flow, the minimum cuts are the closed sets that
+contain the source and not the target ([§12.1](12-max-flow.md#sec-12-1),
+[§14.1](14-k-best-flows.md#sec-14-1)).
+
 **combinatorial embedding**: the cyclic order of the edges around each node of
 a planar graph, which describes a plane drawing up to deformation
 ([§18.5](18-properties.md#sec-18-5)).
@@ -127,6 +150,10 @@ each arc, with which each node is scanned at most once
 **core number**: the largest k such that a node belongs to a subgraph of
 minimum degree k; the largest core number is the degeneracy of the graph
 ([§6.6](06-maps.md#sec-6-6)).
+
+**critical arc**: an arc of an augmenting path whose residual capacity equals
+the bottleneck, and which the augmentation removes from the residual digraph
+([§5.4](05-adaptors.md#sec-5-4)).
 
 **cross reference map**: the map from the items to integers that a heap shares
 with its user, through which it finds the place of an item and records its
@@ -148,6 +175,12 @@ components of a graph, also called an articulation node
 most d children, laid out level by level in a vector
 ([§7.2](07-heaps.md#sec-7-2)).
 
+**DAG**: a directed acyclic graph, i.e., a digraph without directed cycles
+([§18.3](18-properties.md#sec-18-3)).
+
+**degeneracy**: the largest least degree of a subgraph of an undirected graph,
+i.e., the largest core number of its nodes ([§6.6](06-maps.md#sec-6-6)).
+
 **degenerate vertex**: a vertex of the polyhedron of the flows whose free arcs
 do not span the nodes, and which therefore has more than one basis
 ([§14.4](14-k-best-flows.md#sec-14-4)).
@@ -162,9 +195,11 @@ relabelling them, because the current sink can no longer be reached from them
 in the residual digraph; the sets are woken up in the reverse order of their
 creation ([§15.2](15-min-cut.md#sec-15-2)).
 
-**dual ray**: a solution of the dual LP with its finite objective coefficients
-(the primal bounds) set to 0 and an improving objective value, which proves
-the primal problem infeasible ([§20.4](20-lp.md#sec-20-4)).
+**dual ray**: a solution of the dual LP with its right-hand sides (the
+objective coefficients of the primal) set to 0 and a positive objective value,
+which proves the primal problem infeasible ([§20.4](20-lp.md#sec-20-4)).
+(Replaces the entry of `Y-glossary.md`, which sets the primal bounds to 0
+instead.)
 
 **dual scale**: the constant (4 for integer weights, 1 otherwise) by which the
 weighted matching classes multiply their dual values, so that the halvings of
@@ -201,6 +236,10 @@ form a forest ([§14.4](14-k-best-flows.md#sec-14-4)).
 **factor-critical graph**: a graph that has a perfect matching after the
 removal of any one of its nodes ([§17.1](17-matching.md#sec-17-1)).
 
+**Fibonacci heap**: a heap made of heap-ordered trees whose roots are linked
+only at the removal of the minimum, with cascading cuts at the decreases
+([§7.3](07-heaps.md#sec-7-3)).
+
 **filter**: a bool map that decides which nodes, arcs or edges a filtering
 adaptor shows ([§5.2](05-adaptors.md#sec-5-2)).
 
@@ -215,6 +254,10 @@ problem without the odd set inequalities, whose vertices take the values 0,
 **function-type interface**: a function (e.g., dijkstra()) that returns a
 wizard object, on which the optional outputs of an algorithm are given by name
 before a single run ([§3.6](03-mental-model.md#sec-3-6)).
+
+**fundamental cut**: for an edge $e$ of a spanning forest $T$, the set of the
+edges with one end in each of the two node sets into which $T\setminus\{e\}$
+splits the component of $e$ ([§11.1](11-spanning.md#sec-11-1)).
 
 **Gallai–Edmonds decomposition**: the partition of the nodes into those left
 uncovered by some maximum matching (D), their other neighbours (A) and the
@@ -281,6 +324,10 @@ in a graph, which certifies that the graph is not planar
 identifies a node or an arc in the rest of the file
 ([§21.1](21-io.md#sec-21-1)).
 
+**laminar family**: a family of sets any two of which are disjoint or nested,
+e.g., the sets contracted by the algorithm of the minimum cost arborescence
+([§11.2](11-spanning.md#sec-11-2)).
+
 **Lawler's partition**: the splitting of a set of solutions, once its best one
 is known, into parts in which the elements of that solution are fixed in turn,
 used to find the k best solutions in order
@@ -343,6 +390,10 @@ constraints describe the matching polytope ([§17.1](17-matching.md#sec-17-1)).
 `BellmanFord` compute and compare the distances
 ([§10.2](10-shortest-paths.md#sec-10-2)).
 
+**pairing heap**: a heap made of one heap-ordered tree, whose subtrees are
+joined by the two-pass pairing at the removal of the root
+([§7.3](07-heaps.md#sec-7-3)).
+
 **path compression**: the rule of a find in a union-find structure that makes
 each item met on the way to the root point to the root
 ([§8.2](08-auxiliary.md#sec-8-2)).
@@ -355,6 +406,9 @@ queries of the search algorithms and meant to be assigned to a path class
 **perfect elimination order**: an order of the nodes of a graph in which the
 neighbours of each node that follow it form a clique; a graph has one if and
 only if it is chordal ([§9.6](09-search.md#sec-9-6)).
+
+**planar graph**: a graph that can be drawn in the plane with no two edges
+crossing ([§18.5](18-properties.md#sec-18-5)).
 
 **policy graph**: in Howard's algorithm, the subgraph made of one chosen
 leaving arc for each node, in which each weakly connected part contains one
@@ -392,6 +446,15 @@ items are kept in boxes of widths 1, 1, 2, 4, ... from the current minimum
 finite upper bound, written in the interface as `(s <= e) <= t`
 ([§20.1](20-lp.md#sec-20-1)).
 
+**range identifier**: the identifier in $[0,n)$ that a RangeIdMap gives to
+each of the $n$ items of a kind, kept contiguous under erasures
+([§6.5](06-maps.md#sec-6-5)).
+
+**realizer**: a partition of the inner edges of a triangulation into three
+trees rooted at the nodes of the outer face, from which Schnyder's method
+computes the coordinates of a straight-line drawing
+([§18.5](18-properties.md#sec-18-5)).
+
 **reduced length**: the length $\ell(uv)+\pi(u)-\pi(v)$ of an arc under a
 potential $\pi$, which changes the length of all the paths between two nodes
 by the same amount ([§10.1](10-shortest-paths.md#sec-10-1)).
@@ -412,6 +475,10 @@ still be sent, forward up to the upper bound and backward down to the lower
 bound, the backward arcs with the opposite cost
 ([§12.1](12-max-flow.md#sec-12-1), [§13.1](13-min-cost-flow.md#sec-13-1)).
 
+**shortcut**: of a closed walk that visits every node of a complete graph, the
+tour that lists the nodes in the order of their first occurrence in the walk
+([§19.1](19-tsp-clique.md#sec-19-1)).
+
 **smallest-last order**: the order in which the nodes are removed from a graph
 by always taking a node of least degree among the remaining ones
 ([§18.6](18-properties.md#sec-18-6)).
@@ -423,6 +490,10 @@ at a time, a node of least degree in the graph that remains, read backwards
 **snapshot**: a saved state of a list or smart graph, to which restore()
 brings the graph back by erasing the items added after it
 ([§4.2](04-graphs.md#sec-4-2)).
+
+**spanning forest**: a set of edges with no cycle that connects the nodes of
+each connected component of a graph; a spanning tree when the graph is
+connected ([§11.1](11-spanning.md#sec-11-1)).
 
 **spanning tree**: a set of $n-1$ edges of a connected graph with no cycle,
 which therefore connects all the nodes ([§11.1](11-spanning.md#sec-11-1)).
@@ -437,6 +508,11 @@ afterwards, which stores the arcs out of each node contiguously
 
 **strongly connected component**: a class of the nodes of a digraph joined by
 directed paths in both directions ([§18.3](18-properties.md#sec-18-3)).
+
+**strongly feasible tree**: in the network simplex method, a spanning tree of
+a basis along which a positive amount of flow can be sent from each node to
+the root within the bounds; the rule of the last blocking arc keeps it so and
+prevents cycling ([§13.4](13-min-cost-flow.md#sec-13-4)).
 
 **subgraph isomorphism**: an injective map of the nodes of a graph into those
 of another that takes each edge to an edge; it is induced if it also takes

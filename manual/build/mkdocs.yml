@@ -68,7 +68,7 @@ nav:
   - Front matter: index.md
   - "Part I: Foundations":
       - "1. Introduction": chapters/01-introduction.md
-      - "2. Installation and first program": chapters/02-installation.md
+      - "2. Installation": chapters/02-installation.md
       - "3. Graphs, items and maps": chapters/03-mental-model.md
   - "Part II: Data structures":
       - "4. Graph structures": chapters/04-graphs.md

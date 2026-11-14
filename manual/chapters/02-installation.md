@@ -1,15 +1,15 @@
-# 2. Installation and first program {#ch-2}
+# 2. Installation {#ch-2}
 
 We now describe how abLEMON is obtained, either as a package or from the
 sources, how a program finds it once it is installed, and which of its parts
-are optional; the first program, which only needs a compiler and the headers,
-is the subject of [chapter 3](03-mental-model.md#ch-3). Most of abLEMON is
-made of templates, and therefore lives in its headers. The compiled library
+are optional; a first program, which only needs a compiler and the headers, is
+described in [chapter 3](03-mental-model.md#ch-3). Most of abLEMON is made of
+templates, and therefore lives in its headers. The compiled library
 (`libemon`, a name kept from LEMON) holds the few parts that are not
 templates, i.e., the random number generator, the parser of the command line,
-the colors of `graph_to_eps.h`, the locking on Windows and, when they are
-enabled, the interfaces to the LP and MIP solvers of [chapter
-20](20-lp.md#ch-20).
+the colors of `graph_to_eps.h`, the default tolerances of `tolerance.h`, the
+locking on Windows and, when they are enabled, the interfaces to the LP and
+MIP solvers of [chapter 20](20-lp.md#ch-20).
 
 ## 2.1 Packages {#sec-2-1}
 
@@ -37,33 +37,35 @@ Building needs CMake 3.19 or later and a compiler that supports C++11. In
 fact, the library compiles without warnings with GCC, Clang, AppleClang and
 MSVC, from C++11 to C++23 (the continuous integration builds each change on
 Linux, macOS and Windows with these compilers, and also under the address and
-undefined behavior sanitizers). The usual sequence is
-
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-ctest --test-dir build
-cmake --install build --prefix /usr/local
-```
-
-where the third line runs the tests of `test/` and the programs of this manual
-(those of `manual/examples/`, which ctest names `manual_*`), and the last one
-installs the library under the given prefix, following `GNUInstallDirs`.
+undefined behavior sanitizers). The usual sequence configures the build
+directory by `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`, compiles by
+`cmake --build build`, runs the tests by `ctest --test-dir build`, and
+installs by `cmake --install build --prefix /usr/local`; the tests are those
+of `test/` and the programs of this manual (the files of `manual/examples/`,
+which ctest names `manual_*`), and the installation follows `GNUInstallDirs`
+under the given prefix (e.g., the library goes to `lib64` or to
+`lib/x86_64-linux-gnu` when the system wants it there).
 
 Among the options, `CMAKE_CXX_STANDARD` is honored when it is set, and is 11
 otherwise; `BUILD_SHARED_LIBS` builds a shared library (on Windows, a DLL).
 `LEMON_BUILD_TESTS`, `LEMON_BUILD_DEMOS`, `LEMON_BUILD_TOOLS` and
-`LEMON_BUILD_DOC` are `ON` by default, and each of them leaves out a directory
-when it is `OFF`; `LEMON_BUILD_MODULE` is `OFF` by default
-(cf. [§2.3](#sec-2-3)), and the four options of the LP and MIP backends are
-described in [§2.4](#sec-2-4). The version is usually taken from the tag of
-git, and from the variable `LEMON_VERSION` when the sources are not a clone
-(as in the archive of a release). The build types `Debug` and `Maintainer`
-define `LEMON_ENABLE_DEBUG`, which turns on the checks of `assert.h`
-(cf. [chapter 8](08-auxiliary.md#ch-8)); furthermore, `Maintainer` runs the
-tests at each build. A project may also take the library in by
-`add_subdirectory()` or by `FetchContent`, in which case only the library is
-configured, whatever the options say.
+`LEMON_BUILD_DOC` are `ON` by default, and each of them leaves out a part of
+the tree when it is `OFF` (the tests and the programs of the manual, the demos
+and the contributed programs, the tools, and the documentation, respectively).
+`LEMON_BUILD_MODULE` is `OFF` by default (cf. [§2.3](#sec-2-3)), and the four
+options of the LP and MIP backends are described in [§2.4](#sec-2-4). The
+variable `LEMON_THREADING` (one of `Pthread`, `Win32` and `None`) chooses the
+lock that the alteration notifiers of [appendix
+A](A-writing-graph-map.md#app-a) use, and it defaults to the threads that
+CMake finds. The version is the value given by `-DLEMON_VERSION=...`, if any
+(as the packages do), else the one of the environment variable
+`LEMON_VERSION`, else the tag that `git describe` gives for the sources. It is
+`unknown` when none of these exists. The build types `Debug` and `Maintainer`
+define `LEMON_ENABLE_DEBUG`, which turns on the checks of `assert.h` (cf.
+[chapter 8](08-auxiliary.md#ch-8)); furthermore, `Maintainer` runs the tests
+at each build. A project may also take the library in by `add_subdirectory()`
+or by `FetchContent`, in which case only the library is configured, whatever
+the options say.
 
 For a project built with GNU make, the makefiles of the repository build the
 library and the tests without a configuration step:
@@ -90,21 +92,24 @@ target_link_libraries(main PRIVATE LEMON::lemon)
 
 Note that the target `LEMON::lemon` carries the include directories, the
 compile definitions and, when the library was built with them, the LP and MIP
-backends. Also, the installation may be moved to another prefix, since the
-configuration only uses paths relative to it, and other build systems use
-pkg-config (`pkg-config --cflags --libs lemon`). Thus, the headers are
-included as `<lemon/...>`, and the library is in the namespace `lemon`, as in
-LEMON 1.3.1.
+backends; the variables `LEMON_INCLUDE_DIRS` and `LEMON_LIBRARIES` are also
+set, for the projects that use variables instead of targets. When the version
+is a number, a version file is installed as well, so that `find_package(LEMON
+1.9)` accepts any later version with the same major number. Also, the
+installation may be moved to another prefix, since the configuration only uses
+paths relative to it, and other build systems use pkg-config (`pkg-config
+--cflags --libs lemon`). The headers are included as `<lemon/...>`, and the
+library is in the namespace `lemon`, as in LEMON 1.3.1.
 
 With `-DLEMON_BUILD_MODULE=ON`, the library is also built and installed as the
 C++20 module `lemon`, whose interface is `lemon/lemon.cppm`; a translation
 unit linked to `LEMON::lemon_module` may then write `import lemon;` in place
 of the includes. This needs CMake 3.28 or later, the Ninja generator (or one
-of Visual Studio), and Clang 16 or MSVC 19.34 or later. When one of these
-conditions does not hold, the option is turned off with a warning that names
-it. GCC (up to version 15, at least) builds the module, but a unit that
-imports it does not find the operators of the standard library that the
-templates use; hence, GCC is not accepted for it.
+of Visual Studio), and Clang 16 (with its `clang-scan-deps`) or MSVC 19.34 or
+later. When one of these conditions does not hold, the option is turned off
+with a warning that names it. GCC (up to version 15, at least) builds the
+module, but a unit that imports it does not find the operators of the standard
+library that the templates use; hence, GCC is not accepted for it.
 
 ## 2.4 Optional backends {#sec-2-4}
 
@@ -116,19 +121,22 @@ through its own CMake configuration where it has one. Those found are named by
 their file names in the installed configuration, so that a project that links
 `LEMON::lemon` also links them. The variables `LEMON_DEFAULT_LP` and
 `LEMON_DEFAULT_MIP` choose which of the solvers found the type aliases `Lp`
-and `Mip` of `lemon/lp.h` refer to. This choice is recorded in
-`lemon/config.h`, which CMake writes in the build directory, and whose macros
-`LEMON_HAVE_LP` and `LEMON_HAVE_MIP` tell a program whether there is a solver
-at all; when there is none, the two aliases are not defined, while the rest of
-the library is unaffected.
+and `Mip` of `lemon/lp.h` refer to; when they are not set, or name a solver
+that was not found, CMake takes the first one found in the order CPLEX, CLP
+(CBC for `Mip`), GLPK and SoPlex (which has no MIP). This choice is recorded
+in `lemon/config.h`, which CMake writes in the build directory, and whose
+macros `LEMON_HAVE_LP` and `LEMON_HAVE_MIP` tell a program whether there is a
+solver at all; when there is none, the two aliases are not defined, while the
+rest of the library is unaffected.
 
 ## 2.5 Exercises {#sec-2-5}
 
 <span id="ex-2-1"></span>**Exercise 2.1.** Build the library with
 `-DCMAKE_CXX_STANDARD=20`, run `ctest --test-dir build -R manual_`, and check
 that the programs of this manual pass. Then install the library to a temporary
-prefix, and build the program of [chapter 3](03-mental-model.md#ch-3) against
-the installation, once with `find_package(LEMON)` and once with pkg-config.
+prefix, and build the program `manual/examples/03-first-program.cc` of
+[chapter 3](03-mental-model.md#ch-3) against the installation, once with
+`find_package(LEMON)` and once with pkg-config.
 
 <span id="ex-2-2"></span>**Exercise 2.2.** Configure the library on a machine
 where GLPK is installed, and check in the output of CMake and in

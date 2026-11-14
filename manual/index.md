@@ -17,8 +17,9 @@ matchings, connectivity, planarity and isomorphism, the heuristics for the
 travelling salesman and the maximum clique, and the interface to LP and MIP
 solvers. For each algorithm the manual states the problem it solves, the
 conditions it maintains, its complexity as implemented and the choices it
-leaves to the user, gives its pseudocode, and shows it at work in complete
-programs, which are compiled and run as tests of the library. Yet, it does not
+leaves to the user, gives its pseudocode, and proves its correctness and its
+complexity; programs that show each class at work are distributed with the
+manual and run as tests of the library. Yet, it does not
 replace the reference documentation, which lists every member with its exact
 signature, and to which the chapters refer when a detail is not worth
 repeating.
@@ -26,9 +27,9 @@ repeating.
 ## Conventions {#conventions}
 
 The headings carry the numbers of the manual, and sections, figures, tables,
-algorithms and exercises are numbered by chapter. Programs are included from
-the files of `manual/examples/`, each of which is a test of the library
-(`ctest -R manual_`). A note headed "abLEMON" marks what abLEMON adds to LEMON
+algorithms, theorems, lemmas and exercises are numbered by chapter. The
+programs named by the chapters are the files of `manual/examples/`, each of
+which is a test of the library (`ctest -R manual_`). A note headed "abLEMON" marks what abLEMON adds to LEMON
 1.3.1, or where its behavior differs from it; the rest of the library behaves
 as in LEMON. Citations refer to the bibliography ([Appendix
 Z](chapters/Z-bibliography.md#app-z)), and the terms defined in the chapters
@@ -39,7 +40,7 @@ are collected in the glossary ([Appendix Y](chapters/Y-glossary.md#app-y)).
 **Part I: Foundations**
 
 -  [1. Introduction](chapters/01-introduction.md#ch-1)
--  [2. Installation and first program](chapters/02-installation.md#ch-2)
+-  [2. Installation](chapters/02-installation.md#ch-2)
 -  [3. Graphs, items and maps](chapters/03-mental-model.md#ch-3)
 
 **Part II: Data structures**

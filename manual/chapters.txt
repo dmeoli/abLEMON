@@ -1,6 +1,6 @@
 I|Foundations
 01-introduction|1. Introduction
-02-installation|2. Installation and first program
+02-installation|2. Installation
 03-mental-model|3. Graphs, items and maps
 II|Data structures
 04-graphs|4. Graph structures

@@ -6,7 +6,7 @@ command-line tools of `tools/`, i.e., `dimacs-solver`, `dimacs-to-lgf` and
 These tools are small applications of the classes of the previous chapters,
 and their options are read from their sources; we also give, for each of them,
 the classes it uses, so that one can reproduce its work in a program (as the
-example of [§22.6](22-tools.md#sec-22-6) does for two of them).
+program of [§22.6](22-tools.md#sec-22-6) does for two of them).
 
 ## 22.1 Building and calling the tools {#sec-22-1}
 
@@ -52,57 +52,78 @@ four options of the type form an exclusive group.
 
 At the start, the tool reads the problem line by `dimacsType()`, and, unless
 `-q` is given, writes the type of the problem and the numbers of nodes and
-arcs; a file that cannot be opened, or of unknown type, ends the program with
-a message and the exit status 1. Then it builds a `SmartDigraph` (or a
-`SmartGraph` for the type `mat`) and proceeds by type, as follows. For a `sp`
-file, it reads the digraph and the lengths by `readDimacsSp()` and computes
-the shortest paths from the source by `Dijkstra` ([chapter
-10](10-shortest-paths.md#ch-10)), and writes a line `d v d(v)` for each node
-`v` reached. For a `max` file, it reads the capacities by `readDimacsMax()`,
-computes a maximum flow by `Preflow` ([chapter 12](12-max-flow.md#ch-12)), and
-writes its value as `s value` and a line `f u v x` for each arc $(u,v)$ with a
-nonzero flow $x$. For a `mat` file, it reads the graph by `readDimacsMat()`,
-computes a maximum matching by `MaxMatching` ([chapter
-17](17-matching.md#ch-17)), and writes its cardinality as `s k` and a line
-`m u v` for each matched edge. For a `min` file, it reads the problem by
-`readDimacsMin()` and solves it by `NetworkSimplex` ([chapter
-13](13-min-cost-flow.md#ch-13)), as in Algorithm 22.1, printing whether a
-feasible flow was found and, unless the problem is infeasible, its cost, which
-is computed in a wider type (`long long` when the values are `int`, the type
-of the values otherwise); it writes the cost as `s cost` and a line `f u v x`
-for each arc with a nonzero flow, or `s INFEASIBLE` or `s UNBOUNDED`. The
-nodes are numbered from 1, as in the input file.
+arcs. A file that cannot be opened, of unknown type, or a value of `-infcap`
+that cannot be read in the chosen type, ends the program with a message and
+the exit status 1. Then it builds a `SmartDigraph` (or a `SmartGraph` for the
+type `mat`) and proceeds by type, as follows. For a `sp` file, it reads the
+digraph and the lengths by `readDimacsSp()`, computes the shortest paths from
+the source by `Dijkstra` ([chapter 10](10-shortest-paths.md#ch-10)), and
+writes a line `d v d(v)` for each node `v` reached. For a `max` file, it reads
+the capacities by `readDimacsMax()`, computes a maximum flow by `Preflow`
+([chapter 12](12-max-flow.md#ch-12)), and writes its value as `s value` and a
+line `f u v x` for each arc $(u,v)$ with a nonzero flow $x$. For a `mat` file,
+it reads the graph by `readDimacsMat()`, computes a maximum matching by
+`MaxMatching` ([chapter 17](17-matching.md#ch-17)), and writes its cardinality
+as `s k` and a line `m u v` for each matched edge. The nodes are numbered from
+1, as in the input file.
+
+For a `min` file, the tool reads the problem by `readDimacsMin()` and solves
+it by `NetworkSimplex` ([chapter 13](13-min-cost-flow.md#ch-13)), as in
+Algorithm 22.1. It writes the cost as `s cost` and a line `f u v x` for each
+arc with a nonzero flow, or `s INFEASIBLE` or `s UNBOUNDED`; the cost is
+computed in a wider type (`long long` when the values are `int`, the type of
+the values otherwise). Its report says whether a feasible flow was found and
+gives the cost.
 
 <span id="alg-22-1"></span>**Algorithm 22.1** (The minimum cost flow problem
 in `dimacs-solver`).
 
 ```
-1  read lower, capacity, cost, supply (readDimacsMin, infinite = -infcap)
+1  read lower, capacity, cost, supply (readDimacsMin, infinite capacity =
+   the value of -infcap)
 2  sigma := sum of the supplies
 3  eps := the data tolerance of NetworkSimplex for the largest magnitude
           of the supplies, of the lower bounds and of the finite capacities
 4  if |sigma| <= eps: sigma := 0
 5  if sigma > 0: supply type LEQ, else GEQ (the default of NetworkSimplex)
-6  run NetworkSimplex; report "found" or "not found" and the total cost,
-   and write the cost and the flows (or the cause) to the output
+6  run NetworkSimplex; report "found" if the result is OPTIMAL, "not found"
+   otherwise, and the total cost; write the cost and the flows (or the cause)
+   to the output
 ```
 
-Note that the choice of line 5 follows from the meaning of the two supply
-types of [chapter 13](13-min-cost-flow.md#ch-13). With a total supply larger
-than the total demand the problem can only be feasible if some supply is left
-unused, which the type `LEQ` allows; with a smaller one, it needs the type
-`GEQ`, under which some demand stays unsatisfied, and with a zero sum the two
-types are equivalent to the equations. Lines 3 and 4 treat as zero a sum that
-only the rounding of fractional supplies keeps away from zero, with the
-tolerance that `NetworkSimplex` itself uses to balance the supplies ([chapter
-13](13-min-cost-flow.md#ch-13)).
+The choice of line 5 rests on the following property of the flows, in which
+$b(v)$ is the supply of the node $v$ (negative for a demand) and
+$\sigma=\sum_v b(v)$.
+
+<span id="lem-22-1"></span>**Lemma 22.1.** *For any flow $x$ on the arcs, the
+excesses $e(v)=\sum_{a\in\delta^+(v)}x_a-\sum_{a\in\delta^-(v)}x_a$ sum to
+zero. Hence, the constraints $e(v)=b(v)$ have no solution when $\sigma\ne0$;
+the constraints $e(v)\le b(v)$ (type `LEQ`) can have one only if $\sigma\ge0$,
+and $e(v)\ge b(v)$ (type `GEQ`) only if $\sigma\le0$; when $\sigma=0$, both
+are equivalent to the equations.*
+
+*Proof.* Each arc contributes $+x_a$ to the excess of its tail and $-x_a$ to
+that of its head, which gives $\sum_ve(v)=0$. If $e\le b$, then
+$0=\sum_ve(v)\le\sigma$, and symmetrically for $\ge$. If $\sigma=0$ and $e\le
+b$, then $\sum_v(b(v)-e(v))=0$ with nonnegative terms, and hence $e=b$;
+symmetrically for $\ge$. $\square$
+
+Thus, with a total supply larger than the total demand the problem can only be
+feasible if some supply is left unused, which the type `LEQ` allows; with a
+smaller one, it needs the type `GEQ`, under which some demand stays
+unsatisfied. Lines 3 and 4 treat as zero a sum that only the rounding of
+fractional supplies keeps away from zero, with the tolerance that
+`NetworkSimplex` itself uses to balance the supplies ([chapter
+13](13-min-cost-flow.md#ch-13)). We remark that the report of line 6 calls an
+unbounded problem "not found" and still prints a total cost for it, which is
+not meaningful; the output file, instead, says `s UNBOUNDED`.
 
 !!! note "abLEMON"
-    In the version after 1.9.0, `dimacs-solver` takes as zero a sum of the
-    supplies within the tolerance of `NetworkSimplex`; before, a sum of
-    $10^{-12}$ left by fractional supplies of a `double` instance made it
-    choose and announce the type `LEQ`. Also, in LEMON 1.3.1 it wrote no
-    solution (the output file, opened when given, stayed empty), wrote the
+    `dimacs-solver` takes as zero a sum of the supplies within the tolerance
+    of `NetworkSimplex`; in LEMON 1.3.1 it compared the sum with zero exactly,
+    and a sum of $10^{-12}$ left by fractional supplies of a `double` instance
+    made it choose and announce the type `LEQ`. Also, in LEMON 1.3.1 it wrote
+    no solution (the output file, opened when given, stayed empty), wrote the
     first lines of its report to the standard output, and ended with an
     uncaught exception on a file of unknown type.
 
@@ -133,8 +154,10 @@ standard library, and it may need a converter ([§21.2](21-io.md#sec-21-2)).
 Second, the values are written with the default conversion, i.e., with 6
 significant digits ([§21.3](21-io.md#sec-21-3)), which is exact for the
 integer data of the usual DIMACS instances below $10^6$ but not for larger or
-fractional values. As in `dimacs-solver`, a file of unknown type makes
-`dimacsType()` throw `FormatError`, which ends the tool.
+fractional values. Unlike `dimacs-solver`, the tool catches no exception: a
+file that cannot be opened, a file of unknown type (on which `dimacsType()`
+throws `FormatError`), or a `max` or `sp` file without its source or target
+(which the writer cannot label) ends it with an uncaught exception.
 
 ## 22.4 lgf-gen {#sec-22-4}
 
@@ -149,7 +172,7 @@ instances for the geometric and graph algorithms of the library.
 | `-disc`, `-square`, `-gauss` | the nodes uniformly in the unit disc, uniformly in the square $[-1,1]^2$, or by a two-dimensional Gaussian distribution | `-disc` |
 | `-cities k` | the nodes in $k$ clusters, with random centres and sizes | 1 |
 | `-area a` | the scale of the clusters (their full relative area) | 1 |
-| `-2con`, `-tree`, `-tsp`, `-tsp2`, `-dela` | the edges: a 2-connected planar graph, a minimum spanning tree, a TSP tour, a tree-based TSP tour, the Delaunay triangulation | no edges |
+| `-2con`, `-tree`, `-tsp`, `-tsp2`, `-dela` | the edges: a planar graph built by short disjoint paths, a minimum spanning tree, a TSP tour, a tree-based TSP tour, the Delaunay triangulation | no edges |
 | `-g d` | the girth parameter of `-2con` | 10 |
 | `-dir` | write a digraph, each edge as two opposite arcs | off |
 | `-eps` | also write `prefix.eps` | off |
@@ -175,26 +198,47 @@ the lengths being the Euclidean distances, as follows.
 -tree : the Delaunay triangulation; keep the spanning tree that
         kruskal() finds on the squared lengths
 -tsp  : the cycle of the nodes in the order of creation, improved by
-        2-opt moves on the lengths until none applies
--tsp2 : the tree of -tree; join its nodes of odd degree in pairs, by
-        increasing distance; shortcut the Euler tour of the result to
-        a tour; improve it by 2-opt
+        2-opt moves of gain larger than 1e-8 until none applies
+-tsp2 : the tree of -tree; scan the pairs of its nodes of odd degree by
+        increasing distance, and join a pair when both ends are still odd;
+        shortcut the Euler tour of the result to a tour; improve it by 2-opt
 -2con : for each pair of nodes by increasing length: add the edge if it
         crosses no edge already added and the two nodes do not have two
         edge-disjoint paths of total length at most d (Suurballe, unit
-        lengths); then remove, in reverse order, each edge whose ends
-        keep two such paths without it
+        lengths); then, in reverse order of addition, remove each edge
+        whose ends keep two such paths without it
 ```
 
-The algorithm `-2con` thus gives a plane graph, since no two edges cross, and
-$d$ is the value of `-g`; `Suurballe` is the algorithm of [chapter
-10](10-shortest-paths.md#ch-10). At the end, the tool prints the number of
-nodes and edges and the total length of the edges, and, for `-tsp` and
-`-tsp2`, the number of 2-opt moves. It writes `prefix.lgf`, by `GraphWriter`,
-or by `DigraphWriter` with `-dir`; the only node maps are `coordinates_x` and
-`coordinates_y`, the coordinates multiplied by 600. With `-eps`, it also
-writes `prefix.eps` by `graphToEps()` ([§21.7](21-io.md#sec-21-7)), scaled to
-an A4 page.
+The algorithm `-2con` takes $d$ from `-g`, and `Suurballe` is the algorithm of
+[chapter 10](10-shortest-paths.md#ch-10). At the end, the tool prints the
+number of nodes and edges and the total length of the edges, and, for `-tsp`
+and `-tsp2`, the number of 2-opt moves; these reports go to the standard
+output. It writes `prefix.lgf`, by `GraphWriter`, or by `DigraphWriter` with
+`-dir`; the only node maps are `coordinates_x` and `coordinates_y`, the
+coordinates multiplied by 600. With `-eps`, it also writes `prefix.eps` by
+`graphToEps()` ([§21.7](21-io.md#sec-21-7)), scaled to an A4 page, without
+prescaling, with the node scale 0.005 and the arc width scale 0.001. The help
+of the tool calls the graph of `-2con` "two connected"; what the procedure
+guarantees is the following.
+
+<span id="lem-22-2"></span>**Lemma 22.2.** *(i) The graph of `-2con` has no
+two crossing edges. (ii) In `-tsp2`, every node has even degree after the
+pairing. (iii) The 2-opt phases of `-tsp` and `-tsp2` terminate after at most
+$\ell_0/10^{-8}$ moves, where $\ell_0$ is the length of the starting tour.*
+
+*Proof.* (i) An edge is added only if it crosses no edge already present, and
+the second phase only removes edges. (ii) An edge is added only between two
+nodes that are odd at that moment, which makes both even; hence a node that
+becomes even stays even. If two nodes $a$ and $b$ were odd at the end, they
+would have been odd throughout the scan, and the pair $\{a,b\}$, which is
+scanned, would have been joined. (iii) Each move decreases the length of the
+tour by more than $10^{-8}$, and the length stays nonnegative. $\square$
+
+The `-2con` graph is not necessarily 2-connected: an edge is left out when its
+ends already have two edge-disjoint short paths, and a later removal may
+destroy one of them. Its construction scans the $N(N-1)/2$ pairs, and each of
+them costs a scan of the edges for the crossings and possibly a run of
+`Suurballe`, so that it is by far the slowest of the five algorithms.
 
 ## 22.5 lemon-0.x-to-1.x.sh and the demos {#sec-22-5}
 
@@ -231,17 +275,15 @@ back on the standard output.
 
 ## 22.6 An example {#sec-22-6}
 
-Our program does, on a small minimum cost flow problem, what two of the tools
-do. It declares the options of `dimacs-solver` and parses a given command line
-with them, reads a DIMACS `min` file from a string with an arc of infinite
-capacity, chooses the supply type by the sign of the sum of the supplies as in
-Algorithm 22.1, and solves the problem by `NetworkSimplex`. Then it writes the
-problem as `dimacs-to-lgf` writes it, reads the LGF text back, and checks the
-costs and the attribute `problem`.
-
-```cpp
---8<-- "examples/22-tools.cc"
-```
+The program `manual/examples/22-tools.cc` (the test `manual_22_tools`) does,
+on a small minimum cost flow problem, what two of the tools do. It declares
+the options of `dimacs-solver` and parses a given command line with them,
+reads a DIMACS `min` file from a string with an arc of infinite capacity,
+chooses the supply type by the sign of the sum of the supplies as in Algorithm
+22.1 (the supplies are integer, so that the tolerance of line 4 plays no
+role), and solves the problem by `NetworkSimplex`. Then it writes the problem
+as `dimacs-to-lgf` writes it, reads the LGF text back, and checks the costs
+and the attribute `problem`.
 
 ## 22.7 Exercises {#sec-22-7}
 
@@ -251,11 +293,10 @@ and check that its number of edges is at most $3N-6$, as for any simple plane
 graph (and that `PlanarityChecking` of [chapter 18](18-properties.md#ch-18)
 accepts it).
 
-<span id="ex-22-2"></span>**Exercise 22.2.** Generate a TSP tour with
-`lgf-gen -tsp` and with `lgf-gen -tsp2` on the same seed, and compare their
-lengths with the tours of the classes of [chapter 19](19-tsp-clique.md#ch-19)
-on the same points (read by `GraphReader`, with the costs given by the
-coordinates).
+<span id="ex-22-2"></span>**Exercise 22.2.** Generate a TSP tour with `lgf-gen
+-tsp` and with `lgf-gen -tsp2` on the same seed, and compare their lengths
+with the tours of the classes of [chapter 19](19-tsp-clique.md#ch-19) on the
+same points (read by `GraphReader`, with the costs given by the coordinates).
 
 <span id="ex-22-3"></span>**Exercise 22.3.** Write a `min` file whose supplies
 sum to a positive value, and check that `dimacs-solver` announces the type
@@ -268,7 +309,12 @@ of negative capacity by `dimacs-to-lgf`, and read the result back by
 capacity; check that `Preflow` gives the same value as `dimacs-solver` on the
 original file.
 
-<span id="ex-22-5"></span>**Exercise 22.5.** Run `arg_parser_demo` without the
+<span id="ex-22-5"></span>**Exercise 22.5.** Look for a seed on which `lgf-gen
+-2con` gives a graph that is not 2-connected, as the remark after Lemma 22.2
+allows, testing the graphs with `biNodeConnected()` of [chapter
+18](18-properties.md#ch-18).
+
+<span id="ex-22-6"></span>**Exercise 22.6.** Run `arg_parser_demo` without the
 mandatory option `-n`, with two options of the group `-gra`, `-grb`, `-grc`,
 and with none of them, and explain each message from the declarations of the
 demo.

@@ -1,6 +1,6 @@
 // The feasible circulation of section 12.4: a network with lower and
 // upper bounds and supplies, solved by Circulation, and the same network
-// with two capacities lowered, for which Circulation gives a barrier whose
+// with one capacity lowered, for which Circulation gives a barrier whose
 // inequality (12.6) is checked here on the data.
 
 #include <iostream>
