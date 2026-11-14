@@ -85,8 +85,13 @@ The total actual cost is at most the total amortized cost, since $\Phi\ge 0$
 at the end. $\square$
 
 We remark that the copy assignment of each path class calls `pathCopy()`,
-which clears the target before reading the source; hence, assigning a path to
-itself (`p = p`) leaves it empty.
+which clears the target before reading the source, only when the source is
+another path; hence, assigning a path to itself (`p = p`) leaves it unchanged.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 the copy assignment of `Path`, `SimplePath`, `ListPath`
+    and `StaticPath` called `pathCopy()` also on the path itself, which it
+    emptied. The test `path_test` assigns each of the four to itself.
 
 The concept `concepts::Path` of `lemon/concepts/path.h` states this common
 interface (a path type, the copy from another path, `length()`, `empty()`,
