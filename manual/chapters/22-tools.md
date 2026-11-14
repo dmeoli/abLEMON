@@ -156,10 +156,18 @@ standard library, and it may need a converter ([§21.2](21-io.md#sec-21-2)).
 Second, the values are written with the default conversion, i.e., with 6
 significant digits ([§21.3](21-io.md#sec-21-3)), which is exact for the
 integer data of the usual DIMACS instances below $10^6$ but not for larger or
-fractional values. Unlike `dimacs-solver`, the tool catches no exception: a
-file that cannot be opened, a file of unknown type (on which `dimacsType()`
-throws `FormatError`), or a `max` or `sp` file without its source or target
-(which the writer cannot label) ends it with an uncaught exception.
+fractional values. As `dimacs-solver` does, the tool catches the exceptions of
+LEMON: a file that cannot be opened, a file of unknown type (on which
+`dimacsType()` throws `FormatError`), or a `max` or `sp` file without its
+source or target (which the writer cannot label, after it has written the
+sections before the attributes) ends it with a message on the standard error
+and the exit status 1.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, `dimacs-to-lgf` caught no exception, and these files
+    ended it with an uncaught exception; the tests
+    `dimacs_to_lgf_unknown_dimacs` and `dimacs_to_lgf_nosource_max` check the
+    message.
 
 ## 22.4 lgf-gen {#sec-22-4}
 

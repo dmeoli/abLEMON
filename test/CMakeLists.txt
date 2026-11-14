@@ -198,6 +198,16 @@ IF(LEMON_BUILD_TOOLS)
   SET_TESTS_PROPERTIES(dimacs_solver_unbounded PROPERTIES
     PASS_REGULAR_EXPRESSION "s UNBOUNDED" FAIL_REGULAR_EXPRESSION "cost:")
   ADD_DEPENDENCIES(check dimacs-solver)
+  FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/unknown.dimacs "p xyz 2 1\na 1 2\n")
+  FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/nosource.max "p max 2 1\na 1 2 5\n")
+  FOREACH(INPUT unknown.dimacs nosource.max)
+    STRING(REPLACE "." "_" NAME dimacs_to_lgf_${INPUT})
+    ADD_TEST(NAME ${NAME}
+      COMMAND dimacs-to-lgf ${CMAKE_CURRENT_BINARY_DIR}/${INPUT})
+    SET_TESTS_PROPERTIES(${NAME} PROPERTIES
+      PASS_REGULAR_EXPRESSION "dimacs-to-lgf: ")
+  ENDFOREACH()
+  ADD_DEPENDENCIES(check dimacs-to-lgf)
 ENDIF()
 
 # with LEMON as a DLL, the tests find it in the directory where it is built;
