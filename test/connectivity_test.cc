@@ -351,5 +351,25 @@ int main()
 	 "Wrong cut nodes with loops" );
   }
 
+ // a single loop is not parallel to itself, two loops at a node are
+ {
+  ListGraph g;
+  ListGraph::Node a = g.addNode() , b = g.addNode();
+  g.addEdge( a , b );
+  g.addEdge( a , a );
+  check( parallelFree( g ) , "A loop is parallel to itself" );
+  check( ! simpleGraph( g ) , "A graph with a loop is simple" );
+  g.addEdge( a , a );
+  check( ! parallelFree( g ) , "Two loops at a node are not parallel" );
+
+  ListDigraph d;
+  ListDigraph::Node u = d.addNode() , v = d.addNode();
+  d.addArc( u , v );
+  d.addArc( u , u );
+  check( parallelFree( d ) , "A loop arc is parallel to itself" );
+  d.addArc( u , u );
+  check( ! parallelFree( d ) , "Two loop arcs at a node are not parallel" );
+  }
+
  return( 0 );
  }

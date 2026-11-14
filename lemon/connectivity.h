@@ -1662,14 +1662,24 @@ bool loopFree( const Graph & graph )
 /// \brief Check whether the given graph contains no parallel arcs/edges.
 ///
 /// This function returns \c true if there are no parallel arcs/edges in
-/// the given graph. It works for both directed and undirected graphs.
+/// the given graph. It works for both directed and undirected graphs; in
+/// the latter, a single loop at a node is not parallel to itself, although
+/// both of its arcs leave the node and enter it.
 template< typename Graph >
 bool parallelFree( const Graph & graph )
 {
+ // the arcs that a loop gives to the out-arcs of its node
+ const int loop_arcs = UndirectedTagIndicator< Graph >::value ? 2 : 1;
  typename Graph::template NodeMap< int > reached( graph , 0 );
  int cnt = 1;
  for( typename Graph::NodeIt n( graph ) ; n != INVALID ; ++n ) {
+  int loops = 0;
   for( typename Graph::OutArcIt a( graph , n ) ; a != INVALID ; ++a ) {
+   if( graph.target( a ) == n ) {
+    if( ++loops > loop_arcs )
+     return( false );
+    continue;
+    }
    if( reached[ graph.target( a ) ] == cnt )
     return( false );
    reached[ graph.target( a ) ] = cnt;

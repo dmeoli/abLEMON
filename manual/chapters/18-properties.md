@@ -126,18 +126,18 @@ Theorem 18.1. $\square$
 
 Finally, three functions test whether a graph is simple, and they apply to
 digraphs and to undirected graphs alike. Here `loopFree(g)` returns `true` if
-no arc has the same source and target, `parallelFree(g)` if no two arcs that
-leave a node enter the same node, and `simpleGraph(g)` if both conditions
-hold. The latter two stamp, in a node map, the targets of the arcs leaving a
-node with the index of that node, and they report a target found already
-stamped; hence, each of the three costs $O(n+m)$ and needs no sorting. We
-remark that on an undirected graph the two arcs of a loop leave its node and
-enter it, so that `parallelFree()` returns `false` on an undirected graph with
-a loop even if no two edges are parallel (on a digraph a loop is one arc, and
-does not count). Several algorithms of this chapter (cf. [§18.5](#sec-18-5),
-[§18.6](#sec-18-6) and [§18.7](#sec-18-7)) assume a simple graph, which
-`simpleGraph()` checks (a graph read from a file, e.g., may well have parallel
-edges).
+no arc has the same source and target, `parallelFree(g)` if no two arcs or
+edges are parallel, and `simpleGraph(g)` if there are neither loops nor
+parallel arcs or edges. The latter two stamp, in a node map, the targets of
+the arcs leaving a node with the index of that node, and they report a target
+found already stamped; hence, each of the three costs $O(n+m)$ and needs no
+sorting. We remark that on an undirected graph the two arcs of a loop leave
+its node and enter it, and therefore `parallelFree()` counts the arcs that
+leave a node and enter it: two loops at a node are parallel, but one loop is
+not (on a digraph a loop is one arc). Several algorithms of this chapter (cf.
+[§18.5](#sec-18-5), [§18.6](#sec-18-6) and [§18.7](#sec-18-7)) assume a simple
+graph, which `simpleGraph()` checks (a graph read from a file, e.g., may well
+have parallel edges).
 
 ## 18.2 Biconnectivity {#sec-18-2}
 
@@ -180,8 +180,10 @@ reads the other items too.
     count a node twice, so that a node already `true` on entry was neither
     counted nor reported; the test `connectivity_test` passes a map that is
     `true` everywhere. LEMON 1.3.1 also reported every node that carries a
-    loop as a cut node, e.g., a single node with a loop; `connectivity_test`
-    checks graphs with loops.
+    loop as a cut node, e.g., a single node with a loop, and on an
+    undirected graph `parallelFree()` returned `false` on a single loop,
+    whose two arcs it took for parallel ones; `connectivity_test` checks
+    both on graphs with loops.
 
 At the boundary we follow the conventions of the header. A graph with zero or
 one node is bi-node-connected, two isolated nodes are not, and two nodes
