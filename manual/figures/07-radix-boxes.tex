@@ -1,0 +1,30 @@
+% RadixHeap (sec. 7.4): the boxes of the priorities from the minimum m,
+% of widths 1, 1, 2, 4, 8, ..., each holding a doubly linked list of
+% items; the first non-empty box is redistributed when box 0 is empty.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \tikzset{bx/.style={cell,minimum height=8mm,font=\scriptsize\ttfamily}}
+  \node[bx,minimum width=9mm,fill=ablFree] (b0) at (0,0) {};
+  \node[bx,minimum width=9mm,fill=ablFree,right=0mm of b0] (b1) {};
+  \node[bx,touched,minimum width=18mm,minimum height=8mm,right=0mm of b1]
+    (b2) {2};
+  \node[bx,minimum width=28mm,right=0mm of b2] (b3) {1};
+  \node[bx,minimum width=46mm,right=0mm of b3] (b4) {3};
+  \foreach \b/\t in {b0/{m},b1/{m+1},b2/{m+2..m+3},b3/{m+4..m+7},
+                     b4/{m+8..m+15}}
+    \node[index,above=1.6mm of \b] {\t};
+  \foreach \b/\w in {b0/1,b1/1,b2/2,b3/4,b4/8}
+    \node[var,below=1.6mm of \b] {\w};
+  \node[var,anchor=east] at ($(b0.west)+(-3mm,-7mm)$) {width};
+  \node[var,anchor=east] at ($(b0.west)+(-3mm,7mm)$) {range};
+  \node[var,anchor=east] at ($(b0.west)+(-3mm,0)$) {items};
+\end{tikzpicture}
+\end{document}

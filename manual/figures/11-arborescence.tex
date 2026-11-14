@@ -1,0 +1,34 @@
+% The minimum cost arborescence (sec. 11.2) of the example
+% 11-arborescence.cc, rooted at r: the cheapest arcs entering a and b, and
+% those entering c and d, form two cycles, each contracted (the tinted
+% sets) and entered by one arc of the arborescence. Build: make figures
+% (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex-touched] (r) at (0,0) {r};
+  \node[vertex] (a) at (28mm,14mm) {a};
+  \node[vertex] (b) at (28mm,-14mm) {b};
+  \node[vertex] (d) at (62mm,14mm) {d};
+  \node[vertex] (c) at (62mm,-14mm) {c};
+  \begin{scope}[on background layer]
+    \node[region,fit=(a)(b),inner sep=3mm] {};
+    \node[region,fit=(c)(d),inner sep=3mm] {};
+  \end{scope}
+  \draw[arc-added] (r) -- node[label] {5} (a);
+  \draw[arc] (r) -- node[label] {6} (b);
+  \draw[arc] (r) to[out=70,in=150] node[label,pos=0.45] {9} (d);
+  \draw[arc-added] (a) to[bend left=18] node[label] {1} (b);
+  \draw[arc] (b) to[bend left=18] node[label] {2} (a);
+  \draw[arc] (a) -- node[label] {7} (d);
+  \draw[arc-added] (b) -- node[label] {3} (c);
+  \draw[arc-added] (c) to[bend left=18] node[label] {2} (d);
+  \draw[arc] (d) to[bend left=18] node[label] {1} (c);
+\end{tikzpicture}
+\end{document}

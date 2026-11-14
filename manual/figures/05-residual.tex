@@ -1,0 +1,42 @@
+% A flow on a digraph (flow/capacity on each arc) and its residual digraph
+% (sec. 5.4): forward arcs where the flow is below the capacity, backward
+% arcs where it is positive, each with its residual capacity.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \begin{scope}
+    \node[vertex] (s) at (0,0) {s};
+    \node[vertex] (a) at (24mm,14mm) {a};
+    \node[vertex] (b) at (24mm,-14mm) {b};
+    \node[vertex] (t) at (48mm,0) {t};
+    \draw[arc] (s) -- node[label] {2/3} (a);
+    \draw[arc] (s) -- node[label] {2/2} (b);
+    \draw[arc] (a) -- node[label] {1/1} (b);
+    \draw[arc] (a) -- node[label] {1/2} (t);
+    \draw[arc] (b) -- node[label] {3/4} (t);
+    \node[var] at (24mm,-25mm) {flow / capacity};
+  \end{scope}
+  \begin{scope}[xshift=70mm]
+    \node[vertex] (s) at (0,0) {s};
+    \node[vertex] (a) at (24mm,14mm) {a};
+    \node[vertex] (b) at (24mm,-14mm) {b};
+    \node[vertex] (t) at (48mm,0) {t};
+    \draw[arc-touched] (s) to[bend left=12] node[label] {1} (a);
+    \draw[arc-added] (a) to[bend left=12] node[label] {2} (s);
+    \draw[arc-added] (b) to[bend left=12] node[label] {2} (s);
+    \draw[arc-added] (b) -- node[label] {1} (a);
+    \draw[arc-touched] (a) to[bend left=12] node[label] {1} (t);
+    \draw[arc-added] (t) to[bend left=12] node[label] {1} (a);
+    \draw[arc-touched] (b) to[bend left=12] node[label] {1} (t);
+    \draw[arc-added] (t) to[bend left=12] node[label] {3} (b);
+    \node[var] at (24mm,-25mm) {residual digraph};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

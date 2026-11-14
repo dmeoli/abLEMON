@@ -1,0 +1,79 @@
+% tikz-ablemon.tex: the TikZ styles shared by the figures of the manual,
+% \input by each standalone figure after \usepackage{lamalunga}. The
+% figures are flat (filled shapes, one colour per role, no outlines,
+% gradients or shadows), and the colours are computed by lamalunga from one
+% primary, so that changing \ablprimary recolours every figure:
+%   vertex, vertex-touched,       a node of a graph: plain, read or reached
+%   vertex-added                  by the algorithm, added or chosen by it;
+%   edge, edge-touched,           an undirected edge: plain, followed by the
+%   edge-added                    algorithm (e.g., in a tree), chosen by it;
+%   arc, arc-touched, arc-added   the same with an arrow, for a digraph;
+%   arc-faded                     an arc that the operation hides;
+%   label                         the data of an arc or a node (a cost, a
+%                                 capacity, a flow), on a white plate;
+%   region                        a set of nodes (a cut, a component), a
+%                                 tint behind them;
+%   cell, touched, added, free    the places of a vector or of a heap;
+%   box, box-touched, box-added   a node of a linked structure;
+%   ptr, var, index, guide        a pointer, a variable, an index, a
+%                                 reference line.
+% \cells{name}{x,y}{list} draws a row of places (items text/style) and
+% \indices{name}{n} the indices 0 .. n-1 above them.
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,
+                shapes.multipart}
+\providecommand{\ablprimary}{7030A0}
+\definecolor{ablPrimary}{HTML}{\ablprimary}
+\colorharmony{abl}{ablPrimary}
+\colorlet{ablAdded}{abl-triad-a}
+\colorlet{ablInk}{black!78}
+\colorlet{ablTint}{\goldentint{ablPrimary}{4}}
+\colorlet{ablFree}{\goldentint{ablPrimary}{6}}
+\colorlet{ablRegion}{\goldentint{ablPrimary}{6}}
+\readableon{ablOnPrimary}{ablPrimary}{black}{white}
+\readableon{ablOnAdded}{ablAdded}{black}{white}
+\tikzset{
+  abl/.style={>={Stealth[length=2.2mm,width=2mm]},font=\small,
+              every node/.append style={inner sep=0pt},line cap=round},
+  vertex/.style={circle,minimum size=7.5mm,font=\small\ttfamily,
+                 fill=ablTint,text=ablInk},
+  vertex-touched/.style={vertex,fill=ablPrimary,text=ablOnPrimary,
+                         font=\small\ttfamily\bfseries},
+  vertex-added/.style={vertex,fill=ablAdded,text=ablOnAdded,
+                       font=\small\ttfamily\bfseries},
+  edge/.style={line width=1.1pt,draw=ablInk!45},
+  edge-touched/.style={line width=1.8pt,draw=ablPrimary},
+  edge-added/.style={line width=1.8pt,draw=ablAdded},
+  arc/.style={edge,->,shorten >=0.6pt},
+  arc-touched/.style={edge-touched,->,shorten >=0.6pt},
+  arc-added/.style={edge-added,->,shorten >=0.6pt},
+  arc-faded/.style={line width=0.8pt,draw=ablInk!18,->,
+                    dash pattern=on 3pt off 2pt},
+  label/.style={font=\scriptsize,text=ablInk,fill=white,
+                inner sep=1.2pt,rounded corners=1pt},
+  region/.style={rounded corners=6pt,fill=ablRegion},
+  cell/.style={rounded corners=1.6pt,minimum width=7mm,minimum height=7mm,
+               font=\small\ttfamily,fill=ablTint,text=ablInk,
+               draw=white,line width=1.2pt,outer sep=0pt},
+  touched/.style={cell,fill=ablPrimary,text=ablOnPrimary,
+                  font=\small\ttfamily\bfseries},
+  added/.style={cell,fill=ablAdded,text=ablOnAdded,
+                font=\small\ttfamily\bfseries},
+  free/.style={cell,fill=ablFree,text=ablInk!55,
+               draw=ablInk!14,line width=0.4pt},
+  box/.style={rounded corners=2pt,minimum width=8mm,minimum height=6mm,
+              font=\small\ttfamily,fill=ablTint,text=ablInk},
+  box-touched/.style={box,fill=ablPrimary,text=ablOnPrimary,
+                      font=\small\ttfamily\bfseries},
+  box-added/.style={box,fill=ablAdded,text=ablOnAdded,
+                    font=\small\ttfamily\bfseries},
+  ptr/.style={->,line width=1.1pt,draw=ablInk},
+  var/.style={font=\small\itshape,text=ablPrimary},
+  index/.style={font=\scriptsize\ttfamily,text=ablInk!55},
+  guide/.style={line width=0.8pt,draw=ablInk!45,dash pattern=on 3pt off 2pt}
+}
+\newcommand{\cells}[3]{%
+  \foreach \v/\s [count=\i from 0] in {#3}
+    \node[\s] (#1-\i) at ($(#2)+(\i*7.4mm,0)$) {\v};}
+\newcommand{\indices}[2]{%
+  \foreach \i in {0,...,\numexpr#2-1\relax}
+    \node[index,above=1.6mm of #1-\i] {\i};}

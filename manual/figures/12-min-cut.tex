@@ -1,0 +1,32 @@
+% The maximum flow of the example of section 12.2: on each arc its flow and
+% its capacity, the source side of the minimum cut on a tint, and the arcs
+% that leave it, saturated, in the colour of what the algorithm chooses.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \fill[region,rounded corners=9pt]
+    (-8mm,0) -- (21mm,20mm) -- (31mm,19mm) -- (35mm,3mm)
+    -- (60mm,-6mm) -- (60mm,-20mm) -- (19mm,-20mm) -- cycle;
+  \node[vertex-touched] (s) at (0,0) {s};
+  \node[vertex] (a) at (24mm,13mm) {a};
+  \node[vertex] (b) at (24mm,-13mm) {b};
+  \node[vertex] (c) at (52mm,13mm) {c};
+  \node[vertex] (d) at (52mm,-13mm) {d};
+  \node[vertex-touched] (t) at (76mm,0) {t};
+  \draw[arc] (s) -- node[label] {7/10} (a);
+  \draw[arc] (s) -- node[label] {5/5} (b);
+  \draw[arc] (a) -- node[label] {1/4} (b);
+  \draw[arc-added] (a) -- node[label] {6/6} (c);
+  \draw[arc] (b) -- node[label] {6/9} (d);
+  \draw[arc] (c) -- node[label] {0/2} (d);
+  \draw[arc] (c) -- node[label] {6/8} (t);
+  \draw[arc-added] (d) -- node[label] {6/6} (t);
+\end{tikzpicture}
+\end{document}

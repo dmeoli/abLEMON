@@ -1,0 +1,49 @@
+% The undirected graph of the example of chapter 15 (left), with the
+% minimum cut X = {0,1,2} of value 3 found by NagamochiIbaraki, and its
+% Gomory-Hu tree (right), whose lightest edge 2-4 is that cut.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \begin{scope}
+    \node[vertex-touched] (a0) at (0,12mm) {0};
+    \node[vertex-touched] (a1) at (17mm,24mm) {1};
+    \node[vertex-touched] (a2) at (17mm,0) {2};
+    \node[vertex] (a3) at (42mm,24mm) {3};
+    \node[vertex] (a4) at (42mm,0) {4};
+    \node[vertex] (a5) at (59mm,12mm) {5};
+    \begin{scope}[on background layer]
+      \node[region,fit=(a0)(a1)(a2),inner sep=2.5mm] {};
+    \end{scope}
+    \draw[edge] (a0) -- node[label] {3} (a1);
+    \draw[edge] (a0) -- node[label] {2} (a2);
+    \draw[edge] (a1) -- node[label] {4} (a2);
+    \draw[edge-added] (a1) -- node[label] {1} (a3);
+    \draw[edge-added] (a2) -- node[label] {2} (a4);
+    \draw[edge] (a3) -- node[label] {3} (a4);
+    \draw[edge] (a3) -- node[label] {4} (a5);
+    \draw[edge] (a4) -- node[label] {2} (a5);
+    \node[var] at (29.5mm,-9mm) {$G$, $\lambda(G)=3$};
+  \end{scope}
+  \begin{scope}[xshift=80mm]
+    \node[vertex] (b0) at (0,12mm) {0};
+    \node[vertex] (b1) at (17mm,24mm) {1};
+    \node[vertex] (b2) at (17mm,0) {2};
+    \node[vertex] (b3) at (42mm,24mm) {3};
+    \node[vertex] (b4) at (42mm,0) {4};
+    \node[vertex] (b5) at (59mm,12mm) {5};
+    \draw[edge-touched] (b0) -- node[label] {5} (b1);
+    \draw[edge-touched] (b1) -- node[label] {7} (b2);
+    \draw[edge-added] (b2) -- node[label] {3} (b4);
+    \draw[edge-touched] (b4) -- node[label] {6} (b3);
+    \draw[edge-touched] (b3) -- node[label] {6} (b5);
+    \node[var] at (29.5mm,-9mm) {Gomory-Hu tree $T$};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

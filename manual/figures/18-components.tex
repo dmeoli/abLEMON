@@ -1,0 +1,40 @@
+% The graph of sec. 18.1 and 18.2 (example 18-components.cc): four blocks,
+% the cut nodes 2, 4, 5 in the primary, the bridge 4-5 in the added colour,
+% and the two bi-edge-connected components as regions. Build: make figures.
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex] (0) at (0,11mm) {0};
+  \node[vertex] (1) at (0,-11mm) {1};
+  \node[vertex-touched] (2) at (19mm,0) {2};
+  \node[vertex] (3) at (38mm,11mm) {3};
+  \node[vertex-touched] (4) at (38mm,-11mm) {4};
+  \node[vertex-touched] (5) at (60mm,-11mm) {5};
+  \node[vertex] (6) at (82mm,-11mm) {6};
+  \node[vertex] (7) at (71mm,8mm) {7};
+  \begin{scope}[on background layer]
+    \node[region,fit=(0)(1)(3)(4),inner sep=2.5mm] {};
+    \node[region,fit=(5)(6)(7),inner sep=2.5mm] {};
+  \end{scope}
+  \draw[edge] (0) -- (1);
+  \draw[edge] (1) -- (2);
+  \draw[edge] (2) -- (0);
+  \draw[edge] (2) -- (3);
+  \draw[edge] (3) -- (4);
+  \draw[edge] (4) -- (2);
+  \draw[edge-added] (4) -- (5);
+  \draw[edge] (5) -- (6);
+  \draw[edge] (6) -- (7);
+  \draw[edge] (7) -- (5);
+  \node[label] at (6mm,0) {A};
+  \node[label] at (31mm,0) {B};
+  \node[label] at (49mm,-14mm) {C};
+  \node[label] at (71mm,-5mm) {D};
+\end{tikzpicture}
+\end{document}

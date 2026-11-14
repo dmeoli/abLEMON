@@ -1,5 +1,7 @@
 # The documentation of abLEMON, which Doxygen builds with the target html of
-# CMake, published on GitHub Pages at every push on master.
+# CMake, and the site of the user manual, which MkDocs builds from manual/
+# into the folder manual/ of the same pages, published on GitHub Pages at
+# every push on master.
 
 name: Docs
 
@@ -46,6 +48,12 @@ jobs:
             -DLEMON_ENABLE_ILOG=NO -DLEMON_ENABLE_COIN=NO \
             -DLEMON_ENABLE_SOPLEX=NO
           cmake --build build --target html
+
+      - name: Build the site of the manual
+        run: |
+          pip install mkdocs mkdocs-material pymdown-extensions
+          mkdocs build -f manual/build/mkdocs.yml \
+            -d "$PWD/build/doc/html/manual"
 
       - name: Upload the pages
         uses: actions/upload-pages-artifact@v3

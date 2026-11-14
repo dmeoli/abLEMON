@@ -1,0 +1,27 @@
+% The unbounded problem of the example of section 14.2: the cost on each
+% arc, the arcs of infinite capacity drawn full, the arc (q,p) of finite
+% capacity dashed; the cycle of minimum mean, (r,s,r), in the colour of
+% what the algorithm chooses, and the second one, (p,q,r,p), in the
+% primary. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex-touched] (p) at (0,0) {p};
+  \node[vertex-touched] (q) at (24mm,16mm) {q};
+  \node[vertex-touched] (r) at (24mm,-16mm) {r};
+  \node[vertex-added] (s) at (52mm,-16mm) {s};
+  \draw[arc-touched] (p) to[bend right=25] node[label] {$-2$} (q);
+  \draw[arc-faded] (q) to[bend right=25]
+    node[label,anchor=south east,pos=0.5] {$-10$, cap.\ 5} (p);
+  \draw[arc-touched] (q) -- node[label] {1} (r);
+  \draw[arc-touched] (r) -- node[label] {0} (p);
+  \draw[arc-added] (r) to[bend left=18] node[label] {$-3$} (s);
+  \draw[arc-added] (s) to[bend left=18] node[label] {1} (r);
+\end{tikzpicture}
+\end{document}

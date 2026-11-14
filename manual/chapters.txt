@@ -1,0 +1,30 @@
+I|Foundations
+01-introduction|1. Introduction
+02-installation|2. Installation and first program
+03-mental-model|3. Graphs, items and maps
+II|Data structures
+04-graphs|4. Graph structures
+05-adaptors|5. Graph adaptors
+06-maps|6. Maps
+07-heaps|7. Heaps
+08-auxiliary|8. Paths and auxiliary structures
+III|Algorithms
+09-search|9. Graph search
+10-shortest-paths|10. Shortest paths
+11-spanning|11. Spanning trees and arborescences
+12-max-flow|12. Maximum flows and circulations
+13-min-cost-flow|13. Minimum cost flows
+14-k-best-flows|14. Certificates and the k best flows
+15-min-cut|15. Minimum cuts
+16-min-mean-cycle|16. Minimum mean cycles
+17-matching|17. Matchings
+18-properties|18. Connectivity, planarity, isomorphism
+19-tsp-clique|19. Travelling salesman and maximum clique
+20-lp|20. The LP and MIP interface
+IV|Input, output and tools
+21-io|21. Input and output
+22-tools|22. The tools
+V|Appendices
+A-writing-graph-map|A. Writing a graph, a map or a heap
+Y-glossary|Y. Glossary
+Z-bibliography|Z. Bibliography

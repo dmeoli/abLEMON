@@ -1,0 +1,31 @@
+% The infeasible problem of the example of section 14.1: the supply of
+% each node next to it, the capacity on each arc, and the two disjoint
+% violated sets, {a, b} and {d}, whose union is the most violated set.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \fill[region] (-7mm,-7mm) rectangle (31mm,10.5mm);
+  \fill[region] (-7mm,-34.5mm) rectangle (7mm,-17mm);
+  \node[vertex] (b) at (0,0) {b};
+  \node[vertex-touched] (a) at (24mm,0) {a};
+  \node[vertex] (c) at (52mm,0) {c};
+  \node[vertex-touched] (d) at (0,-24mm) {d};
+  \node[vertex] (e) at (52mm,-24mm) {e};
+  \node[index,above=1.4mm of b] {0};
+  \node[index,above=1.4mm of a] {+4};
+  \node[index,above=1.4mm of c] {$-4$};
+  \node[index,below=1.4mm of d] {+3};
+  \node[index,below=1.4mm of e] {$-3$};
+  \draw[arc] (b) -- node[label] {5} (a);
+  \draw[arc-added] (a) -- node[label] {2} (c);
+  \draw[arc-added] (d) -- node[label] {1} (e);
+  \draw[arc] (c) -- node[label] {9} (e);
+\end{tikzpicture}
+\end{document}

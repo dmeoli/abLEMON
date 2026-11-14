@@ -1,0 +1,30 @@
+% IterableBoolMap (sec. 6.6): the keys in one vector, the true ones before
+% the separator and the false ones after it; set(e, true) swaps e with the
+% first false key and moves the separator by one.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \coordinate (r1) at (0,0);
+  \cells{x}{r1}{a/touched,b/touched,c/cell,d/cell,e/added,f/cell}
+  \indices{x}{6}
+  \draw[guide] ($(x-1.east)!0.5!(x-2.west)+(0,6mm)$) --
+               ($(x-1.east)!0.5!(x-2.west)+(0,-6mm)$)
+    node[below,var] {sep = 2};
+  \draw[ptr] (x-4.south) to[bend left=40] (x-2.south);
+  \draw[ptr] (x-2.south) to[bend left=40] (x-4.south);
+  \node[var,anchor=west] at ($(x-5.east)+(4mm,0)$) {before set(e, true)};
+  \coordinate (r2) at (0,-22mm);
+  \cells{y}{r2}{a/touched,b/touched,e/touched,d/cell,c/cell,f/cell}
+  \draw[guide] ($(y-2.east)!0.5!(y-3.west)+(0,6mm)$) --
+               ($(y-2.east)!0.5!(y-3.west)+(0,-6mm)$)
+    node[below,var] {sep = 3};
+  \node[var,anchor=west] at ($(y-5.east)+(4mm,0)$) {after};
+\end{tikzpicture}
+\end{document}

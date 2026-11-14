@@ -1,0 +1,32 @@
+% Christofides' heuristic (sec. 19.2): the minimum spanning tree (primary),
+% its nodes of odd degree (primary), the minimum cost perfect matching on
+% them (the added colour); the union has even degrees and an Euler tour,
+% which the shortcuts turn into a tour. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex-touched] (n0) at (0,0)       {0};
+  \node[vertex-touched] (n1) at (22mm,12mm) {1};
+  \node[vertex-touched] (n2) at (44mm,0)    {2};
+  \node[vertex]         (n3) at (22mm,-10mm){3};
+  \node[vertex]         (n4) at (22mm,-30mm){4};
+  \node[vertex-touched] (n5) at (44mm,-30mm){5};
+  \draw[edge-touched] (n3) -- (n0);
+  \draw[edge-touched] (n3) -- (n1);
+  \draw[edge-touched] (n3) -- (n2);
+  \draw[edge-touched] (n3) -- (n4);
+  \draw[edge-touched] (n4) -- (n5);
+  \draw[edge-added] (n0) -- (n1);
+  \draw[edge-added] (n2) -- (n5);
+  \node[label,anchor=west] at (64mm,6mm)   {tree $T$};
+  \node[label,anchor=west] at (64mm,-6mm)  {matching $M$ on the odd nodes};
+  \draw[edge-touched] (57mm,6mm) -- (62mm,6mm);
+  \draw[edge-added]   (57mm,-6mm) -- (62mm,-6mm);
+\end{tikzpicture}
+\end{document}

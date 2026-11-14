@@ -1,0 +1,35 @@
+% BinHeap (sec. 7.2): the heap as a tree and as the vector that stores it,
+% the children of position i at 2i+1 and 2i+2; the item touched by a
+% decrease climbs along the path to the root.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex-touched] (n0) at (0,0) {1};
+  \node[vertex-touched] (n1) at (-22mm,-12mm) {3};
+  \node[vertex] (n2) at (22mm,-12mm) {2};
+  \node[vertex] (n3) at (-33mm,-24mm) {7};
+  \node[vertex-added] (n4) at (-11mm,-24mm) {4};
+  \node[vertex] (n5) at (11mm,-24mm) {5};
+  \node[vertex] (n6) at (33mm,-24mm) {9};
+  \draw[edge-touched] (n0) -- (n1);
+  \draw[edge] (n0) -- (n2);
+  \draw[edge] (n1) -- (n3);
+  \draw[edge-touched] (n1) -- (n4);
+  \draw[edge] (n2) -- (n5);
+  \draw[edge] (n2) -- (n6);
+  \coordinate (r) at (-22mm,-40mm);
+  \cells{c}{r}{1/touched,3/touched,2/cell,7/cell,4/added,5/cell,9/cell}
+  \indices{c}{7}
+  \draw[ptr] (c-1.south) to[bend right=35] (c-3.south);
+  \draw[ptr] (c-1.south) to[bend right=35] (c-4.south);
+  \node[var,anchor=west] at ($(c-6.east)+(4mm,0)$)
+    {children of $i$: $2i+1$, $2i+2$};
+\end{tikzpicture}
+\end{document}

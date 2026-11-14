@@ -1,0 +1,44 @@
+% The graph of the example of MaxMatching (sec. 17.4) with the maximum
+% matching it finds and its Gallai-Edmonds decomposition: the EVEN nodes
+% (D), the barrier of the ODD nodes (A), the MATCHED nodes (C).
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex] (a) at (16mm,6mm) {a};
+  \node[vertex] (b) at (2mm,16mm) {b};
+  \node[vertex] (c) at (2mm,-4mm) {c};
+  \node[vertex] (d) at (16mm,-12mm) {d};
+  \node[vertex] (e) at (16mm,-26mm) {e};
+  \node[vertex-touched] (x) at (40mm,-6mm) {x};
+  \node[vertex] (p) at (62mm,-6mm) {p};
+  \node[vertex] (q) at (76mm,6mm) {q};
+  \node[vertex] (r) at (90mm,-6mm) {r};
+  \node[vertex] (s) at (76mm,-18mm) {s};
+  \begin{scope}[on background layer]
+    \node[region,fit=(a)(b)(c)(d)(e),inner sep=3mm] (D) {};
+    \node[region,fit=(x),inner sep=3mm] (A) {};
+    \node[region,fit=(p)(q)(r)(s),inner sep=3mm] (C) {};
+  \end{scope}
+  \node[var,above=1.5mm of D.north] {D (\texttt{EVEN})};
+  \node[var] at (A.north |- D.north) [above=1.5mm] {A (\texttt{ODD})};
+  \node[var] at (C.north |- D.north) [above=1.5mm] {C (\texttt{MATCHED})};
+  \draw[edge] (a) -- (b);
+  \draw[edge] (b) -- (c);
+  \draw[edge-added] (c) -- (a);
+  \draw[edge] (x) -- (a);
+  \draw[edge] (x) -- (d);
+  \draw[edge-added] (x) -- (e);
+  \draw[edge] (x) -- (p);
+  \draw[edge] (p) -- (q);
+  \draw[edge-added] (q) -- (r);
+  \draw[edge] (r) -- (s);
+  \draw[edge-added] (s) -- (p);
+\end{tikzpicture}
+\end{document}

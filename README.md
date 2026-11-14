@@ -4,6 +4,7 @@
 [![Packaging](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml/badge.svg?branch=master)](https://github.com/dmeoli/abLEMON/actions/workflows/packaging.yml)
 [![Release](https://img.shields.io/github/v/release/dmeoli/abLEMON)](https://github.com/dmeoli/abLEMON/releases)
 [![Documentation](https://img.shields.io/badge/docs-online-blue)](https://dmeoli.github.io/abLEMON/)
+[![Manual](https://img.shields.io/badge/docs-Manual-blue)](https://dmeoli.github.io/abLEMON/manual/)
 [![C++ Standard](https://img.shields.io/badge/C%2B%2B-11%20to%2023-blue)](https://en.cppreference.com/w/cpp)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/dmeoli/abLEMON/actions/workflows/ci.yml)
 [![Homebrew](https://img.shields.io/badge/homebrew-dmeoli%2Fablemon-orange)](https://github.com/dmeoli/homebrew-ablemon)
@@ -119,6 +120,18 @@ maps), Martin Heistermann (`WinLock`), rturrado (the LGF readers under C++23)
 and Fredrik Bräutigam (CMake) are in the history with their authors, whose log
 lists all the changes.
 
+## User manual
+
+A user manual, which describes every class of the library family by family
+(the problem each algorithm solves, its theory, its complexity as
+implemented, its pseudocode and complete programs, which are compiled and
+run as tests), lives in [`manual/`](manual/), in two forms built from the
+same Markdown sources:
+
+- **PDF**: [abLEMON - A User Manual](manual/abLEMON-manual.pdf), also
+  attached to each release;
+- **Web**: <https://dmeoli.github.io/abLEMON/manual/>.
+
 ## Building and installing
 
 With CMake, as for LEMON (see [INSTALL](INSTALL) for the options):
@@ -158,7 +171,8 @@ objects, the `-I` directives and the headers of the library (see
 has a generator of random graphs, a converter from the DIMACS formats and a
 solver of DIMACS instances, and `demo/` has a few programs to start from.
 In `doc/` is the documentation, which Doxygen builds with the target `html`
-of CMake, and `scripts/` has the tools of the development.
+of CMake, in `manual/` the user manual, and `scripts/` has the tools of the
+development.
 
 ## Code style
 

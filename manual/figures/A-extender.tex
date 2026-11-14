@@ -1,0 +1,41 @@
+% The layers of a graph class and its alteration notifiers (app. A): the
+% base class gives the items, their ids and the first/next functions, the
+% extender adds the iterators, the maps and one notifier per kind of item,
+% and the notifier of the nodes calls add, erase, build and clear on the
+% observers attached to it (the node maps among them). Build: make figures
+% (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl,
+    layer/.style={box,minimum width=48mm,minimum height=10mm,
+                  align=center,font=\small},
+    layer-touched/.style={box-touched,minimum width=48mm,
+                          minimum height=10mm,align=center,font=\small},
+    obs/.style={box,minimum width=30mm,minimum height=7mm,font=\small}]
+  \node[layer] (base) at (0,0)
+    {\ttfamily CycleDigraphBase\\[-1pt]\rmfamily items, ids, first/next};
+  \node[layer-touched] (ext) at (0,16mm)
+    {\ttfamily DigraphExtender<\,...\,>\\[-1pt]\rmfamily iterators, maps,
+     notifiers};
+  \node[layer] (cls) at (0,32mm)
+    {\ttfamily CycleDigraph\\[-1pt]\rmfamily constructor, resize()};
+  \draw[ptr] (base) -- (ext);
+  \draw[ptr] (ext) -- (cls);
+  \node[box-added,minimum width=30mm,minimum height=8mm,font=\small]
+    (nf) at (52mm,16mm) {\ttfamily notifier(Node())};
+  \draw[guide] (ext.east) -- (nf.west);
+  \node[obs] (m1) at (92mm,30mm) {\ttfamily NodeMap<int>};
+  \node[obs] (m2) at (92mm,16mm) {\ttfamily NodeMap<Arc>};
+  \node[obs] (m3) at (92mm,2mm) {\ttfamily NodeCounter};
+  \foreach \m in {m1,m2,m3}
+    \draw[ptr] (nf.east) -- (\m.west);
+  \node[index,anchor=north] at ($(nf.south)+(0,-2mm)$)
+    {add, erase, build, clear};
+\end{tikzpicture}
+\end{document}

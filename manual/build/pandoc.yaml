@@ -1,0 +1,76 @@
+# Pandoc defaults for the PDF of the abLEMON User Manual.
+# Usage (from manual/build/):
+#     pandoc --defaults=pandoc.yaml -o ../abLEMON-manual.pdf
+# All paths are relative to manual/build/.
+
+from: markdown+tex_math_dollars+pipe_tables+fenced_code_attributes
+to: latex
+
+# The chapters in reading order: keep this list in sync with the nav of
+# mkdocs.yml and with the table of contents of index.md.
+input-files:
+  - ../index.md
+  - ../chapters/01-introduction.md
+  - ../chapters/02-installation.md
+  - ../chapters/03-mental-model.md
+  - ../chapters/04-graphs.md
+  - ../chapters/05-adaptors.md
+  - ../chapters/06-maps.md
+  - ../chapters/07-heaps.md
+  - ../chapters/08-auxiliary.md
+  - ../chapters/09-search.md
+  - ../chapters/10-shortest-paths.md
+  - ../chapters/11-spanning.md
+  - ../chapters/12-max-flow.md
+  - ../chapters/13-min-cost-flow.md
+  - ../chapters/14-k-best-flows.md
+  - ../chapters/15-min-cut.md
+  - ../chapters/16-min-mean-cycle.md
+  - ../chapters/17-matching.md
+  - ../chapters/18-properties.md
+  - ../chapters/19-tsp-clique.md
+  - ../chapters/20-lp.md
+  - ../chapters/21-io.md
+  - ../chapters/22-tools.md
+  - ../chapters/A-writing-graph-map.md
+  - ../chapters/Y-glossary.md
+  - ../chapters/Z-bibliography.md
+
+resource-path:
+  - .
+  - ..
+  - ../figures
+
+filters:
+  - snippets.lua
+  - admonition.lua
+  - figure-ext.lua
+  - crossref-link.lua
+  - break-code.lua
+
+pdf-engine: pdflatex
+
+# a pipe table with a line longer than this takes the width of the text,
+# with columns as wide as the dashes of its separator line
+columns: 60
+
+# The headings carry the numbers of the manual (for the web site); the
+# numbering of LaTeX is suppressed in preamble.tex.
+number-sections: false
+toc: true
+toc-depth: 2
+top-level-division: chapter
+
+include-in-header:
+  - preamble.tex
+
+metadata:
+  title: "abLEMON — A User Manual"
+  subtitle: "For abLEMON 1.9.0 (November 2026)"
+  author: "Donato Meoli"
+  lang: en
+  colorlinks: true
+  linkcolor: NavyBlue
+  urlcolor: NavyBlue
+  documentclass: report
+  papersize: a4
