@@ -221,6 +221,8 @@ int main()
   RangeMap< double > map9 = rangeMap( v );
   check( map9.size() == 10 && map9[ 2 ] == 0 && map9[ 5 ] == 100 ,
 	 "Something is wrong with RangeMap" );
+  const RangeMap< double > & cmap9 = map9;
+  check( cmap9.size() == 10 , "Wrong size of a const RangeMap" );
   }
 
  // SparseMap
@@ -534,6 +536,9 @@ int main()
 	 "Wrong IdMap" );
   check( amap[ a3 ] == gr.id( a3 ) && amap( gr.id( a3 ) ) == a3 ,
 	 "Wrong IdMap" );
+
+  const IdMap< Graph , Node > & cnmap = nmap;
+  check( cnmap( gr.id( n1 ) ) == n1 , "Wrong const IdMap" );
 
   check( nmap.inverse()[ gr.id( n0 ) ] == n0 , "Wrong IdMap::InverseMap" );
   check( amap.inverse()[ gr.id( a0 ) ] == a0 , "Wrong IdMap::InverseMap" );

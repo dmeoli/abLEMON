@@ -288,7 +288,7 @@ class RangeMap : public MapBase< int , V >
      : _vector( c._vector.begin() , c._vector.end() ) { }
 
  /// Returns the size of the map.
- int size() { return( static_cast< int >( _vector.size() ) ); }
+ int size() const { return( static_cast< int >( _vector.size() ) ); }
 
  /// Resizes the map.
 
@@ -1966,7 +1966,7 @@ class IdMap : public MapBase< K , int >
  /// \brief Gives back the \e item by its id.
  ///
  /// Gives back the \e item by its id.
- Item operator()( int id ) { return( _graph->fromId( id , Item() ) ); }
+ Item operator()( int id ) const { return( _graph->fromId( id , Item() ) ); }
 
  private:
  const Graph * _graph;

@@ -130,6 +130,11 @@ those of the vector, and, unlike the graph maps, it can be copied and
 assigned; it is typically used as the cross-reference map of a heap whose
 items are small integers (cf. [chapter 7](07-heaps.md#ch-7)).
 
+!!! note "abLEMON"
+    In LEMON 1.3.1, `size()` of `RangeMap` and `operator()(id)` of `IdMap`
+    were not constant members, and they could not be called on a constant
+    map; `maps_test` calls both through constant references.
+
 `SparseMap< K, V, Comp >` is a `std::map< K, V, Comp >`, with
 `Comp = std::less< K >` by default, together with a default value for the keys
 that are not stored. It is built from the default value (by default `V()`),
