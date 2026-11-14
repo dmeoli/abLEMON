@@ -825,23 +825,23 @@ Given two undirected graphs $G_1=(V_1,E_1)$ and $G_2=(V_2,E_2)$, with
 $n_1=|V_1|$ and $n_2=|V_2|$, a *mapping* (or embedding) is an injective
 function $f:V_1\to V_2$. In the *Subgraph Isomorphism Problem* one looks for a
 mapping with $f(u)f(v)\in E_2$ whenever $uv\in E_1$, and in the *Induced
-Subgraph Isomorphism Problem* one requires, furthermore, that
-$f(u)f(v)\notin E_2$ whenever $uv\notin E_1$. In the *Graph Isomorphism
-Problem* the induced mapping must also be bijective. When the nodes carry
-labels $l_1:V_1\to L$ and $l_2:V_2\to L$, one also requires that
-$l_1(u)=l_2(f(u))$ for each $u\in V_1$. An enumeration `MappingType` (in the
-namespace `lemon`, from `lemon/bits/vf2_internals.h`) selects the problem,
-with the values `SUBGRAPH` (the default), `INDUCED` and `ISOMORPH`. According
-to the header, `ISOMORPH` is equivalent to `INDUCED` when the two graphs have
-the same number of nodes, and to `SUBGRAPH` when they also have the same
-number of edges, but it may be faster than both, since its cutting rules are
-stronger. We remark that the classes do not compare $n_1$ with $n_2$. With
-$n_1<n_2$, `ISOMORPH` gives the induced mappings that preserve the degrees,
-i.e., the isomorphisms of $G_1$ onto a union of connected components of $G_2$
-(e.g., four mappings of one edge into two disjoint edges), so that the caller
-who wants the isomorphisms checks `countNodes()` first. Both classes assume
-simple graphs: a pair of parallel edges in $G_2$ makes a candidate appear
-twice, and the same mapping is then reported twice.
+Subgraph Isomorphism Problem* one requires, furthermore, that $f(u)f(v)\notin
+E_2$ whenever $uv\notin E_1$. In the *Graph Isomorphism Problem* the induced
+mapping must also be bijective. When the nodes carry labels $l_1:V_1\to L$ and
+$l_2:V_2\to L$, one also requires that $l_1(u)=l_2(f(u))$ for each $u\in V_1$.
+An enumeration `MappingType` (in the namespace `lemon`, from
+`lemon/bits/vf2_internals.h`) selects the problem, with the values `SUBGRAPH`
+(the default), `INDUCED` and `ISOMORPH`. According to the header, `ISOMORPH`
+is equivalent to `INDUCED` when the two graphs have the same number of nodes,
+and to `SUBGRAPH` when they also have the same number of edges, but it may be
+faster than both, since its cutting rules are stronger. For `ISOMORPH`,
+`find()` compares $n_1$ with $n_2$ first and returns `false` when they differ,
+since otherwise the search would give the induced mappings that preserve the
+degrees, i.e., the isomorphisms of $G_1$ onto a union of connected components
+of $G_2$ (e.g., four mappings of one edge into two disjoint edges). Both
+classes require simple graphs, as their headers state: a pair of parallel
+edges in $G_2$ makes a candidate appear twice, and the same mapping is then
+reported twice.
 
 Of course, the subgraph isomorphism problem is NP-complete, since it contains
 the clique problem. Hence, the two algorithms of this section are backtracking
@@ -881,8 +881,8 @@ order), and with the same numbers for $w$, read from $\mathrm{conn}$, it
 requires $r^{\mathrm{io}}(u)\le r^{\mathrm{io}}(w)$, also
 $r^{\mathrm{new}}(u)\le r^{\mathrm{new}}(w)$ for `INDUCED`, and both
 equalities for `ISOMORPH`. We call *admissible* the mappings of the type (with
-the labels), where for `ISOMORPH` this means induced and preserving the
-degrees.
+the labels), where for `ISOMORPH` this means an isomorphism, i.e., an induced
+mapping with $n_1=n_2$, which then preserves the degrees.
 
 <span id="thm-18-15"></span>**Theorem 18.15.** *On simple graphs, the
 successive calls of `find()` return each admissible mapping exactly once, and
@@ -998,7 +998,10 @@ labels.
     wizards being friends of the classes whose flags of deallocation they set
     (trac #682); and `lemon/vf2pp.h` includes `lemon/list_graph.h`, whose
     `ListGraph` its default arguments name, so that each of the two headers is
-    self-contained.
+    self-contained. In the code of the repository, `ISOMORPH` did not compare
+    $n_1$ with $n_2$, so that, e.g., `vf2(g1, g2).iso().count()` was 4 for
+    one edge and two disjoint edges; `vf2_test` checks that it is 0, with
+    both classes.
 
 The program `manual/examples/18-isomorphism.cc` (the test
 `manual_18_isomorphism`) counts the automorphisms of the cycle on five nodes

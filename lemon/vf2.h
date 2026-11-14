@@ -405,6 +405,9 @@ class Vf2
    case INDUCED:
     return( extMatch< INDUCED >() );
    case ISOMORPH:
+    // an isomorphism needs as many nodes in the two graphs
+    if( _depth == 0 && countNodes( _g1 ) != countNodes( _g2 ) )
+     return( false );
     return( extMatch< ISOMORPH >() );
    default:
     return( false );

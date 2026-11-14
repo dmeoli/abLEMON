@@ -496,4 +496,23 @@ int main()
 
  check( vf2( c10 , c10 ).iso().run() , "C10 and C10 are isomorphic." );
  check( vf2pp( c10 , c10 ).iso().run() , "C10 and C10 are isomorphic." );
+
+ // an isomorphism maps onto all the nodes: K2 is an induced subgraph of
+ // two disjoint copies of K2, but it is not isomorphic to them
+ {
+  SmartGraph k2 , k2k2;
+  k2.addEdge( k2.addNode() , k2.addNode() );
+  for( int i = 0 ; i < 2 ; ++i )
+   k2k2.addEdge( k2k2.addNode() , k2k2.addNode() );
+  check( vf2( k2 , k2k2 ).induced().count() == 4 ,
+	 "K2 has 4 induced mappings into 2K2." );
+  check( vf2( k2 , k2k2 ).iso().count() == 0 ,
+	 "K2 and 2K2 are not isomorphic." );
+  check( vf2pp( k2 , k2k2 ).iso().count() == 0 ,
+	 "K2 and 2K2 are not isomorphic." );
+  check( ! vf2( k2 , k2k2 ).iso().run() , "K2 and 2K2 are not isomorphic." );
+  check( ! vf2pp( k2 , k2k2 ).iso().run() , "K2 and 2K2 are not isomorphic." );
+  check( vf2( k2 , k2 ).iso().count() == 2 , "K2 has 2 automorphisms." );
+  check( vf2pp( k2 , k2 ).iso().count() == 2 , "K2 has 2 automorphisms." );
+  }
  }
