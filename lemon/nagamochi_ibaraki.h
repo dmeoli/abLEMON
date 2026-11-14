@@ -176,7 +176,7 @@ class NagamochiIbaraki
  {
   typedef CR HeapCrossRef;
   typedef H Heap;
-  static HeapCrossRef * createHeapCrossRef( int ) {
+  static HeapCrossRef * createHeapCrossRef( const Graph & ) {
    LEMON_ASSERT( false , "HeapCrossRef is not initialized" );
    return( 0 );  // ignore warnings
    }
@@ -191,7 +191,7 @@ class NagamochiIbaraki
  ///
  /// \ref named-templ-param "Named parameter" for setting heap and
  /// cross reference type. The heap has to maximize the priorities.
- template< class H , class CR = RangeMap< int > >
+ template< class H , class CR = typename Graph::template NodeMap< int > >
  struct SetHeap
      : public NagamochiIbaraki< Graph , CapacityMap , SetHeapTraits< H , CR > >
  {
@@ -204,8 +204,8 @@ class NagamochiIbaraki
  {
   typedef CR HeapCrossRef;
   typedef H Heap;
-  static HeapCrossRef * createHeapCrossRef( int size ) {
-   return( new HeapCrossRef( size ) );
+  static HeapCrossRef * createHeapCrossRef( const Graph & graph ) {
+   return( new HeapCrossRef( graph ) );
    }
   static Heap * createHeap( HeapCrossRef & crossref ) {
    return( new Heap( crossref ) );
@@ -226,7 +226,7 @@ class NagamochiIbaraki
  /// function before calling \ref run() or \ref init(). The heap
  /// has to maximize the priorities.
  /// \sa SetHeap
- template< class H , class CR = RangeMap< int > >
+ template< class H , class CR = typename Graph::template NodeMap< int > >
  struct SetStandardHeap
      : public NagamochiIbaraki< Graph , CapacityMap ,
 				SetStandardHeapTraits< H , CR > >

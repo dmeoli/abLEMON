@@ -275,9 +275,9 @@ kept in a linked list, which step 7 follows to write the original nodes. Step
 5 detects a disconnected graph, whose cut of value 0 is the connected
 component of the first node. In abLEMON the comparisons of steps 1 and 7 go
 through the tolerance, while those of steps 6 and 8 are exact. A phase costs
-$O(m\log n)$ with the binary heap, which gives $O(nm\log n)$ in all; the
-header adds that a Fibonacci heap would give $O(nm+n^2\log n)$, and a bucket
-heap $O(nm)$ with unit capacities.
+$O(m\log n)$ with the binary heap, which gives $O(nm\log n)$ in all; a
+Fibonacci heap gives $O(nm+n^2\log n)$ (cf. [§15.3.2](#sec-15-3-2)), and the
+header adds that a bucket heap would give $O(nm)$ with unit capacities.
 
 ### 15.3.2 The class NagamochiIbaraki {#sec-15-3-2}
 
@@ -305,11 +305,17 @@ connectivity of `g`.
 Furthermore, the class declares the named parameters `SetHeap< H , CR >` and
 `SetStandardHeap< H , CR >` (the heap must maximize the keys), and the
 function `heap(hp, cr)`, which hands an external heap and its cross reference
-to the algorithm. However, in the present code the two named parameters do not
-compile: the function that allocates the structures passes the graph to the
-`createHeapCrossRef()` of their traits, which takes an `int`. Hence, the
-binary heap of the default traits is, for now, the only usable one. The test
-`test/nagamochi_ibaraki_test.cc` does not instantiate them.
+to the algorithm. The cross reference is a node map of `int` by default, and
+`SetStandardHeap` constructs it on the graph; e.g., a Fibonacci heap of
+`std::greater< Value >` makes each phase $O(m + n \log n)$, and the whole
+algorithm $O(nm + n^2 \log n)$.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 the two named parameters did not compile, since the
+    function that allocates the structures passes the graph to the
+    `createHeapCrossRef()` of their traits, which took an `int`, and their
+    default cross reference was a `RangeMap< int >`; the test
+    `nagamochi_ibaraki_test` now runs both with a Fibonacci heap.
 
 In the execution, `init()` builds the internal copy of the graph (loops are
 skipped and parallel edges are merged) and makes step 1. Then

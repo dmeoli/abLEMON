@@ -24,6 +24,7 @@
 #include <lemon/concepts/maps.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/nagamochi_ibaraki.h>
+#include <lemon/fib_heap.h>
 
 #include "test_tools.h"
 
@@ -141,6 +142,24 @@ int main()
   check( ni.minCutValue() == 1 , "Wrong cut value" );
   check( ni.minCutValue() == cutValue( graph , cap4 , cut ) ,
 	 "Wrong cut value" );
+  }
+
+ // the named parameters of the heap, which did not compile: a Fibonacci
+ // heap made by the algorithm, and one given by heap()
+ {
+  typedef SmartGraph::NodeMap< int > CrossRef;
+  typedef FibHeap< int , CrossRef , std::greater< int > > Heap;
+  NagamochiIbaraki< SmartGraph >::SetStandardHeap< Heap >::Create ni( graph ,
+								      cap3 );
+  ni.run();
+  check( ni.minCutValue() == 5 , "Wrong cut value with SetStandardHeap" );
+
+  CrossRef cross( graph );
+  Heap heap( cross );
+  NagamochiIbaraki< SmartGraph >::SetHeap< Heap >::Create nh( graph , cap3 );
+  nh.heap( heap , cross );
+  nh.run();
+  check( nh.minCutValue() == 5 , "Wrong cut value with SetHeap" );
   }
 
  return( 0 );
