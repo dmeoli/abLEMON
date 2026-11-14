@@ -127,7 +127,7 @@ SkeletonSolverBase::Sense SkeletonSolverBase::_getSense() const
 
 void SkeletonSolverBase::_clear()
 {
- row_num = col_num = 0;
+ row_num = col_num = -1;  // as the constructor, so that the next index is 0
  }
 
 void SkeletonSolverBase::_messageLevel( MessageLevel )
