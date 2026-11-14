@@ -440,6 +440,9 @@ class Bfs
  ///
  void addSource( Node s ) {
   if( ! ( *_reached )[ s ] ) {
+   if( emptyQueue() ) {  // a new search: its first level is 1
+    _curr_dist = 1;
+    }
    _reached->set( s , true );
    _pred->set( s , INVALID );
    _dist->set( s , 0 );

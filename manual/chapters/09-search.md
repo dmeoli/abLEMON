@@ -86,7 +86,8 @@ init():
 1  for each node v: pred(v) := INVALID; reached(v) := false; processed(v) := false
 2  h := t := 0; k := 1
 addSource(s):
-3  if not reached(s): reached(s) := true; pred(s) := INVALID; d(s) := 0
+3  if not reached(s): if h = t: k := 1         [a new search, from level 1]
+                      reached(s) := true; pred(s) := INVALID; d(s) := 0
 4                     Q[t] := s; t := t + 1; l := t
 processNextNode():
 5  if h = l: k := k + 1; l := t                [the next level begins at h]
@@ -123,14 +124,19 @@ gives the forest and the length of its paths. Each node enters $Q$ at most
 once, by the test of step 8, and the arcs out of each node are scanned once,
 when it is processed; hence, the time is $O(n+m)$. $\square$
 
-The proof needs the sources to be added before the search starts. In
-particular, `run()` adds the source of each new search to the queue of the
-previous one, without resetting $k$; hence, in abLEMON the distances that it
-gives to the nodes of the second and later searches are offset by the number
-of levels of the searches before (a node at distance 1 from the source of the
-second search may get 3), while the reached map, the predecessors and the
-paths are right. One who needs the distances of all the components should run
-one search per component, by `init()`, `addSource()` and `start()`.
+The proof needs the sources to be added before the search starts, or when the
+queue is empty, as `run()` does after each search: step 3 then sets $k=1$, and
+the new search starts from level 1, as the first one does after `init()`.
+Hence, `run()` gives to each node its distance from the source of the search
+that reached it.
+
+!!! note "abLEMON"
+    `addSource()` on an empty queue starts the levels again from 1. In LEMON
+    1.3.1 it kept those of the search before, so that `run()` and
+    `BfsWizard::run()` gave the nodes of the second and later searches
+    distances offset by the levels of the searches before (a node at distance
+    1 from the source of its search could get 3). The test `bfs_test` checks
+    the distances of both on a digraph with two components.
 
 Otherwise, the interface is the one of [§9.1](#sec-9-1), and a call of
 `processNextNode()` processes the first node of the queue and returns it (the
@@ -272,8 +278,8 @@ deduced from the arguments, so that any writable map may be passed, e.g., a
 `LoggerBoolMap` (cf. [chapter 6](06-maps.md#ch-6)) that records the nodes in
 the order of processing. For a search between two nodes, `path(p)` gives a
 path into which the path to the target is copied, and `dist(d)` an `int`
-variable that receives its distance or depth (which, by the remark after
-Theorem 9.1, is undefined when the target is not reached).
+variable that receives its distance or depth (which, by the remark of
+[§9.1](#sec-9-1), is undefined when the target is not reached).
 
 Three runs are available: `run(s)`, `run(s, t)`, which returns whether `t`
 was reached and fills the path and the distance, and `run()`, which visits
@@ -469,9 +475,10 @@ to each source. (The test `test/bfs_test.cc` exercises the interface of
 
 <span id="ex-9-2"></span>**Exercise 9.2.** Use `Bfs` on an undirected graph to
 test whether it is bipartite, by checking that no edge joins two nodes at the
-same distance from the source of their component; compare the answer with
-`bipartite()` of chapter 18, and explain why the distances must be taken from
-one search per component (cf. the remark after Theorem 9.1).
+same distance from the source of their component, as `run()` gives them;
+compare the answer with `bipartite()` of chapter 18, and explain why the
+levels must start again from 1 at each new source (cf. the remark after
+Theorem 9.1).
 
 <span id="ex-9-3"></span>**Exercise 9.3.** Write a visitor of `DfsVisit` that
 numbers the nodes in preorder and in postorder, and use the two numbers to
