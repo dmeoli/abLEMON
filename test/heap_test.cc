@@ -86,9 +86,9 @@ char test_lgf[] = "@nodes\n"
 		  "source 3\n";
 
 int test_seq[] = { 2 , 28 , 19 , 27 , 33 , 25 , 13 , 41 , 10 , 26 , 1 , 9 , 4 ,
-  34 };
+		   34 };
 int test_inc[] = { 20 , 28 , 34 , 16 , 0 , 46 , 44 , 0 , 42 , 32 , 14 , 8 , 6 ,
-  37 };
+		   37 };
 
 int test_len = sizeof( test_seq ) / sizeof( test_seq[ 0 ] );
 

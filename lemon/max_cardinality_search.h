@@ -371,8 +371,8 @@ class MaxCardinalitySearch
  struct SetHeap : public MaxCardinalitySearch< Digraph , CapacityMap ,
 					       DefHeapTraits< H , CR > >
  {
-  typedef MaxCardinalitySearch< Digraph , CapacityMap , DefHeapTraits< H ,
-    CR > >
+  typedef MaxCardinalitySearch< Digraph , CapacityMap ,
+				DefHeapTraits< H , CR > >
     Create;
   };
 

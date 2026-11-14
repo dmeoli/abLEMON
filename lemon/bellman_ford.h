@@ -320,7 +320,7 @@ class BellmanFord
  template< class T >
  struct SetOperationTraits
      : public BellmanFord< Digraph , LengthMap ,
-       SetOperationTraitsTraits< T > >
+			   SetOperationTraitsTraits< T > >
  {
   typedef BellmanFord< Digraph , LengthMap , SetOperationTraitsTraits< T > >
     Create;

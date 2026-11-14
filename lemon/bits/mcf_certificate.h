@@ -60,7 +60,7 @@ struct McfData
  std::vector< char > inf;
  std::vector< int > ref;
 
- McfData() : n( 0 ) {}
+ McfData() : n( 0 ) { }
 
  void addArc( int s , int t , V l , V u , bool i , int r = -1 ) {
   ref.push_back( r );
@@ -98,8 +98,7 @@ bool positiveBeyond( long double x , long double scale , long double tol = -1 )
 {
  return( positiveBeyond< V >(
    x , scale , tol ,
-   std::integral_constant< bool ,
-			   std::numeric_limits< V >::is_integer >() ) );
+   std::integral_constant< bool , std::numeric_limits< V >::is_integer >() ) );
  }
 
 // The violation of the inequality of a set of nodes (in[ u ]) under GEQ,
@@ -286,7 +285,8 @@ void closedSets( const SmartDigraph & g , const CM & cap , const FM & f ,
 // maximum flow.
 template< typename V >
 void maxViolatedSet( const McfData< V > & d , bool leq ,
-		     const std::vector< int > & fix , std::vector< char > & in ,
+		     const std::vector< int > & fix ,
+		     std::vector< char > & in ,
 		     const std::vector< V > * warm = nullptr ,
 		     std::vector< V > * flow = nullptr ,
 		     std::vector< std::vector< char > > * ties = nullptr ,
@@ -330,10 +330,9 @@ void maxViolatedSet( const McfData< V > & d , bool leq ,
  const Node s = g.nodeFromId( n ) , t = g.nodeFromId( n + 1 );
  SmartDigraph::ArcMap< V > cap( g );
  for( int i = 0 ; i != m ; ++i ) {
-  const V c = from[ i ] == to[ i ]
-		? V( 0 )
-		: d.inf[ i ] ? big
-			     : static_cast< V >( d.upper[ i ] - d.lower[ i ] );
+  const V c = from[ i ] == to[ i ] ? V( 0 )
+	      : d.inf[ i ] ? big
+			   : static_cast< V >( d.upper[ i ] - d.lower[ i ] );
   cap.set( g.addArc( g.nodeFromId( from[ i ] ) , g.nodeFromId( to[ i ] ) ) ,
 	   c > 0 ? c : V( 0 ) );
   }
@@ -386,9 +385,9 @@ void maxViolatedSet( const McfData< V > & d , bool leq ,
 // checked before it is given, so that what round-off in floating point
 // makes a mistake of is not given at all.
 template< typename V >
-std::vector< int > infeasibleCut( const McfData< V > & d , bool leq ,
-				  const std::vector< int > & hint =
-				    std::vector< int >() )
+std::vector< int >
+infeasibleCut( const McfData< V > & d , bool leq ,
+	       const std::vector< int > & hint = std::vector< int >() )
 {
  std::vector< int > cut;
  if( d.n == 0 )
@@ -676,12 +675,14 @@ std::vector< std::vector< int > > negativeCycles( const McfData< V > & d ,
   long double scale = 0;
   for( int i = 0 ; i != m ; ++i )
    if( d.inf[ i ] && ! taken[ i ] ) {
-    const Arc a = g.addArc( g.nodeFromId( d.source[ i ] ) ,
-			    g.nodeFromId( d.target[ i ] ) );
+    const Arc a =
+      g.addArc( g.nodeFromId( d.source[ i ] ) ,
+		g.nodeFromId( d.target[ i ] ) );
     len[ a ] = cost[ i ];
     orig.push_back( i );
-    scale = ( std::max )( scale ,
-			  std::abs( static_cast< long double >( cost[ i ] ) ) );
+    scale =
+      ( std::max )( scale ,
+		    std::abs( static_cast< long double >( cost[ i ] ) ) );
     }
   if( orig.empty() )
    break;
@@ -739,9 +740,8 @@ std::vector< std::vector< int > > negativeCycles( const McfData< V > & d ,
 // digraph, ref being the index of each in it, those in inf_upper having
 // an infinite upper bound that init() replaced by a finite one.
 template< typename MCF >
-McfData< typename MCF::Value > residualData( const MCF & mcf ,
-					     const std::vector< int > &
-					     inf_upper )
+McfData< typename MCF::Value >
+residualData( const MCF & mcf , const std::vector< int > & inf_upper )
 {
  typedef typename MCF::Value Value;
  const Value MAX = ( std::numeric_limits< Value >::max )();
@@ -791,8 +791,7 @@ std::vector< typename MCF::Digraph::Node >
 residualCut( const MCF & mcf , const McfData< typename MCF::Value > & d )
 {
  typedef typename MCF::Digraph::Node Node;
- const std::vector< int > ids =
-   infeasibleCut( d , false , mcf._cut_hint );
+ const std::vector< int > ids = infeasibleCut( d , false , mcf._cut_hint );
  std::vector< Node > node_of( d.n , INVALID ) , cut;
  for( typename MCF::Digraph::NodeIt n( mcf._graph ) ; n != INVALID ; ++n )
   node_of[ mcf._node_id[ n ] ] = n;

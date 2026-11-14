@@ -185,7 +185,7 @@ void radixUnsignedSort( Iterator first , Iterator last , Functor functor )
 
 
 template< typename Value ,
-  bool sign = std::numeric_limits< Value >::is_signed >
+	  bool sign = std::numeric_limits< Value >::is_signed >
 struct RadixSortSelector
 {
  template< typename Iterator , typename Functor >
@@ -431,7 +431,7 @@ void stableRadixUnsignedSort( Iterator first , Iterator last ,
 
 
 template< typename Value ,
-  bool sign = std::numeric_limits< Value >::is_signed >
+	  bool sign = std::numeric_limits< Value >::is_signed >
 struct StableRadixSortSelector
 {
  template< typename Iterator , typename Functor >

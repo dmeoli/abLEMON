@@ -321,8 +321,8 @@ class NetworkSimplex
   FirstEligiblePivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) { }
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) { }
 
   // Find next entering arc
   bool findEnteringArc() {
@@ -370,8 +370,7 @@ class NetworkSimplex
   BestEligiblePivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) { }
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) { }
 
   // Find next entering arc
   bool findEnteringArc() {
@@ -413,8 +412,8 @@ class NetworkSimplex
   BlockSearchPivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) {
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) {
    // The main parameters of the pivot rule
    const double BLOCK_SIZE_FACTOR = 1.0;
    const int MIN_BLOCK_SIZE = 10;
@@ -491,8 +490,8 @@ class NetworkSimplex
   CandidateListPivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) {
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) {
    // The main parameters of the pivot rule
    const double LIST_LENGTH_FACTOR = 0.25;
    const int MIN_LIST_LENGTH = 10;
@@ -615,9 +614,9 @@ class NetworkSimplex
   AlteringListPivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) ,
-	_cand_cost( ns._search_arc_num ) , _sort_func( _cand_cost ) {
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) , _cand_cost( ns._search_arc_num ) ,
+	_sort_func( _cand_cost ) {
    // The main parameters of the pivot rule
    const double BLOCK_SIZE_FACTOR = 1.0;
    const int MIN_BLOCK_SIZE = 10;
@@ -1001,8 +1000,8 @@ class NetworkSimplex
  std::vector< std::vector< Node > > infeasibleCuts( int k ) const {
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );
-  return( nodeSets( _mcf_bits::infeasibleCuts( certData() , _stype == LEQ ,
-					       k ) ) );
+  return(
+    nodeSets( _mcf_bits::infeasibleCuts( certData() , _stype == LEQ , k ) ) );
   }
 
  /// \brief Disjoint sets of nodes that prove the problem infeasible.
@@ -1801,8 +1800,8 @@ class NetworkSimplex
   }
 
  // Sets of nodes, by their indices, as nodes of the digraph
- std::vector< std::vector< Node > > nodeSets(
-   const std::vector< std::vector< int > > & ids ) const {
+ std::vector< std::vector< Node > >
+ nodeSets( const std::vector< std::vector< int > > & ids ) const {
   std::vector< Node > node_of( _node_num , INVALID );
   for( NodeIt n( _graph ) ; n != INVALID ; ++n )
    node_of[ _node_id[ n ] ] = n;

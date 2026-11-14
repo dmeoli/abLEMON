@@ -1298,10 +1298,10 @@ class LpBase
  Row addRow( Value l , const Expr & e , Value u ) {
   Row r;
   e.simplify();
-  r._id = _addRowId( _addRow( l - *e , ExprIterator( e.comps.begin() ,
-						     _cols ) ,
+  r._id = _addRowId( _addRow( l - *e ,
+			      ExprIterator( e.comps.begin() , _cols ) ,
 			      ExprIterator( e.comps.end() , _cols ) ,
-	   u - *e ) );
+			      u - *e ) );
   return( r );
   }
 

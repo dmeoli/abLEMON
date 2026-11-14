@@ -325,7 +325,7 @@ class HopcroftKarp
 /// \tparam CM The type of the cost map, whose values must be of a signed
 /// arithmetic type.
 template< typename BPGR ,
-  typename CM = typename BPGR::template EdgeMap< int > >
+	  typename CM = typename BPGR::template EdgeMap< int > >
 class MinCostAssignment
 {
  public:
@@ -352,7 +352,7 @@ class MinCostAssignment
 
  typedef std::pair< Value , int > Item;
  typedef std::priority_queue< Item , std::vector< Item > ,
-   std::greater< Item > >
+			      std::greater< Item > >
    Heap;
 
  // the node y reached at distance d along the edge e, unless it is

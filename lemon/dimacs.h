@@ -131,7 +131,7 @@ template< typename Digraph , typename LowerMap , typename CapacityMap ,
 	  typename CostMap , typename SupplyMap >
 void readDimacsMin( std::istream & is , Digraph & g , LowerMap & lower ,
 		    CapacityMap & capacity , CostMap & cost ,
-	SupplyMap & supply ,
+		    SupplyMap & supply ,
 		    typename CapacityMap::Value infty = 0 ,
 		    DimacsDescriptor desc = DimacsDescriptor() )
 {

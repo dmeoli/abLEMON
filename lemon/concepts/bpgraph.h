@@ -856,7 +856,7 @@ class BpGraph
  ///  doSomething( a );
  ///\endcode
  LemonRangeWrapper2< InArcIt , BpGraph ,
-   Node > inArcs( const Node & u ) const {
+		     Node > inArcs( const Node & u ) const {
   return( LemonRangeWrapper2< InArcIt , BpGraph , Node >( *this , u ) );
   }
 

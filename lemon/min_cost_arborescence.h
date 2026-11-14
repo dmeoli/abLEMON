@@ -485,7 +485,7 @@ class MinCostArborescence
        local_pred( false ) ,
        _arborescence( 0 ) , local_arborescence( false ) , _arc_order( 0 ) ,
        _node_order( 0 ) , _cost_arcs( 0 ) , _heap_cross_ref( 0 ) ,
-	 _heap( 0 ) { }
+       _heap( 0 ) { }
 
  /// \brief Destructor.
  ~MinCostArborescence() { destroyStructures(); }
@@ -806,7 +806,7 @@ typename CostMap::Value minCostArborescence( const Digraph & digraph ,
 					     ArborescenceMap & arborescence )
 {
  typename MinCostArborescence< Digraph ,
-   CostMap >::template SetArborescenceMap<
+			       CostMap >::template SetArborescenceMap<
    ArborescenceMap >::Create mca( digraph , cost );
  mca.arborescenceMap( arborescence );
  mca.run( source );

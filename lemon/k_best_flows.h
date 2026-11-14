@@ -130,11 +130,11 @@ class KBestFlows
  /// The bounds are 0 and infinite, the costs 1 and the supplies 0 until
  /// they are given.
  explicit KBestFlows( const GR & graph )
-     : _graph( graph ) , _n( countNodes( graph ) ) ,
-       _m( countArcs( graph ) ) , _node_id( graph ) , _arc_id( graph ) ,
-       _source( _m ) , _target( _m ) , _lower( _m , 0 ) , _upper( _m , 0 ) ,
-       _supply( _n , 0 ) , _inf( _m , 1 ) , _cost( _m , 1 ) ,
-       _has_init( false ) {
+     : _graph( graph ) , _n( countNodes( graph ) ) , _m( countArcs( graph ) ) ,
+       _node_id( graph ) , _arc_id( graph ) , _source( _m ) , _target( _m ) ,
+       _lower( _m , 0 ) , _upper( _m , 0 ) , _supply( _n , 0 ) ,
+       _inf( _m , 1 ) ,
+       _cost( _m , 1 ) , _has_init( false ) {
   int i = 0;
   for( NodeIt u( graph ) ; u != INVALID ; ++u )
    _node_id[ u ] = i++;
@@ -446,8 +446,8 @@ class KBestFlows
   auto dijkstra = [ & ]( int s0 , int skip ) {
    std::fill( dist.begin() , dist.end() , INFC );
    std::fill( pred.begin() , pred.end() , -1 );
-   std::priority_queue< Item , std::vector< Item > , std::greater< Item > >
-     heap;
+   std::priority_queue< Item , std::vector< Item > ,
+			std::greater< Item > > heap;
    dist[ s0 ] = 0;
    heap.push( Item( Cost( 0 ) , s0 ) );
    while( ! heap.empty() ) {
@@ -488,8 +488,8 @@ class KBestFlows
     const int u = tail( r ) , rr = r ^ 1;
     std::vector< Cost > d2;
     std::vector< int > p2;
-    const std::vector< Cost > * dp = & dist;
-    const std::vector< int > * pp = & pred;
+    const std::vector< Cost > * dp = &dist;
+    const std::vector< int > * pp = &pred;
     if( pred[ u ] == rr ) {
      // the shortest path is the reverse of r alone: one without it
      const std::vector< Cost > d0 = dist;
@@ -499,8 +499,8 @@ class KBestFlows
      p2 = pred;
      dist = d0;
      pred = p0;
-     dp = & d2;
-     pp = & p2;
+     dp = &d2;
+     pp = &p2;
      }
     if( ( *dp )[ u ] == INFC )
      continue;
@@ -515,7 +515,7 @@ class KBestFlows
      s.cycle.insert( s.cycle.end() , path.rbegin() , path.rend() );
      }
     }
-  }
+   }
   if( s.cycle.empty() )
    return;
   // the exact cost, as the sum of the costs of the cycle

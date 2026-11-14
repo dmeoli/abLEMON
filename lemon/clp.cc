@@ -144,7 +144,7 @@ void ClpLp::_setColName( int c , const std::string & name )
 int ClpLp::_colByName( const std::string & name ) const
 {
  std::map< std::string ,
-   int >::const_iterator it = _col_names_ref.find( name );
+	   int >::const_iterator it = _col_names_ref.find( name );
  return( it != _col_names_ref.end() ? it->second : -1 );
  }
 
@@ -162,7 +162,7 @@ void ClpLp::_setRowName( int r , const std::string & name )
 int ClpLp::_rowByName( const std::string & name ) const
 {
  std::map< std::string ,
-   int >::const_iterator it = _row_names_ref.find( name );
+	   int >::const_iterator it = _row_names_ref.find( name );
  return( it != _row_names_ref.end() ? it->second : -1 );
  }
 

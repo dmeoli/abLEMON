@@ -316,7 +316,7 @@ void checkConcepts()
   checkConcept< MappableBpGraphComponent<> , MappableBpGraphComponent<> >();
 
   checkConcept< ExtendableBpGraphComponent<> ,
-    ExtendableBpGraphComponent<> >();
+		ExtendableBpGraphComponent<> >();
 
   checkConcept< ErasableBpGraphComponent<> , ErasableBpGraphComponent<> >();
 

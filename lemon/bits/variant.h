@@ -233,7 +233,7 @@ class BiVariant
   }
 
  char data[ _variant_bits::CTMax< sizeof( First ) ,
-   sizeof( Second ) >::value ];
+				  sizeof( Second ) >::value ];
  bool flag;
  };
 
@@ -460,9 +460,9 @@ struct Insert
  };
 
 template< int _idx , typename _T0 , typename _T1 , typename _T2 ,
-  typename _T3 ,
+	  typename _T3 ,
 	  typename _T4 , typename _T5 , typename _T6 , typename _T7 ,
-     typename _T8 ,
+	  typename _T8 ,
 	  typename _T9 >
 struct Mapper
 {
@@ -497,7 +497,7 @@ struct VariantTypeMap
  struct Map
  {
   typedef typename _variant_bits::Mapper< _idx , _T0 , _T1 , _T2 , _T3 , _T4 ,
-    _T5 ,
+					  _T5 ,
 					  _T6 , _T7 , _T8 , _T9 >::Type Type;
   };
  };

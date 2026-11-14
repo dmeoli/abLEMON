@@ -88,7 +88,7 @@ struct DefaultGraphToEpsTraits
  std::ostream & os;
 
  typedef ConstMap< typename Graph::Node ,
-   dim2::Point< double > > CoordsMapType;
+		   dim2::Point< double > > CoordsMapType;
  CoordsMapType _coords;
  ConstMap< typename Graph::Node , double > _nodeSizes;
  ConstMap< typename Graph::Node , int > _nodeShapes;

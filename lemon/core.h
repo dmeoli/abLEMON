@@ -468,7 +468,7 @@ class MapCopyBase
  };
 
 template< typename Digraph , typename Item , typename RefMap ,
-  typename FromMap ,
+	  typename FromMap ,
 	  typename ToMap >
 class MapCopy : public MapCopyBase< Digraph , Item , RefMap >
 {
@@ -521,7 +521,7 @@ class RefCopy : public MapCopyBase< Digraph , Item , RefMap >
  };
 
 template< typename Digraph , typename Item , typename RefMap ,
-  typename CrossRef >
+	  typename CrossRef >
 class CrossRefCopy : public MapCopyBase< Digraph , Item , RefMap >
 {
  public:
@@ -602,7 +602,7 @@ struct BpGraphCopySelector
  static void copy( const From & from , BpGraph & to ,
 		   RedNodeRefMap & redNodeRefMap ,
 		   BlueNodeRefMap & blueNodeRefMap ,
-       EdgeRefMap & edgeRefMap ) {
+		   EdgeRefMap & edgeRefMap ) {
   to.clear();
   for( typename From::RedNodeIt it( from ) ; it != INVALID ; ++it ) {
    redNodeRefMap[ it ] = to.addRedNode();
@@ -626,7 +626,7 @@ struct BpGraphCopySelector<
  static void copy( const From & from , BpGraph & to ,
 		   RedNodeRefMap & redNodeRefMap ,
 		   BlueNodeRefMap & blueNodeRefMap ,
-       EdgeRefMap & edgeRefMap ) {
+		   EdgeRefMap & edgeRefMap ) {
   to.build( from , redNodeRefMap , blueNodeRefMap , edgeRefMap );
   }
  };
@@ -813,7 +813,7 @@ class DigraphCopy
  DigraphCopy & arcCrossRef( ArcCrossRef & map ) {
   _arc_maps.push_back(
     new _core_bits::CrossRefCopy< From , Arc , ArcRefMap ,
-      ArcCrossRef >( map ) );
+				  ArcCrossRef >( map ) );
   return( *this );
   }
 
@@ -863,7 +863,7 @@ class DigraphCopy
  To & _to;
 
  std::vector< _core_bits::MapCopyBase< From , Node ,
-   NodeRefMap > * > _node_maps;
+				       NodeRefMap > * > _node_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Arc , ArcRefMap > * > _arc_maps;
  };
@@ -1076,7 +1076,7 @@ class GraphCopy
  GraphCopy & arcCrossRef( ArcCrossRef & map ) {
   _arc_maps.push_back(
     new _core_bits::CrossRefCopy< From , Arc , ArcRefMap ,
-      ArcCrossRef >( map ) );
+				  ArcCrossRef >( map ) );
   return( *this );
   }
 
@@ -1182,12 +1182,12 @@ class GraphCopy
  To & _to;
 
  std::vector< _core_bits::MapCopyBase< From , Node ,
-   NodeRefMap > * > _node_maps;
+				       NodeRefMap > * > _node_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Arc , ArcRefMap > * > _arc_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Edge ,
-   EdgeRefMap > * > _edge_maps;
+				       EdgeRefMap > * > _edge_maps;
  };
 
 /// \brief Copy a graph to another graph.
@@ -1416,7 +1416,7 @@ class BpGraphCopy
  BpGraphCopy & redRef( RedRef & map ) {
   _red_maps.push_back(
     new _core_bits::RefCopy< From , RedNode , RedNodeRefMap ,
-      RedRef >( map ) );
+			     RedRef >( map ) );
   return( *this );
   }
 
@@ -1431,7 +1431,7 @@ class BpGraphCopy
  BpGraphCopy & redCrossRef( RedCrossRef & map ) {
   _red_maps.push_back(
     new _core_bits::CrossRefCopy< From , RedNode , RedNodeRefMap ,
-      RedCrossRef >(
+				  RedCrossRef >(
       map ) );
   return( *this );
   }
@@ -1448,7 +1448,7 @@ class BpGraphCopy
  BpGraphCopy & redNodeMap( const FromMap & map , ToMap & tmap ) {
   _red_maps.push_back(
     new _core_bits::MapCopy< From , RedNode , RedNodeRefMap , FromMap ,
-      ToMap >(
+			     ToMap >(
       map , tmap ) );
   return( *this );
   }
@@ -1504,7 +1504,7 @@ class BpGraphCopy
  BpGraphCopy & blueNodeMap( const FromMap & map , ToMap & tmap ) {
   _blue_maps.push_back(
     new _core_bits::MapCopy< From , BlueNode , BlueNodeRefMap , FromMap ,
-      ToMap >(
+			     ToMap >(
       map , tmap ) );
   return( *this );
   }
@@ -1542,7 +1542,7 @@ class BpGraphCopy
  BpGraphCopy & arcCrossRef( ArcCrossRef & map ) {
   _arc_maps.push_back(
     new _core_bits::CrossRefCopy< From , Arc , ArcRefMap ,
-      ArcCrossRef >( map ) );
+				  ArcCrossRef >( map ) );
   return( *this );
   }
 
@@ -1656,7 +1656,7 @@ class BpGraphCopy
  To & _to;
 
  std::vector< _core_bits::MapCopyBase< From , Node ,
-   NodeRefMap > * > _node_maps;
+				       NodeRefMap > * > _node_maps;
 
  std::vector< _core_bits::MapCopyBase< From , RedNode , RedNodeRefMap > * >
    _red_maps;
@@ -1667,7 +1667,7 @@ class BpGraphCopy
  std::vector< _core_bits::MapCopyBase< From , Arc , ArcRefMap > * > _arc_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Edge ,
-   EdgeRefMap > * > _edge_maps;
+				       EdgeRefMap > * > _edge_maps;
  };
 
 /// \brief Copy a graph to another graph.
@@ -1983,7 +1983,7 @@ class DynArcLookUp
      : public ItemSetTraits< GR , Node >::template Map< Arc >::Type
  {
   typedef typename ItemSetTraits< GR ,
-    Node >::template Map< Arc >::Type Parent;
+				  Node >::template Map< Arc >::Type Parent;
 
   public:
   AutoNodeMap( const GR & digraph ) : Parent( digraph , INVALID ) { }

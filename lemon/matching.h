@@ -1596,12 +1596,12 @@ class MaxWeightedMatching
      int tb = subblossoms[ ( ib + i + 1 ) % subblossoms.size() ];
 
      Arc m = ( *_blossom_data )[ tb ].next;
-     stack.push_back( ExtractBlossomItem(
-       sb , _graph.target( m ) , _graph.oppositeArc( m ) ,
-	 static_cast< int >( close_stack.size() ) ) );
      stack.push_back(
-       ExtractBlossomItem( tb , _graph.source( m ) , m ,
+       ExtractBlossomItem( sb , _graph.target( m ) , _graph.oppositeArc( m ) ,
 			   static_cast< int >( close_stack.size() ) ) );
+     stack.push_back( ExtractBlossomItem(
+       tb , _graph.source( m ) , m ,
+       static_cast< int >( close_stack.size() ) ) );
      }
     }
    }
@@ -3084,12 +3084,12 @@ class MaxWeightedPerfectMatching
      int tb = subblossoms[ ( ib + i + 1 ) % subblossoms.size() ];
 
      Arc m = ( *_blossom_data )[ tb ].next;
-     stack.push_back( ExtractBlossomItem(
-       sb , _graph.target( m ) , _graph.oppositeArc( m ) ,
-	 static_cast< int >( close_stack.size() ) ) );
      stack.push_back(
-       ExtractBlossomItem( tb , _graph.source( m ) , m ,
+       ExtractBlossomItem( sb , _graph.target( m ) , _graph.oppositeArc( m ) ,
 			   static_cast< int >( close_stack.size() ) ) );
+     stack.push_back( ExtractBlossomItem(
+       tb , _graph.source( m ) , m ,
+       static_cast< int >( close_stack.size() ) ) );
      }
     }
    }

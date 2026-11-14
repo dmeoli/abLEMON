@@ -579,7 +579,7 @@ void checkUndirector()
 				  Digraph::ArcMap< bool > >
    BoolCombinedMap;
  checkConcept< concepts::ReferenceMap< Adaptor::Arc , int , int & ,
-   const int & > ,
+				       const int & > ,
 	       IntCombinedMap >();
  checkConcept<
    concepts::ReferenceMap< Adaptor::Arc , bool , bool & , const bool & > ,
@@ -885,7 +885,7 @@ void checkSplitNodes()
 				  Digraph::NodeMap< bool > >
    BoolCombinedArcMap;
  checkConcept< concepts::ReferenceMap< Adaptor::Arc , int , int & ,
-   const int & > ,
+				       const int & > ,
 	       IntCombinedArcMap >();
  //checkConcept<concepts::ReferenceMap<Adaptor::Arc, bool, bool&, const bool&>,
  //  BoolCombinedArcMap>();
@@ -922,7 +922,7 @@ void checkSubGraph()
  checkConcept< concepts::Graph , SubGraph< ListGraph > >();
  checkConcept< concepts::AlterableGraphComponent<> , SubGraph< ListGraph > >();
  checkConcept< concepts::ExtendableGraphComponent<> ,
-   SubGraph< ListGraph > >();
+	       SubGraph< ListGraph > >();
  checkConcept< concepts::ErasableGraphComponent<> , SubGraph< ListGraph > >();
  checkConcept< concepts::ClearableGraphComponent<> , SubGraph< ListGraph > >();
 
@@ -1294,7 +1294,7 @@ void checkOrienter()
  checkConcept< concepts::ExtendableDigraphComponent<> ,
 	       Orienter< ListGraph > >();
  checkConcept< concepts::ErasableDigraphComponent<> ,
-   Orienter< ListGraph > >();
+	       Orienter< ListGraph > >();
  checkConcept< concepts::ClearableDigraphComponent<> ,
 	       Orienter< ListGraph > >();
 

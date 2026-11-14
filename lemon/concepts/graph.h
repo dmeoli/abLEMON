@@ -623,7 +623,7 @@ class Graph
  /// copy( g.outArcs( u ).begin() , g.outArcs( u ).end() , vect.begin() );
  ///\endcode
  LemonRangeWrapper2< OutArcIt , Graph ,
-   Node > outArcs( const Node & u ) const {
+		     Node > outArcs( const Node & u ) const {
   return( LemonRangeWrapper2< OutArcIt , Graph , Node >( *this , u ) );
   }
 

@@ -174,12 +174,12 @@ struct KruskalValueSelector<
  };
 
 template< typename Graph , typename In , typename Out ,
-  typename InEnable = void >
+	  typename InEnable = void >
 struct KruskalInputSelector
 { };
 
 template< typename Graph , typename In , typename Out ,
-  typename InEnable = void >
+	  typename InEnable = void >
 struct KruskalOutputSelector
 { };
 
@@ -198,8 +198,8 @@ struct KruskalInputSelector<
 
 template< typename Graph , typename In , typename Out >
 struct KruskalInputSelector<
-  Graph , In , Out , typename enable_if< MapInputIndicator< In > ,
-    void >::type >
+  Graph , In , Out ,
+    typename enable_if< MapInputIndicator< In > , void >::type >
 {
  typedef typename In::Value Value;
  static Value kruskal( const Graph & graph , const In & in , Out & out ) {
@@ -248,8 +248,8 @@ struct KruskalOutputSelector<
 
 template< typename Graph , typename In , typename Out >
 struct KruskalOutputSelector<
-  Graph , In , Out , typename enable_if< MapOutputIndicator< Out > ,
-    void >::type >
+  Graph , In , Out ,
+    typename enable_if< MapOutputIndicator< Out > , void >::type >
 {
  typedef typename In::value_type::second_type Value;
 
@@ -333,7 +333,7 @@ inline typename _kruskal_bits::KruskalValueSelector< In >::Value
 kruskal( const Graph & graph , const In & in , const Out & out )
 {
  return( _kruskal_bits::KruskalInputSelector< Graph , In ,
-	 const Out >::kruskal(
+					      const Out >::kruskal(
    graph , in , out ) );
  }
 

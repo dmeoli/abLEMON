@@ -381,7 +381,7 @@ class Digraph
  /// copy( g.inArcs( u ).begin() , g.inArcs( u ).end() , vect.begin() );
  ///\endcode
  LemonRangeWrapper2< InArcIt , Digraph ,
-   Node > inArcs( const Node & u ) const {
+		     Node > inArcs( const Node & u ) const {
   return( LemonRangeWrapper2< InArcIt , Digraph , Node >( *this , u ) );
   }
 

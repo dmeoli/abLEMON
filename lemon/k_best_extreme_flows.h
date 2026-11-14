@@ -300,8 +300,8 @@ class KBestExtremeFlows
   // for the first basis, kept by its cost alone: the basis it leads to is
   // made when it leaves the queue
   typedef std::pair< Cost , std::pair< int , int > > Item;
-  std::priority_queue< Item , std::vector< Item > , std::greater< Item > >
-    queue;
+  std::priority_queue< Item , std::vector< Item > ,
+		       std::greater< Item > > queue;
   struct Expanded
   {
    State state;
@@ -387,9 +387,9 @@ class KBestExtremeFlows
    std::vector< int > order( _flows.size() );
    for( std::size_t i = 0 ; i != order.size() ; ++i )
     order[ i ] = int( i );
-   std::stable_sort( order.begin() , order.end() ,
-		     [ this ]( int x , int y ) {
-		      return( _costs[ x ] < _costs[ y ] ); } );
+   std::stable_sort( order.begin() , order.end() , [ this ]( int x , int y ) {
+    return( _costs[ x ] < _costs[ y ] );
+    } );
    std::vector< std::vector< Value > > flows;
    std::vector< Cost > costs;
    for( std::size_t i = 0 ; i != order.size() ; ++i ) {
@@ -525,13 +525,14 @@ class KBestExtremeFlows
 
   add( pi );
   const std::vector< std::vector< int > > out = openArcs( s , false ) ,
-					   in = openArcs( s , true );
+					  in = openArcs( s , true );
   std::vector< Cost > dist;
   std::vector< int > pred;
   for( int v = 0 ; v != _n && int( _pots.size() ) < k ; ++v )
    for( int dir = 0 ; dir != 2 && int( _pots.size() ) < k ; ++dir ) {
     shortestPaths( dir == 0 ? out : in , v , dir == 1 , rc , false , ceps ,
-		   dist , pred );
+		   dist ,
+		   pred );
     Cost far = 0;
     for( int u = 0 ; u != nn ; ++u )
      far = ( std::max )( far , dist[ u ] );
@@ -722,7 +723,8 @@ class KBestExtremeFlows
   // the cycle of the residual arc r closed by the path from head( r ) to
   // tail( r ) of the tree pred, saturated and made a vertex
   auto step = [ & ]( const State & x , int r ,
-		     const std::vector< int > & pred , State & y ) -> bool {
+		     const std::vector< int > & pred ,
+		     State & y ) -> bool {
    std::vector< int > cycle( 1 , r );
    for( int w = tail( r ) ; w != head( r ) ; w = tail( pred[ w ] ) )
     cycle.push_back( pred[ w ] );
@@ -767,21 +769,22 @@ class KBestExtremeFlows
   // the path is then found from its head along those arcs
   std::vector< State > optimal( 1 , s );
   give( s );
-  for( std::size_t i = 0 ; i != optimal.size() &&
-		           int( _flows.size() ) < k ; ++i ) {
+  for( std::size_t i = 0 ; i != optimal.size() && int( _flows.size() ) < k ;
+       ++i ) {
    const State x = optimal[ i ];
    const auto out = openArcs( x , false );
    const auto arcs = bounds( x );
    std::vector< int > comp;
    zeroComponents( out , rc , ceps , comp );
-   for( std::size_t h = 0 ; h != arcs.size() &&
-		            int( _flows.size() ) < k ; ++h ) {
+   for( std::size_t h = 0 ; h != arcs.size() && int( _flows.size() ) < k ;
+	++h ) {
     const int r = arcs[ h ];
     if( rc[ r ] > ceps || comp[ tail( r ) ] != comp[ head( r ) ] )
      continue;
     if( tail( r ) != head( r ) &&
 	! shortestPaths( out , head( r ) , false , rc , true , ceps , dist ,
-			 pred , tail( r ) ) )
+			 pred ,
+			 tail( r ) ) )
      continue;
     State y;
     if( step( x , r , pred , y ) && y.cost <= s.cost + ceps && give( y ) )
@@ -802,8 +805,8 @@ class KBestExtremeFlows
    auto arcs = bounds( x );
    std::stable_sort( arcs.begin() , arcs.end() ,
 		     [ & ]( int p , int q ) -> bool {
-		      return( rc[ p ] < rc[ q ] );
-		      } );
+    return( rc[ p ] < rc[ q ] );
+    } );
    for( std::size_t h = 0 ; h != arcs.size() ; ++h ) {
     const int r = arcs[ h ];
     const bool full = kept.size() >= 2 * want;
@@ -813,7 +816,8 @@ class KBestExtremeFlows
     Cost c = rc[ r ];
     if( tail( r ) != head( r ) ) {
      if( ! shortestPaths( out , head( r ) , false , rc , false , ceps , dist ,
-			  pred , tail( r ) , full , worst - rc[ r ] ) )
+			  pred ,
+			  tail( r ) , full , worst - rc[ r ] ) )
       continue;
      c += dist[ tail( r ) ];
      }
@@ -834,8 +838,8 @@ class KBestExtremeFlows
   std::multimap< Cost , std::vector< Value > > cand;
   for( auto it = kept.begin() ; it != kept.end() ; ++it )
    cand.insert( it->second );
-  for( auto it = cand.begin() ; it != cand.end() &&
-	                         int( _flows.size() ) < k ; ++it )
+  for( auto it = cand.begin() ; it != cand.end() && int( _flows.size() ) < k ;
+       ++it )
    if( seen.insert( it->second ).second ) {
     _flows.push_back( it->second );
     _costs.push_back( it->first );
@@ -876,8 +880,8 @@ class KBestExtremeFlows
   for( int pass = 0 ; pass != nn ; ++pass ) {
    bool changed = false;
    for( int r = 0 ; r != rr ; ++r )
-    if( open( s , r ) && pi[ tail( r ) ] + resCost( r ) <
-	                 pi[ head( r ) ] - ceps ) {
+    if( open( s , r ) &&
+	pi[ tail( r ) ] + resCost( r ) < pi[ head( r ) ] - ceps ) {
      pi[ head( r ) ] = pi[ tail( r ) ] + resCost( r );
      changed = true;
      }
@@ -981,9 +985,8 @@ class KBestExtremeFlows
       stack.push_back( z );
       call.push_back( std::make_pair( z , std::size_t( 0 ) ) );
       }
-     else
-      if( comp[ z ] < 0 )
-       low[ w ] = ( std::min )( low[ w ] , index[ z ] );
+     else if( comp[ z ] < 0 )
+      low[ w ] = ( std::min )( low[ w ] , index[ z ] );
      continue;
      }
     if( low[ w ] == index[ w ] ) {
@@ -997,8 +1000,8 @@ class KBestExtremeFlows
      }
     call.pop_back();
     if( ! call.empty() )
-     low[ call.back().first ] = ( std::min )( low[ call.back().first ] ,
-					    low[ w ] );
+     low[ call.back().first ] =
+       ( std::min )( low[ call.back().first ] , low[ w ] );
     }
    }
   }
@@ -1006,7 +1009,7 @@ class KBestExtremeFlows
  // Whether the arc i is strictly within its bounds
  bool isFree( const State & s , int i ) const {
   return( s.flow[ i ] > _lower[ i ] + _feps &&
-	  ( _inf[ i ] || s.flow[ i ] < _upper[ i ] - _feps ) );
+	   ( _inf[ i ] || s.flow[ i ] < _upper[ i ] - _feps ) );
   }
 
  // Whether flow may go along the residual arc r (2 i forward, 2 i + 1

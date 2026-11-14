@@ -173,7 +173,7 @@ ArgParser & ArgParser::refOption( const std::string & name ,
 
 ArgParser & ArgParser::refOption( const std::string & name ,
 				  const std::string & help ,
-	std::string & ref ,
+				  std::string & ref ,
 				  bool obl )
 {
  ParData p;

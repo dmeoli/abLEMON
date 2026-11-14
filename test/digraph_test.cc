@@ -60,8 +60,8 @@ void checkDigraphBuild()
 
  checkGraphConArcList( G , 1 );
 
- Arc a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 , n3 ) , a4 = G.addArc( n2 ,
-									  n3 );
+ Arc a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 , n3 ) ,
+   a4 = G.addArc( n2 , n3 );
  ::lemon::ignore_unused_variable_warning( a2 , a3 , a4 );
 
  checkGraphNodeList( G , 3 );
@@ -90,8 +90,8 @@ void checkDigraphSplit()
 
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) ,
+   a3 = G.addArc( n2 , n3 ) ,
      a4 = G.addArc( n2 , n3 );
  ::lemon::ignore_unused_variable_warning( a1 , a2 , a3 , a4 );
 
@@ -125,8 +125,8 @@ void checkDigraphAlter()
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode() ,
    n4 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) , a3 = G.addArc( n4 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) ,
+   a3 = G.addArc( n4 , n3 ) ,
      a4 = G.addArc( n4 , n3 ) , a5 = G.addArc( n2 , n4 );
  ::lemon::ignore_unused_variable_warning( a1 , a2 , a3 , a5 );
 
@@ -206,8 +206,8 @@ void checkDigraphErase()
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode() ,
    n4 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) , a3 = G.addArc( n4 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) ,
+   a3 = G.addArc( n4 , n3 ) ,
      a4 = G.addArc( n3 , n1 ) , a5 = G.addArc( n2 , n4 );
  ::lemon::ignore_unused_variable_warning( a2 , a3 , a4 , a5 );
 
@@ -256,8 +256,8 @@ void checkDigraphSnapshot()
 
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) ,
+   a3 = G.addArc( n2 , n3 ) ,
      a4 = G.addArc( n2 , n3 );
  ::lemon::ignore_unused_variable_warning( a1 , a2 , a3 , a4 );
 

@@ -1356,7 +1356,7 @@ void topologicalSort( const Digraph & digraph , NodeMap & order )
 
  checkConcept< concepts::Digraph , Digraph >();
  checkConcept< concepts::WriteMap< typename Digraph::Node , int > ,
-   NodeMap >();
+	       NodeMap >();
 
  typedef typename Digraph::NodeIt NodeIt;
 

@@ -132,7 +132,7 @@ class HaoOrlin
 	   const Tolerance & tolerance = Tolerance() )
      : _graph( graph ) , _capacity( &capacity ) , _flow( 0 ) , _source() ,
        _node_num() , _first() , _last() , _next( 0 ) , _prev( 0 ) ,
-	 _active( 0 ) ,
+       _active( 0 ) ,
        _bucket( 0 ) , _dormant() , _sets() , _highest() , _excess( 0 ) ,
        _source_set( 0 ) , _min_cut() , _min_cut_map( 0 ) ,
        _tolerance( tolerance ) { }

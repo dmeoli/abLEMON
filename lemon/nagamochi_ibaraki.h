@@ -167,7 +167,7 @@ class NagamochiIbaraki
      : public NagamochiIbaraki< Graph , CapacityMap , SetUnitCapacityTraits >
  {
   typedef NagamochiIbaraki< Graph , CapacityMap ,
-    SetUnitCapacityTraits > Create;
+			    SetUnitCapacityTraits > Create;
   };
 
 

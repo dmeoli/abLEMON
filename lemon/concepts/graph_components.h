@@ -1155,7 +1155,7 @@ class IterableGraphComponent : public IterableDigraphComponent< BAS >
 		  typename _Graph::EdgeIt >();
     checkConcept<
       GraphIncIt< _Graph , typename _Graph::Edge , typename _Graph::Node ,
-	'e' > ,
+		  'e' > ,
       typename _Graph::IncEdgeIt >();
 
     typename _Graph::Node n;
@@ -1480,7 +1480,7 @@ class GraphMap : public ReferenceMap< K , V , V & , const V & >
  {
   void constraints() {
    checkConcept< ReferenceMap< Key , Value , Value & , const Value & > ,
-     _Map >();
+		 _Map >();
    _Map m1( g );
    _Map m2( g , t );
 

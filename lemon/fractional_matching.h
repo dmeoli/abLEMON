@@ -120,7 +120,7 @@ struct MaxFractionalMatchingDefaultTraits
 template< typename GR , typename TR >
 #else
 template< typename GR ,
-  typename TR = MaxFractionalMatchingDefaultTraits< GR > >
+	  typename TR = MaxFractionalMatchingDefaultTraits< GR > >
 #endif
 class MaxFractionalMatching
 {

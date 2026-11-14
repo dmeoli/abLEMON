@@ -62,7 +62,6 @@ char test_lgf[] = "@nodes\n"
 		  "7 7    4    4    4   -1   0  0  0  1\n";
 
 
-
 // Perform a test with the given parameters
 template< typename MMC >
 void checkMmcAlg( const SmartDigraph & gr ,
@@ -119,8 +118,8 @@ int main()
 
   // HartmannOrlinMmc
   checkConcept< concepts::MinMeanCycle< GR , int > ,
-		HartmannOrlinMmc< GR , concepts::ReadMap< GR::Arc ,
-    int > > >();
+		HartmannOrlinMmc< GR ,
+				  concepts::ReadMap< GR::Arc , int > > >();
   checkConcept<
     concepts::MinMeanCycle< GR , float > ,
     HartmannOrlinMmc< GR , concepts::ReadMap< GR::Arc , float > > >();
@@ -136,8 +135,8 @@ int main()
 	     long_int >::result == 1 ) ,
 	 "Wrong LargeCost type" );
   check( ( IsSameType<
-	     HowardMmc< GR , concepts::ReadMap< GR::Arc ,
-	float > >::LargeCost ,
+	     HowardMmc< GR ,
+			concepts::ReadMap< GR::Arc , float > >::LargeCost ,
 	     double >::result == 1 ) ,
 	 "Wrong LargeCost type" );
   }
@@ -185,7 +184,7 @@ int main()
   HowardMmc< GR , IntArcMap > mmc( gr , l1 );
   check(
     ( mmc.findCycleMean( 2 ) == HowardMmc< GR ,
-      IntArcMap >::ITERATION_LIMIT ) ,
+					   IntArcMap >::ITERATION_LIMIT ) ,
     "Wrong termination cause" );
   check( ( mmc.findCycleMean( 4 ) == HowardMmc< GR , IntArcMap >::OPTIMAL ) ,
 	 "Wrong termination cause" );

@@ -325,7 +325,7 @@ struct IntConversion< Result , Word , rest , shift , false >
   return(
     ( static_cast< Result >( rnd() ) << shift ) |
     IntConversion< Result , Word , rest - bits ,
-      shift + bits >::convert( rnd ) );
+		   shift + bits >::convert( rnd ) );
   }
  };
 
@@ -441,7 +441,7 @@ struct RealConversion< Result , Word , rest , shift , false >
  static Result convert( RandomCore< Word > & rnd ) {
   return(
     Shifting< Result ,
-      shift + bits >::shift( static_cast< Result >( rnd() ) ) +
+	      shift + bits >::shift( static_cast< Result >( rnd() ) ) +
     RealConversion< Result , Word , rest - bits , shift + bits >::convert(
       rnd ) );
   }

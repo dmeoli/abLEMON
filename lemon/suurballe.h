@@ -163,7 +163,7 @@ class Suurballe
   ResidualDijkstra( Suurballe & srb )
       : _graph( srb._graph ) , _length( srb._length ) , _flow( *srb._flow ) ,
 	_pi( *srb._potential ) , _pred( srb._pred ) , _s( srb._s ) ,
-   _t( srb._t ) ,
+	_t( srb._t ) ,
 	_dist( _graph ) { }
 
   // Run the algorithm and return true if a path is found

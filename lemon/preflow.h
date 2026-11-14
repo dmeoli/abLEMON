@@ -326,7 +326,7 @@ class Preflow
 	  Node target )
      : _graph( digraph ) , _capacity( &capacity ) , _node_num( 0 ) ,
        _source( source ) , _target( target ) , _flow( 0 ) ,
-	 _local_flow( false ) ,
+       _local_flow( false ) ,
        _level( 0 ) , _local_level( false ) , _excess( 0 ) , _tolerance() ,
        _phase() { }
 

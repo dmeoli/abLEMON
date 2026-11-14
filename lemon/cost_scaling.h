@@ -373,7 +373,7 @@ class CostScaling
  /// \c Cost must be convertible to \c LargeCost.
  template< typename T >
  struct SetLargeCost : public CostScaling< GR , V , C ,
-   SetLargeCostTraits< T > >
+					   SetLargeCostTraits< T > >
  {
   typedef CostScaling< GR , V , C , SetLargeCostTraits< T > > Create;
   };
@@ -667,8 +667,9 @@ class CostScaling
   const _mcf_bits::McfData< Value > d =
     _mcf_bits::residualData( *this , _inf_upper );
   return( _mcf_bits::residualArcSets(
-    *this , d , _mcf_bits::negativeCycles(
-		  d , _mcf_bits::residualCosts( d , _scost ) , k ) ) );
+    *this , d ,
+    _mcf_bits::negativeCycles( d , _mcf_bits::residualCosts( d , _scost ) ,
+			       k ) ) );
   }
 
  /// \brief Sets the tolerances on the flows and on the reduced costs.
@@ -975,7 +976,8 @@ class CostScaling
     _flow_tol >= 0
       ? _flow_tol
       : _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
-				  _lower , _upper , _supply , _has_lower );
+				  _lower ,
+				  _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   _feps = feps;
@@ -1029,19 +1031,19 @@ class CostScaling
     }
    }
   _epsilon /= _alpha;
-  _ceps = _cost_tol >= 0
-	    ? _cost_tol
-	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
-					_forward , _scost );
+  _ceps = _cost_tol >= 0 ? _cost_tol
+			 : _mcf_bits::costTolerance(
+			     _root , _first_out , _target , _forward ,
+			     _scost );
   _eps_min = std::numeric_limits< LargeCost >::is_integer
 	       ? LargeCost( 1 )
-	       : ( std::max )( static_cast< LargeCost >( _ceps ) * _res_node_num *
-				 _alpha ,
+	       : ( std::max )( static_cast< LargeCost >( _ceps ) *
+				 _res_node_num * _alpha ,
 			       ( std::numeric_limits< LargeCost >::min )() );
 
   // Find a feasible flow on the residual network
-  if( ! _mcf_bits::feasibleFlow( *this , Value( 0 ) , _sup_node_num ,
-				  _feps , _cut_hint ) ) {
+  if( ! _mcf_bits::feasibleFlow( *this , Value( 0 ) , _sup_node_num , _feps ,
+				 _cut_hint ) ) {
    return( INFEASIBLE );
    }
   if( unbounded )
@@ -1221,10 +1223,10 @@ class CostScaling
        // The number of epsilons by which rc is below zero, less one:
        // with integer costs, ( -rc - 0.5 ) / epsilon truncated, and its
        // exact form, which the 0.5 would spoil on smaller costs, otherwise
-       LargeCost nrc = static_cast< LargeCost >(
-	 std::numeric_limits< LargeCost >::is_integer
-	   ? ( -rc - 0.5 ) / _epsilon
-	   : std::ceil( -rc / _epsilon ) - 1 );
+       LargeCost nrc =
+	 static_cast< LargeCost >( std::numeric_limits< LargeCost >::is_integer
+				     ? ( -rc - 0.5 ) / _epsilon
+				     : std::ceil( -rc / _epsilon ) - 1 );
        // The rank of v is a sum of ranks along a path, which may
        // not fit in the buckets even if each of them does: then
        // the heuristic is abandoned, and the refinement proceeds
@@ -1637,8 +1639,7 @@ class CostScaling
      _res_cap[ _reverse[ pa ] ] += delta;
      _excess[ u ] -= delta;
      _excess[ v ] += delta;
-     if( _excess[ v ] > _feps &&
-	  _excess[ v ] - delta <= _feps ) {
+     if( _excess[ v ] > _feps && _excess[ v ] - delta <= _feps ) {
       _active_nodes.push_back( v );
       }
      }
@@ -1734,8 +1735,7 @@ class CostScaling
 	_res_cap[ _reverse[ a ] ] += delta;
 	_excess[ n ] -= delta;
 	_excess[ t ] += delta;
-	if( _excess[ t ] > _feps &&
-	    _excess[ t ] - delta <= _feps )
+	if( _excess[ t ] > _feps && _excess[ t ] - delta <= _feps )
 	 _active_nodes.push_back( t );
         }
 

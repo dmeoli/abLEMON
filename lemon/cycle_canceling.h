@@ -563,8 +563,9 @@ class CycleCanceling
   const _mcf_bits::McfData< Value > d =
     _mcf_bits::residualData( *this , _inf_upper );
   return( _mcf_bits::residualArcSets(
-    *this , d , _mcf_bits::negativeCycles(
-		  d , _mcf_bits::residualCosts( d , _cost ) , k ) ) );
+    *this , d ,
+    _mcf_bits::negativeCycles( d , _mcf_bits::residualCosts( d , _cost ) ,
+			       k ) ) );
   }
 
  /// \brief Sets the tolerances on the flows and on the reduced costs.
@@ -872,14 +873,14 @@ class CycleCanceling
     _flow_tol >= 0
       ? _flow_tol
       : _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
-				  _lower , _upper , _supply , _has_lower );
+				  _lower ,
+				  _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   _feps = feps;
-  _ceps = _cost_tol >= 0
-	    ? _cost_tol
-	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
-					_forward , _cost );
+  _ceps = _cost_tol >= 0 ? _cost_tol
+			 : _mcf_bits::costTolerance(
+			     _root , _first_out , _target , _forward , _cost );
   _cut_hint.clear();
   if( _sum_supply > 0 ) {
    // all the nodes, whose supplies exceed what can leave them, nothing
@@ -919,7 +920,7 @@ class CycleCanceling
   // Find a feasible flow on the residual network
   int sup_num;
   if( ! _mcf_bits::feasibleFlow( *this , Value( 1 ) , sup_num , _feps ,
-				  _cut_hint ) ) {
+				 _cut_hint ) ) {
    return( INFEASIBLE );
    }
   if( unbounded )
@@ -989,8 +990,8 @@ class CycleCanceling
   if( method != SIMPLE_CYCLE_CANCELING ) {
    buildResidualNetwork();
    typename BellmanFord< StaticDigraph , CostArcMap >::template SetDistMap<
-     CostNodeMap >::template SetOperationTraits< BfOps >::Create bf(
-     _sgr , _cost_map );
+     CostNodeMap >::template SetOperationTraits< BfOps >::Create
+     bf( _sgr , _cost_map );
    bf.operationTraits( BfOps( _ceps ) );
    bf.distMap( _pi_map );
    bf.init( 0 );
@@ -1017,8 +1018,8 @@ class CycleCanceling
   typedef FilterArcs< StaticDigraph , FilterMap > ResDigraph;
   typedef StaticVectorMap< StaticDigraph::Node , StaticDigraph::Arc > PredMap;
   typedef typename BellmanFord< ResDigraph , CostArcMap >::template SetDistMap<
-    CostNodeMap >::template SetPredMap< PredMap >::template SetOperationTraits<
-    BfOps >::Create BF;
+    CostNodeMap >::template SetPredMap< PredMap >::
+    template SetOperationTraits< BfOps >::Create BF;
 
   // Build the residual network
   _arc_vec.clear();

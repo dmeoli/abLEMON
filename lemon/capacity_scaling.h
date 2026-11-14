@@ -138,6 +138,7 @@ class CapacityScaling
  _mcf_bits::residualArcSets( const MCF & ,
 			     const _mcf_bits::McfData< typename MCF::Value > & ,
 			     const std::vector< std::vector< int > > & );
+
  public:
  /// The type of the digraph
  typedef typename TR::Digraph Digraph;
@@ -273,7 +274,7 @@ class CapacityScaling
   ResidualDijkstra( CapacityScaling & cs )
       : _node_num( cs._node_num ) , _geq( cs._sum_supply < 0 ) ,
 	_first_out( cs._first_out ) , _target( cs._target ) ,
-   _cost( cs._cost ) ,
+	_cost( cs._cost ) ,
 	_res_cap( cs._res_cap ) , _excess( cs._excess ) , _pi( cs._pi ) ,
 	_pred( cs._pred ) , _dist( cs._node_num ) { }
 
@@ -649,8 +650,9 @@ class CapacityScaling
   const _mcf_bits::McfData< Value > d =
     _mcf_bits::residualData( *this , std::vector< int >() );
   return( _mcf_bits::residualArcSets(
-    *this , d , _mcf_bits::negativeCycles(
-		  d , _mcf_bits::residualCosts( d , _cost ) , k ) ) );
+    *this , d ,
+    _mcf_bits::negativeCycles( d , _mcf_bits::residualCosts( d , _cost ) ,
+			       k ) ) );
   }
 
  /// \brief Sets the tolerances on the flows and on the reduced costs.
@@ -940,7 +942,8 @@ class CapacityScaling
     _flow_tol >= 0
       ? _flow_tol
       : _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
-				  _lower , _upper , _supply , _has_lower );
+				  _lower ,
+				  _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   _cut_hint.clear();
@@ -1045,10 +1048,9 @@ class CapacityScaling
   _unit = std::numeric_limits< Value >::is_exact
 	    ? Value( 1 )
 	    : ( feps > 0 ? feps : ( std::numeric_limits< Value >::min )() );
-  _ceps = _cost_tol >= 0
-	    ? _cost_tol
-	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
-					_forward , _cost );
+  _ceps = _cost_tol >= 0 ? _cost_tol
+			 : _mcf_bits::costTolerance(
+			     _root , _first_out , _target , _forward , _cost );
 
   // Initialize delta value
   if( _factor > 1 ) {

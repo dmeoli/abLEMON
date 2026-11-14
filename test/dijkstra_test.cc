@@ -118,8 +118,8 @@ void checkDijkstraCompile()
   concepts::ReadWriteMap< Node , VType > dist_map;
   concepts::WriteMap< Node , bool > processed_map;
   concepts::ReadWriteMap< Node , int > heap_cross_ref;
-  BinHeap< VType , concepts::ReadWriteMap< Node ,
-    int > > heap( heap_cross_ref );
+  BinHeap< VType ,
+	   concepts::ReadWriteMap< Node , int > > heap( heap_cross_ref );
 
   dijkstra_test.lengthMap( length_map )
     .predMap( pred_map )

@@ -190,7 +190,7 @@ class DigraphExtender : public Base
   };
 
  LemonRangeWrapper2< InArcIt , Digraph ,
-   Node > inArcs( const Node & u ) const {
+		     Node > inArcs( const Node & u ) const {
   return( LemonRangeWrapper2< InArcIt , Digraph , Node >( *this , u ) );
   }
 
@@ -475,7 +475,7 @@ class GraphExtender : public Base
   };
 
  LemonRangeWrapper2< OutArcIt , Graph ,
-   Node > outArcs( const Node & u ) const {
+		     Node > outArcs( const Node & u ) const {
   return( LemonRangeWrapper2< OutArcIt , Graph , Node >( *this , u ) );
   }
 
@@ -1020,7 +1020,7 @@ class BpGraphExtender : public Base
   };
 
  LemonRangeWrapper2< InArcIt , BpGraph ,
-   Node > inArcs( const Node & u ) const {
+		     Node > inArcs( const Node & u ) const {
   return( LemonRangeWrapper2< InArcIt , BpGraph , Node >( *this , u ) );
   }
 

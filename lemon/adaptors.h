@@ -61,8 +61,8 @@ class DigraphAdaptorBase
  void first( Node & i ) const { _digraph->first( i ); }
  void first( Arc & i ) const { _digraph->first( i ); }
  void firstIn( Arc & i , const Node & n ) const { _digraph->firstIn( i , n ); }
- void firstOut( Arc & i , const Node & n ) const { _digraph->firstOut( i ,
-								       n ); }
+ void firstOut( Arc & i ,
+		const Node & n ) const { _digraph->firstOut( i , n ); }
 
  void next( Node & i ) const { _digraph->next( i ); }
  void next( Arc & i ) const { _digraph->next( i ); }
@@ -597,7 +597,7 @@ class SubDigraphBase : public DigraphAdaptorBase< DGR >
 
 template< typename DGR , typename NF , typename AF >
 class SubDigraphBase< DGR , NF , AF ,
-  false > : public DigraphAdaptorBase< DGR >
+		      false > : public DigraphAdaptorBase< DGR >
 {
  typedef DigraphAdaptorBase< DGR > Parent;
 
@@ -811,7 +811,7 @@ class SubDigraph
  typedef AF ArcFilterMap;
 
  typedef DigraphAdaptorExtender< SubDigraphBase< DGR , NF , AF ,
-   true > > Parent;
+						 true > > Parent;
 
  typedef typename Parent::Node Node;
  typedef typename Parent::Arc Arc;
@@ -1588,7 +1588,7 @@ template< typename GR , typename NF = typename GR::template NodeMap< bool > ,
 class FilterNodes
     : public DigraphAdaptorExtender< SubDigraphBase<
 	GR , NF , ConstMap< typename GR::Arc , Const< bool , true > > ,
-   true > >
+	  true > >
 {
 #endif
  typedef DigraphAdaptorExtender< SubDigraphBase<
@@ -1647,7 +1647,7 @@ class FilterNodes< GR , NF ,
 		   typename enable_if< UndirectedTagIndicator< GR > >::type >
     : public GraphAdaptorExtender< SubGraphBase<
 	GR , NF , ConstMap< typename GR::Edge , Const< bool , true > > ,
-   true > >
+	  true > >
 {
 
  typedef GraphAdaptorExtender< SubGraphBase<
@@ -1730,7 +1730,7 @@ template< typename DGR , typename AF = typename DGR::template ArcMap< bool > >
 class FilterArcs
     : public DigraphAdaptorExtender< SubDigraphBase<
 	DGR , ConstMap< typename DGR::Node , Const< bool , true > > , AF ,
-   false > >
+	  false > >
 {
 #endif
  typedef DigraphAdaptorExtender< SubDigraphBase<
@@ -1839,7 +1839,7 @@ template< typename GR , typename EF = typename GR::template EdgeMap< bool > >
 class FilterEdges
     : public GraphAdaptorExtender< SubGraphBase<
 	GR , ConstMap< typename GR::Node , Const< bool , true > > , EF ,
-   false > >
+	  false > >
 {
 #endif
  typedef GraphAdaptorExtender< SubGraphBase<
@@ -2245,7 +2245,7 @@ class UndirectorBase
 
  template< typename V >
  class ArcMap : public SubMapExtender< UndirectorBase< DGR > ,
-   ArcMapBase< V > >
+				       ArcMapBase< V > >
  {
   typedef SubMapExtender< UndirectorBase< DGR > , ArcMapBase< V > > Parent;
 
@@ -3376,7 +3376,7 @@ class SplitNodesBase
 
  template< typename V >
  class ArcMap : public SubMapExtender< SplitNodesBase< DGR > ,
-   ArcMapBase< V > >
+				       ArcMapBase< V > >
  {
   typedef SubMapExtender< SplitNodesBase< DGR > , ArcMapBase< V > > Parent;
 

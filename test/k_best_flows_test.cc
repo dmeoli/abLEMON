@@ -48,7 +48,8 @@ struct Small
  Digraph::ArcMap< int > lower , upper , cost;
  Digraph::NodeMap< int > supply;
 
- Small() : lower( g , 0 ) , upper( g , 0 ) , cost( g , 0 ) , supply( g , 0 ) {}
+ Small() : lower( g , 0 ) , upper( g , 0 ) , cost( g , 0 ) ,
+   supply( g , 0 ) { }
  };
 
 // up to 4 nodes and 5 arcs (loops and parallel arcs among them), bounds
@@ -250,8 +251,9 @@ void checkExtremeAgainstEnumeration( int seeds )
    check( seen.insert( f ).second , "An extreme flow given twice on " + id );
    }
   if( ! all.empty() ) {
-   const int within = int( std::upper_bound( all.begin() , all.end() ,
-					     all[ 0 ] + 2 ) - all.begin() );
+   const int within = int(
+     std::upper_bound( all.begin() , all.end() ,
+		       all[ 0 ] + 2 ) - all.begin() );
    check( kb.run( 100 , 2 ) == std::min( 100 , within ) ,
 	  "Wrong number of extreme flows within a gap on " + id );
    }
@@ -260,8 +262,11 @@ void checkExtremeAgainstEnumeration( int seeds )
   // vertex whenever there is one
   {
    KBestExtremeFlows< Digraph > kc( p.g );
-   kc.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
-     p.supply ).method( KBestExtremeFlows< Digraph >::CYCLES );
+   kc.lowerMap( p.lower )
+     .upperMap( p.upper )
+     .costMap( p.cost )
+     .supplyMap( p.supply )
+     .method( KBestExtremeFlows< Digraph >::CYCLES );
    const int got = kc.run( k );
    check( ( got > 0 ) == ( ! all.empty() ) ,
 	  "No extreme flow by the cycles on " + id );
@@ -270,8 +275,8 @@ void checkExtremeAgainstEnumeration( int seeds )
    for( int j = 0 ; j != got ; ++j ) {
     check( std::binary_search( all.begin() , all.end() , kc.totalCost( j ) ) ,
 	   "Not the cost of a vertex, by the cycles, on " + id );
-    check( j > 0 ? kc.totalCost( j ) >= kc.totalCost( j - 1 ) :
-	   kc.totalCost( 0 ) == all[ 0 ] ,
+    check( j > 0 ? kc.totalCost( j ) >= kc.totalCost( j - 1 )
+		 : kc.totalCost( 0 ) == all[ 0 ] ,
 	   "Wrong order, by the cycles, on " + id );
     optimal += kc.totalCost( j ) == all[ 0 ];
     std::vector< int > f;
@@ -297,8 +302,8 @@ void checkExtremeAgainstEnumeration( int seeds )
   for( int j = 0 ; j != some ; ++j ) {
    check( std::binary_search( all.begin() , all.end() , kb.totalCost( j ) ) ,
 	  "Not the cost of a vertex, one basis for each vertex, on " + id );
-   check( j > 0 ? kb.totalCost( j ) >= kb.totalCost( j - 1 ) :
-	  kb.totalCost( 0 ) == all[ 0 ] ,
+   check( j > 0 ? kb.totalCost( j ) >= kb.totalCost( j - 1 )
+		: kb.totalCost( 0 ) == all[ 0 ] ,
 	  "Wrong order, one basis for each vertex, on " + id );
    std::vector< int > f;
    for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a )
@@ -361,11 +366,11 @@ void checkPotentials( int seeds , bool pivots )
    for( Digraph::ArcIt a( p.g ) ; a != INVALID ; ++a ) {
     const int f = kb.flow( 0 , a );
     const int rc = p.cost[ a ] + kb.potential( j , p.g.source( a ) ) -
-                   kb.potential( j , p.g.target( a ) );
+		   kb.potential( j , p.g.target( a ) );
     if( rc == 0 && p.lower[ a ] < p.upper[ a ] )
      join( comp[ p.g.source( a ) ] , comp[ p.g.target( a ) ] );
     check( ( f == p.upper[ a ] || rc >= 0 ) &&
-	   ( f == p.lower[ a ] || rc <= 0 ) ,
+	     ( f == p.lower[ a ] || rc <= 0 ) ,
 	   "Potentials not optimal on an arc of " + id );
     excess[ p.g.source( a ) ] += f;
     excess[ p.g.target( a ) ] -= f;
@@ -465,8 +470,11 @@ void checkLimitCases()
    KBestFlows< Digraph > k1( p.g ) , k2( p.g );
    k1.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
      p.supply );
-   k2.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
-     p.supply ).initFlow( f );
+   k2.lowerMap( p.lower )
+     .upperMap( p.upper )
+     .costMap( p.cost )
+     .supplyMap( p.supply )
+     .initFlow( f );
    const int n1 = k1.run( 8 ) , n2 = k2.run( 8 );
    check( n1 == n2 , "Another number of flows from a given flow" );
    for( int j = 0 ; j != n1 && j != n2 ; ++j )
@@ -513,10 +521,8 @@ void checkLimitCases()
   Digraph::ArcMap< int > f( p.g );
   f[ a ] = f[ b ] = 1;
   KBestExtremeFlows< Digraph > kb( p.g );
-  kb.upperMap( p.upper ).costMap( p.cost ).supplyMap( p.supply ).initFlow(
-    f );
-  check( kb.run( 5 ) == 2 && kb.totalCost( 0 ) == 6 &&
-	   kb.totalCost( 1 ) == 6 ,
+  kb.upperMap( p.upper ).costMap( p.cost ).supplyMap( p.supply ).initFlow( f );
+  check( kb.run( 5 ) == 2 && kb.totalCost( 0 ) == 6 && kb.totalCost( 1 ) == 6 ,
 	 "Wrong extreme flows from a flow inside a face" );
   for( int j = 0 ; j != kb.flowNum() ; ++j )
    check( ( kb.flow( j , a ) == 0 || kb.flow( j , a ) == 2 ) &&

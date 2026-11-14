@@ -636,8 +636,8 @@ class PlanarEmbedding
  /// \pre The graph must be simple, i.e. it should not
  /// contain parallel or loop arcs.
  PlanarEmbedding( const Graph & graph )
-     : _graph( graph ) , _embedding( _graph ) , _kuratowski( graph ,
-							     false ) { }
+     : _graph( graph ) , _embedding( _graph ) ,
+       _kuratowski( graph , false ) { }
 
  /// \brief Run the algorithm.
  ///
@@ -1643,7 +1643,7 @@ class PlanarEmbedding
 			 FlipMap & flip_map , OrderMap & order_map ,
 			 OrderList & order_list , PredMap & pred_map ,
 			 ChildLists & child_lists ,
-      AncestorMap & ancestor_map ,
+			 AncestorMap & ancestor_map ,
 			 LowMap & low_map , EmbedArc & embed_arc ,
 			 MergeRoots & merge_roots ) {
 
@@ -1719,7 +1719,7 @@ class PlanarEmbedding
     Node lwnode , lznode;
     markCommonPath( wnode , rorder , lwnode , lznode , order_list , order_map ,
 		    node_data , arc_lists , embed_arc , merge_roots ,
-	child_lists ,
+		    child_lists ,
 		    ancestor_map , low_map );
 
     markPertinentPath( lwnode , order_map , node_data , arc_lists , embed_arc ,

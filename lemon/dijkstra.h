@@ -102,7 +102,7 @@ struct DijkstraDefaultTraits
  ///\sa BinHeap
  ///\sa Dijkstra
  typedef BinHeap< typename LEN::Value , HeapCrossRef ,
-   std::less< Value > > Heap;
+		  std::less< Value > > Heap;
  ///Instantiates a \c Heap.
 
  ///This function instantiates a \ref Heap.
@@ -377,7 +377,7 @@ class Dijkstra
      : public Dijkstra< Digraph , LengthMap , SetStandardProcessedMapTraits >
  {
   typedef Dijkstra< Digraph , LengthMap ,
-    SetStandardProcessedMapTraits > Create;
+		    SetStandardProcessedMapTraits > Create;
   };
 
  template< class H , class CR >
@@ -404,8 +404,8 @@ class Dijkstra
  ///or \ref init().
  ///\sa SetStandardHeap
  template< class H , class CR = typename Digraph::template NodeMap< int > >
- struct SetHeap : public Dijkstra< Digraph , LengthMap , SetHeapTraits< H ,
-   CR > >
+ struct SetHeap : public Dijkstra< Digraph , LengthMap ,
+				   SetHeapTraits< H , CR > >
  {
   typedef Dijkstra< Digraph , LengthMap , SetHeapTraits< H , CR > > Create;
   };
@@ -458,7 +458,7 @@ class Dijkstra
      : public Dijkstra< Digraph , LengthMap , SetOperationTraitsTraits< T > >
  {
   typedef Dijkstra< Digraph , LengthMap ,
-    SetOperationTraitsTraits< T > > Create;
+		    SetOperationTraitsTraits< T > > Create;
   };
 
  ///@}

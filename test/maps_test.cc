@@ -163,8 +163,8 @@ int main()
   check( constMap< A >( 10 )[ A() ] == 10 ,
 	 "Something is wrong with ConstMap" );
 
-  checkConcept< ReadWriteMap< A , int > , ConstMap< A , Const< int ,
-    10 > > >();
+  checkConcept< ReadWriteMap< A , int > ,
+		ConstMap< A , Const< int , 10 > > >();
   ConstMap< A , Const< int , 10 > > map6;
   ConstMap< A , Const< int , 10 > > map7 = map6;
   map6 = constMap< A , int , 10 >();
@@ -211,8 +211,8 @@ int main()
 
  // SparseMap
  {
-  checkConcept< ReferenceMap< A , B , B & , const B & > , SparseMap< A ,
-    B > >();
+  checkConcept< ReferenceMap< A , B , B & , const B & > ,
+		SparseMap< A , B > >();
   SparseMap< A , B > map1;
   SparseMap< A , B > map2 = B();
   SparseMap< A , B > map3 = sparseMap< A , B >();
@@ -308,8 +308,8 @@ int main()
 
  // ForkMap
  {
-  checkConcept< DoubleWriteMap , ForkMap< DoubleWriteMap ,
-    DoubleWriteMap > >();
+  checkConcept< DoubleWriteMap ,
+		ForkMap< DoubleWriteMap , DoubleWriteMap > >();
 
   typedef RangeMap< double > RM;
   typedef SparseMap< int , double > SM;
@@ -619,8 +619,8 @@ int main()
   typedef ListDigraph Graph;
   DIGRAPH_TYPEDEFS( Graph );
 
-  checkConcept< ReadWriteMap< Node , int > , CrossRefMap< Graph , Node ,
-    int > >();
+  checkConcept< ReadWriteMap< Node , int > ,
+		CrossRefMap< Graph , Node , int > >();
   checkConcept< ReadWriteMap< Node , bool > ,
 		CrossRefMap< Graph , Node , bool > >();
   checkConcept< ReadWriteMap< Node , double > ,
@@ -694,8 +694,8 @@ int main()
   typedef SmartDigraph Graph;
   DIGRAPH_TYPEDEFS( Graph );
 
-  checkConcept< ReadWriteMap< Node , int > , CrossRefMap< Graph , Node ,
-    int > >();
+  checkConcept< ReadWriteMap< Node , int > ,
+		CrossRefMap< Graph , Node , int > >();
 
   Graph gr;
   typedef CrossRefMap< Graph , Node , char > CRMap;
