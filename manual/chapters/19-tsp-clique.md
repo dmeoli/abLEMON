@@ -365,10 +365,9 @@ In the code, the tree is computed by `kruskal()` ([chapter
 `MaxWeightedPerfectMatching` ([chapter 17](17-matching.md#ch-17)) on a
 `SmartGraph` with one node per node of $O$ and with the negated costs as
 weights; for this reason, the header warns that `CM::Value` must be a signed
-number type. This graph has two parallel edges for each pair of nodes of $O$,
-one per order of the pair, which doubles its edges but does not change the
-minimum cost of a perfect matching. Line 5 skips the nodes already visited,
-i.e., it shortcuts the closed walk as in Lemma 19.2.
+number type. This graph has one edge for each pair of nodes of $O$. Line 5
+skips the nodes already visited, i.e., it shortcuts the closed walk as in
+Lemma 19.2.
 
 <span id="lem-19-4"></span>**Lemma 19.4.** *For $n\ge 3$, $|O|$ is even and
 positive, the multigraph $H$ of line 4 is connected with all degrees even, and
@@ -417,7 +416,7 @@ first part of the proof of Theorem 19.5. $\square$
 $O(n^3\log n)$ time, the bound of the header.*
 
 *Proof.* Line 1 runs Kruskal's algorithm on the $n(n-1)/2$ edges in $O(n^2\log
-n)$ time. Line 3 builds a graph with $|O|\le n$ nodes and $|O|(|O|-1)$ edges
+n)$ time. Line 3 builds a graph with $|O|\le n$ nodes and $|O|(|O|-1)/2$ edges
 and runs on it the weighted perfect matching algorithm of [chapter
 17](17-matching.md#ch-17), whose $O(nm\log n)$ bound gives $O(n^3\log n)$.
 Lines 4 and 5 handle a multigraph of at most $n-1+n/2$ edges in linear time.
@@ -426,6 +425,13 @@ $\square$
 In practice, the tours are usually much better than the bound of Theorem 19.5:
 in the example of [§19.4](19-tsp-clique.md#sec-19-4) the tour costs less than
 1.3 times the spanning tree.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, the graph of the matching had two parallel edges for each
+    pair of nodes of $O$, one per order of the pair, which doubled its edges
+    without changing the minimum cost of a perfect matching. The change is
+    not observable in the result beyond the choice among matchings of equal
+    cost; the test `tsp_test` checks the tours as before.
 
 ## 19.3 Improvement by 2-opt {#sec-19-3}
 
