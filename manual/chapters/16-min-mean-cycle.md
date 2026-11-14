@@ -256,7 +256,8 @@ connected component of n nodes).
      with its node u and its round j'
 4    if a closed walk was found and k < n:
 5      compute pi by (16.5)
-6      if |W| c(u, v) - c(W) >= pi(v) - pi(u) for every arc (u, v) of
+6      if pi(v) < +inf for every node v of the component, and
+       |W| c(u, v) - c(W) >= pi(v) - pi(u) for every arc (u, v) of
        the component: stop with W
 7    if k = n: stop with W
 8  (findCycle) walk back from u along pred_j', pred_{j'-1}, ... until a
@@ -265,50 +266,43 @@ connected component of n nodes).
 
 This schedule of the checks is the one of `processRounds()` in
 `lemon/hartmann_orlin_mmc.h`, and steps 2 to 7 are `checkTermination()`; the
-comparisons of steps 5 and 6 go through the tolerance, and step 6 scans the
-arcs inside the component, the only ones whose ends have potentials. Across
-the components, the closed walk of least mean is kept (the first one, in case
-of ties), and `findCycle()` performs step 8 on it.
+comparisons of steps 5 and 6 go through the tolerance, and step 6 first looks
+for a node without a potential, then scans the arcs inside the component, the
+only ones whose ends have potentials. Across the components, the closed walk
+of least mean is kept (the first one, in case of ties), and `findCycle()`
+performs step 8 on it.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 step 6 scanned the arcs of the whole digraph, whose ends
     outside the component have no potentials computed, and hence the test
-    could fail more often and delay the stop.
+    could fail more often and delay the stop. It also had no test of the
+    infinite potentials: with an integer `LargeCost`, where $+\infty$ is the
+    largest value, $\pi(v)-\pi(u)$ with $\pi(v)$ infinite and $\pi(u)<0$
+    overflowed, the violated test could pass, and the algorithm could stop
+    with a closed walk that is not optimal. The test `min_mean_cycle_test`
+    checks such an instance, on which LEMON 1.3.1 returned the mean $89/3$
+    instead of $78/11$.
 
-<span id="thm-16-5"></span>**Theorem 16.5.** *Assume exact arithmetic, with
-$+\infty$ larger than all finite values and $+\infty-x=+\infty$ for $x$
-finite. On a strongly connected component with a cycle, Algorithm 16.2 stops
-with a closed walk $W$ of mean $\mu^*$ (the minimum cycle mean of the
-component), and the cycle of step 8 is a minimum mean cycle.*
+<span id="thm-16-5"></span>**Theorem 16.5.** *Assume exact arithmetic. On a
+strongly connected component with a cycle, Algorithm 16.2 stops with a closed
+walk $W$ of mean $\mu^*$ (the minimum cycle mean of the component), and the
+cycle of step 8 is a minimum mean cycle.*
 
 *Proof.* The walk back from a node $v$ at round $k$ retraces a walk of $k$
-arcs of cost $D_k(v)$, whose prefix of $j$ arcs, which ends at a node $u$,
-has cost $D_j(u)$. The arcs between two visits of $u$ at rounds $j<j'$ are
+arcs of cost $D_k(v)$, whose prefix of $j$ arcs, which ends at a node $u$, has
+cost $D_j(u)$. The arcs between two visits of $u$ at rounds $j<j'$ are
 therefore a closed walk of cost $D_{j'}(u)-D_j(u)$ and of $j'-j$ arcs, and by
-Lemma 16.1 (i) its mean is at least $\mu^*$. If the algorithm stops in step
-6, all the potentials are finite: otherwise, since $\pi(s)=0$ and the
-component is strongly connected, some arc $(u,v)$ has
-$\pi(u)<\infty=\pi(v)$, and it violates the test. Hence $\pi/|W|$ satisfies
-(16.2) for $\mu=\mu(W)$ on the arcs of the component, and $\mu(W)\leq\mu^*$
-by Theorem 16.1 (applied to the component). If the algorithm stops in step
-7, at $k=n$, the walk back from the node $v^*$ of Theorem 16.2 closes, at its
-first repeated node, a cycle of mean $\mu^*$, and the least mean of step 3 is
-again at most $\mu^*$. In both cases $\mu(W)=\mu^*$. The walk back of step 8
-starts where the walk of step 2 met $u$ at round $j'$, and it meets a node
-twice at the latest when it reaches $u$ again at round $j$. Hence its cycle
-consists of arcs of $W$, and it is one of the cycles of a decomposition of
-$W$ as in Lemma 16.1 (i), each of which has mean $\mu^*$ by that lemma.
-$\square$
-
-This assumption holds when `LargeCost` is a floating-point
-type, whose infinity the code uses, but not when it is an integer type (the
-default for integer costs), where $+\infty$ is represented by the largest
-value. In that case, at a check made before all the nodes are reached by
-walks of at most $k$ arcs, the difference $\pi(v)-\pi(u)$ of step 6 with
-$\pi(v)$ infinite and $\pi(u)<0$ overflows. The violated test may then pass,
-and the algorithm may stop with a closed walk that is not optimal; the checks
-made when all the potentials are finite, and the stop at $k=n$, are not
-affected.
+Lemma 16.1 (i) its mean is at least $\mu^*$. If the algorithm stops in step 6,
+all the potentials are finite, by its first test. Hence $\pi/|W|$ satisfies
+(16.2) for $\mu=\mu(W)$ on the arcs of the component, and $\mu(W)\leq\mu^*$ by
+Theorem 16.1 (applied to the component). If the algorithm stops in step 7, at
+$k=n$, the walk back from the node $v^*$ of Theorem 16.2 closes, at its first
+repeated node, a cycle of mean $\mu^*$, and the least mean of step 3 is again
+at most $\mu^*$. In both cases $\mu(W)=\mu^*$. The walk back of step 8 starts
+where the walk of step 2 met $u$ at round $j'$, and it meets a node twice at
+the latest when it reaches $u$ again at round $j$. Hence its cycle consists of
+arcs of $W$, and it is one of the cycles of a decomposition of $W$ as in Lemma
+16.1 (i), each of which has mean $\mu^*$ by that lemma. $\square$
 
 <span id="thm-16-6"></span>**Theorem 16.6.** *Algorithm 16.2 runs in $O(nm)$
 time and $O(n^2+m)$ space.*

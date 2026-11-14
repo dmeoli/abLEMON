@@ -624,6 +624,14 @@ class HartmannOrlinMmc
      }
     }
 
+   // A node not reached yet has no potential, and an arc of the
+   // component enters it from a node that has one and violates the
+   // condition
+   for( int i = 0 ; i < n ; ++i ) {
+    if( pi[ ( *_nodes )[ i ] ] == INF )
+     return( false );
+    }
+
    // Check the optimality condition for the arcs of the component, the
    // only ones whose ends have potentials
    bool done = true;
