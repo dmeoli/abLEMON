@@ -925,10 +925,11 @@ shifted by the mean.
 ```
 
 During the phases the potentials are `double`, fractional even with an exact
-`Cost`, and the test of admissibility uses a tolerance of $10^{-6}$ then, as
-in LEMON 1.3.1, and $\epsilon_c$ with a floating-point `Cost`. After the last
-phase of the two methods based on mean cycles, the potentials are computed by
-the algorithm of Bellman and Ford on the residual network (in
+`Cost`, and the test of admissibility uses a tolerance of
+$\min\{10^{-6},1/(2(n+1))\}$ then, i.e., $10^{-6}$ as in LEMON 1.3.1 up to
+about $5\cdot 10^5$ nodes, and $\epsilon_c$ with a floating-point `Cost`.
+After the last phase of the two methods based on mean cycles, the potentials
+are computed by the algorithm of Bellman and Ford on the residual network (in
 `SIMPLE_CYCLE_CANCELING` its distances already give them). Its operation
 traits count an improvement only beyond $\epsilon_c$, since in floating point
 the round-off of the sums can make a cycle of cost zero (e.g., an arc and its
@@ -950,13 +951,16 @@ Ford improves no distance, i.e., when the residual network has no negative
 cycle, and the minimum mean method stops when the minimum mean is nonnegative.
 Cancel-and-Tighten stops when every residual arc has
 $cost^\pi\geq-\varepsilon$ with $\varepsilon(n+1)<1$; then each residual
-cycle, of at most $n+1$ arcs, has a cost above $-1$, hence nonnegative. In the
-three cases the flow is optimal by Theorem 13.2, and Theorem 13.5 covers the
-replaced bounds. The final distances of Bellman and Ford meet (13.5) by the
-argument of Lemma 13.3; the root has potential zero, since every node is
-reached from it by a residual arc of cost zero and every residual cycle
-through it has a nonnegative cost. For the running time of the minimum mean
-method, see [Goldberg and Tarjan
+cycle, of at most $n+1$ arcs, has a cost above $-1$, hence nonnegative. While
+$\varepsilon(n+1)\geq 1$, an arc of reduced cost $-\varepsilon$ is below
+$-1/(2(n+1))$ and is admissible; after the phase of the minimum cycle mean,
+the arcs of a cycle of mean $-\varepsilon$ all have reduced cost
+$-\varepsilon$, so that the next phase cancels it. In the three cases the flow
+is optimal by Theorem 13.2, and Theorem 13.5 covers the replaced bounds. The
+final distances of Bellman and Ford meet (13.5) by the argument of Lemma 13.3;
+the root has potential zero, since every node is reached from it by a residual
+arc of cost zero and every residual cycle through it has a nonnegative cost.
+For the running time of the minimum mean method, see [Goldberg and Tarjan
 1989](Z-bibliography.md#ref-goldberg89cyclecanceling) and [Ahuja, Magnanti and
 Orlin 1993, §10.5](Z-bibliography.md#ref-amo93networkflows): the opposite of
 the minimum mean never grows, and it decreases by a factor of at least $1-1/n$
@@ -965,19 +969,20 @@ costing $O(nm)$ for the cycle. Cancel-and-Tighten makes $O(nm\log n)$ phases
 by the analysis of Goldberg and Tarjan, each of which takes $O(nm)$ for its
 cancellations. $\square$
 
-We remark that, with an exact `Cost`, the tolerance of $10^{-6}$ on
-admissibility exceeds $1/(n+1)$ when the digraph has more than about $10^6$
-nodes; then a cycle whose mean is negative but above $-10^{-6}$ is never
-admissible, and the termination of Cancel-and-Tighten is no longer guaranteed
-by the argument above. The class has no traits parameter, and the header warns
-that, in practice, the method is typically orders of magnitude slower than the
-scaling algorithms and `NetworkSimplex`.
+The class has no traits parameter, and the header warns that, in practice, the
+method is typically orders of magnitude slower than the scaling algorithms and
+`NetworkSimplex`.
 
 !!! note "abLEMON"
     `CycleCanceling` finds its starting flow on its residual network (version
     1.4.0), takes floating-point data (version 1.6.0), and compares with zero
     only through the tolerances, its inner minimum mean cycle searches
-    included (version 1.9.0).
+    included (version 1.9.0). With an exact `Cost`, LEMON 1.3.1 took $10^{-6}$
+    as the tolerance of admissibility of Cancel-and-Tighten on any digraph,
+    which on more than about $10^6$ nodes leaves a cycle of mean between
+    $-10^{-6}$ and $-1/(n+1)$ never admissible, and the method does not end
+    on a cycle of $1.1\cdot 10^6$ nodes and cost $-1$, which abLEMON solves
+    in some minutes, too long for a test of the library.
 
 ## 13.9 Choosing an algorithm {#sec-13-9}
 

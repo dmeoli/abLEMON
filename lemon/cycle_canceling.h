@@ -1207,10 +1207,12 @@ class CycleCanceling
   // the reduced costs, and so does the test of admissibility
   // the potentials are double, fractional even with an exact cost type,
   // and the reduced costs are compared with 1e-6 then, as in LEMON 1.3.1,
-  // and with the tolerance on the costs otherwise
+  // or with 1/(2n) if smaller, so that an arc of reduced cost -1/n is
+  // admissible, and with the tolerance on the costs otherwise
   const bool exact = std::numeric_limits< Cost >::is_exact;
   Tolerance< double > tol;
-  tol.epsilon( exact ? 1e-6 : double( _ceps ) );
+  tol.epsilon( exact ? ( std::min )( 1e-6 , 0.5 / _res_node_num )
+		     : double( _ceps ) );
   int limit = int( LIMIT_FACTOR * std::sqrt( double( _res_node_num ) ) );
   if( limit < MIN_LIMIT )
    limit = MIN_LIMIT;
