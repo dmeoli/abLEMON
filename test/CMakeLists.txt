@@ -28,6 +28,7 @@ SET(TESTS
   dim_test
   edge_case_test
   edge_set_test
+  elevator_test
   error_test
   euler_test
   fractional_matching_test

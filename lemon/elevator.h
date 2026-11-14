@@ -99,10 +99,11 @@ class Elevator
  ///\param max_level The maximum allowed level.
  ///Set the range of the possible labels to <tt>[0..max_level]</tt>.
  Elevator( const GR & graph , int max_level )
-     : _g( graph ) , _max_level( max_level ) , _item_num( _max_level ) ,
-       _where( graph ) , _level( graph , 0 ) , _items( _max_level + 1 ) ,
-       _first( _max_level + 2 ) , _last_active( _max_level + 2 ) ,
-       _highest_active( -1 ) { }
+     : _g( graph ) , _max_level( max_level ) ,
+       _item_num( countItems< GR , Item >( graph ) ) , _where( graph ) ,
+       _level( graph , 0 ) , _items( _item_num + 1 ) ,
+       _first( _max_level + 2 ) ,
+       _last_active( _max_level + 2 ) , _highest_active( -1 ) { }
  ///Constructor.
 
  ///Constructor.
@@ -113,7 +114,7 @@ class Elevator
  Elevator( const GR & graph )
      : _g( graph ) , _max_level( countItems< GR , Item >( graph ) ) ,
        _item_num( _max_level ) , _where( graph ) , _level( graph , 0 ) ,
-       _items( _max_level + 1 ) , _first( _max_level + 2 ) ,
+       _items( _item_num + 1 ) , _first( _max_level + 2 ) ,
        _last_active( _max_level + 2 ) , _highest_active( -1 ) { }
 
  ///Activate item \c i.
@@ -473,10 +474,11 @@ class LinkedElevator
  ///\param max_level The maximum allowed level.
  ///Set the range of the possible labels to <tt>[0..max_level]</tt>.
  LinkedElevator( const GR & graph , int max_level )
-     : _graph( graph ) , _max_level( max_level ) , _item_num( _max_level ) ,
-       _first( _max_level + 1 ) , _last( _max_level + 1 ) , _prev( graph ) ,
-       _next( graph ) , _highest_active( -1 ) , _level( graph ) ,
-       _active( graph ) { }
+     : _graph( graph ) , _max_level( max_level ) ,
+       _item_num( countItems< GR , Item >( graph ) ) ,
+       _first( _max_level + 1 ) ,
+       _last( _max_level + 1 ) , _prev( graph ) , _next( graph ) ,
+       _highest_active( -1 ) , _level( graph ) , _active( graph ) { }
 
  ///Constructor.
 
@@ -804,17 +806,19 @@ class LinkedElevator
  /// than the current level.
  ///
  void lift( Item i , int new_level ) {
+  // unlink the item from the list of its old level
+  const int old_level = _level[ i ];
   if( _next[ i ] != INVALID ) {
    _prev[ _next[ i ] ] = _prev[ i ];
    }
   else {
-   _last[ new_level ] = _prev[ i ];
+   _last[ old_level ] = _prev[ i ];
    }
   if( _prev[ i ] != INVALID ) {
    _next[ _prev[ i ] ] = _next[ i ];
    }
   else {
-   _first[ new_level ] = _next[ i ];
+   _first[ old_level ] = _next[ i ];
    }
   _level[ i ] = new_level;
   if( _first[ new_level ] == INVALID ) {

@@ -307,15 +307,20 @@ between; in a `LinkedElevator` it costs $O(1)$.
     it may be constructed on a graph without items; in LEMON 1.3.1,
     `Circulation` read past its storage on an empty digraph through it.
 
-We remark that the constructor with a given largest label also takes the
-number of the items to be that label (the code initializes both with
-`max_level`). Hence, `Elevator(graph, max_level)` gives correct counts only
-when `max_level` equals the number of the items, as it does in the flow
-algorithms of the library. Also, the member `lift(i, new_level)` of
-`LinkedElevator`, which no algorithm of the library calls, updates the ends of
-the list of the new level, where it should update those of the level that the
-item leaves, when the item is the first or the last of its list; it is
-therefore better avoided, the other lifts being correct.
+We remark that the constructor with a given largest label may take a label
+smaller than the number of the items, in which case the items not listed by
+the initialization stay on the largest level. In a `LinkedElevator` the items
+of the largest level are kept in no list, so that `onLevel()` and
+`aboveLevel()` count only those below it, as the flow algorithms expect.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 the constructors with a largest label also took it as the
+    number of the items, so that `Elevator(graph, max_level)` sized its
+    storage and counted the items correctly only when the two were equal;
+    and `LinkedElevator::lift(i, new_level)` updated the ends of the list of
+    the new level, where it had to update those of the level that the item
+    leaves, whenever the item was the first or the last of its list. The
+    test `elevator_test` checks both.
 
 ## 8.4 Two-dimensional geometry {#sec-8-4}
 
