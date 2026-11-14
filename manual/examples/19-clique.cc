@@ -108,11 +108,11 @@ int main()
       isClique( g , hin , heur.cliqueSize() ) &&
       ( cause != heur.SIZE_LIMIT || heur.cliqueSize() == exact.cliqueSize() );
 
- // PENALTY_BASED never updates its penalties: with the same seed it
- // picks the same nodes as RANDOM, and finds the same clique
+ // with a penalty delay of 1 each increase of a penalty is undone at once,
+ // and PENALTY_BASED picks the same nodes as RANDOM with the same seed
  GrossoLocatelliPullanMc< Graph > rnd_rule( g , 11 ) , pen_rule( g , 11 );
  rnd_rule.iterationLimit( 50 ).run( rnd_rule.RANDOM );
- pen_rule.iterationLimit( 50 ).run( pen_rule.PENALTY_BASED );
+ pen_rule.iterationLimit( 50 ).penaltyDelay( 1 ).run( pen_rule.PENALTY_BASED );
  Graph::NodeMap< bool > rin( g ) , pin( g );
  rnd_rule.cliqueMap( rin );
  pen_rule.cliqueMap( pin );

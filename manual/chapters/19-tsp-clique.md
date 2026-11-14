@@ -379,11 +379,27 @@ passed to `run(rule)`, of the enumeration `SelectionRule`. With `RANDOM` it is
 the first eligible node in cyclic order from a random starting index; with
 `DEGREE_BASED` it is an eligible node of maximum degree, ties going to the
 first one in the same cyclic order; with `PENALTY_BASED`, the default, it is
-an eligible node of minimum penalty. The header describes the penalties as
-updated adaptively after each stage, as in [Grosso, Locatelli and Pullan
-2008](Z-bibliography.md#ref-grosso08maxclique). In the code, however, the
-penalties start at zero and the function `update()` that would change them is
-empty; in fact, `PENALTY_BASED` selects the same node as `RANDOM`. The three
+an eligible node of minimum penalty, as in [Grosso, Locatelli and Pullan
+2008](Z-bibliography.md#ref-grosso08maxclique). The penalties start at zero
+and are updated after each iteration as in DLS-MC [(Pullan and Hoos
+2006)](Z-bibliography.md#ref-pullan2006dynamic): those of the nodes of the
+current clique increase by one, and every $p_d$ iterations all the positive
+ones decrease by one, where the penalty delay $p_d$ is set by
+`penaltyDelay(pd)` (2 by default). With $p_d = 1$ an increase is undone at
+once, all the penalties stay at zero, and the rule selects the same node as
+`RANDOM`; larger values keep the nodes of the recent cliques out of the next
+ones for longer, and the best value depends on the graph (DLS-MC uses values
+from 1 to about 50).
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 the penalties were never updated (the function `update()`
+    of the rule was empty), and `PENALTY_BASED`, the default rule, selected
+    the same node as `RANDOM`; `penaltyDelay()` is new. Also, the constructor
+    without a seed now uses the global generator `rnd`, as its documentation
+    says, where it copied it, so that two objects built one after the other
+    drew the same sequence.
+
+The three
 rules are the private classes `RandomSelectionRule`,
 `DegreeBasedSelectionRule` and `PenaltyBasedSelectionRule`, of which `start()`
 is a template.
@@ -402,12 +418,13 @@ termination, of the enumeration `TerminationCause`: `ITERATION_LIMIT`,
 no node (clique of size 0) and on a graph with one node (clique of size 1).
 
 The random choices use a generator of type `Random` ([chapter
-8](08-auxiliary.md#ch-8)) owned by the object, which the three constructors
-initialize differently. `GrossoLocatelliPullanMc(graph)` copies the state of
-the global generator `rnd` at the time of the construction; the global
-generator is not advanced, and two objects built one after the other draw the
-same sequence. `GrossoLocatelliPullanMc(graph, seed)` seeds the generator with
-`seed`, and `GrossoLocatelliPullanMc(graph, random)` copies the given one. The
+8](08-auxiliary.md#ch-8)), which depends on the constructor.
+`GrossoLocatelliPullanMc(graph)` draws from the global generator `rnd`, which
+it advances, so that two objects built one after the other draw different
+sequences; `GrossoLocatelliPullanMc(graph, seed)` draws from a generator of its
+own seeded with `seed`, and `GrossoLocatelliPullanMc(graph, random)` from a
+copy of the given one. Since the object may refer to a generator it owns, it
+cannot be copied. The
 results are read by `cliqueSize()` and by `cliqueMap(map)`, which writes
 `true` on the nodes of the clique and `false` elsewhere, in a writable node
 map with `bool` (or convertible) values. Also, the iterator `CliqueNodeIt`,
@@ -473,7 +490,8 @@ Our example compares the exact algorithm with the enumeration of all the
 subsets on five random graphs of 14 nodes. On the larger graph, it checks that
 the heuristic, seeded and stopped at the maximum size, finds a clique no
 larger than the maximum one, and that the rules `RANDOM` and `PENALTY_BASED`
-with the same seed give the same clique; finally, it stops an exact search
+with the same seed give the same clique when the penalty delay is 1;
+finally, it stops an exact search
 after 5 nodes of its tree.
 
 ```cpp
@@ -516,8 +534,10 @@ subsets, and that a tree limit of 1 stops the search after one node
 
 <span id="ex-19-7"></span>**Exercise 19.7.** Run `GrossoLocatelliPullanMc`
 with the rules `RANDOM` and `PENALTY_BASED` and the same seed on the same
-graph, observe that they return the same clique, and explain why from
-[§19.6](19-tsp-clique.md#sec-19-6) (`manual/examples/19-clique.cc` checks it;
+graph, observe that they return the same clique when the penalty delay is
+1, and explain why from [§19.6](19-tsp-clique.md#sec-19-6); then compare the
+sizes of the cliques found by `PENALTY_BASED` with penalty delays from 2 to
+50 (`manual/examples/19-clique.cc` checks the first part;
 `test/max_clique_test.cc` checks the termination causes of the three rules).
 
 <span id="ex-19-8"></span>**Exercise 19.8.** Plot the size of the search tree
