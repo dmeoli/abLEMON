@@ -318,7 +318,7 @@ class CompactDigraph : public ExtendedCompactDigraphBase
  ///
  /// This function returns the arc with the given index.
  /// \sa index()
- Arc arc( int ix ) { return( arcFromId( ix ) ); }
+ Arc arc( int ix ) const { return( arcFromId( ix ) ); }
 
  /// \brief The index of the given node.
  ///

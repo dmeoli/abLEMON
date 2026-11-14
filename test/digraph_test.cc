@@ -521,6 +521,8 @@ void checkStaticDigraph()
  int m = G.arcNum();
  check( G.index( G.node( n - 1 ) ) == n - 1 , "Wrong index." );
  check( G.index( G.arc( m - 1 ) ) == m - 1 , "Wrong index." );
+ const GR & CG = G;
+ check( CG.index( CG.arc( m - 1 ) ) == m - 1 , "Wrong index." );
  }
 
 void checkFullDigraph( int num )

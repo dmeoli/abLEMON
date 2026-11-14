@@ -425,10 +425,11 @@ i.e., one `int` per node and one per arc, and an `Arc` handle carries its
 source together with its index. It is built as a `StaticDigraph` is (also
 sorting the arcs by its own `ArcLess` when it copies a digraph). Its `InArcIt`
 exists only to conform to `concepts::Digraph`, since with no index of the
-incoming arcs it scans all the arcs. Also, `arc(i)` (which is not static here)
-finds the source of the arc by a binary search on `node_first_out`. An
-algorithm that visits the incoming arcs (e.g., one run on the reverse digraph
-of [chapter 5](05-adaptors.md#ch-5)) should use `StaticDigraph` instead.
+incoming arcs it scans all the arcs. Also, `arc(i)` (which is not static here,
+but const) finds the source of the arc by a binary search on `node_first_out`.
+An algorithm that visits the incoming arcs (e.g., one run on the reverse
+digraph of [chapter 5](05-adaptors.md#ch-5)) should use `StaticDigraph`
+instead.
 
 <span id="lem-4-5"></span>**Lemma 4.5.** *In `CompactDigraph`, `arc(i)` (and
 `arcFromId(i)`) returns the arc of index $i$ with its source in $O(\log n)$
@@ -449,7 +450,9 @@ $\square$
 !!! note "abLEMON"
     `CompactDigraph` comes from the repository of LEMON after its release
     1.3.1, and it is distributed for the first time in abLEMON, whose
-    documentation also gives the cost of its `InArcIt`.
+    documentation also gives the cost of its `InArcIt`. There `arc(i)` was
+    not const, and it could not be called on a constant digraph; the test
+    `digraph_test` calls it on one.
 
 The program `manual/examples/04-static-graphs.cc` (the test
 `manual_04_static_graphs`) builds `StaticDigraph` and `CompactDigraph` from a
