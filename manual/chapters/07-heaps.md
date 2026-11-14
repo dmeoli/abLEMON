@@ -481,10 +481,11 @@ links, its box and its priority.
 ```
 push(i, p):
   while p >= b_K: add a box K of width 2 w_{K-1} after the last  (extend())
-  put i in the box of p, searching downwards from box K-1;
+  find the box of p, searching downwards from box K-1;
   if p < b_0, throw PriorityUnderflowError                  (findDown())
-decrease(i, p):  prio(i) := p; if p < b_(box of i): move i to the box of
-                 p, searching downwards, or throw as in push()
+  put i in that box
+decrease(i, p):  find the box of p, searching downwards from the box of
+                 i, or throw as in push(); prio(i) := p; move i to it
 increase(i, p):  prio(i) := p; if p >= b_(box of i + 1): move i to the
                  box of p, searching upwards and extending   (findUp())
 moveDown():                          (called by top(), prio() and pop())
@@ -525,7 +526,9 @@ Hence, the priorities must not go below $b_0$. This is `minimum` at first and,
 once `top()`, `prio()` or `pop()` has found box $0$ empty, the least priority
 in the heap at that moment. A `push()`, `set()` or `decrease()` below it
 throws the exception `RadixHeap< IM >::PriorityUnderflowError`, even if no
-item has been removed yet. The constructor
+item has been removed yet, and the search that throws comes before any change,
+so that the heap, the item and the cross-reference map stay as they were. The
+constructor
 `RadixHeap( IM & map, int minimum = 0, int capacity = 0 )` creates the boxes
 for the priorities from `minimum` to `minimum + capacity - 1`, the heap adds
 boxes when a larger priority arrives, and `clear(minimum, capacity)` empties
@@ -562,7 +565,9 @@ and nodes, which follows from Theorem 7.6 with $U\le nC$.
     `increase()` an item could sit in a box before one with a smaller priority
     and be popped first (trac #681); `test/heap_test.cc` has the case of the
     ticket and a long monotone sequence of operations checked against a sorted
-    set.
+    set. In LEMON 1.3.1, moreover, a `push()`, `decrease()` or `set()` that
+    threw had already stored the item, or unlinked it from its box, and left
+    the heap corrupted; `radixHeapTest()` checks the three cases.
 
 *Bucket heaps.* `BucketHeap< IM, MIN >`, in `lemon/bucket_heap.h`, keeps a
 doubly linked list of the items of each priority, with the heads in a vector

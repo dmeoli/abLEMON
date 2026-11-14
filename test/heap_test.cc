@@ -149,7 +149,8 @@ void heapEqualPairTest()
 
 // RadixHeap after the increase of trac #681, and against a sorted set on a
 // pseudo-random monotone sequence of push, pop, increase, decrease, set and
-// erase: the boxes that pop() rearranges must not overlap the next ones
+// erase: the boxes that pop() rearranges must not overlap the next ones;
+// an underflow must leave the heap as it was
 void radixHeapTest()
 {
  {
@@ -162,6 +163,45 @@ void radixHeapTest()
   heap.increase( 1 , 5 );
   check( heap.top() == 2 && heap.prio() == 4 ,
 	 "Wrong minimum after increase." );
+  }
+ {
+  // a priority below the first box throws and leaves the heap unchanged
+  typedef RadixHeap< RangeMap< int > > Heap;
+  RangeMap< int > map( 3 , -1 );
+  Heap heap( map );
+  heap.push( 0 , 5 );
+  heap.push( 1 , 7 );
+  heap.push( 2 , 9 );
+  heap.pop();
+  int thrown = 0;
+  try {
+   heap.push( 0 , 3 );
+   }
+  catch( const Heap::PriorityUnderflowError & ) {
+   ++thrown;
+   }
+  try {
+   heap.decrease( 1 , 2 );
+   }
+  catch( const Heap::PriorityUnderflowError & ) {
+   ++thrown;
+   }
+  try {
+   heap.set( 2 , 1 );
+   }
+  catch( const Heap::PriorityUnderflowError & ) {
+   ++thrown;
+   }
+  check( thrown == 3 , "No underflow in RadixHeap." );
+  check( heap.size() == 2 && heap.state( 0 ) == Heap::POST_HEAP ,
+	 "Wrong size after an underflow." );
+  check( heap[ 1 ] == 7 && heap[ 2 ] == 9 ,
+	 "Wrong priority after an underflow." );
+  check( heap.top() == 1 , "Wrong top after an underflow." );
+  heap.pop();
+  check( heap.top() == 2 , "Wrong top after an underflow." );
+  heap.pop();
+  check( heap.empty() , "Heap not emptied after an underflow." );
   }
  const int n = 40;
  RangeMap< int > map( n , -1 );
