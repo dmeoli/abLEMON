@@ -51,7 +51,7 @@ DIGRAPH_TYPEDEFS( Digraph );
 typedef SmartGraph Graph;
 
 template< class Value >
-void solve_sp( ArgParser & ap , std::istream & is , std::ostream & ,
+void solve_sp( ArgParser & ap , std::istream & is , std::ostream & os ,
 	       DimacsDescriptor & desc )
 {
  bool report = ! ap.given( "q" );
@@ -71,12 +71,15 @@ void solve_sp( ArgParser & ap , std::istream & is , std::ostream & ,
  dij.run( s );
  if( report )
   std::cerr << "Run Dijkstra: " << t << '\n';
+ // the distance of each node reached from the source
+ for( NodeIt n( g ) ; n != INVALID ; ++n )
+  if( dij.reached( n ) )
+   os << "d " << g.id( n ) + 1 << ' ' << dij.dist( n ) << '\n';
  }
 
 template< class Value >
-void solve_max( ArgParser & ap , std::istream & is , std::ostream & ,
-		Value infty ,
-		DimacsDescriptor & desc )
+void solve_max( ArgParser & ap , std::istream & is , std::ostream & os ,
+		Value infty , DimacsDescriptor & desc )
 {
  bool report = ! ap.given( "q" );
  Digraph g;
@@ -97,12 +100,17 @@ void solve_max( ArgParser & ap , std::istream & is , std::ostream & ,
   std::cerr << "Run Preflow: " << ti << '\n';
  if( report )
   std::cerr << "\nMax flow value: " << pre.flowValue() << '\n';
+ // the value and the flow on each arc that carries some
+ os << "s " << pre.flowValue() << '\n';
+ for( ArcIt a( g ) ; a != INVALID ; ++a )
+  if( pre.flow( a ) != 0 )
+   os << "f " << g.id( g.source( a ) ) + 1 << ' ' << g.id( g.target( a ) ) + 1
+      << ' ' << pre.flow( a ) << '\n';
  }
 
 template< class Value , class LargeValue >
-void solve_min( ArgParser & ap , std::istream & is , std::ostream & ,
-		Value infty ,
-		DimacsDescriptor & desc )
+void solve_min( ArgParser & ap , std::istream & is , std::ostream & os ,
+		Value infty , DimacsDescriptor & desc )
 {
  bool report = ! ap.given( "q" );
  Digraph g;
@@ -157,9 +165,20 @@ void solve_min( ArgParser & ap , std::istream & is , std::ostream & ,
    std::cerr << "Min flow cost: " << ns.template totalCost< LargeValue >()
 	     << '\n';
   }
+ // the cost and the flow on each arc that carries some, or the cause
+ if( res == MCF::OPTIMAL ) {
+  os << "s " << ns.template totalCost< LargeValue >() << '\n';
+  for( ArcIt a( g ) ; a != INVALID ; ++a )
+   if( ns.flow( a ) != 0 )
+    os << "f " << g.id( g.source( a ) ) + 1 << ' ' << g.id( g.target( a ) ) + 1
+       << ' ' << ns.flow( a ) << '\n';
+  }
+ else
+  os << "s " << ( res == MCF::INFEASIBLE ? "INFEASIBLE" : "UNBOUNDED" )
+     << '\n';
  }
 
-void solve_mat( ArgParser & ap , std::istream & is , std::ostream & ,
+void solve_mat( ArgParser & ap , std::istream & is , std::ostream & os ,
 		DimacsDescriptor & desc )
 {
  bool report = ! ap.given( "q" );
@@ -179,6 +198,11 @@ void solve_mat( ArgParser & ap , std::istream & is , std::ostream & ,
   std::cerr << "Run MaxMatching: " << ti << '\n';
  if( report )
   std::cerr << "\nCardinality of max matching: " << mat.matchingSize() << '\n';
+ // the size and the edges of the matching
+ os << "s " << mat.matchingSize() << '\n';
+ for( Graph::EdgeIt e( g ) ; e != INVALID ; ++e )
+  if( mat.matching( e ) )
+   os << "m " << g.id( g.u( e ) ) + 1 << ' ' << g.id( g.v( e ) ) + 1 << '\n';
  }
 
 
@@ -239,70 +263,79 @@ int main( int argc , const char * argv[] )
    .stringOption( "infcap" , "Value used for 'very high' capacities" , "0" )
    .run();
 
- std::ifstream input;
- std::ofstream output;
+ // the solution goes to OUTFILE (or to the standard output), the reports
+ // to the standard error; an unreadable file or an unknown type of problem
+ // ends the program with a message rather than with an exception
+ try {
+  std::ifstream input;
+  std::ofstream output;
 
- switch( ap.files().size() ) {
-  case 2:
-   output.open( ap.files()[ 1 ].c_str() );
-   if( ! output ) {
-    throw( IoError( "Cannot open the file for writing" , ap.files()[ 1 ] ) );
-    }
-   // fall through
-  case 1:
-   input.open( ap.files()[ 0 ].c_str() );
-   if( ! input ) {
-    throw( IoError( "File cannot be found" , ap.files()[ 0 ] ) );
-    }
-   // fall through
-  case 0:
-   break;
-  default:
-   std::cerr << ap.commandName() << ": too many arguments\n";
-   return( 1 );
-  }
- std::istream & is = ( ap.files().size() < 1 ? std::cin : input );
- std::ostream & os = ( ap.files().size() < 2 ? std::cout : output );
-
- DimacsDescriptor desc = dimacsType( is );
-
- if( ! ap.given( "q" ) ) {
-  std::cout << "Problem type: ";
-  switch( desc.type ) {
-   case DimacsDescriptor::MIN:
-    std::cout << "min";
-    break;
-   case DimacsDescriptor::MAX:
-    std::cout << "max";
-    break;
-   case DimacsDescriptor::SP:
-    std::cout << "sp";
-    break;
-   case DimacsDescriptor::MAT:
-    std::cout << "mat";
+  switch( ap.files().size() ) {
+   case 2:
+    output.open( ap.files()[ 1 ].c_str() );
+    if( ! output ) {
+     throw( IoError( "Cannot open the file for writing" , ap.files()[ 1 ] ) );
+     }
+    // fall through
+   case 1:
+    input.open( ap.files()[ 0 ].c_str() );
+    if( ! input ) {
+     throw( IoError( "File cannot be found" , ap.files()[ 0 ] ) );
+     }
+    // fall through
+   case 0:
     break;
    default:
-    exit( 1 );
-    break;
+    std::cerr << ap.commandName() << ": too many arguments\n";
+    return( 1 );
    }
-  std::cout << "\nNum of nodes: " << desc.nodeNum;
-  std::cout << "\nNum of arcs:  " << desc.edgeNum;
-  std::cout << "\n\n";
-  }
+  std::istream & is = ( ap.files().size() < 1 ? std::cin : input );
+  std::ostream & os = ( ap.files().size() < 2 ? std::cout : output );
 
- if( ap.given( "double" ) )
-  solve< double , double >( ap , is , os , desc );
- else if( ap.given( "ldouble" ) )
-  solve< long double , long double >( ap , is , os , desc );
+  DimacsDescriptor desc = dimacsType( is );
+
+  if( ! ap.given( "q" ) ) {
+   std::cerr << "Problem type: ";
+   switch( desc.type ) {
+    case DimacsDescriptor::MIN:
+     std::cerr << "min";
+     break;
+    case DimacsDescriptor::MAX:
+     std::cerr << "max";
+     break;
+    case DimacsDescriptor::SP:
+     std::cerr << "sp";
+     break;
+    case DimacsDescriptor::MAT:
+     std::cerr << "mat";
+     break;
+    default:
+     exit( 1 );
+     break;
+    }
+   std::cerr << "\nNum of nodes: " << desc.nodeNum;
+   std::cerr << "\nNum of arcs:  " << desc.edgeNum;
+   std::cerr << "\n\n";
+   }
+
+  if( ap.given( "double" ) )
+   solve< double , double >( ap , is , os , desc );
+  else if( ap.given( "ldouble" ) )
+   solve< long double , long double >( ap , is , os , desc );
 #ifdef LEMON_HAVE_LONG_LONG
- else if( ap.given( "long" ) )
-  solve< long long , long long >( ap , is , os , desc );
- else
-  solve< int , long long >( ap , is , os , desc );
+  else if( ap.given( "long" ) )
+   solve< long long , long long >( ap , is , os , desc );
+  else
+   solve< int , long long >( ap , is , os , desc );
 #else
- else
-  solve< int , long >( ap , is , os , desc );
+  else
+   solve< int , long >( ap , is , os , desc );
 #endif
+  }
+ catch( const Exception & e ) {
+  std::cerr << ap.commandName() << ": " << e.what() << '\n';
+  return( 1 );
+  }
 
  return( 0 );
  }

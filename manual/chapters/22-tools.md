@@ -34,10 +34,9 @@ both tools also read from a pipe.
 Our first tool, `dimacs-solver`, reads a problem in one of the DIMACS formats
 of [§21.5](21-io.md#sec-21-5) and solves it with the algorithm of the library
 for that type, reporting the times of the reading, of the construction of the
-algorithm object, and of the run. It is meant (apparently) as a benchmark of
-the algorithms on the instances of the DIMACS challenges: apart from the
-optimal value, it writes no solution, and the output file, which it opens when
-it is given, stays empty.
+algorithm object, and of the run, and it writes the solution to the output
+file, or to the standard output when no output file is given. The reports go
+to the standard error, so that the standard output holds the solution alone.
 
 | Option | Meaning | Default |
 |-----------|----------------------------|----------------------------|
@@ -53,23 +52,26 @@ four options of the type form an exclusive group.
 
 At the start, the tool reads the problem line by `dimacsType()`, and, unless
 `-q` is given, writes the type of the problem and the numbers of nodes and
-arcs on the standard output; a file of unknown type makes `dimacsType()` throw
-`FormatError`, which the tool does not catch. Also, the rest of the report
-goes to the standard error. Then it builds a `SmartDigraph` (or a `SmartGraph`
+arcs; a file that cannot be opened, or of unknown type, ends the program with
+a message and the exit status 1. Then it builds a `SmartDigraph` (or a `SmartGraph`
 for the type `mat`) and proceeds by type, as follows. For a `sp` file, it
 reads the digraph and the lengths by `readDimacsSp()` and computes the
 shortest paths from the source by `Dijkstra` ([chapter
-10](10-shortest-paths.md#ch-10)), without printing the distances. For a `max`
-file, it reads the capacities by `readDimacsMax()`, computes a maximum flow by
-`Preflow` ([chapter 12](12-max-flow.md#ch-12)), and prints its value. For a
-`mat` file, it reads the graph by `readDimacsMat()` and prints the cardinality
-of a maximum matching computed by `MaxMatching` ([chapter
-17](17-matching.md#ch-17)). For a `min` file, it reads the problem by
+10](10-shortest-paths.md#ch-10)), and writes a line `d v d(v)` for each node
+`v` reached. For a `max` file, it reads the capacities by `readDimacsMax()`,
+computes a maximum flow by `Preflow` ([chapter 12](12-max-flow.md#ch-12)), and
+writes its value as `s value` and a line `f u v x` for each arc $(u,v)$ with a
+nonzero flow $x$. For a `mat` file, it reads the graph by `readDimacsMat()`,
+computes a maximum matching by `MaxMatching` ([chapter
+17](17-matching.md#ch-17)), and writes its cardinality as `s k` and a line `m
+u v` for each matched edge. For a `min` file, it reads the problem by
 `readDimacsMin()` and solves it by `NetworkSimplex` ([chapter
 13](13-min-cost-flow.md#ch-13)), as in Algorithm 22.1, printing whether a
 feasible flow was found and, unless the problem is infeasible, its cost, which
 is computed in a wider type (`long long` when the values are `int`, the type
-of the values otherwise).
+of the values otherwise); it writes the cost as `s cost` and a line `f u v x`
+for each arc with a nonzero flow, or `s INFEASIBLE` or `s UNBOUNDED`. The
+nodes are numbered from 1, as in the input file.
 
 <span id="alg-22-1"></span>**Algorithm 22.1** (The minimum cost flow problem
 in `dimacs-solver`).
@@ -81,7 +83,8 @@ in `dimacs-solver`).
           of the supplies, of the lower bounds and of the finite capacities
 4  if |sigma| <= eps: sigma := 0
 5  if sigma > 0: supply type LEQ, else GEQ (the default of NetworkSimplex)
-6  run NetworkSimplex; print "found" or "not found", and the total cost
+6  run NetworkSimplex; report "found" or "not found" and the total cost,
+   and write the cost and the flows (or the cause) to the output
 ```
 
 Note that the choice of line 5 follows from the meaning of the two supply
@@ -98,7 +101,10 @@ tolerance that `NetworkSimplex` itself uses to balance the supplies ([chapter
     In the version after 1.9.0, `dimacs-solver` takes as zero a sum of the
     supplies within the tolerance of `NetworkSimplex`; before, a sum of
     $10^{-12}$ left by fractional supplies of a `double` instance made it
-    choose and announce the type `LEQ`.
+    choose and announce the type `LEQ`. Also, in LEMON 1.3.1 it wrote no
+    solution (the output file, opened when given, stayed empty), wrote the
+    first lines of its report to the standard output, and ended with an
+    uncaught exception on a file of unknown type.
 
 ## 22.3 dimacs-to-lgf {#sec-22-3}
 
