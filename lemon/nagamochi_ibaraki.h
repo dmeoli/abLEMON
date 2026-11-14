@@ -408,6 +408,8 @@ class NagamochiIbaraki
  /// \brief Initializes the internal data structures.
  ///
  /// Initializes the internal data structures.
+ /// \pre The graph has at least one node. A graph of one node has no
+ /// cut, and the algorithm then gives the value 0 and that node.
  void init() {
   createStructures();
 
@@ -434,6 +436,8 @@ class NagamochiIbaraki
    }
 
   _first_node = typename Graph::NodeIt( _graph );
+  LEMON_ASSERT( _first_node != INVALID , "NagamochiIbaraki: the graph is "
+					"empty" );
 
   int index = 0;
   for( typename Graph::NodeIt n( _graph ) ; n != INVALID ; ++n ) {
@@ -687,6 +691,7 @@ class NagamochiIbaraki
  /// mc.init();
  /// mc.start();
  ///\endcode
+ /// \pre The graph has at least one node.
  void run() {
   init();
   start();

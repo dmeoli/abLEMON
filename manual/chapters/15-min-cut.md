@@ -552,10 +552,13 @@ bounds of the second case of Theorem 15.6.
     `createHeapCrossRef()` of their traits, which took an `int`, and their
     default cross reference was a `RangeMap< int >`; the test
     `nagamochi_ibaraki_test` now runs both with a Fibonacci heap. In LEMON
-    1.3.1 step 8 gave the larger value $q$ of two merged parallel edges to
-    the edge it dropped rather than to the one it kept, which could leave
-    the latter uncontracted until a later phase; `nagamochi_ibaraki_test`
-    checks a graph that a single phase contracts.
+    1.3.1 step 8 gave the larger value $q$ of two merged parallel edges to the
+    edge it dropped rather than to the one it kept, which could leave the
+    latter uncontracted until a later phase; `nagamochi_ibaraki_test` checks a
+    graph that a single phase contracts. LEMON 1.3.1 did not state that the
+    graph must not be empty, and on an empty graph `init()` wrote the cut map
+    at the node `INVALID`; since this is a precondition, no test checks it,
+    while `edge_case_test` checks the graphs of one node.
 
 In the execution, `init()` builds the internal copy of the graph and makes
 steps 1 and 2. Then `processNextPhase()` makes one phase and returns `true`
@@ -565,16 +568,17 @@ calls it until then, and `run()` is `init()` followed by `start()`;
 the comparisons. As for the results, `minCutValue()` returns the value of the
 best cut found so far, which after `init()` is already the capacity of a cut
 (the lightest star of a node) and at the end is $\lambda(G)$ by Theorem 15.5.
-Similarly, `minCutMap(cutMap)` writes the characteristic vector of one side
-of that cut into a writable `bool` node map, and returns its value. The graph
-must have at least two nodes, a precondition that the header does not state:
-on one node the stored set is the whole node set, of value 0. Also, the header
-warns that the value type must hold the cut values of the graph, since their
-sums may otherwise overflow, and notes that the capacities are supposed to be
-integer. With floating-point capacities the result rests on the tolerance and
-on the exact comparisons of steps 6 and 8, and the tests of the library cover
-only integer capacities. On the graph of Figure 15.2 the algorithm finds the
-value 3 (section 15.4.2 names the program that runs it phase by phase).
+Similarly, `minCutMap(cutMap)` writes the characteristic vector of one side of
+that cut into a writable `bool` node map, and returns its value. The graph
+must have at least one node, which `init()` asserts; a graph of one node has
+no cut, and the class then gives the value 0 and the set of that node. Also,
+the header warns that the value type must hold the cut values of the graph,
+since their sums may otherwise overflow, and notes that the capacities are
+supposed to be integer. With floating-point capacities the result rests on the
+tolerance and on the exact comparisons of steps 6 and 8, and the tests of the
+library cover only integer capacities. On the graph of Figure 15.2 the
+algorithm finds the value 3 (section 15.4.2 names the program that runs it
+phase by phase).
 
 !!! note "abLEMON"
     `tolerance()` is new in abLEMON. LEMON 1.3.1 compared the cut values
