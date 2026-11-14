@@ -1454,7 +1454,9 @@ class NetworkSimplex
    _all_arc_num = f;
    }
   else {
-   // GEQ supply constraints
+   // GEQ supply constraints: a node of supply zero hangs on an artificial
+   // arc towards the root, since an arc from the root at flow zero would
+   // make the tree not strongly feasible
    _search_arc_num = _arc_num + _node_num;
    int f = _arc_num + _node_num;
    for( int u = 0 , e = _arc_num ; u != _node_num ; ++u , ++e ) {
@@ -1463,7 +1465,7 @@ class NetworkSimplex
     _rev_thread[ u + 1 ] = u;
     _succ_num[ u ] = 1;
     _last_succ[ u ] = u;
-    if( _supply[ u ] <= 0 ) {
+    if( _supply[ u ] < 0 ) {
      _pred_dir[ u ] = DIR_DOWN;
      _pi[ u ] = 0;
      _pred[ u ] = e;

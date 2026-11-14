@@ -464,9 +464,7 @@ is due to [Cunningham 1976](Z-bibliography.md#ref-cunningham1976network).
 <span id="thm-13-4"></span>**Theorem 13.4.** *(Termination.) If the initial
 tree is strongly feasible, the tree stays strongly feasible after each pivot,
 no basis is repeated, and the method ends after finitely many pivots. The
-initial tree of the class is strongly feasible in the balanced case and under
-LEQ, and under GEQ when no node has a supply of zero after the lower bounds
-are moved into the supplies.*
+initial tree of the class is strongly feasible for every supply type.*
 
 *Proof sketch.* The first statement is the theorem of [Cunningham
 1976](Z-bibliography.md#ref-cunningham1976network); see also [Ahuja, Magnanti
@@ -481,18 +479,18 @@ repeats. For the second statement, in the initial tree an arc $ur$ carries
 $sup(u)\geq 0$ towards the root and has an infinite capacity, while an arc
 $ru$ carries $-sup(u)$, which can be decreased if it is positive. In the
 balanced case and under LEQ the arcs $ru$ are those of the nodes of negative
-supply; under GEQ they are those of the nodes of nonpositive supply, and an
-arc $ru$ of a node of zero supply carries no flow that can be decreased. The
-heuristic initial pivots use the same rule. $\square$
+supply. Under GEQ they are those of the nodes of negative supply as well, a
+node of zero supply hanging on an artificial arc $ur$ of cost $M$ and flow
+zero, which can be increased, with the arc $ru$ of cost zero out of the tree
+at its lower bound. The heuristic initial pivots use the same rule.
+$\square$
 
 We remark that the header states no bound on the number of pivots, and that
-the pivot rules of the class are not known to be polynomial; under GEQ with
-nodes of zero supply, Theorem 13.4 does not apply to the initial tree, and the
-class relies on the pivot rules only. Each pivot costs the search of the rule,
-plus time proportional to the length of the cycle and to the size of the
-smaller part of the tree. In practice the method is usually the fastest one of
-the library on graphs of up to some thousands of nodes and on dense graphs
-(cf. section 13.9).
+the pivot rules of the class are not known to be polynomial. Each pivot costs
+the search of the rule, plus time proportional to the length of the cycle and
+to the size of the smaller part of the tree. In practice the method is usually
+the fastest one of the library on graphs of up to some thousands of nodes and
+on dense graphs (cf. section 13.9).
 
 In step 3 the initial pivots are a heuristic of the original code. With a
 single supply node and a single demand node, they are made on the arcs found
@@ -512,7 +510,11 @@ in special cases, significantly faster.
     is nearer to, its flow being set to that bound, rather than to the upper
     bound for a flow of, e.g., $10^{-16}$ (version 1.9.0), which may change
     the sequence of pivots. A problem is answered `UNBOUNDED` only after a
-    check of its feasibility (version 1.4.1).
+    check of its feasibility (version 1.4.1). Under GEQ with supplies of sum
+    below zero, LEMON 1.3.1 hung a node of zero supply on an arc $ru$ of flow
+    zero, which made the initial tree not strongly feasible; no test observes
+    the difference, since no instance is known on which the pivot rules of
+    the class cycle from that tree.
 
 ### 13.4.2 Pivot rules {#sec-13-4-2}
 
