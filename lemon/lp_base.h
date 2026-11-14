@@ -600,8 +600,10 @@ class LpBase
  /// e <= s e <= f e == f s <= e <= t e >= t
  ///\endcode
  ///\warning The validity of a constraint is checked only at run
- ///time, so e.g. \ref addRow(<tt>x[1]\<=x[2]<=5</tt>) will
- ///compile, but will fail an assertion.
+ ///time, so e.g. \ref addRow(<tt>(x[1]\<=5)\<=6</tt>), which sets the
+ ///upper bound twice, will compile, but will fail an assertion, while
+ ///<tt>x[1]\<=x[2]\<=5</tt> is the valid constraint
+ ///<tt>0\<=x[2]-x[1]\<=5</tt>.
  class Constr
  {
   public:
@@ -2059,10 +2061,10 @@ class LpSolver : virtual public LpBase
 
  /// Returns a component of the dual ray
 
- /// The dual ray is solution of the modified primal problem, where
- /// we change each finite bound to 0 (i.e. the objective function
- /// coefficients in the primal problem), and we looking for a
- /// ositive objective value. If there is such solution, that
+ /// The dual ray is solution of the modified dual problem, where
+ /// we change its right-hand sides (i.e. the objective function
+ /// coefficients in the primal problem) to 0, and we look for a
+ /// positive objective value. If there is such solution, that
  /// proofs the unsolvability of the primal problem, and if a
  /// feasible dual solution exists, then the unboundness of
  /// dual problem.
