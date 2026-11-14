@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <iostream>
+#include <limits>
 #include <string>
 
 /// \ingroup nauty_group
@@ -74,8 +75,7 @@ std::istream & readNautyGraph( Graph & graph , std::istream & is = std::cin )
   int n;
 
   // a line too short for its header, its number of nodes or its edges is
-  // not a graph: the graph is left empty and the stream failed, where the
-  // line was read past its end
+  // not a graph: the graph is left empty and the stream failed
   if( ! line.empty() && line[ index ] == '>' ) {
    index += 10;
    }
@@ -84,25 +84,34 @@ std::istream & readNautyGraph( Graph & graph , std::istream & is = std::cin )
    return( is );
    }
 
+  // the number of nodes is one byte, or 126 and 3 bytes of 6 bits, or 126,
+  // 126 and 6 bytes of 6 bits; a number beyond int fails the stream
   char c = line[ index++ ];
   c -= 63;
   if( c != 63 ) {
    n = int( c );
    }
   else {
-   if( index + 3 > line.size() ) {
+   int digits = 3;
+   if( index < line.size() && line[ index ] - 63 == 63 ) {
+    ++index;
+    digits = 6;
+    }
+   if( index + digits > line.size() ) {
     is.setstate( std::ios::failbit );
     return( is );
     }
-   c = line[ index++ ];
-   c -= 63;
-   n = ( int( c ) << 12 );
-   c = line[ index++ ];
-   c -= 63;
-   n |= ( int( c ) << 6 );
-   c = line[ index++ ];
-   c -= 63;
-   n |= int( c );
+   long long m = 0;
+   for( int k = 0 ; k < digits ; ++k ) {
+    c = line[ index++ ];
+    c -= 63;
+    m = ( m << 6 ) | ( c & 63 );
+    }
+   if( m > ( std::numeric_limits< int >::max )() ) {
+    is.setstate( std::ios::failbit );
+    return( is );
+    }
+   n = int( m );
    }
 
   const std::size_t bytes = ( std::size_t( n ) * ( n - 1 ) / 2 + 5 ) / 6;

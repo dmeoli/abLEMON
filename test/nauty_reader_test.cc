@@ -41,8 +41,23 @@ int main()
 	 "Wrong cycle read after the header" );
   }
 
- const char * truncated[] = { "D~\n" , "D\n" , ">>graph6\n" , "~?\n" , "\n" };
- for( int k = 0 ; k < 5 ; ++k ) {
+ // the number of nodes in the forms of 18 and of 36 bits, here 2 and 3
+ {
+  std::istringstream in( "~??A_\n~~?????Bw\n" );
+  SmartGraph k2 , k3;
+  readNautyGraph( k2 , in );
+  readNautyGraph( k3 , in );
+  check( countNodes( k2 ) == 2 && countEdges( k2 ) == 1 ,
+	 "Wrong graph of the form of 18 bits" );
+  check( countNodes( k3 ) == 3 && countEdges( k3 ) == 3 ,
+	 "Wrong graph of the form of 36 bits" );
+  }
+
+ const char * truncated[] = {
+  "D~\n" , "D\n" ,       ">>graph6\n" , "~?\n" ,
+  "\n" ,   "~~?????\n" , "~~?????B\n" , "~~~~~~~~\n"
+  };
+ for( int k = 0 ; k < 8 ; ++k ) {
   std::istringstream in( truncated[ k ] );
   SmartGraph g;
   readNautyGraph( g , in );
