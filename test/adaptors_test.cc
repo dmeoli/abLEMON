@@ -1582,6 +1582,16 @@ class FilterEdgesProbe : public FilterEdges< ListGraph >
   }
  };
 
+// A FilterEdges built by its protected default constructor
+class LateFilterEdges : public FilterEdges< ListGraph >
+{
+ public:
+ LateFilterEdges( ListGraph & graph , ListGraph::EdgeMap< bool > & f )
+     : FilterEdges< ListGraph >() {
+  initialize( graph , const_true_map , f );
+  }
+ };
+
 // The copies and the assignments of FilterNodes, FilterArcs, FilterEdges
 // and ResidualDigraph refer to their own members, not to those of the
 // source, which may be gone
@@ -1614,6 +1624,8 @@ void checkAdaptorCopies()
  FilterEdgesProbe fe3( graph , edge_filter );
  fe3 = fe;
  check( fe2.ownFilter() && fe3.ownFilter() , "Wrong FilterEdges copy" );
+ LateFilterEdges late( graph , edge_filter );
+ check( countEdges( late ) == 1 , "Wrong FilterEdges" );
 
  // the copy outlives the source, whose storage is then overwritten
  typedef ListDigraph::ArcMap< int > IntArcMap;

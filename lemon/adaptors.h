@@ -1905,9 +1905,7 @@ class FilterEdges
  protected:
  ConstMap< typename GR::Node , Const< bool , true > > const_true_map;
 
- FilterEdges() : const_true_map( true ) {
-  Parent::setNodeFilterMap( const_true_map );
-  }
+ FilterEdges() : const_true_map() { }
 
  public:
  /// \brief Constructor

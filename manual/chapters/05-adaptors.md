@@ -128,6 +128,17 @@ change the queries), completed by the extenders of `lemon/bits/` (cf.
 `SplitNodes` are built on their private classes `ArcMapBase` and
 `NodeMapBase`, and the arc filters of `ResidualDigraph` are the functors
 `ResForwardFilter` and `ResBackwardFilter` of the namespace `_adaptor_bits`.
+All the adaptors but `ResidualDigraph` and `SplitNodes` also have a protected
+default constructor, which leaves the adaptor unbound, so that a derived class
+may bind it later by the protected `initialize()` of its base (passing, for
+`FilterNodes`, `FilterArcs` and `FilterEdges`, the member `const_true_map` as
+the filter that the adaptor lacks).
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, the protected default constructor of `FilterEdges` called
+    a function `setNodeFilterMap()` that does not exist, so that a derived
+    class that used it did not compile; the class `LateFilterEdges` of
+    `test/adaptors_test.cc` uses it.
 
 ## 5.2 Reversing and filtering {#sec-5-2}
 
