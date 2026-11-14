@@ -383,6 +383,37 @@ void checkConcepts()
   }
  }
 
+template< class Graph >
+void checkGraphRefusedAdd()
+{
+ TEMPLATE_GRAPH_TYPEDEFS( Graph );
+
+ Graph G;
+ Node n1 = G.addNode() , n2 = G.addNode();
+ G.addEdge( n1 , n2 );
+
+ checkRefusedAdd( G.notifier( Node() ) , [ & ]() { G.addNode(); } );
+ checkGraphNodeList( G , 2 );
+ checkRefusedAdd( G.notifier( Edge() ) , [ & ]() { G.addEdge( n2 , n1 ); } );
+ checkGraphEdgeList( G , 1 );
+ checkRefusedAdd( G.notifier( Arc() ) , [ & ]() { G.addEdge( n2 , n1 ); } );
+ checkGraphEdgeList( G , 1 );
+ checkGraphArcList( G , 2 );
+ checkGraphIncEdgeArcLists( G , n1 , 1 );
+ checkGraphIncEdgeArcLists( G , n2 , 1 );
+
+ G.addEdge( n2 , G.addNode() );
+ checkGraphNodeList( G , 3 );
+ checkGraphEdgeList( G , 2 );
+ checkGraphArcList( G , 4 );
+ checkNodeIds( G );
+ checkEdgeIds( G );
+ checkArcIds( G );
+ checkGraphNodeMap( G );
+ checkGraphEdgeMap( G );
+ checkGraphArcMap( G );
+ }
+
 template< typename Graph >
 void checkGraphValidity()
 {
@@ -684,11 +715,13 @@ void checkGraphs()
   checkGraphErase< ListGraph >();
   checkGraphSnapshot< ListGraph >();
   checkGraphValidityErase< ListGraph >();
+  checkGraphRefusedAdd< ListGraph >();
   }
  {  // Checking SmartGraph
   checkGraphBuild< SmartGraph >();
   checkGraphSnapshot< SmartGraph >();
   checkGraphValidity< SmartGraph >();
+  checkGraphRefusedAdd< SmartGraph >();
   }
  {  // Checking StaticGraph
   checkStaticGraph();

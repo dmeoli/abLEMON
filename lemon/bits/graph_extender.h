@@ -270,13 +270,25 @@ class DigraphExtender : public Base
 
  Node addNode() {
   Node node = Parent::addNode();
-  notifier( Node() ).add( node );
+  try {
+   notifier( Node() ).add( node );
+   }
+  catch( ... ) {
+   Parent::undoAdd( node );
+   throw;
+   }
   return( node );
   }
 
  Arc addArc( const Node & from , const Node & to ) {
   Arc arc = Parent::addArc( from , to );
-  notifier( Arc() ).add( arc );
+  try {
+   notifier( Arc() ).add( arc );
+   }
+  catch( ... ) {
+   Parent::undoAdd( arc );
+   throw;
+   }
   return( arc );
   }
 
@@ -681,17 +693,35 @@ class GraphExtender : public Base
 
  Node addNode() {
   Node node = Parent::addNode();
-  notifier( Node() ).add( node );
+  try {
+   notifier( Node() ).add( node );
+   }
+  catch( ... ) {
+   Parent::undoAdd( node );
+   throw;
+   }
   return( node );
   }
 
  Edge addEdge( const Node & from , const Node & to ) {
   Edge edge = Parent::addEdge( from , to );
-  notifier( Edge() ).add( edge );
-  std::vector< Arc > ev;
-  ev.push_back( Parent::direct( edge , true ) );
-  ev.push_back( Parent::direct( edge , false ) );
-  notifier( Arc() ).add( ev );
+  try {
+   notifier( Edge() ).add( edge );
+   try {
+    std::vector< Arc > ev;
+    ev.push_back( Parent::direct( edge , true ) );
+    ev.push_back( Parent::direct( edge , false ) );
+    notifier( Arc() ).add( ev );
+    }
+   catch( ... ) {
+    notifier( Edge() ).erase( edge );
+    throw;
+    }
+   }
+  catch( ... ) {
+   Parent::undoAdd( edge );
+   throw;
+   }
   return( edge );
   }
 
@@ -1245,25 +1275,61 @@ class BpGraphExtender : public Base
 
  RedNode addRedNode() {
   RedNode node = Parent::addRedNode();
-  notifier( RedNode() ).add( node );
-  notifier( Node() ).add( node );
+  try {
+   notifier( RedNode() ).add( node );
+   try {
+    notifier( Node() ).add( node );
+    }
+   catch( ... ) {
+    notifier( RedNode() ).erase( node );
+    throw;
+    }
+   }
+  catch( ... ) {
+   Parent::undoAdd( node );
+   throw;
+   }
   return( node );
   }
 
  BlueNode addBlueNode() {
   BlueNode node = Parent::addBlueNode();
-  notifier( BlueNode() ).add( node );
-  notifier( Node() ).add( node );
+  try {
+   notifier( BlueNode() ).add( node );
+   try {
+    notifier( Node() ).add( node );
+    }
+   catch( ... ) {
+    notifier( BlueNode() ).erase( node );
+    throw;
+    }
+   }
+  catch( ... ) {
+   Parent::undoAdd( node );
+   throw;
+   }
   return( node );
   }
 
  Edge addEdge( const RedNode & from , const BlueNode & to ) {
   Edge edge = Parent::addEdge( from , to );
-  notifier( Edge() ).add( edge );
-  std::vector< Arc > av;
-  av.push_back( Parent::direct( edge , true ) );
-  av.push_back( Parent::direct( edge , false ) );
-  notifier( Arc() ).add( av );
+  try {
+   notifier( Edge() ).add( edge );
+   try {
+    std::vector< Arc > av;
+    av.push_back( Parent::direct( edge , true ) );
+    av.push_back( Parent::direct( edge , false ) );
+    notifier( Arc() ).add( av );
+    }
+   catch( ... ) {
+    notifier( Edge() ).erase( edge );
+    throw;
+    }
+   }
+  catch( ... ) {
+   Parent::undoAdd( edge );
+   throw;
+   }
   return( edge );
   }
 

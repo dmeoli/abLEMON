@@ -97,7 +97,10 @@ one `AlterationNotifier` for the nodes and one for the arcs, returned by
 `erase()`, `clear()` and `build()` call those of the base and notify the
 observers in the order of section A.3; in particular, `erase(Node)` erases the
 arcs at the node first, one by one, and the base need not do it, while its
-destructor notifies the observers of a `clear()`.
+destructor notifies the observers of a `clear()`. A base whose items are
+added through the extender also provides the protected functions
+`undoAdd(Node)` and `undoAdd(Arc)`, which remove the item just added by its
+`addNode()` or `addArc()` (section A.3).
 
 For an undirected graph, `GraphExtender< Base >` requires from the base the
 type `Edge` as well, with `u(e)`, `v(e)`, `direction(a)`, `direct(e, bool)`,
@@ -106,8 +109,9 @@ type `Edge` as well, with `u(e)`, `v(e)`, `direction(a)`, `direct(e, bool)`,
 return it defines the tag `UndirectedTag`, `EdgeIt`, `IncEdgeIt`, `edges()`,
 `incEdges(v)`, `oppositeArc()`, `direct(e, node)`, a third notifier for the
 edges and `EdgeMap< V >`, and its `addEdge()` notifies the new edge and then
-its two arcs. In the same way, `BpGraphExtender< Base >` adds the red and the
-blue nodes, with their iterators, notifiers and maps.
+its two arcs (an extendable base provides `undoAdd(Edge)` in place of
+`undoAdd(Arc)`). In the same way, `BpGraphExtender< Base >` adds the red and
+the blue nodes, with their iterators, notifiers and maps.
 
 <span id="alg-a-1"></span>**Algorithm A.1** (The arc iterators that
 DigraphExtender derives from the base).
@@ -226,11 +230,22 @@ of `erase(x)` visits each observer once from the front; one that throws
 the loop goes on to its successor, and the others stay. $\square$
 
 Lemma A.2 concerns the observers only. The extender of section A.2 adds the
-item to the storage of the base before it notifies it, and it does not remove
-the item when the notification throws; hence, a graph whose `addArc()` fails
-in one of its maps (e.g., for lack of memory) has its maps rolled back, but
-the arc remains in its storage, with no slot in the maps, and the graph should
-not be used further.
+item to the storage of the base before it notifies it, and when the
+notification throws it removes the item from the storage again, by the
+protected function `undoAdd()` that an extendable base provides for each kind
+of item it adds, before the exception goes on to the caller; an edge, which is
+notified to the observers of the edges and then to those of the arcs, is
+erased from the former when one of the latter throws, and a red or a blue
+node, notified to the observers of its colour and then to those of the nodes,
+is treated in the same way. Hence, a graph whose `addArc()` fails in one of
+its maps (e.g., for lack of memory) is left as it was before the call.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 the item stayed in the storage of the graph when an
+    observer refused its addition, with no slot in the maps that had been
+    rolled back. The tests `digraph_test`, `graph_test` and `bpgraph_test`
+    attach an observer that throws on every addition and check that the list
+    and the smart graphs are unchanged.
 
 *Thread safety and limits.* Attaching and detaching go through a lock, the
 class `bits::Lock` of `lemon/bits/lock.h`. It is a mutex of POSIX threads or

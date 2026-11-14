@@ -349,6 +349,31 @@ void checkConcepts()
   }
  }
 
+template< class Digraph >
+void checkDigraphRefusedAdd()
+{
+ TEMPLATE_DIGRAPH_TYPEDEFS( Digraph );
+
+ Digraph G;
+ Node n1 = G.addNode() , n2 = G.addNode();
+ G.addArc( n1 , n2 );
+
+ checkRefusedAdd( G.notifier( Node() ) , [ & ]() { G.addNode(); } );
+ checkGraphNodeList( G , 2 );
+ checkRefusedAdd( G.notifier( Arc() ) , [ & ]() { G.addArc( n2 , n1 ); } );
+ checkGraphArcList( G , 1 );
+ checkGraphOutArcList( G , n2 , 0 );
+ checkGraphInArcList( G , n1 , 0 );
+
+ G.addArc( n2 , G.addNode() );
+ checkGraphNodeList( G , 3 );
+ checkGraphArcList( G , 2 );
+ checkNodeIds( G );
+ checkArcIds( G );
+ checkGraphNodeMap( G );
+ checkGraphArcMap( G );
+ }
+
 template< typename Digraph >
 void checkDigraphValidity()
 {
@@ -545,12 +570,14 @@ void checkDigraphs()
   checkDigraphErase< ListDigraph >();
   checkDigraphSnapshot< ListDigraph >();
   checkDigraphValidityErase< ListDigraph >();
+  checkDigraphRefusedAdd< ListDigraph >();
   }
  {  // Checking SmartDigraph
   checkDigraphBuild< SmartDigraph >();
   checkDigraphSplit< SmartDigraph >();
   checkDigraphSnapshot< SmartDigraph >();
   checkDigraphValidity< SmartDigraph >();
+  checkDigraphRefusedAdd< SmartDigraph >();
   }
  {  // Checking StaticDigraph
   checkStaticDigraph< StaticDigraph >();

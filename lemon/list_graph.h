@@ -277,6 +277,10 @@ class ListDigraphBase
   }
 
  protected:
+ // removes an item just added, whose addition an observer refused
+ void undoAdd( const Node & node ) { erase( node ); }
+ void undoAdd( const Arc & arc ) { erase( arc ); }
+
  void changeTarget( Arc e , Node n ) {
   if( _arcs[ e.id ].next_in != -1 )
    _arcs[ _arcs[ e.id ].next_in ].prev_in = _arcs[ e.id ].prev_in;
@@ -1111,6 +1115,10 @@ class ListGraphBase
   }
 
  protected:
+ // removes an item just added, whose addition an observer refused
+ void undoAdd( const Node & node ) { erase( node ); }
+ void undoAdd( const Edge & edge ) { erase( edge ); }
+
  void changeV( Edge e , Node n ) {
   if( _arcs[ 2 * e.id ].next_out != -1 ) {
    _arcs[ _arcs[ 2 * e.id ].next_out ].prev_out = _arcs[ 2 * e.id ].prev_out;
@@ -2035,6 +2043,10 @@ class ListBpGraphBase
   }
 
  protected:
+ // removes an item just added, whose addition an observer refused
+ void undoAdd( const Node & node ) { erase( node ); }
+ void undoAdd( const Edge & edge ) { erase( edge ); }
+
  void changeRed( Edge e , RedNode n ) {
   if( _arcs[ ( 2 * e.id ) | 1 ].next_out != -1 ) {
    _arcs[ _arcs[ ( 2 * e.id ) | 1 ].next_out ].prev_out =
