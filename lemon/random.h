@@ -806,7 +806,7 @@ class Random
    V1 = 2 * real< double >() - 1;
    V2 = 2 * real< double >() - 1;
    S = V1 * V1 + V2 * V2;
-   } while( S >= 1 );
+   } while( S >= 1 || S == 0 );
   return( std::sqrt( -2 * std::log( S ) / S ) * V1 );
   }
  /// Normal (Gauss) distribution with given mean and standard deviation
@@ -979,7 +979,7 @@ class Random
    V1 = 2 * real< double >() - 1;
    V2 = 2 * real< double >() - 1;
    S = V1 * V1 + V2 * V2;
-   } while( S >= 1 );
+   } while( S >= 1 || S == 0 );
   double W = std::sqrt( -2 * std::log( S ) / S );
   return( dim2::Point< double >( W * V1 , W * V2 ) );
   }
@@ -996,7 +996,7 @@ class Random
    V1 = 2 * real< double >() - 1;
    V2 = 2 * real< double >() - 1;
    S = V1 * V1 + V2 * V2;
-   } while( S >= 1 );
+   } while( S >= 1 || S == 0 );
   double W = -std::log( S ) / S;
   return( dim2::Point< double >( W * V1 , W * V2 ) );
   }

@@ -684,11 +684,16 @@ the density $re^{-r^2/2}$, and the output has the density
 $\frac{1}{2\pi}e^{-(x^2+y^2)/2}$, the product of two standard normal
 densities. $\square$
 
-Thus, the two coordinates of `gauss2()` are independent, although the
-documentation of the function states the contrary, and `gauss()` returns the
-first of them. The case $S=0$, which `gauss()` and `gauss2()` do not exclude,
-has probability $2^{-2b}$, where $b$ is the number of random bits of the
-`double` that `real()` returns, and would give a NaN.
+Thus, the two coordinates of `gauss2()` are independent, and `gauss()` returns
+the first of them. The case $S=0$, which has probability $2^{-2b}$, where $b$
+is the number of random bits of the `double` that `real()` returns, and would
+give a NaN, is drawn again by `gauss()`, `gauss2()` and `exponential2()`, as
+the lemma requires.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 `gauss()`, `gauss2()` and `exponential2()` accepted $S=0$
+    and then returned a NaN; no test checks it, since `real()` returns 0.5
+    twice in a row only with probability $2^{-2b}$.
 
 <span id="lem-8-4"></span>**Lemma 8.4.** *`poisson(lambda)` returns the least
 $k\ge 0$ such that $U_1\cdots U_{k+1}<e^{-\lambda}$, which is a Poisson
