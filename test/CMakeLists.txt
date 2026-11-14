@@ -188,6 +188,18 @@ FOREACH(VALUE_TYPE long double)
 ENDFOREACH()
 ADD_DEPENDENCIES(check min_cost_flow_battery_test)
 
+# the tools on small DIMACS files written here, their output and their report
+# matched by regular expressions
+IF(LEMON_BUILD_TOOLS)
+  FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/unbounded.min
+    "p min 2 2\na 1 2 0 -1 -1\na 2 1 0 -1 -1\n")
+  ADD_TEST(NAME dimacs_solver_unbounded
+    COMMAND dimacs-solver ${CMAKE_CURRENT_BINARY_DIR}/unbounded.min)
+  SET_TESTS_PROPERTIES(dimacs_solver_unbounded PROPERTIES
+    PASS_REGULAR_EXPRESSION "s UNBOUNDED" FAIL_REGULAR_EXPRESSION "cost:")
+  ADD_DEPENDENCIES(check dimacs-solver)
+ENDIF()
+
 # with LEMON as a DLL, the tests find it in the directory where it is built;
 # the generator expression is expanded in the property of a test created by
 # ADD_TEST(NAME ...) only, which all of them are
@@ -196,3 +208,4 @@ IF(WIN32 AND BUILD_SHARED_LIBS)
   SET_TESTS_PROPERTIES(${_lemon_tests} PROPERTIES ENVIRONMENT_MODIFICATION
     "PATH=path_list_prepend:$<TARGET_FILE_DIR:lemon>")
 ENDIF()
+

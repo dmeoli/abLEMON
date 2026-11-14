@@ -161,7 +161,7 @@ void solve_min( ArgParser & ap , std::istream & is , std::ostream & os ,
   std::cerr << "Run NetworkSimplex: " << ti << "\n\n";
   std::cerr << "Feasible flow: "
 	    << ( res == MCF::OPTIMAL ? "found" : "not found" ) << '\n';
-  if( res )
+  if( res == MCF::OPTIMAL )
    std::cerr << "Min flow cost: " << ns.template totalCost< LargeValue >()
 	     << '\n';
   }

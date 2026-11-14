@@ -73,7 +73,7 @@ Algorithm 22.1. It writes the cost as `s cost` and a line `f u v x` for each
 arc with a nonzero flow, or `s INFEASIBLE` or `s UNBOUNDED`; the cost is
 computed in a wider type (`long long` when the values are `int`, the type of
 the values otherwise). Its report says whether a feasible flow was found and
-gives the cost.
+gives the cost of an optimal one.
 
 <span id="alg-22-1"></span>**Algorithm 22.1** (The minimum cost flow problem
 in `dimacs-solver`).
@@ -86,9 +86,9 @@ in `dimacs-solver`).
           of the supplies, of the lower bounds and of the finite capacities
 4  if |sigma| <= eps: sigma := 0
 5  if sigma > 0: supply type LEQ, else GEQ (the default of NetworkSimplex)
-6  run NetworkSimplex; report "found" if the result is OPTIMAL, "not found"
-   otherwise, and the total cost; write the cost and the flows (or the cause)
-   to the output
+6  run NetworkSimplex; report "found" and the total cost if the result is
+   OPTIMAL, "not found" otherwise; write the cost and the flows (or the
+   cause) to the output
 ```
 
 The choice of line 5 rests on the following property of the flows, in which
@@ -115,8 +115,8 @@ unsatisfied. Lines 3 and 4 treat as zero a sum that only the rounding of
 fractional supplies keeps away from zero, with the tolerance that
 `NetworkSimplex` itself uses to balance the supplies ([chapter
 13](13-min-cost-flow.md#ch-13)). We remark that the report of line 6 calls an
-unbounded problem "not found" and still prints a total cost for it, which is
-not meaningful; the output file, instead, says `s UNBOUNDED`.
+unbounded problem "not found", although it has feasible flows; the output
+file, instead, says `s UNBOUNDED`.
 
 !!! note "abLEMON"
     `dimacs-solver` takes as zero a sum of the supplies within the tolerance
@@ -124,8 +124,10 @@ not meaningful; the output file, instead, says `s UNBOUNDED`.
     and a sum of $10^{-12}$ left by fractional supplies of a `double` instance
     made it choose and announce the type `LEQ`. Also, in LEMON 1.3.1 it wrote
     no solution (the output file, opened when given, stayed empty), wrote the
-    first lines of its report to the standard output, and ended with an
-    uncaught exception on a file of unknown type.
+    first lines of its report to the standard output, ended with an uncaught
+    exception on a file of unknown type, and reported a total cost also for
+    an unbounded problem; the test `dimacs_solver_unbounded` checks that the
+    report of such a problem has no cost.
 
 ## 22.3 dimacs-to-lgf {#sec-22-3}
 

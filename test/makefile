@@ -5,7 +5,7 @@
 #   makefile of the tests of LEMON                                           #
 #                                                                            #
 #   Builds the tests that CMake builds (the ones of the LP and MIP solvers   #
-#   excepted), and runs them with                                            #
+#   and of the tools excepted), and runs them with                           #
 #                                                                            #
 #       make check                                                           #
 #                                                                            #
