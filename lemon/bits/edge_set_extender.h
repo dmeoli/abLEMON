@@ -244,7 +244,13 @@ class ArcSetExtender : public Base
 
  Arc addArc( const Node & from , const Node & to ) {
   Arc arc = Parent::addArc( from , to );
-  notifier( Arc() ).add( arc );
+  try {
+   notifier( Arc() ).add( arc );
+   }
+  catch( ... ) {
+   Parent::undoAdd( arc );
+   throw;
+   }
   return( arc );
   }
 
@@ -578,11 +584,23 @@ class EdgeSetExtender : public Base
 
  Edge addEdge( const Node & from , const Node & to ) {
   Edge edge = Parent::addEdge( from , to );
-  notifier( Edge() ).add( edge );
-  std::vector< Arc > arcs;
-  arcs.push_back( Parent::direct( edge , true ) );
-  arcs.push_back( Parent::direct( edge , false ) );
-  notifier( Arc() ).add( arcs );
+  try {
+   notifier( Edge() ).add( edge );
+   try {
+    std::vector< Arc > arcs;
+    arcs.push_back( Parent::direct( edge , true ) );
+    arcs.push_back( Parent::direct( edge , false ) );
+    notifier( Arc() ).add( arcs );
+    }
+   catch( ... ) {
+    notifier( Edge() ).erase( edge );
+    throw;
+    }
+   }
+  catch( ... ) {
+   Parent::undoAdd( edge );
+   throw;
+   }
   return( edge );
   }
 

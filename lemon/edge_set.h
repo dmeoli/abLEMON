@@ -119,6 +119,9 @@ class ListArcSetBase
   return( Arc( n ) );
   }
 
+ // removes an arc just added, whose addition an observer refused
+ void undoAdd( const Arc & arc ) { erase( arc ); }
+
  void erase( const Arc & arc ) {
   int n = arc.id;
   if( arcs[ n ].prev_in != -1 ) {
@@ -458,6 +461,9 @@ class ListEdgeSetBase
 
   return( Edge( n / 2 ) );
   }
+
+ // removes an edge just added, whose addition an observer refused
+ void undoAdd( const Edge & edge ) { erase( edge ); }
 
  void erase( const Edge & arc ) {
   int n = arc.id * 2;
@@ -842,6 +848,13 @@ class SmartArcSetBase
   return( Arc( n ) );
   }
 
+ // removes the last arc added, whose addition an observer refused
+ void undoAdd( const Arc & ) {
+  ( *_nodes )[ arcs.back().source ].first_out = arcs.back().next_out;
+  ( *_nodes )[ arcs.back().target ].first_in = arcs.back().next_in;
+  arcs.pop_back();
+  }
+
  void clear() {
   Node node;
   for( first( node ) ; node != INVALID ; next( node ) ) {
@@ -1134,6 +1147,16 @@ class SmartEdgeSetBase
   ( *_nodes )[ u ].first_out = ( n | 1 );
 
   return( Edge( n / 2 ) );
+  }
+
+ // removes the last edge added, whose addition an observer refused, in the
+ // reverse order of addEdge(), which also undoes a loop
+ void undoAdd( const Edge & ) {
+  const int n = static_cast< int >( arcs.size() ) - 2;
+  ( *_nodes )[ arcs[ n ].target ].first_out = arcs[ n | 1 ].next_out;
+  ( *_nodes )[ arcs[ n | 1 ].target ].first_out = arcs[ n ].next_out;
+  arcs.pop_back();
+  arcs.pop_back();
   }
 
  void clear() {

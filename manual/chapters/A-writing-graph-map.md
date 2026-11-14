@@ -237,15 +237,18 @@ of item it adds, before the exception goes on to the caller; an edge, which is
 notified to the observers of the edges and then to those of the arcs, is
 erased from the former when one of the latter throws, and a red or a blue
 node, notified to the observers of its colour and then to those of the nodes,
-is treated in the same way. Hence, a graph whose `addArc()` fails in one of
-its maps (e.g., for lack of memory) is left as it was before the call.
+is treated in the same way. The extenders of the arc and edge sets of
+[chapter 4](04-graphs.md#ch-4) do the same. Hence, a graph whose `addArc()`
+fails in one of its maps (e.g., for lack of memory) is left as it was before
+the call.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 the item stayed in the storage of the graph when an
     observer refused its addition, with no slot in the maps that had been
     rolled back. The tests `digraph_test`, `graph_test` and `bpgraph_test`
     attach an observer that throws on every addition and check that the list
-    and the smart graphs are unchanged.
+    and the smart graphs are unchanged, and `edge_set_test` does the same on
+    the four arc and edge sets.
 
 *Thread safety and limits.* Attaching and detaching go through a lock, the
 class `bits::Lock` of `lemon/bits/lock.h`. It is a mutex of POSIX threads or
