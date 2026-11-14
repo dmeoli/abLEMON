@@ -26,6 +26,7 @@ SET(TESTS
   digraph_test
   dijkstra_test
   dim_test
+  dimacs_test
   edge_case_test
   edge_set_test
   elevator_test

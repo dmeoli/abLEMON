@@ -105,6 +105,16 @@ inline DimacsDescriptor dimacsType( std::istream & is )
  }
 
 
+// the node of number i of a DIMACS file, which must be 1 to the number of
+// nodes of its problem line
+template< typename Node >
+Node _dimacsNode( const std::vector< Node > & nodes , int i )
+{
+ if( i < 1 || i >= static_cast< int >( nodes.size() ) )
+  throw( FormatError( "Node number out of range" ) );
+ return( nodes[ i ] );
+ }
+
 /// \brief DIMACS minimum cost flow reader function.
 ///
 /// This function reads a minimum cost flow instance from DIMACS format,
@@ -170,12 +180,12 @@ void readDimacsMin( std::istream & is , Digraph & g , LowerMap & lower ,
    case 'n':  // node definition line
     is >> i >> sup;
     getline( is , str );
-    supply.set( nodes[ i ] , sup );
+    supply.set( _dimacsNode( nodes , i ) , sup );
     break;
    case 'a':  // arc definition line
     is >> i >> j >> low >> cap >> co;
     getline( is , str );
-    e = g.addArc( nodes[ i ] , nodes[ j ] );
+    e = g.addArc( _dimacsNode( nodes , i ) , _dimacsNode( nodes , j ) );
     lower.set( e , low );
     if( cap >= low )
      capacity.set( e , cap );
@@ -221,28 +231,28 @@ void _readDimacs( std::istream & is , Digraph & g , CapacityMap & capacity ,
     if( desc.type == DimacsDescriptor::SP ) {  // shortest path problem
      is >> i;
      getline( is , str );
-     s = nodes[ i ];
+     s = _dimacsNode( nodes , i );
      }
     if( desc.type == DimacsDescriptor::MAX ) {  // max flow problem
      is >> i >> d;
      getline( is , str );
      if( d == 's' )
-      s = nodes[ i ];
+      s = _dimacsNode( nodes , i );
      if( d == 't' )
-      t = nodes[ i ];
+      t = _dimacsNode( nodes , i );
      }
     break;
    case 'a':  // arc definition line
     if( desc.type == DimacsDescriptor::SP ) {
      is >> i >> j >> _cap;
      getline( is , str );
-     e = g.addArc( nodes[ i ] , nodes[ j ] );
+     e = g.addArc( _dimacsNode( nodes , i ) , _dimacsNode( nodes , j ) );
      capacity.set( e , _cap );
      }
     else if( desc.type == DimacsDescriptor::MAX ) {
      is >> i >> j >> _cap;
      getline( is , str );
-     e = g.addArc( nodes[ i ] , nodes[ j ] );
+     e = g.addArc( _dimacsNode( nodes , i ) , _dimacsNode( nodes , j ) );
      if( _cap >= 0 )
       capacity.set( e , _cap );
      else
@@ -251,7 +261,7 @@ void _readDimacs( std::istream & is , Digraph & g , CapacityMap & capacity ,
     else {
      is >> i >> j;
      getline( is , str );
-     g.addArc( nodes[ i ] , nodes[ j ] );
+     g.addArc( _dimacsNode( nodes , i ) , _dimacsNode( nodes , j ) );
      }
     break;
    }
@@ -404,7 +414,7 @@ void readDimacsMat( std::istream & is , Graph & g ,
    case 'a':  // arc definition line
     is >> i >> j;
     getline( is , str );
-    _addArcEdge( g , nodes[ i ] , nodes[ j ] );
+    _addArcEdge( g , _dimacsNode( nodes , i ) , _dimacsNode( nodes , j ) );
     break;
    }
   }
