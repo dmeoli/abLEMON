@@ -220,16 +220,18 @@ the lengths being the Euclidean distances, as follows.
 ```
 
 The algorithm `-2con` takes $d$ from `-g`, and `Suurballe` is the algorithm of
-[chapter 10](10-shortest-paths.md#ch-10). At the end, the tool prints the
-number of nodes and edges and the total length of the edges, and, for `-tsp`
-and `-tsp2`, the number of 2-opt moves; these reports go to the standard
-output. It writes `prefix.lgf`, by `GraphWriter`, or by `DigraphWriter` with
-`-dir`; the only node maps are `coordinates_x` and `coordinates_y`, the
-coordinates multiplied by 600. With `-eps`, it also writes `prefix.eps` by
-`graphToEps()` ([§21.7](21-io.md#sec-21-7)), scaled to an A4 page, without
-prescaling, with the node scale 0.005 and the arc width scale 0.001. The help
-of the tool calls the graph of `-2con` "two connected"; what the procedure
-guarantees is the following.
+[chapter 10](10-shortest-paths.md#ch-10). The algorithms `-tsp` and `-tsp2`
+need at least 3 nodes, and with fewer the tool ends with a message and the
+exit status 1, while with no node `-dela` and `-tree` give the empty graph. At
+the end, the tool prints the number of nodes and edges and the total length of
+the edges, and, for `-tsp` and `-tsp2`, the number of 2-opt moves; these
+reports go to the standard output. It writes `prefix.lgf`, by `GraphWriter`,
+or by `DigraphWriter` with `-dir`; the only node maps are `coordinates_x` and
+`coordinates_y`, the coordinates multiplied by 600. With `-eps`, it also
+writes `prefix.eps` by `graphToEps()` ([§21.7](21-io.md#sec-21-7)), scaled to
+an A4 page, without prescaling, with the node scale 0.005 and the arc width
+scale 0.001. The help of the tool calls the graph of `-2con` "two connected";
+what the procedure guarantees is the following.
 
 <span id="lem-22-2"></span>**Lemma 22.2.** *(i) The graph of `-2con` has no
 two crossing edges. (ii) In `-tsp2`, every node has even degree after the
@@ -249,6 +251,13 @@ ends already have two edge-disjoint short paths, and a later removal may
 destroy one of them. Its construction scans the $N(N-1)/2$ pairs, and each of
 them costs a scan of the edges for the crossings and possibly a run of
 `Suurballe`, so that it is by far the slowest of the five algorithms.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, `-tsp2` with fewer than 3 nodes read before the list of
+    the odd nodes, whose size less 1 wrapped around when it was empty,
+    `-tsp` with 1 or 2 nodes did not end, and `-dela` and `-tree` with no
+    node read a null pointer; the tests `lgf_gen_tsp2_one`,
+    `lgf_gen_dela_empty` and `lgf_gen_tree_empty` run these cases.
 
 ## 22.5 lemon-0.x-to-1.x.sh and the demos {#sec-22-5}
 

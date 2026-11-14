@@ -188,8 +188,8 @@ FOREACH(VALUE_TYPE long double)
 ENDFOREACH()
 ADD_DEPENDENCIES(check min_cost_flow_battery_test)
 
-# the tools on small DIMACS files written here, their output and their report
-# matched by regular expressions
+# the tools on small DIMACS files written here and on few nodes, their output
+# and their report matched by regular expressions
 IF(LEMON_BUILD_TOOLS)
   FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/unbounded.min
     "p min 2 2\na 1 2 0 -1 -1\na 2 1 0 -1 -1\n")
@@ -208,6 +208,16 @@ IF(LEMON_BUILD_TOOLS)
       PASS_REGULAR_EXPRESSION "dimacs-to-lgf: ")
   ENDFOREACH()
   ADD_DEPENDENCIES(check dimacs-to-lgf)
+  ADD_TEST(NAME lgf_gen_tsp2_one
+    COMMAND lgf-gen -tsp2 -n 1 ${CMAKE_CURRENT_BINARY_DIR}/lgf_gen_tsp2_one)
+  SET_TESTS_PROPERTIES(lgf_gen_tsp2_one PROPERTIES
+    PASS_REGULAR_EXPRESSION "need at least 3 nodes" TIMEOUT 60)
+  FOREACH(ALG dela tree)
+    ADD_TEST(NAME lgf_gen_${ALG}_empty COMMAND lgf-gen -${ALG} -n 0
+      ${CMAKE_CURRENT_BINARY_DIR}/lgf_gen_${ALG}_empty)
+    SET_TESTS_PROPERTIES(lgf_gen_${ALG}_empty PROPERTIES TIMEOUT 60)
+  ENDFOREACH()
+  ADD_DEPENDENCIES(check lgf-gen)
 ENDIF()
 
 # with LEMON as a DLL, the tests find it in the directory where it is built;
