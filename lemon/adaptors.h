@@ -376,7 +376,7 @@ class ReverseDigraphBase : public DigraphAdaptorBase< DGR >
 /// It conforms to the \ref concepts::Digraph "Digraph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or arcs, unless the \c GR template
+/// by adding or removing nodes or arcs, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides item counting in the same time as the adapted
@@ -769,7 +769,7 @@ class SubDigraphBase< DGR , NF , AF ,
 /// This adaptor conforms to the \ref concepts::Digraph "Digraph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or arcs, unless the \c GR template
+/// by adding or removing nodes or arcs, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides only linear time counting for nodes and arcs.
@@ -1736,7 +1736,7 @@ FilterNodes< const GR , const NF > filterNodes( const GR & graph ,
 /// "Digraph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or arcs, unless the \c GR template
+/// by adding or removing nodes or arcs, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides only linear time counting for nodes and arcs.
@@ -2394,7 +2394,7 @@ class UndirectorBase
 /// This adaptor conforms to the \ref concepts::Graph "Graph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or edges, unless the \c GR template
+/// by adding or removing nodes or edges, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides item counting in the same time as the adapted
@@ -2852,7 +2852,7 @@ class ResBackwardFilter
 /// It must be an arc map of some numerical type, which defines
 /// the capacities in the flow problem. It is implicitly \c const.
 /// The default type is
-/// \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
+/// \ref concepts::Digraph::ArcMap "DGR::ArcMap< int >".
 /// \tparam FM The type of the flow map.
 /// It must be an arc map of some numerical type, which defines
 /// the flow values in the flow problem. The default type is \c CM.
@@ -2860,8 +2860,8 @@ class ResBackwardFilter
 /// The default tolerance type depends on the value type of the
 /// capacity map.
 ///
-/// \note This adaptor is implemented using Undirector and FilterArcs
-/// adaptors.
+/// \note This adaptor is implemented as a SubDigraph of an Undirector
+/// of the digraph.
 ///
 /// \note The \c Node type of this adaptor and the adapted digraph are
 /// convertible to each other, moreover the \c Arc type of the adaptor

@@ -351,4 +351,4 @@ class QuadHeap
 
 }  // namespace lemon
 
-#endif  // LEMON_FOURARY_HEAP_H
+#endif  // LEMON_QUAD_HEAP_H

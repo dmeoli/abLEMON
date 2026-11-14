@@ -38,8 +38,10 @@ namespace lemon
 /// This class implements the \e radix \e heap data structure.
 /// It practically conforms to the \ref concepts::Heap "heap concept",
 /// but it has some limitations due its special implementation.
-/// The type of the priorities must be \c int and the priority of an
-/// item cannot be decreased under the priority of the last removed item.
+/// The type of the priorities must be \c int and no priority can go
+/// below the lower end of the first box, which is the minimum given to
+/// the constructor or to clear() and which pop(), top() and prio() move
+/// up to the minimum priority in the heap.
 ///
 /// \tparam IM A reference item map with \c int values (one whose
 /// \c operator[] gives a reference, which the heap writes through), used
@@ -58,8 +60,9 @@ class RadixHeap
 
  /// \brief Exception thrown by RadixHeap.
  ///
- /// This exception is thrown when an item is inserted into a
- /// RadixHeap with a priority smaller than the last erased one.
+ /// This exception is thrown when an item is given a priority below
+ /// the lower end of the first box of a RadixHeap, which is then left
+ /// unchanged.
  /// \see RadixHeap
  class PriorityUnderflowError : public Exception
  {
