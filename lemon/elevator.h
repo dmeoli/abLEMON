@@ -260,12 +260,14 @@ class Elevator
 
  ///Lift the active item returned by \ref activeOn() "activeOn(level)"
  ///by one.
+ ///\return The lifted item.
  Item liftActiveOn( int level ) {
   Item it = *_last_active[ level ];
   ++_level[ it ];
   swap( _last_active[ level ]-- , --_first[ level + 1 ] );
   if( level + 1 > _highest_active )
    ++_highest_active;
+  return( it );
   }
 
  ///Lift the active item returned by \c activeOn(level) to the given level.
@@ -719,6 +721,7 @@ class LinkedElevator
 
  ///Lift the active item returned by \ref activeOn() "activeOn(l)"
  ///by one.
+ ///\return The lifted item.
  Item liftActiveOn( int l ) {
   Item i = _first[ l ];
   if( _next[ i ] != INVALID ) {
@@ -743,6 +746,7 @@ class LinkedElevator
   if( _highest_active < l ) {
    _highest_active = l;
    }
+  return( i );
   }
 
  ///Lift the active item returned by \c activeOn(l) to the given level.

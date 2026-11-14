@@ -391,15 +391,15 @@ has its level given by `highestActiveLevel()` (or $-1$); it is lifted by one
 level by `liftHighestActive()`, to a given higher level by
 `liftHighestActive(l)`, or to the top level, where it is deactivated, by
 `liftHighestActiveToTop()`. Three similar operations exist for the active item
-that `activeOn(l)` returns on a given level, namely `liftActiveOn(l)`,
-`liftActiveOn(l, new_level)` and `liftActiveToTop(l)`, and
-`lift(i, new_level)` lifts any active item. Finally, `liftToTop(l)` moves all
-the items on level `l` and above to the top level and deactivates them (the
-gap heuristic), and `activeFree(l)` is true if a level has no active item.
-Also, `dirtyTopButOne(i)` moves an inactive item from the top level to the
-level below it without updating the structure, and the documentation reserves
-it to those who know what it is for. The costs of these operations follow
-from the invariant of the array.
+that `activeOn(l)` returns on a given level, namely `liftActiveOn(l)`, which
+returns the item lifted, `liftActiveOn(l, new_level)` and
+`liftActiveToTop(l)`, and `lift(i, new_level)` lifts any active item. Finally,
+`liftToTop(l)` moves all the items on level `l` and above to the top level and
+deactivates them (the gap heuristic), and `activeFree(l)` is true if a level
+has no active item. Also, `dirtyTopButOne(i)` moves an inactive item from the
+top level to the level below it without updating the structure, and the
+documentation reserves it to those who know what it is for. The costs of these
+operations follow from the invariant of the array.
 
 <span id="lem-8-2"></span>**Lemma 8.2.** *After `initFinish()` and after each
 operation other than `dirtyTopButOne()`, the array of an `Elevator` holds the
@@ -463,6 +463,11 @@ of the levels.
     new level, where it had to update those of the level that the item leaves,
     whenever the item was the first or the last of its list. The test
     `elevator_test` checks both.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 `liftActiveOn(l)` of both classes was declared to return
+    an item but returned none. The test `elevator_test` checks the item that
+    it returns.
 
 ## 8.4 Two-dimensional geometry {#sec-8-4}
 

@@ -16,8 +16,9 @@
  *
  */
 
-// Elevator with fewer levels than items, and the lift of an item of
-// LinkedElevator from the end or the start of its level
+// Elevator with fewer levels than items, the lift of an item of
+// LinkedElevator from the end or the start of its level, and the lift of the
+// active item of a level
 
 #include <lemon/elevator.h>
 #include <lemon/smart_graph.h>
@@ -73,6 +74,23 @@ void checkLinkedLift( const Digraph & g , const std::vector< Node > & v )
 	"Wrong levels after the lift of a second item." );
  }
 
+// the lift of the active item of a level, returned by both classes
+template< typename E >
+void checkActiveOn( const Digraph & g , const std::vector< Node > & v )
+{
+ E e( g , 4 );
+ e.initStart();
+ e.initAddItem( v[ 0 ] );
+ e.initAddItem( v[ 1 ] );
+ e.initFinish();
+ e.activate( v[ 0 ] );
+ Node a = e.activeOn( 0 );
+ check( a == v[ 0 ] , "Wrong active item on a level." );
+ check( e.liftActiveOn( 0 ) == a , "liftActiveOn() returned a wrong item." );
+ check( e[ a ] == 1 && e.activeOn( 1 ) == a && e.activeOn( 0 ) == INVALID ,
+	"Wrong levels after liftActiveOn()." );
+ }
+
 int main()
 {
  Digraph g;
@@ -81,5 +99,7 @@ int main()
   v.push_back( g.addNode() );
  checkFewLevels< Elevator< Digraph , Node > >( g , v );
  checkLinkedLift( g , v );
+ checkActiveOn< Elevator< Digraph , Node > >( g , v );
+ checkActiveOn< LinkedElevator< Digraph , Node > >( g , v );
  return( 0 );
  }
