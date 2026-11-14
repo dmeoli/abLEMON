@@ -105,9 +105,19 @@ We remark that `FilterNodes`, `FilterArcs`, `FilterEdges` and
 `ResidualDigraph` hold, as members, objects to which their base class points
 (the constant filter that replaces the one they lack and, for the residual
 digraph, the inner `Undirector` and the filters of the residual capacities).
-The implicit copy of such an adaptor copies the pointers, which still refer to
-the members of the original; hence, a copy must not outlive the object it was
-copied from, and one should pass these adaptors by reference.
+Their copy constructor and their assignment, therefore, point the copy to its
+own members, so that a copy (e.g., the one returned by `filterNodes()` or
+`residualDigraph()`) is independent of the object it was copied from and may
+outlive it.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, the implicit copy of these four adaptors copied the
+    pointers, which still referred to the members of the original, so that a
+    copy that outlived it (e.g., the value of `residualDigraph()` when the
+    compiler does not elide the copy) read freed memory;
+    `checkAdaptorCopies()` in `test/adaptors_test.cc` copies and assigns
+    each of them and uses the copy of a `ResidualDigraph` after the original
+    has been destroyed and overwritten.
 
 The classes of the header are built on base classes that a user does not
 instantiate, i.e., `DigraphAdaptorBase` and `GraphAdaptorBase` (which forward

@@ -16,8 +16,10 @@
  *
  */
 
+#include <cstring>
 #include <iostream>
 #include <limits>
+#include <new>
 
 #include <lemon/list_graph.h>
 #include <lemon/grid_graph.h>
@@ -1537,6 +1539,100 @@ void checkCombiningAdaptors()
  checkGraphIncEdgeArcLists( uadaptor , adaptor.outNode( n4 ) , 3 );
  }
 
+// The adaptors that hold a filter map of their own, exposing whether the
+// filter they use is their own
+template< typename GR >
+class FilterNodesProbe : public FilterNodes< GR >
+{
+ public:
+ FilterNodesProbe( GR & graph , typename GR::template NodeMap< bool > & f )
+     : FilterNodes< GR >( graph , f ) { }
+ bool ownFilter() const {
+  return( this->_arc_filter == &this->const_true_map );
+  }
+ };
+
+class UFilterNodesProbe : public FilterNodes< ListGraph >
+{
+ public:
+ UFilterNodesProbe( ListGraph & graph , ListGraph::NodeMap< bool > & f )
+     : FilterNodes< ListGraph >( graph , f ) { }
+ bool ownFilter() const {
+  return( this->_edge_filter == &this->const_true_map );
+  }
+ };
+
+class FilterArcsProbe : public FilterArcs< ListDigraph >
+{
+ public:
+ FilterArcsProbe( ListDigraph & digraph , ListDigraph::ArcMap< bool > & f )
+     : FilterArcs< ListDigraph >( digraph , f ) { }
+ bool ownFilter() const {
+  return( this->_node_filter == &this->const_true_map );
+  }
+ };
+
+class FilterEdgesProbe : public FilterEdges< ListGraph >
+{
+ public:
+ FilterEdgesProbe( ListGraph & graph , ListGraph::EdgeMap< bool > & f )
+     : FilterEdges< ListGraph >( graph , f ) { }
+ bool ownFilter() const {
+  return( this->_node_filter == &this->const_true_map );
+  }
+ };
+
+// The copies and the assignments of FilterNodes, FilterArcs, FilterEdges
+// and ResidualDigraph refer to their own members, not to those of the
+// source, which may be gone
+void checkAdaptorCopies()
+{
+ ListDigraph digraph;
+ ListDigraph::Node n1 = digraph.addNode() , n2 = digraph.addNode();
+ ListDigraph::Arc a = digraph.addArc( n1 , n2 );
+ ListDigraph::NodeMap< bool > node_filter( digraph , true );
+ ListDigraph::ArcMap< bool > arc_filter( digraph , true );
+ ListGraph graph;
+ ListGraph::Node u1 = graph.addNode() , u2 = graph.addNode();
+ graph.addEdge( u1 , u2 );
+ ListGraph::NodeMap< bool > unode_filter( graph , true );
+ ListGraph::EdgeMap< bool > edge_filter( graph , true );
+
+ FilterNodesProbe< ListDigraph > fn( digraph , node_filter ) , fn2( fn );
+ FilterNodesProbe< ListDigraph > fn3( digraph , node_filter );
+ fn3 = fn;
+ check( fn2.ownFilter() && fn3.ownFilter() , "Wrong FilterNodes copy" );
+ UFilterNodesProbe ufn( graph , unode_filter ) , ufn2( ufn );
+ UFilterNodesProbe ufn3( graph , unode_filter );
+ ufn3 = ufn;
+ check( ufn2.ownFilter() && ufn3.ownFilter() , "Wrong FilterNodes copy" );
+ FilterArcsProbe fa( digraph , arc_filter ) , fa2( fa );
+ FilterArcsProbe fa3( digraph , arc_filter );
+ fa3 = fa;
+ check( fa2.ownFilter() && fa3.ownFilter() , "Wrong FilterArcs copy" );
+ FilterEdgesProbe fe( graph , edge_filter ) , fe2( fe );
+ FilterEdgesProbe fe3( graph , edge_filter );
+ fe3 = fe;
+ check( fe2.ownFilter() && fe3.ownFilter() , "Wrong FilterEdges copy" );
+
+ // the copy outlives the source, whose storage is then overwritten
+ typedef ListDigraph::ArcMap< int > IntArcMap;
+ typedef ResidualDigraph< ListDigraph , IntArcMap > Residual;
+ IntArcMap capacity( digraph , 2 ) , flow( digraph , 1 );
+ alignas( Residual ) unsigned char buf[ sizeof( Residual ) ];
+ Residual * source = new( buf ) Residual( digraph , capacity , flow );
+ Residual copy( *source ) , assigned( digraph , flow , flow );
+ assigned = copy;
+ source->~Residual();
+ std::memset( buf , 0xff , sizeof( buf ) );
+ check( countArcs( copy ) == 2 && countArcs( assigned ) == 2 ,
+	"Wrong ResidualDigraph copy" );
+ assigned.augment( Residual::Arc( copy.arcFromId( 2 * digraph.id( a ) ) ) ,
+		   1 );
+ check( flow[ a ] == 0 && countArcs( copy ) == 1 ,
+	"Wrong ResidualDigraph copy" );
+ }
+
 int main( int , const char ** )
 {
  // Check the digraph adaptors (using ListDigraph)
@@ -1556,6 +1652,9 @@ int main( int , const char ** )
 
  // Combine adaptors (using GridGraph)
  checkCombiningAdaptors();
+
+ // Copy and assign the adaptors that hold maps of their own
+ checkAdaptorCopies();
 
  return( 0 );
  }

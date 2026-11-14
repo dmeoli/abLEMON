@@ -1615,6 +1615,25 @@ class FilterNodes
   Parent::initialize( graph , node_filter , const_true_map );
   }
 
+ /// \brief Copy constructor
+ ///
+ /// Creates an adaptor of the same digraph or graph with the same node
+ /// filter map, which refers to none of the members of \c other.
+ FilterNodes( const FilterNodes & other ) : Parent( other ) ,
+   const_true_map() {
+  Parent::_arc_filter = &const_true_map;
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor adapt the digraph or graph of \c other with its
+ /// node filter map.
+ FilterNodes & operator=( const FilterNodes & other ) {
+  Parent::operator=( other );
+  Parent::_arc_filter = &const_true_map;
+  return( *this );
+  }
+
  /// \brief Sets the status of the given node
  ///
  /// This function sets the status of the given node.
@@ -1669,6 +1688,17 @@ class FilterNodes< GR , NF ,
  FilterNodes( GR & graph , NodeFilterMap & node_filter )
      : Parent() , const_true_map() {
   Parent::initialize( graph , node_filter , const_true_map );
+  }
+
+ FilterNodes( const FilterNodes & other ) : Parent( other ) ,
+   const_true_map() {
+  Parent::_edge_filter = &const_true_map;
+  }
+
+ FilterNodes & operator=( const FilterNodes & other ) {
+  Parent::operator=( other );
+  Parent::_edge_filter = &const_true_map;
+  return( *this );
   }
 
  void status( const Node & n , bool v ) const { Parent::status( n , v ); }
@@ -1758,6 +1788,24 @@ class FilterArcs
  FilterArcs( DGR & digraph , ArcFilterMap & arc_filter )
      : Parent() , const_true_map() {
   Parent::initialize( digraph , const_true_map , arc_filter );
+  }
+
+ /// \brief Copy constructor
+ ///
+ /// Creates an adaptor of the same digraph with the same arc filter map,
+ /// which refers to none of the members of \c other.
+ FilterArcs( const FilterArcs & other ) : Parent( other ) , const_true_map() {
+  Parent::_node_filter = &const_true_map;
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor adapt the digraph of \c other with its arc
+ /// filter map.
+ FilterArcs & operator=( const FilterArcs & other ) {
+  Parent::operator=( other );
+  Parent::_node_filter = &const_true_map;
+  return( *this );
   }
 
  /// \brief Sets the status of the given arc
@@ -1868,6 +1916,25 @@ class FilterEdges
  /// filter map.
  FilterEdges( GR & graph , EF & edge_filter ) : Parent() , const_true_map() {
   Parent::initialize( graph , const_true_map , edge_filter );
+  }
+
+ /// \brief Copy constructor
+ ///
+ /// Creates an adaptor of the same graph with the same edge filter map,
+ /// which refers to none of the members of \c other.
+ FilterEdges( const FilterEdges & other ) : Parent( other ) ,
+   const_true_map() {
+  Parent::_node_filter = &const_true_map;
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor adapt the graph of \c other with its edge
+ /// filter map.
+ FilterEdges & operator=( const FilterEdges & other ) {
+  Parent::operator=( other );
+  Parent::_node_filter = &const_true_map;
+  return( *this );
   }
 
  /// \brief Sets the status of the given edge
@@ -2867,6 +2934,32 @@ class ResidualDigraph
        _backward_filter( capacity , flow , tolerance ) ,
        _arc_filter( _forward_filter , _backward_filter ) {
   Parent::initialize( _graph , _node_filter , _arc_filter );
+  }
+
+ /// \brief Copy constructor
+ ///
+ /// Creates a residual digraph of the same digraph, capacity map, flow
+ /// map and tolerance, which refers to none of the members of \c other.
+ ResidualDigraph( const ResidualDigraph & other )
+     : Parent() , _capacity( other._capacity ) , _flow( other._flow ) ,
+       _graph( other._graph ) , _node_filter() ,
+       _forward_filter( other._forward_filter ) ,
+       _backward_filter( other._backward_filter ) ,
+       _arc_filter( _forward_filter , _backward_filter ) {
+  Parent::initialize( _graph , _node_filter , _arc_filter );
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor the residual digraph of the digraph, capacity
+ /// map, flow map and tolerance of \c other.
+ ResidualDigraph & operator=( const ResidualDigraph & other ) {
+  _capacity = other._capacity;
+  _flow = other._flow;
+  _graph = other._graph;
+  _forward_filter = other._forward_filter;
+  _backward_filter = other._backward_filter;
+  return( *this );
   }
 
  typedef typename Parent::Arc Arc;
