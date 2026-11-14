@@ -426,7 +426,8 @@ infeasibleCut( const McfData< V > & d , bool leq ,
 // made for each part that might hold one of the k sets, rather than for
 // every child of every set given. The sets that tie for the largest
 // violation come first, all from the maximum flow of the root (Picard and
-// Queyranne, 1980) [see closedSets()], and the partition skips them.
+// Queyranne, 1980) [see closedSets()]; the partition meets them again,
+// and gives no set twice.
 template< typename V >
 std::vector< std::vector< int > > infeasibleCuts( const McfData< V > & d ,
 						  bool leq , int k )

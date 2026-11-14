@@ -160,7 +160,7 @@ struct CirculationDefaultTraits
      (e.g. using \ref ReverseDigraph and \ref NegMap adaptors).
 
      This algorithm either calculates a feasible circulation, or provides
-     a \ref barrier() "barrier", which prooves that a feasible soultion
+     a \ref barrier() "barrier", which proves that a feasible solution
      cannot exist.
 
      Note that this algorithm also provides a feasible solution for the
@@ -690,11 +690,13 @@ class Circulation
 
        Barrier is a set \e B of nodes for which
 
-       \f[ \sum_{uv\in A: u\in B} upper(uv) -
-           \sum_{uv\in A: v\in B} lower(uv) < \sum_{v\in B} sup(v) \f]
+       \f[ \sum_{uv\in A: u\in B, v\notin B} upper(uv) -
+           \sum_{uv\in A: u\notin B, v\in B} lower(uv) <
+           \sum_{v\in B} sup(v) \f]
 
-       holds. The existence of a set with this property prooves that a
-       feasible circualtion cannot exist.
+       holds, i.e., whose supply exceeds what can leave it. The existence
+       of a set with this property proves that a feasible circulation
+       cannot exist.
 
        This function returns \c true if the given node is in the found
        barrier. If a feasible circulation is found, the function

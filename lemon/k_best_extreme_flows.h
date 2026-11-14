@@ -267,8 +267,9 @@ class KBestExtremeFlows
  /// flows are distinct vertices in the order of their costs, the optimal
  /// ones first, but those of larger cost are only some of the vertices one
  /// cycle away from an optimal one [see \ref exact()]; each optimal vertex
- /// costs at most \f$O(nm\log n)\f$ time, and \f$O(km + pn)\f$ memory for
- /// the p trees of the shortest paths made.
+ /// costs at most \f$O(m^2\log n)\f$ time, one search of
+ /// \f$O(m\log n)\f$ for each arc at a bound, and \f$O(km + pn)\f$ memory
+ /// for the p trees of the shortest paths made.
  KBestExtremeFlows & method( Method m ) {
   _method = m;
   return( *this );
@@ -496,9 +497,10 @@ class KBestExtremeFlows
  /// each node \f$s\f$ in turn, where \f$d_s\f$ are the distances from
  /// \f$s\f$ and \f$d'_s\f$ those to \f$s\f$ in the residual graph of the
  /// flow on the reduced costs (one Dijkstra's algorithm each), the nodes
- /// that are not reached taking the largest distance. Each is the vertex of
- /// the dual polyhedron given by the tree of the shortest paths, of zero
- /// reduced costs; potentials that differ by a constant are the same.
+ /// that are not reached taking the largest distance. Each is optimal, and
+ /// it is the vertex of the dual polyhedron given by the tree of the
+ /// shortest paths, of zero reduced costs, when that tree reaches every
+ /// node; potentials that differ by a constant are the same.
  ///
  /// With \ref PIVOTS [see \ref potentialMethod()] they are instead the
  /// vertices reached by the pivots of the dual simplex.

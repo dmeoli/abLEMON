@@ -72,8 +72,9 @@ namespace lemon
 /// values, and costs) must be integer. With floating-point types they
 /// need not be: the reduced costs and the flow left on the artificial
 /// arcs are compared against a tolerance of 10^6 units in the last place
-/// of the largest cost and of the largest supply, respectively, so that
-/// rounding errors make neither a degenerate pivot for ever nor a
+/// of the largest absolute value of the costs and of the supplies and the
+/// finite bounds, respectively, unless \ref tolerances() sets them, so
+/// that rounding errors make neither a degenerate pivot for ever nor a
 /// feasible problem infeasible.
 ///
 /// \note %NetworkSimplex provides five different pivot rule

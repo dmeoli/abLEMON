@@ -669,10 +669,9 @@ With this method, too, the flows are distinct vertices in the order of their
 costs, the optimal ones first, but those of larger cost are only some of the
 vertices one cycle away from an optimal one; hence, `exact()` is always
 `false` with this method. Each arc tried costs one search of $O(m\log n)$
-time; the header states $O(nm\log n)$ time for each optimal vertex, while with
-one search for each arc at a bound the bound is $O(m^2\log n)$ at worst. The
-method needs $O(km+pn)$ memory for the $p$ trees of shortest paths made, as
-the header states.
+time, and with one search for each arc at a bound each optimal vertex costs
+$O(m^2\log n)$ time at worst, as the header states. The method needs
+$O(km+pn)$ memory for the $p$ trees of shortest paths made.
 
 !!! note "abLEMON"
     Since version 1.8.1 the method `CYCLES` tries only the arcs at a bound of
