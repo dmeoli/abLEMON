@@ -25,6 +25,7 @@
 #include <lemon/lgf_reader.h>
 #include <lemon/gomory_hu.h>
 #include <cstdlib>
+#include <vector>
 
 using namespace std;
 using namespace lemon;
@@ -102,6 +103,57 @@ int cutValue( const Graph & graph , const BoolNodeMap & cut ,
  return( sum );
  }
 
+// A cut map that counts its writes and the writes on INVALID
+struct CountingCutMap
+{
+ typedef Node Key;
+ typedef bool Value;
+
+ BoolNodeMap map;
+ int sets , invalid_sets;
+
+ CountingCutMap( const Graph & graph )
+     : map( graph , false ) , sets( 0 ) , invalid_sets( 0 ) { }
+
+ void set( const Node & n , bool v ) {
+  ++sets;
+  if( n == INVALID )
+   ++invalid_sets;
+  else
+   map[ n ] = v;
+  }
+
+ bool operator[]( const Node & n ) const { return( map[ n ] ); }
+ };
+
+// minCutMap() writes each node once, also on a deep tree
+void checkMinCutMapWrites()
+{
+ Graph graph;
+ IntEdgeMap capacity( graph );
+ const int n = 20;
+ std::vector< Node > nodes;
+ for( int i = 0 ; i < n ; ++i )
+  nodes.push_back( graph.addNode() );
+ for( int i = 0 ; i + 1 < n ; ++i )
+  capacity[ graph.addEdge( nodes[ i ] , nodes[ i + 1 ] ) ] = i + 1;
+
+ GomoryHu< Graph > ght( graph , capacity );
+ ght.run();
+
+ for( int i = 0 ; i < n ; ++i )
+  for( int j = 0 ; j < n ; ++j ) {
+   if( i == j )
+    continue;
+   CountingCutMap cm( graph );
+   int value = ght.minCutMap( nodes[ i ] , nodes[ j ] , cm );
+   check( cm.sets == n , "minCutMap() writes a node more than once" );
+   check( cm.invalid_sets == 0 , "minCutMap() writes INVALID" );
+   check( value == std::min( i , j ) + 1 , "Wrong cut value" );
+   check( value == cutValue( graph , cm.map , capacity ) , "Wrong cut" );
+   check( cm[ nodes[ i ] ] && ! cm[ nodes[ j ] ] , "Wrong sides" );
+   }
+ }
 
 int main()
 {
@@ -142,6 +194,8 @@ int main()
    check( sum == countNodes( graph ) , "Problem with MinCutNodeIt" );
    }
   }
+
+ checkMinCutMapWrites();
 
  return( 0 );
  }

@@ -673,7 +673,7 @@ edges climbed are those from $s$ and from $t$ up to it. $\square$
 $n-1$ calls of `Preflow::runMinCut()` plus $O(n^2)$, i.e., $O(n^3\sqrt{m})$.
 Let $h$ be the height of the tree. Then `minCutValue(s, t)` takes $O(h)$ time,
 and `minCutMap(s, t, cutMap)` and the constructors of the two iterators take
-$O(nh)$ time, which is $O(n^2)$ in the worst case.*
+$O(n)$ time.*
 
 *Proof.* Steps 5 to 7 scan the nodes once per iteration, in $O(n)$, and step 8
 climbs from each node to the first numbered ancestor and numbers the nodes on
@@ -681,10 +681,12 @@ the way, in $O(n)$ in all. Each maximum flow costs $O(n^2\sqrt{m})$ by the
 bound of the highest-label preflow algorithm ([Ahuja, Magnanti and Orlin
 1993, §7.8](Z-bibliography.md#ref-amo93networkflows)). By Lemma 15.7
 `minCutValue()` makes at most $2h$ steps. Then `minCutMap()` finds the
-lightest edge of the path in the same way, and writes the side of each node by
-climbing from it to the root or to the lower end of that edge. Since the nodes
-met on the way are not marked, each climb costs up to $h$, and the $n$ climbs
-up to $nh$. $\square$
+lightest edge of the path in the same way, in $O(h)$, and writes the side of
+each node by climbing from it to the first node whose side is known, the root
+and the lower end of that edge being known from the start. Since every node
+climbed through is marked when its side is written, each node is climbed
+through once, and the $n$ climbs cost $O(n)$ in all, as does the map of the
+marks; since $h<n$, the bound is $O(n)$. $\square$
 
 ### 15.4.2 The class GomoryHu {#sec-15-4-2}
 
@@ -730,7 +732,9 @@ first node, which on an empty graph is `INVALID`.
 !!! note "abLEMON"
     `tolerance()` is new in abLEMON. LEMON 1.3.1 gave its maximum flows the
     default tolerance of the value type, while abLEMON gives them the one set
-    on the class.
+    on the class. In LEMON 1.3.1 `minCutMap()` did not mark the nodes it
+    climbed through, and took $O(nh)$ time. The test `gomory_hu_test` counts
+    the writes of `minCutMap()` on a path.
 
 ![Figure 15.2. Left, an undirected graph $G$ and its minimum cut $X=\{0,1,2\}$, of value 3, with the two cut edges; right, the Gomory-Hu tree computed by `GomoryHu`, whose lightest edge (between 2 and 4) gives the same cut.](../figures/15-gomory-hu.svg){#fig-15-2}
 

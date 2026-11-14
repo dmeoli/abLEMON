@@ -346,6 +346,7 @@ class GomoryHu
     }
    while( ! st.empty() ) {
     cutMap.set( st.back() , cutMap[ nn ] );
+    reached[ st.back() ] = true;
     st.pop_back();
     }
    }
