@@ -652,8 +652,7 @@ the walks is charged to an edge embedded or to a face boundary shortened,
 which keeps the rest linear. On a nonplanar graph the method stops at the
 first node at which a back edge is left unembedded. $\square$
 
-We remark that the documentation of `PlanarEmbedding` states $O(n)$, which
-holds for the rest of the method but not for the sort of step 1.
+The documentation of `PlanarEmbedding` states the same bound.
 
 The class `PlanarDrawing< Graph >` computes a straight-line drawing on an
 integer grid by the method of [Schnyder

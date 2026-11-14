@@ -40,6 +40,11 @@ namespace lemon
 ///implementation of the %VF2 Plus Plus algorithm \cite VF2PP
 ///for variants of the (Sub)graph Isomorphism problem.
 ///
+///Both graphs must be simple, i.e., without loops and parallel edges:
+///the algorithm takes the neighbours of a node from its incident edges,
+///and on a graph with parallel edges it may report a mapping more than
+///once.
+///
 ///There is also a \ref vf2pp() "function-type interface" called
 ///\ref vf2pp() for the %VF2 Plus Plus algorithm, which is probably
 ///more convenient in most use cases.
@@ -834,7 +839,7 @@ class Vf2ppWizard : public TR
 ///declared as the members of class \ref Vf2ppWizard.
 ///The following examples show how to use these parameters.
 ///\code
-/// ListGraph::NodeMap< ListGraph::Node > m( g );
+/// ListGraph::NodeMap< ListGraph::Node > m( g1 );
 /// // Find an embedding of graph g1 into graph g2
 /// vf2pp( g1 , g2 ).mapping( m ).run();
 ///

@@ -571,7 +571,9 @@ bool checkPlanarity( const GR & graph )
 /// 3 Red and 3 Blue nodes) subdivision.
 ///
 /// The current implementation calculates either an embedding or a
-/// Kuratowski subdivision. The running time of the algorithm is O(n).
+/// Kuratowski subdivision. The running time of the algorithm is
+/// O(n log n): the sort of the children of each node by their low points,
+/// made by radixSort(), takes O(n log n) in all, and the rest O(n).
 ///
 /// \see PlanarDrawing, checkPlanarity()
 template< typename Graph >

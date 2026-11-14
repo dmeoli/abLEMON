@@ -40,7 +40,8 @@ namespace lemon
 ///
 /// This class implements the algorithm of Hopcroft and Karp, which finds a
 /// maximum cardinality matching of a bipartite graph in
-/// \f$O(m\sqrt{n})\f$ time: in each phase, a breadth-first search from the
+/// \f$O((n+m)\sqrt{n})\f$ time, i.e., \f$O(m\sqrt{n})\f$ on a graph
+/// without isolated nodes: in each phase, a breadth-first search from the
 /// unmatched red nodes finds the length of the shortest augmenting paths,
 /// and a depth-first search augments along a maximal set of disjoint ones
 /// of that length. It can be started from the empty matching or from a
@@ -320,8 +321,9 @@ class HopcroftKarp
 /// shortest augmenting paths: each red node is matched in turn along a
 /// shortest path of the residual graph, found by Dijkstra's algorithm on
 /// the costs reduced by node potentials, which the method keeps
-/// nonnegative; it takes \f$O(n_r\, m \log n)\f$ time, where \f$n_r\f$ is
-/// the number of red nodes.
+/// nonnegative; it takes \f$O(n_r\,(n + m \log m))\f$ time, i.e.,
+/// \f$O(n_r\,(n + m \log n))\f$ on a graph without parallel edges, where
+/// \f$n_r\f$ is the number of red nodes.
 ///
 /// The potentials are the dual solution: for every edge \f$e\f$ between
 /// the red node \f$r\f$ and the blue node \f$b\f$,

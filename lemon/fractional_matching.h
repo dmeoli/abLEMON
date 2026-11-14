@@ -478,8 +478,10 @@ class MaxFractionalMatching
  /// matching
  ///
  /// The algorithm computes a perfect fractional matching. If it
- /// does not exists, then the algorithm returns false and the
- /// matching is undefined and the barrier.
+ /// does not exist, then the algorithm returns false, the matching is
+ /// undefined, and \ref barrier() gives a set of nodes with fewer
+ /// neighbours than nodes, which proves that no perfect fractional
+ /// matching exists.
  ///
  /// \param postprocess The algorithm computes first a matching
  /// which is a union of a matching with one value edges, cycles

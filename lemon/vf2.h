@@ -80,6 +80,11 @@ class BfsLeaveOrder : public BfsVisitor< G >
 ///implementation of the %VF2 algorithm \cite cordella2004sub
 ///for variants of the (Sub)graph Isomorphism problem.
 ///
+///Both graphs must be simple, i.e., without loops and parallel edges:
+///the algorithm takes the neighbours of a node from its incident edges,
+///and on a graph with parallel edges it may report a mapping more than
+///once.
+///
 ///There is also a \ref vf2() "function-type interface" called \ref vf2()
 ///for the %VF2 algorithm, which is probably more convenient in most
 ///use cases.
@@ -642,7 +647,7 @@ class Vf2Wizard : public TR
 ///The following examples show how to use these parameters.
 ///\code
 /// // Find an embedding of graph g1 into graph g2
-/// ListGraph::NodeMap< ListGraph::Node > m( g );
+/// ListGraph::NodeMap< ListGraph::Node > m( g1 );
 /// vf2( g1 , g2 ).mapping( m ).run();
 ///
 /// // Check whether graphs g1 and g2 are isomorphic

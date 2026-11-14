@@ -462,11 +462,11 @@ class HowardMmc
  ///
  /// This function returns the mean cost of the found cycle.
  ///
- /// \note <tt>alg.cycleMean()</tt> is just a shortcut of the
- /// following code.
- /// \code
- /// return( static_cast< double >( alg.cycleCost() ) / alg.cycleSize() );
- /// \endcode
+ /// \note <tt>alg.cycleMean()</tt> divides the cost of the cycle, kept as
+ /// a \c LargeCost, by cycleSize(); hence it is the same as
+ /// <tt>static_cast< double >( alg.cycleCost() ) / alg.cycleSize()</tt>
+ /// only when that cost fits in \c Cost, to which cycleCost() converts
+ /// it.
  ///
  /// \pre \ref run() or \ref findCycleMean() must be called before
  /// using this function.

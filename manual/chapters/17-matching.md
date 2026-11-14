@@ -365,9 +365,9 @@ $|M^*|-|M|<\sqrt n/2$. Each further phase but the last augments at least once,
 and the number of phases is at most
 $\lceil\sqrt n\,\rceil+\sqrt n/2+1\le 2\sqrt n+2$. $\square$
 
-The class states the bound $O(m\sqrt n)$, which is the same when the graph has
-no isolated nodes. The bound is usually far from attained in practice. This
-class follows the pattern of the algorithm classes of [chapter
+The class states this bound, and the bound $O(m\sqrt n)$ on a graph without
+isolated nodes. The bound is usually far from attained in practice. This class
+follows the pattern of the algorithm classes of [chapter
 3](03-mental-model.md#ch-3), although it has no named template parameters,
 since it uses no auxiliary structure that one could replace. Its types are
 `BpGraph` (i.e., `BPGR`) and `MatchingMap`, i.e., `BpGraph::NodeMap< Edge >`,
@@ -503,22 +503,21 @@ $m+n+1$ pairs enter the heap, each at a cost of $O(\log m)$. Step 6 takes
 $O(n)$ time, and step 7 and the reset of the marks take time proportional to
 the nodes reached. There are at most $n_R$ searches. $\square$
 
-The class states the bound $O(n_R\,m\log n)$, which omits the term $n_R\,n$ of
-the updates of step 6 (the two differ only when $m$ is smaller than $n$, i.e.,
-when many blue nodes are isolated). Note that the comparisons are exact (the
-class has no tolerance), which is usually adequate for integer costs but may
-be somewhat fragile with floating-point ones, and that the cost type must be a
-signed arithmetic type. The interface is reduced to what the method needs. Its
-types are `BpGraph`, `CostMap` (i.e., `CM`, by default `BpGraph::EdgeMap< int
->`), `Value` (the type of the costs) and `MatchingMap` (as in `HopcroftKarp`),
-and its constructor is `MinCostAssignment( const BpGraph & graph , const
-CostMap & cost )`. Its only execution function is `run()`, which returns
-`true` if a matching covering all the red nodes exists and `false` otherwise
-(in which case the matching is left as the method had grown it, and the
-potentials have no meaning). As in `HopcroftKarp`, `totalCost()`, `matching(
-const Edge & )`, `matching( const Node & )` and `matchingMap()` give the
-primal solution, while `potential( const Node & )` gives the dual solution
-(17.7).
+The class states the same bound, in which the term $n_R\,n$ of the updates of
+step 6 matters only when $m$ is smaller than $n$, i.e., when many blue nodes
+are isolated. Note that the comparisons are exact (the class has no
+tolerance), which is usually adequate for integer costs but may be somewhat
+fragile with floating-point ones, and that the cost type must be a signed
+arithmetic type. The interface is reduced to what the method needs. Its types
+are `BpGraph`, `CostMap` (i.e., `CM`, by default `BpGraph::EdgeMap< int >`),
+`Value` (the type of the costs) and `MatchingMap` (as in `HopcroftKarp`), and
+its constructor is `MinCostAssignment( const BpGraph & graph , const CostMap &
+cost )`. Its only execution function is `run()`, which returns `true` if a
+matching covering all the red nodes exists and `false` otherwise (in which
+case the matching is left as the method had grown it, and the potentials have
+no meaning). As in `HopcroftKarp`, `totalCost()`, `matching( const Edge & )`,
+`matching( const Node & )` and `matchingMap()` give the primal solution, while
+`potential( const Node & )` gives the dual solution (17.7).
 
 The program `manual/examples/17-bipartite.cc` (the test `manual_17_bipartite`)
 solves a "small" instance with both classes of the header: it checks the cover
