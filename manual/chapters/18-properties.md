@@ -179,7 +179,9 @@ reads the other items too.
     writable map) requires. In LEMON 1.3.1 it read `cutMap` in order not to
     count a node twice, so that a node already `true` on entry was neither
     counted nor reported; the test `connectivity_test` passes a map that is
-    `true` everywhere.
+    `true` everywhere. LEMON 1.3.1 also reported every node that carries a
+    loop as a cut node, e.g., a single node with a loop; `connectivity_test`
+    checks graphs with loops.
 
 At the boundary we follow the conventions of the header. A graph with zero or
 one node is bi-node-connected, two isolated nodes are not, and two nodes
@@ -189,9 +191,8 @@ whether it has at most one block (an isolated node is in no block, since a
 block is a set of edges). On the other hand, `biEdgeConnected()` returns
 whether there is at most one bi-edge-connected component; hence, the empty
 graph is bi-edge-connected. A loop forms a block of its own (which may be
-surprising), and `biNodeConnectedCutNodes()` reports the node that carries it
-as a cut node, also when its removal does not increase the number of
-components (e.g., a single node with a loop).
+surprising), but it makes no node a cut node, since the removal of its node
+removes it too.
 
 All these functions rely on one depth-first search, with the low points of
 [Hopcroft and Tarjan 1973](Z-bibliography.md#ref-hopcroft1973algorithm447) and
@@ -241,7 +242,7 @@ In the library, the visitor of the cut nodes applies the lemma as Algorithm
 6           if num(v) <= low(w):
 7              if v != root or rootCut: mark v as a cut node, once
 8              else rootCut := true
-9        else if w = v: mark v as a cut node, once        (a loop)
+9        else if w = v: skip the arc                          (a loop)
 10       else if w != pred(v): low(v) := min(low(v), num(w))
 ```
 
@@ -253,11 +254,11 @@ recording the first one. Step 10 skips all the edges to the parent, including
 the parallel ones, which does not change the outcome of step 6.
 
 <span id="thm-18-4"></span>**Theorem 18.4.** *Algorithm 18.1 marks exactly the
-cut nodes of a loopless graph (and, in addition, the nodes that carry a loop),
-and it costs $O(n+m)$. The count of the blocks, which grows by one at each
-loop and at each tree edge $vw$ that satisfies the condition of step 6, is the
-number of blocks, and `biNodeConnectedComponents()` gives the same index to
-two edges if and only if they lie in the same block.*
+cut nodes of the graph, and it costs $O(n+m)$. The count of the blocks, which
+grows by one at each loop and at each tree edge $vw$ that satisfies the
+condition of step 6, is the number of blocks, and
+`biNodeConnectedComponents()` gives the same index to two edges if and only if
+they lie in the same block.*
 
 *Proof.* When $\mathrm{DFS}(w)$ returns, $\mathrm{low}(w)$ is the least of
 $\mathrm{num}(w)$, of the values $\mathrm{num}(x)$ of step 10 over the arcs
@@ -265,19 +266,21 @@ leaving $w$ and of the low points of its children. By induction on the height
 of $T_w$, this is the low point of the definition (the arcs of step 10 that
 lead to descendants have $\mathrm{num}(x)>\mathrm{num}(w)$ and do not count,
 and the skipped edges to the parent only add $\mathrm{num}(\mathrm{pred}(w))$,
-which leaves the test of step 6 unchanged). Since each child of the root
-satisfies step 6, steps 6 to 8 apply Lemma 18.2 in each component. For the
-blocks, call a tree edge $vw$ that satisfies step 6 a *closing* edge. Removing
-$v$ separates $T_w$ (or, at the root, the subtree of each child), so no cycle
-contains both an edge of $T_w\cup\{vw\}$ and an edge outside it. Conversely,
-the edges of $T_w\cup\{vw\}$ that are not inside the subtree of a lower
-closing edge, together with the non-tree edges from those nodes to $v$ or
-below, are pairwise on common cycles (each of them closes a cycle through the
-tree path, and these cycles overlap along tree edges that are not closing).
-Hence, each closing edge determines one block. The function that numbers them
-keeps on a stack the edges discovered since the block was opened and pops them
-when its closing edge is backtracked. The search examines each arc once, and
-each edge enters and leaves the stack once. $\square$
+which leaves the test of step 6 unchanged). The loops, which step 9 skips, lie
+on no path between two distinct nodes, and hence they neither change the cut
+nodes nor enter the low points. Since each child of the root satisfies step 6,
+steps 6 to 8 apply Lemma 18.2 in each component. For the blocks, call a tree
+edge $vw$ that satisfies step 6 a *closing* edge. Removing $v$ separates $T_w$
+(or, at the root, the subtree of each child), so no cycle contains both an
+edge of $T_w\cup\{vw\}$ and an edge outside it. Conversely, the edges of
+$T_w\cup\{vw\}$ that are not inside the subtree of a lower closing edge,
+together with the non-tree edges from those nodes to $v$ or below, are
+pairwise on common cycles (each of them closes a cycle through the tree path,
+and these cycles overlap along tree edges that are not closing). Hence, each
+closing edge determines one block. The function that numbers them keeps on a
+stack the edges discovered since the block was opened and pops them when its
+closing edge is backtracked. The search examines each arc once, and each edge
+enters and leaves the stack once. $\square$
 
 The full proof of the block structure is in [Hopcroft and Tarjan
 1973](Z-bibliography.md#ref-hopcroft1973algorithm447) and [Tarjan

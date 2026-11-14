@@ -688,11 +688,9 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
   }
 
  void examine( const Arc & edge ) {
-  if( _graph.source( edge ) == _graph.target( edge ) &&
-      _graph.direction( edge ) ) {
-   mark( _graph.source( edge ) );
+  // a loop makes no node a cut node
+  if( _graph.source( edge ) == _graph.target( edge ) )
    return;
-   }
   if( _predMap[ _graph.source( edge ) ] == _graph.target( edge ) )
    return;
   if( _retMap[ _graph.source( edge ) ] > _numMap[ _graph.target( edge ) ] ) {
@@ -893,9 +891,10 @@ int biNodeConnectedComponents( const Graph & graph , EdgeMap & compMap )
 ///
 /// \param graph The undirected graph.
 /// \retval cutMap A writable node map. The values will be set to
-/// \c true for the nodes that separate two or more components
-/// (exactly once for each cut node), and will not be changed for
-/// other nodes.
+/// \c true for the nodes that separate two or more components, i.e., whose
+/// removal increases the number of the connected components (exactly once
+/// for each cut node), and will not be changed for other nodes. A loop
+/// forms a component of its own, but it makes no node a cut node.
 /// \return The number of the cut nodes.
 ///
 /// \see biNodeConnected(), biNodeConnectedComponents()

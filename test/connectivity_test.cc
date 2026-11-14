@@ -330,5 +330,26 @@ int main()
 	 "Wrong cut nodes with a map true on entry" );
   }
 
+ // a loop makes no node a cut node: neither a single node, nor an end of
+ // an edge, nor the middle of a path, which is one for the path itself
+ {
+  ListGraph g;
+  ListGraph::Node a = g.addNode();
+  g.addEdge( a , a );
+  ListGraph::NodeMap< bool > cut( g , false );
+  check( biNodeConnectedCutNodes( g , cut ) == 0 && ! cut[ a ] ,
+	 "A loop on a single node makes it a cut node" );
+  ListGraph::Node b = g.addNode();
+  g.addEdge( a , b );
+  check( biNodeConnectedCutNodes( g , cut ) == 0 && ! cut[ a ] ,
+	 "A loop on the end of an edge makes it a cut node" );
+  ListGraph::Node c = g.addNode();
+  g.addEdge( b , c );
+  g.addEdge( b , b );
+  check( biNodeConnectedCutNodes( g , cut ) == 1 && cut[ b ] && ! cut[ a ] &&
+	   ! cut[ c ] ,
+	 "Wrong cut nodes with loops" );
+  }
+
  return( 0 );
  }
