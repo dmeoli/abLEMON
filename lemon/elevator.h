@@ -714,7 +714,8 @@ class LinkedElevator
  ///Return an active item on level \c l or \ref INVALID if there is no such
  ///an item. (\c l must be from the range [0...\c max_level].
  Item activeOn( int l ) const {
-  return( _active[ _first[ l ] ] ? _first[ l ] : INVALID );
+  return( _first[ l ] != INVALID && _active[ _first[ l ] ] ? _first[ l ]
+							    : INVALID );
   }
 
  ///Lift the active item returned by \c activeOn(l) by one.

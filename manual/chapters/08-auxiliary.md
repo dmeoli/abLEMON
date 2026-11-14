@@ -391,7 +391,8 @@ has its level given by `highestActiveLevel()` (or $-1$); it is lifted by one
 level by `liftHighestActive()`, to a given higher level by
 `liftHighestActive(l)`, or to the top level, where it is deactivated, by
 `liftHighestActiveToTop()`. Three similar operations exist for the active item
-that `activeOn(l)` returns on a given level, namely `liftActiveOn(l)`, which
+that `activeOn(l)` returns on a given level (`INVALID` if the level has no
+active item, in particular if it is empty), namely `liftActiveOn(l)`, which
 returns the item lifted, `liftActiveOn(l, new_level)` and
 `liftActiveToTop(l)`, and `lift(i, new_level)` lifts any active item. Finally,
 `liftToTop(l)` moves all the items on level `l` and above to the top level and
@@ -466,8 +467,10 @@ of the levels.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 `liftActiveOn(l)` of both classes was declared to return
-    an item but returned none. The test `elevator_test` checks the item that
-    it returns.
+    an item but returned none, and `LinkedElevator::activeOn(l)` read the map
+    of the active items at `INVALID` on an empty level. The test
+    `elevator_test` checks both, the second with the checks of the standard
+    library enabled.
 
 ## 8.4 Two-dimensional geometry {#sec-8-4}
 

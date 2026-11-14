@@ -17,8 +17,12 @@
  */
 
 // Elevator with fewer levels than items, the lift of an item of
-// LinkedElevator from the end or the start of its level, and the lift of the
-// active item of a level
+// LinkedElevator from the end or the start of its level, and the active item
+// of a level
+
+#ifndef _GLIBCXX_ASSERTIONS
+ #define _GLIBCXX_ASSERTIONS
+#endif
 
 #include <lemon/elevator.h>
 #include <lemon/smart_graph.h>
@@ -74,7 +78,10 @@ void checkLinkedLift( const Digraph & g , const std::vector< Node > & v )
 	"Wrong levels after the lift of a second item." );
  }
 
-// the lift of the active item of a level, returned by both classes
+// the lift of the active item of a level, returned by both classes, and
+// activeOn() on a level without items, which reads no item map; the test
+// is built with the checks of the standard library, if any, so that a read
+// of a map at INVALID aborts it
 template< typename E >
 void checkActiveOn( const Digraph & g , const std::vector< Node > & v )
 {
@@ -83,6 +90,8 @@ void checkActiveOn( const Digraph & g , const std::vector< Node > & v )
  e.initAddItem( v[ 0 ] );
  e.initAddItem( v[ 1 ] );
  e.initFinish();
+ check( e.activeOn( 1 ) == INVALID && e.activeOn( 2 ) == INVALID ,
+	"activeOn() found an item on an empty level." );
  e.activate( v[ 0 ] );
  Node a = e.activeOn( 0 );
  check( a == v[ 0 ] , "Wrong active item on a level." );
