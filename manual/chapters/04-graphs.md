@@ -601,15 +601,23 @@ node maps of `GR` serve all of them. A set is constructed on the graph,
 
 Both `List` sets link the arcs of each node in doubly linked lists, as
 `ListDigraph` and `ListGraph` do, and they also have `erase(a)` (or
-`erase(e)`). They observe the nodes of the underlying graph, through a private
-node map of the nested class `NodesImpl`; when a node is erased from it, they
-erase its arcs first, and when the graph is cleared they clear themselves. The
-two `Smart` sets store the arcs in a vector with singly linked lists, which is
-slightly faster, and cannot erase them. They observe the nodes too, but an
-erased node that has an arc in the set invalidates the whole set (by the
-exception `ImmediateDetach` of [appendix A](A-writing-graph-map.md#app-a)),
-which can no longer be used; their function `valid()` returns whether this has
-not happened. An erased node with no arc in the set leaves it valid.
+`erase(e)`). They observe the nodes of the underlying graph, through a
+protected node map of the nested class `NodesImpl`; when a node is erased from
+it, they erase its arcs first, and when the graph is cleared they clear
+themselves. The two `Smart` sets store the arcs in a vector with singly linked
+lists, which is slightly faster, and cannot erase them. They observe the nodes
+too, but an erased node that has an arc in the set invalidates the whole set
+(by the exception `ImmediateDetach` of [appendix
+A](A-writing-graph-map.md#app-a)), which can no longer be used; their function
+`valid()` returns whether this has not happened. An erased node with no arc in
+the set leaves it valid.
+
+!!! note "abLEMON"
+    The functions `eraseNode()` and `clearNodes()`, by which the observer of
+    the nodes updates a set, and that observer itself are protected in all
+    four sets; in LEMON 1.3.1 they were public in the `List` sets, so that a
+    call could erase the arcs of a node still in the graph, or all the arcs.
+    The test `edge_set_test` checks that no set exposes the two functions.
 
 <span id="lem-4-9"></span>**Lemma 4.9.** *In the `List` sets, `addArc()` (or
 `addEdge()`) takes $O(1)$ amortized time, `erase(a)` (or `erase(e)`) $O(1)$

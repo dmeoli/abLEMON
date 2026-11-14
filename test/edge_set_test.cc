@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <utility>
 #include <vector>
 
 #include <lemon/concepts/digraph.h>
@@ -378,6 +379,36 @@ void checkListEdgeSet()
  }
 
 
+// Whether the node maintenance of an arc set, eraseNode() and clearNodes(),
+// is callable from outside the class.
+template< class AS , class = void >
+struct NodeMaintenancePublic
+{
+ static const bool value = false;
+ };
+
+template< class AS >
+struct NodeMaintenancePublic<
+  AS , decltype( std::declval< AS & >().clearNodes() ,
+		std::declval< AS & >().eraseNode(
+		  std::declval< typename AS::Node >() ) ,
+		void() ) >
+{
+ static const bool value = true;
+ };
+
+void checkNodeMaintenanceHidden()
+{
+ check( ! NodeMaintenancePublic< SmartArcSet< ListDigraph > >::value ,
+	"SmartArcSet has public eraseNode()" );
+ check( ! NodeMaintenancePublic< ListArcSet< ListDigraph > >::value ,
+	"ListArcSet has public eraseNode()" );
+ check( ! NodeMaintenancePublic< SmartEdgeSet< ListGraph > >::value ,
+	"SmartEdgeSet has public eraseNode()" );
+ check( ! NodeMaintenancePublic< ListEdgeSet< ListGraph > >::value ,
+	"ListEdgeSet has public eraseNode()" );
+ }
+
 int main()
 {
 
@@ -385,6 +416,7 @@ int main()
  checkListArcSet();
  checkSmartEdgeSet();
  checkListEdgeSet();
+ checkNodeMaintenanceHidden();
 
  return( 0 );
  }

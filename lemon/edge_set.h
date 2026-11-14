@@ -270,6 +270,7 @@ class ListArcSet : public ArcSetExtender< ListArcSetBase< GR > >
  typedef typename Parent::Node Node;
  typedef typename Parent::Arc Arc;
 
+ protected:
  typedef typename Parent::NodesImplBase NodesImplBase;
 
  void eraseNode( const Node & node ) {
@@ -700,6 +701,7 @@ class ListEdgeSet : public EdgeSetExtender< ListEdgeSetBase< GR > >
  typedef typename Parent::Arc Arc;
  typedef typename Parent::Edge Edge;
 
+ protected:
  typedef typename Parent::NodesImplBase NodesImplBase;
 
  void eraseNode( const Node & node ) {
