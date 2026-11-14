@@ -212,6 +212,13 @@ MipSkeleton::Value MipSkeleton::_getSolValue() const
  return( 0 );
  }
 
+MipSkeleton::ColTypes MipSkeleton::_getColType( int ) const
+{
+ return( REAL );
+ }
+void MipSkeleton::_setColType( int , ColTypes )
+{ }
+
 MipSkeleton::ProblemType MipSkeleton::_getType() const
 {
  return( UNDEFINED );

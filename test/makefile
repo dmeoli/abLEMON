@@ -23,7 +23,8 @@ TESTS = adaptors_test arc_look_up_test bellman_ford_test bfs_test \
 	gomory_hu_test graph_copy_test graph_test graph_utils_test \
 	hao_orlin_test heap_test \
 	k_best_flows_test kruskal_test lgf_reader_writer_test lgf_test \
-	macro_test maps_test matching_test max_cardinality_search_test \
+	lp_skeleton_test macro_test maps_test matching_test \
+	max_cardinality_search_test \
 	max_clique_test max_flow_test min_cost_arborescence_test \
 	min_cost_flow_battery_test min_cost_flow_test min_mean_cycle_test \
 	nagamochi_ibaraki_test nauty_reader_test path_test \

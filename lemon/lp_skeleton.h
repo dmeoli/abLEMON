@@ -222,6 +222,11 @@ class MipSkeleton : public MipSolver , public SkeletonSolverBase
  virtual Value _getSolValue() const;
 
  ///\e
+ virtual ColTypes _getColType( int col ) const;
+ ///\e
+ virtual void _setColType( int col , ColTypes col_type );
+
+ ///\e
  virtual ProblemType _getType() const;
 
  ///\e

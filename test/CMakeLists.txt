@@ -42,6 +42,7 @@ SET(TESTS
   kruskal_test
   lgf_reader_writer_test
   lgf_test
+  lp_skeleton_test
   macro_test
   maps_test
   matching_test
