@@ -712,9 +712,10 @@ the two paths of the tree to their common ancestor and returns the least
 weight met (Lemma 15.7 and Theorem 15.2). In the same way `minCutMap(s, t,
 cutMap)` finds the lightest edge of the path, writes `true` on the side of $s$
 and `false` on the other side into a readable and writable `bool` node map,
-and returns the value. For $s=t$, `minCutValue()` returns the largest value of
-`Value`, whereas `minCutMap()` (and hence the iterators below) must not be
-called, since it then writes a map at the node `INVALID`. A cut can also be
+and returns the value. For $s=t$, which no cut separates, both return the
+largest value of `Value`, and `minCutMap()` writes `true` at every node, so
+that the iterators below list every node on the side of $s$ and no edge. A
+cut can also be
 listed by two iterators. `MinCutNodeIt(gomory, s, t, side = true)` lists the
 nodes of the side of $s$ (or those of the other side if `side` is `false`).
 Similarly, `MinCutEdgeIt(gomory, s, t, side = true)` lists the edges of the
@@ -733,8 +734,9 @@ first node, which on an empty graph is `INVALID`.
     `tolerance()` is new in abLEMON. LEMON 1.3.1 gave its maximum flows the
     default tolerance of the value type, while abLEMON gives them the one set
     on the class. In LEMON 1.3.1 `minCutMap()` did not mark the nodes it
-    climbed through, and took $O(nh)$ time. The test `gomory_hu_test` counts
-    the writes of `minCutMap()` on a path.
+    climbed through, and took $O(nh)$ time; for $s=t$ it wrote the maps at
+    the node `INVALID`. The test `gomory_hu_test` counts the writes
+    of `minCutMap()` on a path, and checks $s=t$.
 
 ![Figure 15.2. Left, an undirected graph $G$ and its minimum cut $X=\{0,1,2\}$, of value 3, with the two cut edges; right, the Gomory-Hu tree computed by `GomoryHu`, whose lightest edge (between 2 and 4) gives the same cut.](../figures/15-gomory-hu.svg){#fig-15-2}
 

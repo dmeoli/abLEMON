@@ -265,7 +265,8 @@ class GomoryHu
  /// \c s and \c t.
  /// It finds the nearest common ancestor of the given nodes in the
  /// Gomory-Hu tree and calculates the minimum weight edge on the
- /// paths to the ancestor.
+ /// paths to the ancestor; if \c s and \c t are the same node, it
+ /// returns the largest \c Value.
  ///
  /// \pre \ref run() must be called before using this function.
  Value minCutValue( const Node & s , const Node & t ) const {
@@ -303,6 +304,10 @@ class GomoryHu
  ///
  /// \return The value of the minimum cut between \c s and \c t.
  ///
+ /// If \c s and \c t are the same node, then no cut separates them: all
+ /// the nodes are set to \c true and the largest \c Value is returned,
+ /// as \ref minCutValue() does.
+ ///
  /// \pre \ref run() must be called before using this function.
  template< typename CutMap >
  Value minCutMap( const Node & s , const Node & t , CutMap & cutMap ) const {
@@ -328,6 +333,12 @@ class GomoryHu
      }
     sn = ( *_pred )[ sn ];
     }
+   }
+
+  if( rn == INVALID ) {
+   for( NodeIt n( _graph ) ; n != INVALID ; ++n )
+    cutMap.set( n , true );
+   return( value );
    }
 
   typename Graph::template NodeMap< bool > reached( _graph , false );

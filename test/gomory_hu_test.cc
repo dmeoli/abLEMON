@@ -25,6 +25,7 @@
 #include <lemon/lgf_reader.h>
 #include <lemon/gomory_hu.h>
 #include <cstdlib>
+#include <limits>
 #include <vector>
 
 using namespace std;
@@ -155,6 +156,25 @@ void checkMinCutMapWrites()
    }
  }
 
+// minCutMap( s , s ) puts every node on the side of s
+void checkMinCutMapSameNode( const Graph & graph ,
+			     const GomoryHu< Graph > & ght )
+{
+ for( NodeIt u( graph ) ; u != INVALID ; ++u ) {
+  CountingCutMap cm( graph );
+  int value = ght.minCutMap( u , u , cm );
+  check( cm.invalid_sets == 0 , "minCutMap( s , s ) writes INVALID" );
+  check( value == std::numeric_limits< int >::max() ,
+	 "Wrong value of minCutMap( s , s )" );
+  check( value == ght.minCutValue( u , u ) ,
+	 "minCutMap( s , s ) and minCutValue( s , s ) differ" );
+  for( NodeIt v( graph ) ; v != INVALID ; ++v )
+   check( cm[ v ] , "Wrong side in minCutMap( s , s )" );
+  check( GomoryHu< Graph >::MinCutEdgeIt( ght , u , u ) == INVALID ,
+	 "MinCutEdgeIt( s , s ) lists an edge" );
+  }
+ }
+
 int main()
 {
  Graph graph;
@@ -195,6 +215,7 @@ int main()
    }
   }
 
+ checkMinCutMapSameNode( graph , ght );
  checkMinCutMapWrites();
 
  return( 0 );
