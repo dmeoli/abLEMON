@@ -236,15 +236,20 @@ item of least priority is kept, so that `top()` and `prio()` cost $O(1)$.
     gives every comparison heap floating-point priorities with many ties, and
     the case of the ticket.
 
-*A limitation of erase().* In `PairingHeap` and `BinomialHeap`, `erase(i)`
-decreases the priority of the item to `prio() - 1` and pops it, and
-`increase()` calls `erase()`. This requires a numeric priority type. Also, it
-removes the right item only when `prio() - 1` compares smaller than `prio()`
-under `CMP`, which is not the case with `std::greater` as `CMP`, nor with
-floating-point priorities so large that $x-1=x$ (e.g., above $2^{53}$ in
-`double`); in these cases the minimum is removed instead of the item.
-`FibHeap` does not have this limitation, and neither do `BinHeap`, `QuadHeap`
-and `DHeap`, which erase by position.
+*Erasing an item.* In `PairingHeap`, `erase(i)` cuts the subtree of the item
+and makes it the root over the rest, while in `BinomialHeap` it moves the
+item up to the root of its tree; in both cases the item is then removed as
+the minimum, and `increase()` calls `erase()` and `push()`. Hence, `erase()`
+does not compare priorities at all, and it works for any priority type and
+any `CMP`.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 the two classes decreased the priority of the item to
+    `prio() - 1` and popped it, which needs a numeric priority type and
+    removes the minimum in place of the item whenever `prio() - 1` does not
+    compare smaller than `prio()` under `CMP`, i.e., with `std::greater`, or
+    with priorities so large that $x - 1 = x$ (e.g., above $2^{53}$ in
+    `double`); the test `heap_test` checks both cases for all the heaps.
 
 ## 7.4 Heaps of integer priorities {#sec-7-4}
 

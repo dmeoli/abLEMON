@@ -22,6 +22,7 @@
 #include <vector>
 #include <set>
 #include <utility>
+#include <functional>
 
 #include <lemon/concept_check.h>
 #include <lemon/concepts/heap.h>
@@ -236,6 +237,52 @@ void heapIncreaseTest()
   }
  }
 
+// erase() removes the given item, also where no priority is below the
+// minimum: under std::greater (the heap of maxima), and on doubles so
+// large that x - 1 == x, where an erase by decreasing below the minimum
+// removed the minimum in its place
+template< template< typename , typename , typename > class H >
+void heapEraseTest()
+{
+ {
+  typedef H< double , RangeMap< int > , std::greater< double > > Heap;
+  RangeMap< int > map( 10 , -1 );
+  Heap heap( map );
+  for( int i = 0 ; i < 10 ; ++i )
+   heap.push( i , i );
+  heap.erase( 1 );
+  heap.erase( 9 );
+  check( heap.state( 1 ) == Heap::POST_HEAP &&
+	   heap.state( 9 ) == Heap::POST_HEAP ,
+	 "Wrong item erased under std::greater." );
+  for( int i = 8 ; i >= 0 ; --i ) {
+   if( i == 1 )
+    continue;
+   check( heap.top() == i , "Wrong order after erase under std::greater." );
+   heap.pop();
+   }
+  check( heap.empty() , "Wrong size after erase under std::greater." );
+  }
+ {
+  typedef H< double , RangeMap< int > , std::less< double > > Heap;
+  RangeMap< int > map( 5 , -1 );
+  Heap heap( map );
+  for( int i = 0 ; i < 5 ; ++i )
+   heap.push( i , 1e20 * ( i + 1 ) );
+  heap.erase( 3 );
+  heap.erase( 0 );
+  check( heap.state( 3 ) == Heap::POST_HEAP &&
+	   heap.state( 0 ) == Heap::POST_HEAP ,
+	 "Wrong item erased on large priorities." );
+  const int rest[] = { 1 , 2 , 4 };
+  for( int k = 0 ; k < 3 ; ++k ) {
+   check( heap.top() == rest[ k ] , "Wrong order after erase on large "
+				   "priorities." );
+   heap.pop();
+   }
+  }
+ }
+
 template< typename Heap >
 void dijkstraHeapTest( const Digraph & digraph , const IntArcMap & length ,
 		       Node source )
@@ -284,6 +331,7 @@ int main()
  // BinHeap
  {
   heapTiesTest< BinHeap< double , RangeMap< int > > >();
+  heapEraseTest< BinHeap >();
   typedef BinHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -297,6 +345,7 @@ int main()
  // QuadHeap
  {
   heapTiesTest< QuadHeap< double , RangeMap< int > > >();
+  heapEraseTest< QuadHeap >();
   typedef QuadHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -323,6 +372,7 @@ int main()
  // FibHeap
  {
   heapTiesTest< FibHeap< double , RangeMap< int > > >();
+  heapEraseTest< FibHeap >();
   typedef FibHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -336,6 +386,7 @@ int main()
  // PairingHeap
  {
   heapTiesTest< PairingHeap< double , RangeMap< int > > >();
+  heapEraseTest< PairingHeap >();
   typedef PairingHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -362,6 +413,7 @@ int main()
  // BinomialHeap
  {
   heapTiesTest< BinomialHeap< double , RangeMap< int > > >();
+  heapEraseTest< BinomialHeap >();
   heapEqualPairTest< BinomialHeap< int , RangeMap< int > > >();
   typedef BinomialHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();

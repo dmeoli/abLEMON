@@ -258,7 +258,20 @@ class BinomialHeap
  void erase( const Item & item ) {
   int i = _iim[ item ];
   if( i >= 0 && _data[ i ].in ) {
-   decrease( item , _data[ _min ].prio - 1 );
+   // the item goes up to the root of its tree whatever the priorities, and
+   // is removed as the minimum: a priority below the minimum may not exist
+   // (e.g., under std::greater, or where x - 1 == x for a large double)
+   const Prio value = _data[ i ].prio;
+   for( int p = _data[ i ].parent ; p != -1 ; p = _data[ p ].parent ) {
+    _data[ i ].name = _data[ p ].name;
+    _data[ i ].prio = _data[ p ].prio;
+    _iim[ _data[ i ].name ] = i;
+    i = p;
+    }
+   _data[ i ].name = item;
+   _data[ i ].prio = value;
+   _iim[ item ] = i;
+   _min = i;
    pop();
    }
   }

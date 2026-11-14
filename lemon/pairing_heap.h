@@ -291,7 +291,18 @@ class PairingHeap
  void erase( const Item & item ) {
   int i = _iim[ item ];
   if( i >= 0 && _data[ i ].in ) {
-   decrease( item , _data[ _min ].prio - 1 );
+   // the subtree of the item is cut and made the root over the rest, and the
+   // item is removed as the minimum: a priority below the minimum may not
+   // exist (e.g., under std::greater, or where x - 1 == x for a large double)
+   if( i != _min ) {
+    int p = _data[ i ].parent;
+    if( _data[ i ].left_child && i != _data[ p ].child ) {
+     p = _data[ p ].parent;
+     }
+    cut( i , p );
+    fuse( i , _min );
+    _min = i;
+    }
    pop();
    }
   }
