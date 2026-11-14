@@ -326,7 +326,7 @@ inline void writeEscape( std::ostream & os , char c )
 
 inline bool requireEscape( const std::string & str )
 {
- if( str.empty() || str[ 0 ] == '@' )
+ if( str.empty() || str[ 0 ] == '@' || str[ 0 ] == '#' )
   return( true );
  std::istringstream is( str );
  char c;

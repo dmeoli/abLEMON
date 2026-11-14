@@ -581,14 +581,15 @@ void checkBpGraphReaderWriter()
  }
 
 
-// the tokens that the writer quotes, here for a blank, are read back
-// unchanged: with a control character followed by a digit, and with the
-// bytes above 127 of a character of UTF-8
+// the tokens that the writer quotes, here for a blank or for a # that would
+// make their line a comment, are read back unchanged: with a control
+// character followed by a digit, with the bytes above 127 of a character of
+// UTF-8, and with a # at the start of the line
 void checkTokenReaderWriter()
 {
  const std::string values[] = { std::string( "a \x01" ) + "7" ,
 				std::string( "b \x1f" ) + "1x" ,
-				"caf\xc3\xa9 x" };
+				"caf\xc3\xa9 x" , "#x" };
  const int n = sizeof( values ) / sizeof( values[ 0 ] );
 
  typedef lemon::ListDigraph Digraph;
