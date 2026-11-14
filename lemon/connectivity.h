@@ -669,7 +669,8 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
 				 int & cutNum )
      : _graph( graph ) , _cutMap( cutMap ) , _cutNum( cutNum ) ,
        _numMap( graph ) ,
-       _retMap( graph ) , _predMap( graph ) , _num( 0 ) { }
+       _retMap( graph ) , _predMap( graph ) , _counted( graph , false ) ,
+       _num( 0 ) { }
 
  void start( const Node & node ) {
   _predMap.set( node , INVALID );
@@ -689,10 +690,7 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
  void examine( const Arc & edge ) {
   if( _graph.source( edge ) == _graph.target( edge ) &&
       _graph.direction( edge ) ) {
-   if( ! _cutMap[ _graph.source( edge ) ] ) {
-    _cutMap.set( _graph.source( edge ) , true );
-    ++_cutNum;
-    }
+   mark( _graph.source( edge ) );
    return;
    }
   if( _predMap[ _graph.source( edge ) ] == _graph.target( edge ) )
@@ -708,16 +706,10 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
    }
   if( _numMap[ _graph.source( edge ) ] <= _retMap[ _graph.target( edge ) ] ) {
    if( _predMap[ _graph.source( edge ) ] != INVALID ) {
-    if( ! _cutMap[ _graph.source( edge ) ] ) {
-     _cutMap.set( _graph.source( edge ) , true );
-     ++_cutNum;
-     }
+    mark( _graph.source( edge ) );
     }
    else if( rootCut ) {
-    if( ! _cutMap[ _graph.source( edge ) ] ) {
-     _cutMap.set( _graph.source( edge ) , true );
-     ++_cutNum;
-     }
+    mark( _graph.source( edge ) );
     }
    else {
     rootCut = true;
@@ -726,6 +718,16 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
   }
 
  private:
+ // the node as a cut node, once: the map of the user is only written, and
+ // its values on entry do not matter
+ void mark( const Node & node ) {
+  if( ! _counted[ node ] ) {
+   _counted.set( node , true );
+   _cutMap.set( node , true );
+   ++_cutNum;
+   }
+  }
+
  const Digraph & _graph;
  NodeMap & _cutMap;
  int & _cutNum;
@@ -733,6 +735,7 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
  typename Digraph::template NodeMap< int > _numMap;
  typename Digraph::template NodeMap< int > _retMap;
  typename Digraph::template NodeMap< Node > _predMap;
+ typename Digraph::template NodeMap< bool > _counted;
  std::stack< Edge > _edgeStack;
  int _num;
  bool rootCut;

@@ -318,5 +318,17 @@ int main()
 	 "Wrong bipartitePartitions()" );
   }
 
+ // biNodeConnectedCutNodes() writes the map and does not read it: on a
+ // path a - b - c, with the map true everywhere on entry, it counts b
+ {
+  ListGraph g;
+  ListGraph::Node a = g.addNode() , b = g.addNode() , c = g.addNode();
+  g.addEdge( a , b );
+  g.addEdge( b , c );
+  ListGraph::NodeMap< bool > cut( g , true );
+  check( biNodeConnectedCutNodes( g , cut ) == 1 && cut[ b ] ,
+	 "Wrong cut nodes with a map true on entry" );
+  }
+
  return( 0 );
  }

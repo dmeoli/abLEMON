@@ -99,10 +99,11 @@ blocks, whereas the map of the bi-edge-connected components is a node map;
 both are numbered from $0$ as in [§18.1](#sec-18-1). Those that find the cut
 nodes and the cut edges set `cutMap` to `true` on them (once each) and return
 their number, but they leave the other items untouched, and the caller must
-therefore initialize the map to `false`. Furthermore,
-`biNodeConnectedCutNodes()` reads the map in order not to count a node twice,
-although its concept check requires only a writable map; one should pass a
-node map of `bool`, as the example of [§18.3](#sec-18-3) does.
+therefore initialize the map to `false` when it reads the other items too.
+The map is only written, as its concept check requires: in LEMON 1.3.1
+`biNodeConnectedCutNodes()` read it in order not to count a node twice, so
+that a node already `true` on entry was not counted (the test
+`connectivity_test` passes a map that is `true` everywhere).
 
 At the boundary we follow the conventions of the header. A graph with zero or
 one node is bi-node-connected, two isolated nodes are not, and two nodes
