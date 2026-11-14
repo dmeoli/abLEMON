@@ -52,6 +52,7 @@ SET(TESTS
   min_cost_flow_test
   min_mean_cycle_test
   nagamochi_ibaraki_test
+  nauty_reader_test
   path_test
   point_to_point_test
   planarity_test

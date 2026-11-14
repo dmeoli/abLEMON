@@ -69,12 +69,19 @@ std::istream & readNautyGraph( Graph & graph , std::istream & is = std::cin )
 
  std::string line;
  if( getline( is , line ) ) {
-  int index = 0;
+  std::size_t index = 0;
 
   int n;
 
-  if( line[ index ] == '>' ) {
+  // a line too short for its header, its number of nodes or its edges is
+  // not a graph: the graph is left empty and the stream failed, where the
+  // line was read past its end
+  if( ! line.empty() && line[ index ] == '>' ) {
    index += 10;
+   }
+  if( index >= line.size() ) {
+   is.setstate( std::ios::failbit );
+   return( is );
    }
 
   char c = line[ index++ ];
@@ -83,6 +90,10 @@ std::istream & readNautyGraph( Graph & graph , std::istream & is = std::cin )
    n = int( c );
    }
   else {
+   if( index + 3 > line.size() ) {
+    is.setstate( std::ios::failbit );
+    return( is );
+    }
    c = line[ index++ ];
    c -= 63;
    n = ( int( c ) << 12 );
@@ -92,6 +103,12 @@ std::istream & readNautyGraph( Graph & graph , std::istream & is = std::cin )
    c = line[ index++ ];
    c -= 63;
    n |= int( c );
+   }
+
+  const std::size_t bytes = ( std::size_t( n ) * ( n - 1 ) / 2 + 5 ) / 6;
+  if( n < 0 || index + bytes > line.size() ) {
+   is.setstate( std::ios::failbit );
+   return( is );
    }
 
   std::vector< typename Graph::Node > nodes;
