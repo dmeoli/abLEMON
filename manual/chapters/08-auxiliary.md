@@ -267,10 +267,16 @@ relink a constant number of records. An `ExtendFindEnum` stores in each item
 its class, which never changes; its other operations relink lists.
 $\square$
 
-We remark that `clear()` of `UnionFindEnum` empties the vector of the items
-and the list of the classes, but neither the vector of the classes nor its
-list of free records; hence, the records of the classes alive before the call
-are never reused, which costs memory but no correctness.
+We remark that `clear()` of `UnionFindEnum` empties the vectors of the items
+and of the classes, with their lists of free records, so that the ids of the
+classes inserted after it start again from 0.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 `UnionFindEnum::clear()` emptied neither the vector of the
+    classes nor its list of free records, so that the records of the classes
+    alive before the call were never reused and the vector grew at each
+    cycle of insertions and `clear()`. The test `unionfind_test` checks the
+    ids of the classes after a hundred such cycles.
 
 `ExtendFindEnum<IM>` is the simplification of `UnionFindEnum` in which the
 classes are never united. It has the same two forms of `insert()`, `find()`,

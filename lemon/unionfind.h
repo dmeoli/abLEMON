@@ -357,8 +357,8 @@ class UnionFindEnum
  /// Erase each item from the data structure.
  void clear() {
   items.clear();
-  firstClass = -1;
-  firstFreeItem = -1;
+  classes.clear();
+  firstClass = firstFreeClass = firstFreeItem = -1;
   }
 
  /// \brief Finds the component of the given element.

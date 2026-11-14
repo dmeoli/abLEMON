@@ -122,5 +122,17 @@ int main()
  U.eraseClass( U.find( n[ 4 ] ) );
  U.eraseClass( U.find( n[ 7 ] ) );
 
+ // clear() erases the classes too: the classes after it are numbered as
+ // those of a new structure
+ for( int i = 0 ; i < 100 ; i++ ) {
+  U.clear();
+  U.insert( n[ 9 ] );
+  }
+ U.clear();
+ check( U.insert( n[ 10 ] ) == 0 && U.insert( n[ 11 ] ) == 1 ,
+	"UnionFindEnum::clear() kept the classes" );
+ check( U.size( U.find( n[ 10 ] ) ) == 1 && U.find( n[ 11 ] ) == 1 ,
+	"Something is wrong with UnionFindEnum" );
+
  return( 0 );
  }
