@@ -16,6 +16,8 @@
  *
  */
 
+#include <string>
+
 #include <lemon/list_graph.h>
 #include <lemon/lgf_reader.h>
 #include "test_tools.h"
@@ -173,5 +175,49 @@ int main()
    ok = true;
    }
   check( ok , "FormatError exception should have occured" );
+  }
+
+ // a label repeated in a node section is an error, and one repeated in an
+ // arc or an edge section names no item, which is an error only when an
+ // attribute refers to it
+ {
+  const std::string repeated_arc =
+    "@nodes\nlabel\n0\n1\n@arcs\n label\n0 1 5\n1 0 5\n";
+  const std::string inputs[] = { "@nodes\nlabel\n0\n0\n@arcs\n -\n" ,
+				 repeated_arc + "@attributes\narc 5\n" };
+  for( int i = 0 ; i < 2 ; ++i ) {
+   ListDigraph d;
+   ListDigraph::Arc a;
+   std::istringstream input( inputs[ i ] );
+   bool ok = false;
+   try {
+    if( i == 0 )
+     digraphReader( d , input ).run();
+    else
+     digraphReader( d , input ).arc( "arc" , a ).run();
+    }
+   catch( FormatError & ) {
+    ok = true;
+    }
+   check( ok , "FormatError exception should have occured" );
+   ListGraph g;
+   ListGraph::Edge e;
+   std::istringstream ginput( inputs[ i ] );
+   ok = false;
+   try {
+    if( i == 0 )
+     graphReader( g , ginput ).run();
+    else
+     graphReader( g , ginput ).edge( "arc" , e ).run();
+    }
+   catch( FormatError & ) {
+    ok = true;
+    }
+   check( ok , "FormatError exception should have occured" );
+   }
+  ListDigraph d;
+  std::istringstream input( repeated_arc );
+  digraphReader( d , input ).run();
+  check( countArcs( d ) == 2 , "Wrong arcs with a repeated label" );
   }
  }
