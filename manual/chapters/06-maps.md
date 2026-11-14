@@ -254,9 +254,10 @@ two items, by which one can impose any order.
 
 `CrossRefMap< GR, K, V >` stores a value for each item, and it keeps a
 `std::multimap` from the values to the items. Its `set(key, val)` costs
-$O(c\log n)$, where $c$ is the number of items with the old value of the key,
-since the loop that looks for the key among them recomputes the range of the
-old value at each step. `operator()(val)`, or the `InverseMap`, returns one
+$O(\log n + c)$, where $c$ is the number of items with the old value of the
+key, among which it looks for the key (in LEMON 1.3.1 it recomputed the range
+of the old value at each step of that search, for $O(c\log n)$).
+`operator()(val)`, or the `InverseMap`, returns one
 item with the value (or `INVALID`) in $O(\log n)$. Also, `count(val)` returns
 the number of items with a value, and `beginValue()` and `endValue()` delimit
 a forward iterator (`ValueIt`) on the values, with multiplicity and in

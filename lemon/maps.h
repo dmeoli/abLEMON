@@ -2142,9 +2142,11 @@ class CrossRefMap : protected ItemSetTraits< GR , K >::template Map< V >::Type
  /// Sets the value associated with the given key.
  void set( const Key & key , const Value & val ) {
   Value oldval = Map::operator[]( key );
-  typename Container::iterator it;
-  for( it = _inv_map.equal_range( oldval ).first ;
-       it != _inv_map.equal_range( oldval ).second ; ++it ) {
+  // the range of the old value, computed once
+  std::pair< typename Container::iterator , typename Container::iterator >
+    range = _inv_map.equal_range( oldval );
+  for( typename Container::iterator it = range.first ; it != range.second ;
+       ++it ) {
    if( it->second == key ) {
     _inv_map.erase( it );
     break;
