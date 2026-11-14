@@ -95,6 +95,10 @@ int main()
  e += 0.001 * q - 3 * q;
  e.simplify( 0.01 );  // drops the term of q
  ok = ok && e[ q ] == 0 && e[ p ] == -1;
+ e.set( p , 5 );  // set() replaces a coefficient, and removes it at zero
+ ok = ok && e[ p ] == 5;
+ e.set( p , 0 );
+ ok = ok && e[ p ] == 0;
 
  Preflow< Digraph , CapMap > pre( g , cap , s , t );
  pre.run();

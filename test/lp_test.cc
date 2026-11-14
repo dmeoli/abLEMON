@@ -470,6 +470,20 @@ int main()
  LpSkeleton lp_skel;
  lpTest( lp_skel );
 
+ // Expr::set() and DualExpr::set() replace a coefficient that is there
+ {
+  LpBase::Col c = lp_skel.addCol();
+  LpBase::Row r = lp_skel.addRow();
+  LpBase::Expr e;
+  e.set( c , 1 );
+  e.set( c , 2 );
+  check( e[ c ] == 2 , "Expr::set() did not replace the coefficient" );
+  LpBase::DualExpr de;
+  de.set( r , 1 );
+  de.set( r , 2 );
+  check( de[ r ] == 2 , "DualExpr::set() did not replace the coefficient" );
+  }
+
 #ifdef LEMON_HAVE_LP
  {
   Lp lp , lp2;

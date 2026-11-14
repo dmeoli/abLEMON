@@ -421,8 +421,7 @@ class LpBase
   /// Sets the coefficient of the column
   void set( const Col & c , const Value & v ) {
    if( v != 0.0 ) {
-    typedef std::map< int , Value >::value_type pair_type;
-    comps.insert( pair_type( id( c ) , v ) );
+    comps[ id( c ) ] = v;
     }
    else {
     comps.erase( id( c ) );
@@ -735,8 +734,7 @@ class LpBase
   /// Sets the coefficient of the row
   void set( const Row & r , const Value & v ) {
    if( v != 0.0 ) {
-    typedef std::map< int , Value >::value_type pair_type;
-    comps.insert( pair_type( id( r ) , v ) );
+    comps[ id( r ) ] = v;
     }
    else {
     comps.erase( id( r ) );
