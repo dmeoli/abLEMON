@@ -366,41 +366,36 @@ void stableRadixSignedSort( Iterator first , Iterator last , Functor functor )
  if( first == last )
   return;
  typedef typename std::iterator_traits< Iterator >::value_type Key;
- typedef std::allocator< Key > Allocator;
- Allocator allocator;
 
  int length = static_cast< int >( std::distance( first , last ) );
- Key * buffer = allocator.allocate( 2 * length );
- try {
-  bool dir = true;
-  std::copy( first , last , buffer );
-  for( int i = 0 ; i < int( sizeof( Value ) ) - 1 ; ++i ) {
-   if( dir ) {
-    stableRadixIntroSort( buffer , buffer + length , buffer + length , i ,
-			  functor );
-    }
-   else {
-    stableRadixIntroSort( buffer + length , buffer + 2 * length , buffer , i ,
-			  functor );
-    }
-   dir = ! dir;
-   }
+ // two constructed copies of the range, since the passes assign to them
+ std::vector< Key > store;
+ store.reserve( 2 * length );
+ store.insert( store.end() , first , last );
+ store.insert( store.end() , first , last );
+ Key * buffer = store.data();
+ bool dir = true;
+ for( int i = 0 ; i < int( sizeof( Value ) ) - 1 ; ++i ) {
   if( dir ) {
-   signedStableRadixIntroSort( buffer , buffer + length , buffer + length ,
-			       sizeof( Value ) - 1 , functor );
-   std::copy( buffer + length , buffer + 2 * length , first );
+   stableRadixIntroSort( buffer , buffer + length , buffer + length , i ,
+			 functor );
    }
   else {
-   signedStableRadixIntroSort( buffer + length , buffer + 2 * length , buffer ,
-			       sizeof( Value ) - 1 , functor );
-   std::copy( buffer , buffer + length , first );
+   stableRadixIntroSort( buffer + length , buffer + 2 * length , buffer , i ,
+			 functor );
    }
+  dir = ! dir;
   }
- catch( ... ) {
-  allocator.deallocate( buffer , 2 * length );
-  throw;
+ if( dir ) {
+  signedStableRadixIntroSort( buffer , buffer + length , buffer + length ,
+			      sizeof( Value ) - 1 , functor );
+  std::copy( buffer + length , buffer + 2 * length , first );
   }
- allocator.deallocate( buffer , 2 * length );
+ else {
+  signedStableRadixIntroSort( buffer + length , buffer + 2 * length , buffer ,
+			      sizeof( Value ) - 1 , functor );
+  std::copy( buffer , buffer + length , first );
+  }
  }
 
 template< typename Value , typename Iterator , typename Functor >
@@ -410,37 +405,32 @@ void stableRadixUnsignedSort( Iterator first , Iterator last ,
  if( first == last )
   return;
  typedef typename std::iterator_traits< Iterator >::value_type Key;
- typedef std::allocator< Key > Allocator;
- Allocator allocator;
 
- int length = std::distance( first , last );
- Key * buffer = allocator.allocate( 2 * length );
- try {
-  bool dir = true;
-  std::copy( first , last , buffer );
-  for( int i = 0 ; i < int( sizeof( Value ) ) ; ++i ) {
-   if( dir ) {
-    stableRadixIntroSort( buffer , buffer + length , buffer + length , i ,
-			  functor );
-    }
-   else {
-    stableRadixIntroSort( buffer + length , buffer + 2 * length , buffer , i ,
-			  functor );
-    }
-   dir = ! dir;
-   }
+ int length = static_cast< int >( std::distance( first , last ) );
+ // two constructed copies of the range, since the passes assign to them
+ std::vector< Key > store;
+ store.reserve( 2 * length );
+ store.insert( store.end() , first , last );
+ store.insert( store.end() , first , last );
+ Key * buffer = store.data();
+ bool dir = true;
+ for( int i = 0 ; i < int( sizeof( Value ) ) ; ++i ) {
   if( dir ) {
-   std::copy( buffer , buffer + length , first );
+   stableRadixIntroSort( buffer , buffer + length , buffer + length , i ,
+			 functor );
    }
   else {
-   std::copy( buffer + length , buffer + 2 * length , first );
+   stableRadixIntroSort( buffer + length , buffer + 2 * length , buffer , i ,
+			 functor );
    }
+  dir = ! dir;
   }
- catch( ... ) {
-  allocator.deallocate( buffer , 2 * length );
-  throw;
+ if( dir ) {
+  std::copy( buffer , buffer + length , first );
   }
- allocator.deallocate( buffer , 2 * length );
+ else {
+  std::copy( buffer + length , buffer + 2 * length , first );
+  }
  }
 
 

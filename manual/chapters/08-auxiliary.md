@@ -569,14 +569,13 @@ in two's complement, before the values 0 to 127, which gives the order of the
 signed keys. Each pass reads the items twice and the 256 counters once.
 $\square$
 
-We remark that the buffer is raw memory, obtained by `allocate()` of a
-`std::allocator`, into which the items are copied by assignment and from which
-they are never destroyed. Hence, the function is right only for the items of a
-trivially copyable type (e.g., integers or plain structures), and
-`radixSort()`, which sorts in place by swaps, is the one to use for the
-others. Both functions have overloads for a plain function pointer, and both
-accept a lambda. The signed or unsigned version of each is chosen at compile
-time, from the type of the key, by the helpers `RadixSortSelector` and
+We remark that the buffer is a `std::vector` that holds two constructed copies
+of the range, into which the passes copy the items by assignment; hence, the
+items need only be copy constructible and copy assignable, as for
+`std::stable_sort`, while `radixSort()` sorts in place by swaps. Both
+functions have overloads for a plain function pointer, and both accept a
+lambda. The signed or unsigned version of each is chosen at compile time, from
+the type of the key, by the helpers `RadixSortSelector` and
 `StableRadixSortSelector` of the namespace `_radix_sort_bits`.
 
 !!! note "abLEMON"
@@ -584,6 +583,13 @@ time, from the type of the key, by the helpers `RadixSortSelector` and
     rather than read from its member `result_type`, which C++20 removed from
     the function objects of the standard library; a lambda or any other
     callable may therefore be passed, which LEMON 1.3.1 did not accept.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 the buffer of `stableRadixSort()` was raw memory from
+    `std::allocator`, into which the items were assigned without being
+    constructed, so that only the items of a trivially copyable type were
+    sorted correctly. The test `radix_sort_test` sorts items that detect an
+    assignment to storage in which no item was constructed.
 
 !!! note "abLEMON"
     In LEMON 1.3.1, `radixSort()` built the mask of the highest bit as the
