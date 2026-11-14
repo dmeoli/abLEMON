@@ -23,6 +23,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <memory>
 #include <vector>
 
 #ifndef LEMON_WIN32
@@ -124,6 +125,10 @@ struct DefaultGraphToEpsTraits
  bool _undirected;
 
  bool _pleaseRemoveOsStream;
+ // the owner of os when _pleaseRemoveOsStream is set, shared by the copies
+ // of the traits that the named parameters make, which deletes os with the
+ // last of them, whether run() is called or not
+ std::shared_ptr< std::ostream > _osOwner;
 
  bool _scaleToA4;
 
@@ -167,11 +172,12 @@ struct DefaultGraphToEpsTraits
        _nodeTexts( false ) , _nodeTextSize( 1 ) , _showNodePsText( false ) ,
        _nodePsTexts( false ) , _nodePsTextsPreamble( 0 ) ,
        _undirected( lemon::UndirectedTagIndicator< GR >::value ) ,
-       _pleaseRemoveOsStream( pros ) , _scaleToA4( false ) ,
-       _nodeTextColorType( SAME_COL ) , _nodeTextColors( BLACK ) ,
-       _autoNodeScale( false ) , _autoArcWidthScale( false ) ,
-       _absoluteNodeSizes( false ) , _absoluteArcWidths( false ) ,
-       _negY( false ) , _preScale( true ) { }
+       _pleaseRemoveOsStream( pros ) ,
+       _osOwner( pros ? &ost : static_cast< std::ostream * >( 0 ) ) ,
+       _scaleToA4( false ) , _nodeTextColorType( SAME_COL ) ,
+       _nodeTextColors( BLACK ) , _autoNodeScale( false ) ,
+       _autoArcWidthScale( false ) , _absoluteNodeSizes( false ) ,
+       _absoluteArcWidths( false ) , _negY( false ) , _preScale( true ) { }
  };
 
 ///Auxiliary class to implement the named parameters of \ref graphToEps()
@@ -1160,9 +1166,9 @@ class GraphToEps : public T
 
   os << "grestore\nshowpage\n";
 
-  //CleanUp:
+  // the stream is deleted with the last copy of the traits
   if( _pleaseRemoveOsStream ) {
-   delete &os;
+   os.flush();
    }
   }
 

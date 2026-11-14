@@ -16,7 +16,8 @@
  *
  */
 
-// The bounding box of graphToEps() on graphs whose drawing has no area
+// The bounding box of graphToEps() on graphs whose drawing has no area, and
+// the deletion of a stream that GraphToEps owns
 
 #include <sstream>
 #include <string>
@@ -49,6 +50,16 @@ bool boundingBoxOk( const std::string & eps )
  return( false );
  }
 
+// a stream that counts its deletions
+struct CountedStream : public std::ostringstream
+{
+ int & deleted;
+ CountedStream( int & d ) : deleted( d ) { }
+ ~CountedStream() { ++deleted; }
+ };
+
+typedef DefaultGraphToEpsTraits< ListDigraph > Traits;
+
 int main()
 {
  // a digraph without nodes, and one whose nodes have no size and lie on a
@@ -66,6 +77,24 @@ int main()
   std::ostringstream os2;
   graphToEps( g , os2 ).coords( coords ).nodeScale( 0 ).run();
   check( boundingBoxOk( os2.str() ) , "Wrong bounding box on a line" );
+  }
+
+ // an owned stream is deleted once, with run() and without it
+ {
+  ListDigraph g;
+  g.addNode();
+  ListDigraph::NodeMap< double > sizes( g , 2 );
+  int deleted = 0;
+  GraphToEps< Traits >( Traits( g , *new CountedStream( deleted ) , true ) )
+    .nodeSizes( sizes )
+    .scale( 2 )
+    .run();
+  check( deleted == 1 , "The stream was not deleted once after run()" );
+  deleted = 0;
+  GraphToEps< Traits >( Traits( g , *new CountedStream( deleted ) , true ) )
+    .nodeSizes( sizes )
+    .scale( 2 );
+  check( deleted == 1 , "The stream was not deleted once without run()" );
   }
 
  return( 0 );
