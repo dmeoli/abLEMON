@@ -390,10 +390,10 @@ to the maximum flows, and `run()` executes Algorithm 15.3 (there is no
 separate `init()`). One reads the tree by `predNode(v)`, the parent of $v$
 (`INVALID` for the root), and by `predValue(v)`, the weight of the edge
 between $v$ and its parent (undefined for the root, where it is in fact the
-largest value of `Value`). Note that the documentation of `rootDist(v)` calls
-it the distance of $v$ from the root, but the function returns the number
-given to $v$ by step 8: $0$ for the root, and for any other node a number
-larger than that of its parent, distinct for distinct nodes.
+largest value of `Value`). Also, `rootDist(v)` returns the number given to
+$v$ by step 8: $0$ for the root, and for any other node a number larger than
+that of its parent, distinct for distinct nodes, i.e., an order of the tree
+from the root, not the distance from it.
 
 A minimum cut between two nodes is read by `minCutValue(s, t)`, which climbs
 the two paths of the tree to their common ancestor and returns the least

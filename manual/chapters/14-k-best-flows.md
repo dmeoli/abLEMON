@@ -82,7 +82,9 @@ terms of (14.1). When the violation does not exceed them, no set is returned;
 hence, a set that only round-off makes violated is never given as a
 certificate. `NetworkSimplex` gives its sets under the supply type, i.e., by
 (14.1) with the arcs reversed and the supplies negated under LEQ; the other
-three classes use the GEQ form.
+three classes use the GEQ form. In all of them the sets are computed and
+checked on the data as they are when the function is called, which must
+therefore be those of the last `run()` (the supply type included).
 
 If it proves the answer, the set of `infeasibleCut()` is the one that the
 algorithm has at hand when it finds no feasible flow, at no further cost. It

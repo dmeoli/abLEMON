@@ -660,7 +660,7 @@ class Vf2Wizard : public TR
 /// while( myVf2->find() ) {
 ///  //process the current mapping m
 ///  }
-/// delete myVf22;
+/// delete myVf2;
 ///\endcode
 ///\warning Don't forget to put the \ref Vf2Wizard::run() "run()",
 ///\ref Vf2Wizard::count() "count()" or

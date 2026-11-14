@@ -44,7 +44,8 @@ namespace lemon
 /// of this structure for <tt>D=2</tt> and <tt>D=4</tt>, respectively.
 ///
 /// \tparam PR Type of the priorities of the items.
-/// \tparam IM A read-writable item map with \c int values, used
+/// \tparam IM A reference item map with \c int values (one whose
+/// \c operator[] gives a reference, which the heap writes through), used
 /// internally to handle the cross references.
 /// \tparam D The degree of the heap, each node have at most \e D
 /// children. The default is 16. Powers of two are suggested to use
@@ -54,7 +55,7 @@ namespace lemon
 /// The default is \c std::less< PR >.
 ///
 ///\sa BinHeap
-///\sa FouraryHeap
+///\sa QuadHeap
 #ifdef DOXYGEN
 template< typename PR , typename IM , int D , typename CMP >
 #else

@@ -122,9 +122,8 @@ a Hamiltonian path, whose two ends of degree one are joined to close the tour.
 6  join the two nodes of degree one of F
 ```
 
-According to the header, the running time is $O(n^2)$. We remark, however,
-that line 1 applies `std::sort` to the $n(n-1)/2$ edges of the complete graph,
-which makes the worst case $O(n^2\log n)$; the scan of lines 3 to 5 costs
+The running time is $O(n^2\log n)$, since line 1 applies `std::sort` to the
+$n(n-1)/2$ edges of the complete graph, while the scan of lines 3 to 5 costs
 $O(n^2\,\alpha(n))$. As for the nearest neighbor method, the tours are usually
 short but may be very bad in special cases.
 

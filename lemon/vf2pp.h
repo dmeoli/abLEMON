@@ -502,12 +502,12 @@ class Vf2pp
  ///Constructor.
  ///\param g1 The graph to be embedded.
  ///\param g2 The graph \e g1 will be embedded into.
- ///\param m The type of the NodeMap storing the mapping.
- ///By default, it is G1::NodeMap<typename G2::Node>
- ///\param intLabel1 The NodeMap storing the integer node labels of G1.
+ ///\param m The NodeMap storing the mapping, by default of the type
+ ///G1::NodeMap<typename G2::Node>.
+ ///\param intLabels1 The NodeMap storing the integer node labels of G1.
  ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
  ///different labels.
- ///\param intLabel1 The NodeMap storing the integer node labels of G2.
+ ///\param intLabels2 The NodeMap storing the integer node labels of G2.
  ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
  ///different labels.
  Vf2pp( const G1 & g1 , const G2 & g2 , M & m , M1 & intLabels1 ,
@@ -850,11 +850,11 @@ class Vf2ppWizard : public TR
 ///                    .mapping( m )
 ///                    .nodeLabels( c1 , c2 )
 ///                    .induced()
-///                    .getPtrToVf2Object();
+///                    .getPtrToVf2ppObject();
 /// while( myVf2pp->find() ) {
 ///  //process the current mapping m
 ///  }
-/// delete myVf22pp;
+/// delete myVf2pp;
 ///\endcode
 ///\warning Don't forget to put the \ref Vf2ppWizard::run() "run()",
 ///\ref Vf2ppWizard::count() "count()" or

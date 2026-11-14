@@ -314,9 +314,7 @@ of the heap, which the algorithm then allocates with its cross reference map.
 Its constructor takes the graph and the capacity map, or only the graph, in
 which case the map of unit capacities is created. Its setters are
 `capacityMap(m)`, `cardinalityMap(m)`, `processedMap(m)` and `heap(hp, cr)`,
-and each has a reader without arguments (the comment of the reader
-`processedMap()` calls it the cardinality map, but it returns the processed
-map). Its execution control is made of `init()`, `addSource(s, capacity)`,
+and each has a reader without arguments. Its execution control is made of `init()`, `addSource(s, capacity)`,
 which pushes `s` with the given priority (0 by default) if it was never in the
 heap, `processNextNode()`, `nextNode()`, `emptyQueue()` and `emptySize()`,
 which, despite its name, is the number of nodes in the heap. Searches are run

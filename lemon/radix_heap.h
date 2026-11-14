@@ -41,7 +41,8 @@ namespace lemon
 /// The type of the priorities must be \c int and the priority of an
 /// item cannot be decreased under the priority of the last removed item.
 ///
-/// \tparam IM A read-writable item map with \c int values, used
+/// \tparam IM A reference item map with \c int values (one whose
+/// \c operator[] gives a reference, which the heap writes through), used
 /// internally to handle the cross references.
 template< typename IM >
 class RadixHeap
@@ -303,7 +304,9 @@ class RadixHeap
  /// \param i The item to insert.
  /// \param p The priority of the item.
  /// \pre \e i must not be stored in the heap.
- /// \warning This method may throw an \c UnderFlowPriorityException.
+ /// \warning This method throws a \c PriorityUnderflowError if \e p is
+ /// below the first box of the heap, whose lower end pop(), top() and
+ /// prio() move up to the minimum.
  void push( const Item & i , const Prio & p ) {
   int n = static_cast< int >( _data.size() );
   _iim.set( i , n );
@@ -377,7 +380,9 @@ class RadixHeap
  /// \param i The item.
  /// \param p The priority.
  /// \pre \e i must be in the heap.
- /// \warning This method may throw an \c UnderFlowPriorityException.
+ /// \warning This method throws a \c PriorityUnderflowError if \e p is
+ /// below the first box of the heap, whose lower end pop(), top() and
+ /// prio() move up to the minimum.
  void set( const Item & i , const Prio & p ) {
   int idx = _iim[ i ];
   if( idx < 0 ) {
@@ -399,7 +404,9 @@ class RadixHeap
  /// \param i The item.
  /// \param p The priority.
  /// \pre \e i must be stored in the heap with priority at least \e p.
- /// \warning This method may throw an \c UnderFlowPriorityException.
+ /// \warning This method throws a \c PriorityUnderflowError if \e p is
+ /// below the first box of the heap, whose lower end pop(), top() and
+ /// prio() move up to the minimum.
  void decrease( const Item & i , const Prio & p ) {
   int idx = _iim[ i ];
   _data[ idx ].prio = p;

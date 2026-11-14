@@ -672,7 +672,7 @@ class Bfs
 
  ///This method runs the %BFS algorithm from node \c s
  ///in order to compute the shortest path to node \c t
- ///(it stops searching when \c t is processed).
+ ///(it stops searching when \c t is reached).
  ///
  ///\return \c true if \c t is reachable form \c s.
  ///
@@ -1011,7 +1011,7 @@ class BfsWizard : public TR
 
  ///This method runs BFS algorithm from node \c s
  ///in order to compute the shortest path to node \c t
- ///(it stops searching when \c t is processed).
+ ///(it stops searching when \c t is reached).
  ///
  ///\return \c true if \c t is reachable form \c s.
  bool run( Node s , Node t ) {
@@ -1667,7 +1667,7 @@ class BfsVisit
  ///
  /// This method runs the %BFS algorithm from node \c s
  /// in order to compute the shortest path to node \c t
- /// (it stops searching when \c t is processed).
+ /// (it stops searching when \c t is reached).
  ///
  /// \return \c true if \c t is reachable form \c s.
  ///

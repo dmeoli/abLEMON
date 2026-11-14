@@ -500,9 +500,9 @@ class MaxCardinalitySearch
   return( *this );
   }
 
- /// \brief Returns a const reference to the cardinality map.
+ /// \brief Returns a const reference to the processed map.
  ///
- /// Returns a const reference to the cardinality map used by
+ /// Returns a const reference to the processed map used by
  /// the algorithm.
  const ProcessedMap & processedMap() const { return( *_processed ); }
 

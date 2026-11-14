@@ -606,7 +606,7 @@ class Dfs
 
  ///This method runs the %DFS algorithm from node \c s
  ///in order to compute the DFS path to node \c t
- ///(it stops searching when \c t is processed)
+ ///(it stops searching when \c t is reached)
  ///
  ///\return \c true if \c t is reachable form \c s.
  ///
@@ -943,7 +943,7 @@ class DfsWizard : public TR
 
  ///This method runs DFS algorithm from node \c s
  ///in order to compute the DFS path to node \c t
- ///(it stops searching when \c t is processed).
+ ///(it stops searching when \c t is reached).
  ///
  ///\return \c true if \c t is reachable form \c s.
  bool run( Node s , Node t ) {
@@ -1549,7 +1549,7 @@ class DfsVisit
 
  /// This method runs the %DFS algorithm from node \c s
  /// in order to compute the DFS path to node \c t
- /// (it stops searching when \c t is processed).
+ /// (it stops searching when \c t is reached).
  ///
  /// \return \c true if \c t is reachable form \c s.
  ///

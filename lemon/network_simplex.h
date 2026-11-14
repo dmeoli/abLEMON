@@ -974,6 +974,9 @@ class NetworkSimplex
  /// The set is empty if the last \ref run() did not return
  /// \ref INFEASIBLE, or if, in floating point, the inequality does
  /// not hold beyond the round-off.
+ /// \pre The data and the supply type must be those of the last
+ /// \ref run(): the set is computed and checked on them as they are
+ /// when this function is called.
  std::vector< Node > infeasibleCut() const {
   std::vector< Node > cut;
   if( _result != INFEASIBLE )
@@ -997,6 +1000,9 @@ class NetworkSimplex
  /// not, with a maximum flow for each part (Hamacher, Picard and
  /// Queyranne, 1984), i.e., at most n maximum flows for each set. They
  /// are empty if the last \ref run() did not return \ref INFEASIBLE.
+ /// \pre The data and the supply type must be those of the last
+ /// \ref run(): the sets are computed and checked on them as they are
+ /// when this function is called.
  std::vector< std::vector< Node > > infeasibleCuts( int k ) const {
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );
@@ -1013,6 +1019,9 @@ class NetworkSimplex
  /// their violations, which sum to at least the violation of that set.
  /// They are empty if the last \ref run() did not return
  /// \ref INFEASIBLE.
+ /// \pre The data and the supply type must be those of the last
+ /// \ref run(): the sets are computed and checked on them as they are
+ /// when this function is called.
  std::vector< std::vector< Node > > disjointInfeasibleCuts() const {
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );

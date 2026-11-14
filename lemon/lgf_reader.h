@@ -3565,16 +3565,16 @@ inline SectionReader sectionReader( const char * fn )
 /// contents.run();
 ///
 /// // Does it contain any node section and arc section?
-/// if( contents.nodeSectionNum() == 0 || contents.arcSectionNum() ) {
+/// if( contents.nodeSectionNum() == 0 || contents.arcSectionNum() == 0 ) {
 ///  std::cerr << "Failure, cannot find graph." << std::endl;
 ///  return( -1 );
 ///  }
 /// std::cout << "The name of the default node section: "
 ///           << contents.nodeSection( 0 ) << std::endl;
-/// std::cout << "The number of the arc maps: " << contents.arcMaps( 0 ).size()
-///           << std::endl;
-/// std::cout << "The name of second arc map: " << contents.arcMaps( 0 )[ 1 ]
-///           << std::endl;
+/// std::cout << "The number of the arc maps: "
+///           << contents.arcMapNames( 0 ).size() << std::endl;
+/// std::cout << "The name of second arc map: "
+///           << contents.arcMapNames( 0 )[ 1 ] << std::endl;
 ///\endcode
 class LgfContents
 {

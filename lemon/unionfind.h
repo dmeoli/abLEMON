@@ -40,7 +40,7 @@ namespace lemon
 /// \brief A \e Union-Find data structure implementation
 ///
 /// The class implements the \e Union-Find data structure.
-/// The union operation uses rank heuristic, while
+/// The union operation joins the smaller class to the larger one, while
 /// the find operation uses path compression.
 /// This is a very simple but efficient implementation, providing
 /// only four methods: join (union), find, insert and size.
@@ -160,7 +160,7 @@ class UnionFind
 /// a component. If you don't need this feature then perhaps it's
 /// better to use the \ref UnionFind class which is more efficient.
 ///
-/// The union operation uses rank heuristic, while
+/// The union operation joins the smaller class to the larger one, while
 /// the find operation uses path compression.
 ///
 /// \pre You need to add all the elements by the \ref insert()

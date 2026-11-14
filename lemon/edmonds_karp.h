@@ -87,9 +87,9 @@ struct EdmondsKarpDefaultTraits
 /// The Edmonds-Karp algorithm is slower than the Preflow
 /// algorithm, but it has an advantage of the step-by-step execution
 /// control with feasible flow solutions. The \e source node, the \e
-/// target node, the \e capacity of the arcs and the \e starting \e
-/// flow value of the arcs should be passed to the algorithm
-/// through the constructor.
+/// target node and the \e capacity of the arcs are passed to the
+/// constructor, and a \e starting \e flow, if any, to \ref init(const
+/// FlowMap&) "init()".
 ///
 /// The time complexity of the algorithm is \f$ O(nm^2) \f$ in
 /// worst case. Always try the Preflow algorithm instead of this if

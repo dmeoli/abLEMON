@@ -50,7 +50,8 @@ namespace lemon
 /// the \ref Preflow algorithm), thus it has \f$O(n^3\sqrt{m})\f$ overall
 /// time complexity. It calculates a rooted Gomory-Hu tree.
 /// The structure of the tree and the edge weights can be
-/// obtained using \c predNode(), \c predValue() and \c rootDist().
+/// obtained using \c predNode(), \c predValue() and \c rootDist(), which
+/// gives an order of the nodes from the root.
 /// The functions \c minCutMap() and \c minCutValue() calculate
 /// the minimum cut and the minimum cut value between any two nodes
 /// in the graph. You can also list (iterate on) the nodes and the
@@ -247,10 +248,13 @@ class GomoryHu
   return( ( *_weight )[ node ] );
   }
 
- /// \brief Return the distance from the root node in the Gomory-Hu tree.
+ /// \brief Return the position of the node in an order of the tree.
  ///
- /// This function returns the distance of the given node from the root
- /// node in the Gomory-Hu tree.
+ /// This function returns the position of the given node in an order of
+ /// the nodes of the Gomory-Hu tree in which the root is 0 and each node
+ /// comes after its parent; hence, of two nodes on a path to the root, the
+ /// one with the smaller value is the nearer to the root. It is not the
+ /// distance from the root, i.e., the number of edges between them.
  ///
  /// \pre \ref run() must be called before using this function.
  int rootDist( const Node & node ) const { return( ( *_order )[ node ] ); }

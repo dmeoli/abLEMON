@@ -16,7 +16,7 @@ how an algorithm is given a heap, and section 7.6 collects the exercises.
 ## 7.1 The heap concept {#sec-7-1}
 
 The concept `concepts::Heap< PR, IM, CMP >` of `lemon/concepts/heap.h`
-describes the interface. `PR` is the type of the priorities, `IM` a read-write
+describes the interface. `PR` is the type of the priorities, `IM` a reference
 map from the items to `int`, called the cross-reference map, and `CMP` a
 functor that compares two priorities, by default `std::less< PR >`. The type
 of the items is `IM::Key`; thus, the items are whatever the map takes as keys
@@ -57,12 +57,12 @@ heap; Table 7.1 gives their costs.
 -  `clear()` empties the heap without touching the map. To reuse the heap on
   the same items, the caller must also reset the map to `PRE_HEAP`.
 
-Two remarks on the cross-reference map are in order. First, although the
-concept requires only a read-write map, several heaps write it through
-`operator[]`, e.g., `state(i, st)` in all of them, `decrease()` of
-`BinomialHeap`, and `push()` and `pop()` of `RadixHeap` and `BucketHeap`. They
-need, therefore, a reference map; the maps used in practice (a graph map of
-`int` or a `RangeMap< int >`) are reference maps. Second, the state
+Two remarks on the cross-reference map are in order. First, the heaps write
+it through `operator[]` (e.g., `state(i, st)` in all of them, `decrease()` of
+`BinomialHeap`, and `push()` and `pop()` of `RadixHeap` and `BucketHeap`), and
+therefore need a reference map, as their documentation says; the maps used in
+practice (a graph map of `int` or a `RangeMap< int >`) are reference maps.
+Second, the state
 `POST_HEAP` allows an algorithm such as `Dijkstra` to distinguish a scanned
 node from an unreached one by one read of the map, without a further map.
 
@@ -301,8 +301,8 @@ it and creates the boxes again. The priorities must not go below the start of
 box $0$. This is `minimum` at first and, once `top()`, `prio()` or `pop()` has
 been called, the least priority in the heap at that moment. A `push()`,
 `set()` or `decrease()` below it throws the exception
-`RadixHeap< IM >::PriorityUnderflowError` (which the comments of the header
-call `UnderFlowPriorityException`), even if no item has been removed yet. In
+`RadixHeap< IM >::PriorityUnderflowError`, even if no item has been removed
+yet. In
 `Dijkstra` with integer lengths in $[0,C]$, the priorities in the heap lie in
 $[d,d+C]$, where $d$ is the last distance removed. For this case, the analysis
 of [Ahuja et al. 1990](Z-bibliography.md#ref-ahuja1990faster) gives the bound

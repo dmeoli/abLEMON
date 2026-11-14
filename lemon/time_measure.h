@@ -221,7 +221,7 @@ inline TimeStamp operator*( double b , const TimeStamp & t )
 
 ///Prints the time counters in the following form:
 ///
-/// <tt>u: XX.XXs s: XX.XXs cu: XX.XXs cs: XX.XXs real: XX.XXs</tt>
+/// <tt>u: XX.XXs, s: XX.XXs, cu: XX.XXs, cs: XX.XXs, real: XX.XXs</tt>
 ///
 /// where the values are the
 /// \li \c u: user cpu time,

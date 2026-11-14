@@ -202,8 +202,9 @@ class KBestFlows
  ///
  /// Those of the minimum cost flow algorithms [see
  /// NetworkSimplex::tolerances()], given to the NetworkSimplex that finds
- /// the optimal flow and used in the comparisons of this class; a negative
- /// value, the default, leaves the tolerance to the data.
+ /// the optimal flow; the search of the next flows compares exactly, on
+ /// integer data. A negative value, the default, leaves the tolerance to
+ /// the data.
  ///
  /// \return <tt>(*this)</tt>
  KBestFlows & tolerances( Value flow , Cost cost ) {

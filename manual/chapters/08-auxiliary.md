@@ -163,9 +163,8 @@ integer between 0 and the number of the items inserted, minus one. A call
 `join(a, b)` returns `false` if `a` and `b` are already in the same class, and
 otherwise unites the two classes and returns `true`; `size(a)` is the number
 of items of the class of `a`. Algorithm 8.1 gives `find()` and `join()` as the
-code has them. We remark that the documentation of the class speaks of the
-rank heuristic, while the code compares the sizes of the classes (which it
-stores, negated, at the roots); the bound of Theorem 8.1 holds for both rules.
+code has them. The union is by size, the sizes being stored, negated, at the
+roots; the bound of Theorem 8.1 holds for it.
 
 <span id="alg-8-1"></span>**Algorithm 8.1** (Find and union in `UnionFind`).
 

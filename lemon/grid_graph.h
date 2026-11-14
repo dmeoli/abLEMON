@@ -500,7 +500,7 @@ typedef GraphExtender< GridGraphBase > ExtendedGridGraphBase;
 ///
 /// A short example about the basic usage:
 ///\code
-/// GridGraph graph( rows , cols );
+/// GridGraph graph( width , height );
 /// GridGraph::NodeMap< int > val( graph );
 /// for( int i = 0 ; i < graph.width() ; ++i )
 /// {
