@@ -21,7 +21,8 @@ TESTS = adaptors_test arc_look_up_test bellman_ford_test bfs_test \
 	digraph_test dijkstra_test dim_test dimacs_test edge_case_test \
 	edge_set_test \
 	elevator_test error_test euler_test fractional_matching_test \
-	gomory_hu_test graph_copy_test graph_test graph_utils_test \
+	gomory_hu_test graph_copy_test graph_test graph_to_eps_test \
+	graph_utils_test \
 	hao_orlin_test heap_test \
 	k_best_flows_test kruskal_test lgf_reader_writer_test lgf_test \
 	lp_skeleton_test macro_test maps_test matching_test \

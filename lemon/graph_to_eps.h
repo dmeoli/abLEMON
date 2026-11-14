@@ -842,10 +842,12 @@ class GraphToEps : public T
    os << "%%BoundingBox: 0 0 596 842\n%%DocumentPaperSizes: a4\n";
   else {
    if( _preScale ) {
-    //Rescale so that BoundingBox won't be neither to big nor too small.
+    //Rescale so that BoundingBox won't be neither to big nor too small;
+    //a side of length 0 stays 0 at any scale, and is not looked at.
     while( bb.height() * _scale > 1000 || bb.width() * _scale > 1000 )
      _scale /= 10;
-    while( bb.height() * _scale < 100 || bb.width() * _scale < 100 )
+    while( ( bb.height() > 0 && bb.height() * _scale < 100 ) ||
+	   ( bb.width() > 0 && bb.width() * _scale < 100 ) )
      _scale *= 10;
     }
 

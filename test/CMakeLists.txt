@@ -36,6 +36,7 @@ SET(TESTS
   gomory_hu_test
   graph_copy_test
   graph_test
+  graph_to_eps_test
   graph_utils_test
   hao_orlin_test
   heap_test
