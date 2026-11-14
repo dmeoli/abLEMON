@@ -159,13 +159,18 @@ deleted by the destructor. Its execution control is made of `init()`,
 `queueSize()`, the three forms of `start()`, and `run(s)` and `run(s, t)`.
 
 A call `addSource(s, dst)` adds a source with the initial distance `dst`
-(`zero()` by default). It pushes `s` if it is not in the heap; if `s` is
-already in the heap with a priority less than `dst`, it sets the priority to
-`dst` and the predecessor of `s` to `INVALID`. This is the behavior that the
-documentation describes, and it matters only if a source is added twice; we
-remark that it raises the priority, and that a node already processed is
-pushed again. The sources are therefore better added once each, after `init()`
-and before `start()`. Then `start()` processes the nodes until the heap is
+(`zero()` by default). It pushes `s` if it has never been in the heap; if `s`
+is in the heap with a larger priority, it decreases the priority to `dst` and
+sets the predecessor of `s` to `INVALID`, and it leaves a node already
+processed as it is. Hence, a source added twice keeps the smaller of its two
+distances.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, `addSource(s, dst)` raised the priority of a source
+    already in the heap with a smaller one to `dst`, and pushed again a node
+    already processed; the test `dijkstra_test` adds sources twice.
+
+Then `start()` processes the nodes until the heap is
 empty, while `start(t)` processes them until `t` is on the top of the heap,
 then writes the distance of `t`, marks it processed and pops it without
 relaxing its arcs; `run(s, t)` does `init()`, `addSource(s)` and `start(t)`,

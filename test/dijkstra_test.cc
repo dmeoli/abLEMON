@@ -238,9 +238,33 @@ void checkDijkstra()
   }
  }
 
+// addSource() keeps the smaller of two distances given to the same source,
+// where it kept the larger one, and leaves a processed node alone
+void checkAddSource()
+{
+ ListDigraph g;
+ ListDigraph::Node a = g.addNode() , b = g.addNode() , c = g.addNode();
+ ListDigraph::ArcMap< int > len( g );
+ len[ g.addArc( a , c ) ] = 10;
+ len[ g.addArc( b , c ) ] = 10;
+ Dijkstra< ListDigraph > d( g , len );
+ d.init();
+ d.addSource( a , 5 );
+ d.addSource( a , 2 );
+ d.addSource( b , 1 );
+ d.addSource( b , 4 );
+ d.start();
+ check( d.dist( a ) == 2 && d.dist( b ) == 1 && d.dist( c ) == 11 ,
+	"addSource() did not keep the smaller distance" );
+ d.addSource( a , 0 );
+ check( d.emptyQueue() && d.dist( a ) == 2 ,
+	"addSource() pushed a processed node again" );
+ }
+
 int main()
 {
  checkDijkstra< ListDigraph >();
  checkDijkstra< SmartDigraph >();
+ checkAddSource();
  return( 0 );
  }

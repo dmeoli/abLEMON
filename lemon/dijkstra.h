@@ -626,15 +626,17 @@ class Dijkstra
  ///Adds a new source node to the priority heap.
  ///The optional second parameter is the initial distance of the node.
  ///
- ///The function checks if the node has already been added to the heap and
- ///it is pushed to the heap only if either it was not in the heap
- ///or the shortest path found till then is shorter than \c dst.
+ ///The function checks if the node has already been added to the heap:
+ ///it is pushed to the heap if it has never been there, its distance is
+ ///decreased to \c dst if it is in the heap with a larger one, and a node
+ ///already processed is left as it is.
  void addSource( Node s , Value dst = OperationTraits::zero() ) {
-  if( _heap->state( s ) != Heap::IN_HEAP ) {
+  if( _heap->state( s ) == Heap::PRE_HEAP ) {
    _heap->push( s , dst );
    }
-  else if( _ops.less( ( *_heap )[ s ] , dst ) ) {
-   _heap->set( s , dst );
+  else if( _heap->state( s ) == Heap::IN_HEAP &&
+	   _ops.less( dst , ( *_heap )[ s ] ) ) {
+   _heap->decrease( s , dst );
    _pred->set( s , INVALID );
    }
   }
