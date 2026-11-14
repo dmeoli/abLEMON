@@ -592,14 +592,18 @@ class MaxFractionalMatching
  /// using this function.
  const MatchingMap & matchingMap() const { return( *_matching ); }
 
- /// \brief Return \c true if the given edge is in the matching.
+ /// \brief Return the value of the given edge in the matching.
  ///
- /// This function returns \c true if the given edge is in the
- /// found matching. The result is scaled by \ref primalScale
- /// "primal scale".
+ /// This function returns the value of the given edge in the found
+ /// matching, scaled by \ref primalScale "primal scale": 2 for an edge
+ /// of value 1, 1 for an edge of an odd cycle (a loop included) and 0
+ /// for an edge not in the matching.
  ///
  /// \pre Either run() or start() must be called before using this function.
  int matching( const Edge & edge ) const {
+  // A loop counts once, as in matchingSize() and matchingWeight()
+  if( _graph.u( edge ) == _graph.v( edge ) )
+   return( edge == ( *_matching )[ _graph.u( edge ) ] ? 1 : 0 );
   return( ( edge == ( *_matching )[ _graph.u( edge ) ] ? 1 : 0 ) +
 	   ( edge == ( *_matching )[ _graph.v( edge ) ] ? 1 : 0 ) );
   }
@@ -1336,14 +1340,18 @@ class MaxWeightedFractionalMatching
   return( num );
   }
 
- /// \brief Return \c true if the given edge is in the matching.
+ /// \brief Return the value of the given edge in the matching.
  ///
- /// This function returns \c true if the given edge is in the
- /// found matching. The result is scaled by \ref primalScale
- /// "primal scale".
+ /// This function returns the value of the given edge in the found
+ /// matching, scaled by \ref primalScale "primal scale": 2 for an edge
+ /// of value 1, 1 for an edge of an odd cycle (a loop included) and 0
+ /// for an edge not in the matching.
  ///
  /// \pre Either run() or start() must be called before using this function.
  int matching( const Edge & edge ) const {
+  // A loop counts once, as in matchingSize() and matchingWeight()
+  if( _graph.u( edge ) == _graph.v( edge ) )
+   return( edge == ( *_matching )[ _graph.u( edge ) ] ? 1 : 0 );
   return( ( edge == ( *_matching )[ _graph.u( edge ) ] ? 1 : 0 ) +
 	   ( edge == ( *_matching )[ _graph.v( edge ) ] ? 1 : 0 ) );
   }
@@ -2074,14 +2082,18 @@ class MaxWeightedPerfectFractionalMatching
   return( num );
   }
 
- /// \brief Return \c true if the given edge is in the matching.
+ /// \brief Return the value of the given edge in the matching.
  ///
- /// This function returns \c true if the given edge is in the
- /// found matching. The result is scaled by \ref primalScale
- /// "primal scale".
+ /// This function returns the value of the given edge in the found
+ /// matching, scaled by \ref primalScale "primal scale": 2 for an edge
+ /// of value 1, 1 for an edge of an odd cycle (a loop included) and 0
+ /// for an edge not in the matching.
  ///
  /// \pre Either run() or start() must be called before using this function.
  int matching( const Edge & edge ) const {
+  // A loop counts once, as in matchingSize() and matchingWeight()
+  if( _graph.u( edge ) == _graph.v( edge ) )
+   return( edge == ( *_matching )[ _graph.u( edge ) ] ? 1 : 0 );
   return( ( edge == ( *_matching )[ _graph.u( edge ) ] ? 1 : 0 ) +
 	   ( edge == ( *_matching )[ _graph.v( edge ) ] ? 1 : 0 ) );
   }

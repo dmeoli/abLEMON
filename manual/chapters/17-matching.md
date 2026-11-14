@@ -870,8 +870,15 @@ in $\{0,1,2\}$ (the number of ends of the edge that point along it), and
 twice the value of the fractional matching. All three constructors take a flag
 `allow_loops`, `true` by default, which decides whether a loop may be taken,
 as a cycle of length one whose node points to itself. The loop then counts
-twice in the degree of its node and has value $\frac12$, although `matching()`
-returns 2 for it, since both its ends are that node.
+twice in the degree of its node and has value $\frac12$, and `matching()`
+returns 1 for it, its node being counted once.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1 `matching( const Edge & )` returned 2 for a loop, since
+    both its ends are its node, while `matchingSize()` and
+    `matchingWeight()` count it once, with value $\frac12$; the test
+    `fractional_matching_test` checks that the values of the edges add up to
+    `matchingSize()`.
 
 `MaxFractionalMatching< GR, TR >` maximizes the cardinality. The relaxation is
 equivalent to a bipartite matching problem on the *double cover* of $G$, in
