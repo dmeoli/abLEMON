@@ -1612,7 +1612,7 @@ class HeapUnionFind
   if( comp( prio , nodes[ index[ item ] ].prio ) ) {
    decrease( item , prio );
    }
-  else if( ! comp( prio , nodes[ index[ item ] ].prio ) ) {
+  else {
    increase( item , prio );
    }
   }
@@ -1630,9 +1630,9 @@ class HeapUnionFind
    }
   }
 
- /// \brief Increase the priority of the current item.
+ /// \brief Decrease the priority of the current item.
  ///
- /// Increase the priority of the current item.
+ /// Decrease the priority of the current item.
  void decrease( const Item & item , const Value & prio ) {
   int id = index[ item ];
   int kd = nodes[ id ].parent;

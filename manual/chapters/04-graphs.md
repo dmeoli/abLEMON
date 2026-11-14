@@ -830,12 +830,14 @@ Such a query takes the in-order successor of $p$ and splays it; when $p$ has a
 right subtree, the successor is the leftmost arc of that subtree, and the
 descent to it is paid by the splay, while otherwise the query climbs from $p$
 to the successor, an ancestor of $p$, and this climb is not paid by the splay
-of the ancestor. Hence, the statement of the header that every look-up takes
-$O(\log d)$ amortized time is proved here only for the first queries. The
-program `manual/examples/04-arc-lookup.cc` (the test `manual_04_arc_lookup`)
-compares the four ways of finding an arc on a digraph with parallel arcs,
-enumerates the three parallel arcs by `findArc()`, `ConArcIt`, `AllArcLookUp`
-and `DynArcLookUp`, and shows that only `DynArcLookUp` sees a new arc before a
+of the ancestor (nor is the climb to the root when $p$ has no successor).
+Hence, a next query takes $O(h+\log d)$ amortized time, where $h\le d$ is the
+depth of $p$ in the tree, and the bound $O(\log d)$ that the header gives for
+the first queries does not extend to it. The program
+`manual/examples/04-arc-lookup.cc` (the test `manual_04_arc_lookup`) compares
+the four ways of finding an arc on a digraph with parallel arcs, enumerates
+the three parallel arcs by `findArc()`, `ConArcIt`, `AllArcLookUp` and
+`DynArcLookUp`, and shows that only `DynArcLookUp` sees a new arc before a
 refresh.
 
 !!! note "abLEMON"

@@ -968,11 +968,11 @@ class Random
  /// A kind of two-dimensional normal (Gauss) distribution
 
  /// This function provides a turning symmetric two-dimensional distribution.
- /// Both coordinates are of standard normal distribution, but they are not
- /// independent.
+ /// The two coordinates are independent and of standard normal
+ /// distribution.
  ///
  /// \note The coordinates are the two random variables provided by
- /// the Box-Muller method.
+ /// the polar form of the Box-Muller method.
  dim2::Point< double > gauss2() {
   double V1 , V2 , S;
   do {
@@ -986,10 +986,12 @@ class Random
  /// A kind of two-dimensional exponential distribution
 
  /// This function provides a turning symmetric two-dimensional distribution.
- /// The x-coordinate is of conditionally exponential distribution
- /// with the condition that x is positive and y=0. If x is negative and
- /// y=0 then, -x is of exponential distribution. The same is true for the
- /// y-coordinate.
+ /// For \f$(V_1, V_2)\f$ uniform in the unit disc and
+ /// \f$S = V_1^2 + V_2^2\f$, it returns \f$-\ln(S)/S \cdot (V_1, V_2)\f$:
+ /// its direction is uniform, and its distance from the origin is
+ /// \f$-\ln(S)/\sqrt{S}\f$ with \f$S\f$ uniform in \f$(0, 1)\f$, which
+ /// exceeds \f$r\f$ with the probability \f$u\f$ such that
+ /// \f$-\ln(u)/\sqrt{u} = r\f$ (not an exponential distribution).
  dim2::Point< double > exponential2() {
   double V1 , V2 , S;
   do {
