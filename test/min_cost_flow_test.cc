@@ -829,6 +829,26 @@ void checkTolerances( const std::string & name )
 	"Wrong result with the tolerances of the algorithm: " + name );
  }
 
+// A cycle of arcs of infinite capacity whose costs -0.1, -0.2 and 0.3 sum
+// to zero in decimal and to -5.55e-17 in binary is a cycle of cost zero,
+// and the problem is optimal of cost zero, as for NetworkSimplex, rather
+// than unbounded
+template< typename MCF >
+void checkZeroInfiniteCycle( const std::string & name )
+{
+ SmartDigraph g;
+ SmartDigraph::Node a = g.addNode() , b = g.addNode() , c = g.addNode();
+ SmartDigraph::ArcMap< double > cost( g );
+ cost[ g.addArc( a , b ) ] = -0.1;
+ cost[ g.addArc( b , c ) ] = -0.2;
+ cost[ g.addArc( c , a ) ] = 0.3;
+ SmartDigraph::NodeMap< double > sup( g , 0.0 );
+ MCF mcf( g );
+ mcf.costMap( cost ).supplyMap( sup );
+ check( mcf.run() == MCF::OPTIMAL && std::abs( mcf.totalCost() ) < 1e-12 ,
+	"Wrong result on a cycle of cost zero: " + name );
+ }
+
 // CostScaling with floating-point costs and an integer LargeCost, as an
 // interface that scales its costs to integers sets it: the scaling ends
 // at epsilon one, and the flow is that of NetworkSimplex
@@ -1117,6 +1137,14 @@ int main()
  checkTolerances< CycleCanceling< SmartDigraph ,
 				  double > >( "CycleCanceling" );
  checkTolerances< CapacityScaling< SmartDigraph , double > >(
+   "CapacityScaling" );
+ checkZeroInfiniteCycle< NetworkSimplex< SmartDigraph , double > >(
+   "NetworkSimplex" );
+ checkZeroInfiniteCycle< CostScaling< SmartDigraph , double > >(
+   "CostScaling" );
+ checkZeroInfiniteCycle< CycleCanceling< SmartDigraph , double > >(
+   "CycleCanceling" );
+ checkZeroInfiniteCycle< CapacityScaling< SmartDigraph , double > >(
    "CapacityScaling" );
  checkCertificates< NetworkSimplex< SmartDigraph , long , long > >(
    1000 , "NetworkSimplex" , true );

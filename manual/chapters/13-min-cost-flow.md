@@ -593,10 +593,20 @@ upper bound is decided beforehand by `negativeInfiniteCycle()`, a Bellman-Ford
 algorithm restricted to those arcs and run from a virtual node joined to all
 the nodes. It runs only if one of those arcs has a negative cost, and it
 reports a cycle if a distance still improves after $n$ rounds; if such a cycle
-exists, a feasible problem is answered `UNBOUNDED`. We remark that its
-comparisons are exact, also in floating point: a cycle whose cost is zero in
-decimal but whose sum rounds below zero is then taken as negative, and a
-feasible problem with such a cycle is answered `UNBOUNDED`.
+exists, a feasible problem is answered `UNBOUNDED`. In floating point a cost,
+and an improvement of a distance, count only beyond $\epsilon_c$, as in the
+operation traits of the algorithm of Bellman and Ford of section 13.8: a cycle
+whose cost is zero in decimal but whose sum rounds a few units in the last
+place below zero is then a cycle of cost zero, and the problem is answered
+`OPTIMAL`, as by `NetworkSimplex`.
+
+!!! note "abLEMON"
+    LEMON 1.3.1 answered `UNBOUNDED` with `CostScaling` and `CycleCanceling`
+    on any arc of negative cost and infinite upper bound, and the exact
+    comparisons of `negativeInfiniteCycle()` (version 1.4.1) gave the same
+    answer, with `CapacityScaling` too, on a cycle of costs $-0.1$, $-0.2$ and
+    $0.3$ that `NetworkSimplex` solves; `checkZeroInfiniteCycle()` of
+    `test/min_cost_flow_test.cc` checks this cycle.
 
 <span id="thm-13-5"></span>**Theorem 13.5.** *(The finite bound.) Suppose that
 (13.1) is feasible and that no cycle of negative cost is made of arcs of

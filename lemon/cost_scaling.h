@@ -1004,8 +1004,12 @@ class CostScaling
   // not reach, unless a cycle of negative cost is made of such arcs, when
   // a feasible problem is unbounded [see bits/mcf_feasible_flow.h]
   const Value MAX = ( std::numeric_limits< Value >::max )();
+  _ceps = _cost_tol >= 0 ? _cost_tol
+			 : _mcf_bits::costTolerance(
+			     _root , _first_out , _target , _forward ,
+			     _scost );
   const bool unbounded = _mcf_bits::negativeInfiniteCycle(
-    _root , _first_out , _target , _forward , _upper , _scost );
+    _root , _first_out , _target , _forward , _upper , _scost , _ceps );
   const Value bound =
     _mcf_bits::infiniteBound( _root , _first_out , _target , _forward ,
 			      _lower ,
@@ -1031,10 +1035,6 @@ class CostScaling
     }
    }
   _epsilon /= _alpha;
-  _ceps = _cost_tol >= 0 ? _cost_tol
-			 : _mcf_bits::costTolerance(
-			     _root , _first_out , _target , _forward ,
-			     _scost );
   _eps_min = std::numeric_limits< LargeCost >::is_integer
 	       ? LargeCost( 1 )
 	       : ( std::max )( static_cast< LargeCost >( _ceps ) *

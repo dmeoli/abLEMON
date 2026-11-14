@@ -904,7 +904,7 @@ class CycleCanceling
   // a feasible problem is unbounded [see bits/mcf_feasible_flow.h]
   const Value MAX = ( std::numeric_limits< Value >::max )();
   const bool unbounded = _mcf_bits::negativeInfiniteCycle(
-    _root , _first_out , _target , _forward , _upper , _cost );
+    _root , _first_out , _target , _forward , _upper , _cost , _ceps );
   const Value bound =
     _mcf_bits::infiniteBound( _root , _first_out , _target , _forward ,
 			      _lower ,

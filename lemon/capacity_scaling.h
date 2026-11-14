@@ -998,9 +998,13 @@ class CapacityScaling
   // Handle negative costs: an arc of infinite upper bound is saturated at
   // a bound that some optimal flow does not reach, unless a cycle of
   // negative cost is made of such arcs, when a feasible problem is
-  // unbounded [see bits/mcf_feasible_flow.h]
-  _unbounded = _mcf_bits::negativeInfiniteCycle( _root , _first_out , _target ,
-						 _forward , _upper , _cost );
+  // unbounded [see bits/mcf_feasible_flow.h], beyond the tolerance on
+  // the reduced costs
+  _ceps = _cost_tol >= 0 ? _cost_tol
+			 : _mcf_bits::costTolerance(
+			     _root , _first_out , _target , _forward , _cost );
+  _unbounded = _mcf_bits::negativeInfiniteCycle(
+    _root , _first_out , _target , _forward , _upper , _cost , _ceps );
   const Value bound =
     _mcf_bits::infiniteBound( _root , _first_out , _target , _forward ,
 			      _lower ,
@@ -1044,13 +1048,10 @@ class CapacityScaling
     }
    }
 
-  // The smallest delta, and the tolerance on the reduced costs
+  // The smallest delta
   _unit = std::numeric_limits< Value >::is_exact
 	    ? Value( 1 )
 	    : ( feps > 0 ? feps : ( std::numeric_limits< Value >::min )() );
-  _ceps = _cost_tol >= 0 ? _cost_tol
-			 : _mcf_bits::costTolerance(
-			     _root , _first_out , _target , _forward , _cost );
 
   // Initialize delta value
   if( _factor > 1 ) {

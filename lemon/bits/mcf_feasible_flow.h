@@ -249,11 +249,15 @@ bool feasibleFlow( MCF & mcf , typename MCF::Value root_cap , int & sup_num ,
 // feasible, it is then unbounded. Bellman-Ford from a virtual node joined
 // to all the others, on those arcs only, which still improves a distance
 // after as many rounds as there are nodes if and only if there is one.
+// A cost, and an improvement of a distance, count only beyond ceps, the
+// tolerance on the reduced costs, as in ToleranceBfOperationTraits: in
+// floating point, a cycle of cost zero can sum to a few units in the last
+// place below zero.
 template< typename IV , typename BV , typename VV , typename CV >
 bool negativeInfiniteCycle( int root , const IV & first_out ,
 			    const IV & target ,
 			    const BV & forward , const VV & upper ,
-			    const CV & cost )
+			    const CV & cost , typename CV::value_type ceps )
 {
  typedef typename VV::value_type Value;
  typedef typename CV::value_type Cost;
@@ -262,7 +266,7 @@ bool negativeInfiniteCycle( int root , const IV & first_out ,
  for( int u = 0 ; u != root && ! negative ; ++u )
   for( int j = first_out[ u ] ; j != first_out[ u + 1 ] ; ++j )
    if( forward[ j ] && target[ j ] != root && upper[ j ] >= MAX &&
-       cost[ j ] < 0 ) {
+       cost[ j ] < -ceps ) {
     negative = true;
     break;
     }
@@ -275,7 +279,7 @@ bool negativeInfiniteCycle( int root , const IV & first_out ,
    for( int j = first_out[ u ] ; j != first_out[ u + 1 ] ; ++j ) {
     const int v = target[ j ];
     if( forward[ j ] && v != root && upper[ j ] >= MAX &&
-	dist[ u ] + cost[ j ] < dist[ v ] ) {
+	dist[ u ] + cost[ j ] < dist[ v ] - ceps ) {
      dist[ v ] = dist[ u ] + cost[ j ];
      changed = true;
      }
