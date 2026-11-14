@@ -519,10 +519,14 @@ least $k$ arc-disjoint paths, and their largest number otherwise. In turn,
 If the paths from one source to many targets are needed, `fullInit(s)`
 replaces `init(s)`: it runs one complete search of Dijkstra from `s` on the
 lengths, which then serves as the first iteration of each subsequent
-`start(t, k)`; each of them thus runs only $k-1$ searches. We remark that,
-after `fullInit(s)`, `findFlow(t, k)` takes the first path from that search
-without checking that `t` was reached; hence, it should be called only for
-targets reachable from `s`.
+`start(t, k)`; each of them thus runs only $k-1$ searches, and returns 0
+when `t` cannot be reached from `s`, as it does after `init(s)`.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, after `fullInit(s)`, `findFlow(t, k)` took the first path
+    from the complete search without checking that `t` was reached, counted
+    one path for a target that cannot be reached, and `findPaths()` then did
+    not end; the test `suurballe_test` checks such a target.
 
 Its queries are `totalLength()` (the length of the flow, computed in $O(m)$),
 `flow(a)` and `flowMap()`, `potential(v)` and `potentialMap()` (an optimal

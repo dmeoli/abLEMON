@@ -600,6 +600,12 @@ class Suurballe
    ( *_flow )[ e ] = 0;
    }
   if( _full_init ) {
+   // t not reachable from s: no path, as without fullInit(), rather than
+   // one path through no arc
+   if( _t != _s && ( *_init_pred )[ _t ] == INVALID ) {
+    _path_num = 0;
+    return( _path_num );
+    }
    for( NodeIt n( _graph ) ; n != INVALID ; ++n ) {
     ( *_potential )[ n ] = ( *_init_dist )[ n ];
     }
