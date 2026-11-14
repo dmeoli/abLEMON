@@ -355,23 +355,24 @@ are written only by `set()`.
 value equals the old value of the key. In a `CrossRefMap`, `set(key, val)`
 costs $O(\log n_K + c)$ time, `operator()(val)` costs $O(\log n_K)$,
 `count(val)` costs $O(\log n_K + c')$ with $c'$ the result, and the erasure of
-an item from the graph costs $O(c\log n_K)$, with $c$ the number of items of
-its value.*
+an item from the graph costs $O(\log n_K + c)$, with $c$ the number of items
+of its value.*
 
 *Proof.* The multimap holds at most $n_K$ pairs, and `set()` computes the
 range of the old value by one `equal_range()`, scans its at most $c$ pairs for
 the key, erases the pair found, and inserts the new one, each in
 $O(\log n_K)$; the other searches are one `find()` and one `count()`. The
-function `erase()` called by the notifier scans the range of the value of the
-item as `set()` does, but it recomputes the end of the range by
-`equal_range()` at each step of the scan. $\square$
+function `erase()` called by the notifier computes and scans the range of the
+value of the item as `set()` does. $\square$
 
 !!! note "abLEMON"
-    `CrossRefMap::set()` computes the range of the old value of the key once,
-    where LEMON 1.3.1 recomputed it at each step of the search of the key
-    among the items of that value, for $O(c\log n_K)$; the iterators `ValueIt`
-    of `CrossRefMap` and `IterableValueMap` define their member types, instead
-    of deriving from `std::iterator`, which C++17 deprecated.
+    `CrossRefMap::set()` and the `erase()` called by the notifier compute the
+    range of the value once, where LEMON 1.3.1 recomputed it at each step of
+    the search of the key among the items of that value, for $O(c\log n_K)$
+    (the test `maps_test` counts the comparisons of the erasure of the last of
+    1000 items of the same value); the iterators `ValueIt` of `CrossRefMap`
+    and `IterableValueMap` define their member types, instead of deriving
+    from `std::iterator`, which C++17 deprecated.
 
 ## 6.6 Iterable maps {#sec-6-6}
 

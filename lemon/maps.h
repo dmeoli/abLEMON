@@ -2190,9 +2190,11 @@ class CrossRefMap : protected ItemSetTraits< GR , K >::template Map< V >::Type
  /// \c AlterationNotifier.
  virtual void erase( const Key & key ) {
   Value val = Map::operator[]( key );
-  typename Container::iterator it;
-  for( it = _inv_map.equal_range( val ).first ;
-       it != _inv_map.equal_range( val ).second ; ++it ) {
+  // the range of the value, computed once
+  std::pair< typename Container::iterator , typename Container::iterator >
+    range = _inv_map.equal_range( val );
+  for( typename Container::iterator it = range.first ; it != range.second ;
+       ++it ) {
    if( it->second == key ) {
     _inv_map.erase( it );
     break;
@@ -2208,9 +2210,10 @@ class CrossRefMap : protected ItemSetTraits< GR , K >::template Map< V >::Type
  virtual void erase( const std::vector< Key > & keys ) {
   for( int i = 0 ; i < int( keys.size() ) ; ++i ) {
    Value val = Map::operator[]( keys[ i ] );
-   typename Container::iterator it;
-   for( it = _inv_map.equal_range( val ).first ;
-	it != _inv_map.equal_range( val ).second ; ++it ) {
+   std::pair< typename Container::iterator , typename Container::iterator >
+     range = _inv_map.equal_range( val );
+   for( typename Container::iterator it = range.first ; it != range.second ;
+	++it ) {
     if( it->second == keys[ i ] ) {
      _inv_map.erase( it );
      break;

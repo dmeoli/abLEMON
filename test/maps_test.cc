@@ -109,6 +109,20 @@ class Sum
  void operator()( const T & t ) { _sum += t; }
  };
 
+// A value whose comparisons are counted
+struct Counted
+{
+ static long comparisons;
+ int value;
+ Counted( int v = 0 ) : value( v ) { }
+ bool operator<( const Counted & c ) const {
+  ++comparisons;
+  return( value < c.value );
+  }
+ };
+
+long Counted::comparisons = 0;
+
 typedef ReadMap< A , double > DoubleMap;
 typedef ReadWriteMap< A , double > DoubleWriteMap;
 typedef ReferenceMap< A , double , double & , const double & > DoubleRefMap;
@@ -687,6 +701,20 @@ int main()
   it = map.beginValue();
   check( *it++ == 'A' && *it++ == 'B' && *it++ == 'C' && it == map.endValue() ,
 	 "Wrong value iterator" );
+
+  // the erasure of an item searches the range of its value once: the last
+  // of 1000 items of the same value costs O(log n) comparisons, not O(n log n)
+  Graph big;
+  CrossRefMap< Graph , Node , Counted > cmap( big );
+  Node last;
+  for( int i = 0 ; i != 1000 ; ++i ) {
+   last = big.addNode();
+   cmap.set( last , Counted( 7 ) );
+   }
+  Counted::comparisons = 0;
+  big.erase( last );
+  check( Counted::comparisons < 100 && cmap.count( Counted( 7 ) ) == 999 ,
+	 "Wrong CrossRefMap::erase()" );
   }
 
  // CrossRefMap
