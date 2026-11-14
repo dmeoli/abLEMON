@@ -604,8 +604,8 @@ class NagamochiIbaraki
       if( c != -1 && _arcs[ c ^ 1 ].target == n ) {
        _edges[ c >> 1 ].capacity += _edges[ b >> 1 ].capacity;
        ( *_nodes )[ n ].sum += _edges[ b >> 1 ].capacity;
-       if( _edges[ b >> 1 ].cut < _edges[ c >> 1 ].cut ) {
-	_edges[ b >> 1 ].cut = _edges[ c >> 1 ].cut;
+       if( _edges[ c >> 1 ].cut < _edges[ b >> 1 ].cut ) {
+	_edges[ c >> 1 ].cut = _edges[ b >> 1 ].cut;
         }
        if( _arcs[ b ^ 1 ].prev != -1 ) {
 	_arcs[ _arcs[ b ^ 1 ].prev ].next = _arcs[ b ^ 1 ].next;

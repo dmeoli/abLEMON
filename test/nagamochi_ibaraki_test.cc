@@ -17,6 +17,7 @@
  */
 
 #include <sstream>
+#include <vector>
 
 #include <lemon/smart_graph.h>
 #include <lemon/adaptors.h>
@@ -160,6 +161,32 @@ int main()
   nh.heap( heap , cross );
   nh.run();
   check( nh.minCutValue() == 5 , "Wrong cut value with SetHeap" );
+  }
+
+ // two parallel edges merged at a contraction keep the larger of their
+ // bounds q, by which the first phase contracts the whole graph
+ {
+  SmartGraph g;
+  SmartGraph::EdgeMap< int > cap( g );
+  const int edges[][ 3 ] = { { 2 , 3 , 10 } , { 3 , 1 , 7 } , { 0 , 3 , 10 } ,
+			     { 0 , 3 , 10 } , { 3 , 1 , 6 } , { 1 , 0 , 10 } ,
+			     { 3 , 0 , 5 } ,  { 1 , 0 , 7 } , { 3 , 2 , 3 } ,
+			     { 0 , 1 , 6 } ,  { 0 , 3 , 1 } , { 3 , 0 , 3 } ,
+			     { 2 , 3 , 3 } ,  { 1 , 2 , 7 } , { 0 , 1 , 4 } };
+  std::vector< SmartGraph::Node > nodes;
+  for( int i = 0 ; i < 4 ; ++i )
+   nodes.push_back( g.addNode() );
+  for( int i = 14 ; i >= 0 ; --i )
+   cap[ g.addEdge( nodes[ edges[ i ][ 0 ] ] , nodes[ edges[ i ][ 1 ] ] ) ] =
+     edges[ i ][ 2 ];
+
+  NagamochiIbaraki< SmartGraph > ni( g , cap );
+  ni.init();
+  check( ni.processNextPhase() , "A phase left an edge uncontracted" );
+  check( ni.minCutValue() == 23 , "Wrong cut value" );
+  SmartGraph::NodeMap< bool > cut( g );
+  ni.minCutMap( cut );
+  check( cutValue( g , cap , cut ) == 23 , "Wrong cut" );
   }
 
  return( 0 );

@@ -455,10 +455,8 @@ cut. Step 5 detects a disconnected graph, whose cut of value 0 is the
 connected component of the first node. Step 8 scans the edges of each current
 node, and the edges of a node merged into it are appended to its list, so that
 they are scanned in the same step. An edge built by merging two parallel edges
-keeps the value $q$ of the edge that was already incident to the node, which
-may leave it uncontracted until the next phase. In abLEMON the comparisons of
-steps 1, 2 and 7 go through the tolerance, while those of steps 6 and 8 are
-exact.
+keeps the larger of their two values $q$. In abLEMON the comparisons of steps
+1, 2 and 7 go through the tolerance, while those of steps 6 and 8 are exact.
 
 <span id="thm-15-5"></span>**Theorem 15.5.** *With exact comparisons,
 Algorithm 15.2 applied to a graph with at least two nodes terminates after at
@@ -477,14 +475,18 @@ negative capacity. If step 5 stops, the nodes reached form a union of
 connected components of the current graph, i.e., a cut of value 0, which is
 minimum. After step 7 one has $\lambda\leq\mu$; at step 8, by Lemma 15.5,
 every cut of the current graph that separates the ends of a contracted edge
-has capacity at least $q(e)\geq\mu\geq\lambda$. Hence, if a minimum cut of $G$
-of value less than $\lambda$ was a cut of the current graph, it separates the
-ends of no contracted edge and remains a cut of the contracted graph;
-otherwise $\lambda=\lambda(G)$. When a single node is left, no cut of $G$ is a
-cut of the current graph, and therefore $\lambda=\lambda(G)$. Finally, at step
-6 the prefix $V_{n'-1}$ has $c(\delta(V_{n'-1}))=c(\delta(v_{n'}))$, and hence
-$\mu\leq c(\delta(v_{n'}))$. By Lemma 15.5 the last edge scanned into $v_{n'}$
-has $q(e)=c(\delta(v_{n'}))\geq\mu$; since step 8 scans every current edge, at
+has capacity at least $q(e)\geq\mu\geq\lambda$. This also holds for an edge
+that step 8 builds from two parallel edges $vu$ and $wu$ after merging $v$ and
+$w$, with the larger of their values $q$: a cut that does not separate $v$
+from $w$ but separates them from $u$ separates both pairs. Hence, if a minimum
+cut of $G$ of value less than $\lambda$ was a cut of the current graph, it
+separates the ends of no contracted edge and remains a cut of the contracted
+graph; otherwise $\lambda=\lambda(G)$. When a single node is left, no cut of
+$G$ is a cut of the current graph, and therefore $\lambda=\lambda(G)$.
+Finally, at step 6 the prefix $V_{n'-1}$ has
+$c(\delta(V_{n'-1}))=c(\delta(v_{n'}))$, and hence $\mu\leq
+c(\delta(v_{n'}))$. By Lemma 15.5 the last edge scanned into $v_{n'}$ has
+$q(e)=c(\delta(v_{n'}))\geq\mu$; since step 8 scans every current edge, at
 least one edge is contracted in each phase, which merges two nodes. $\square$
 
 <span id="thm-15-6"></span>**Theorem 15.6.** *`init()` runs in $O(n+m)$ time,
@@ -549,7 +551,11 @@ bounds of the second case of Theorem 15.6.
     function that allocates the structures passes the graph to the
     `createHeapCrossRef()` of their traits, which took an `int`, and their
     default cross reference was a `RangeMap< int >`; the test
-    `nagamochi_ibaraki_test` now runs both with a Fibonacci heap.
+    `nagamochi_ibaraki_test` now runs both with a Fibonacci heap. In LEMON
+    1.3.1 step 8 gave the larger value $q$ of two merged parallel edges to
+    the edge it dropped rather than to the one it kept, which could leave
+    the latter uncontracted until a later phase; `nagamochi_ibaraki_test`
+    checks a graph that a single phase contracts.
 
 In the execution, `init()` builds the internal copy of the graph and makes
 steps 1 and 2. Then `processNextPhase()` makes one phase and returns `true`
