@@ -205,6 +205,24 @@ void checkSnapDeg()
  check( outd[ n1 ] == 1 && outd[ n2 ] == 0 , "Wrong OutDegMap value." );
  }
 
+// AllArcLookUp::refresh(), which did not compile, sees the arcs added after
+// the construction, parallel ones included
+void checkAllArcLookUpRefresh()
+{
+ ListDigraph g;
+ ListDigraph::Node u = g.addNode() , v = g.addNode();
+ AllArcLookUp< ListDigraph > al( g );
+ check( al( u , v ) == INVALID , "An arc found in an empty digraph." );
+ ListDigraph::Arc a1 = g.addArc( u , v ) , a2 = g.addArc( u , v );
+ g.addArc( v , u );
+ al.refresh();
+ ListDigraph::Arc f = al( u , v );
+ check( f == a1 || f == a2 , "No arc found after refresh()." );
+ ListDigraph::Arc s = al( u , v , f );
+ check( s != f && ( s == a1 || s == a2 ) , "No second arc after refresh()." );
+ check( al( u , v , s ) == INVALID , "A third arc after refresh()." );
+ }
+
 int main()
 {
  // Checking ConArcIt, ConEdgeIt, ArcLookUp, AllArcLookUp, and DynArcLookUp
@@ -212,6 +230,7 @@ int main()
  checkFindArcs< SmartDigraph >();
  checkFindEdges< ListGraph >();
  checkFindEdges< SmartGraph >();
+ checkAllArcLookUpRefresh();
 
  // Checking In/OutDegMap (and Snapshot feature)
  checkDeg< ListDigraph >();

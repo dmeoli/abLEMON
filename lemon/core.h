@@ -2581,7 +2581,7 @@ class AllArcLookUp : public ArcLookUp< GR >
  ///out-degree of the digraph.
  void refresh() {
   for( NodeIt n( _g ) ; n != INVALID ; ++n )
-   refresh( _head[ n ] );
+   refresh( n );
   }
 
  ///Find an arc between two nodes.

@@ -496,12 +496,14 @@ lookup(s, t):
 
 ![Figure 4.3. The tree of ArcLookUp for a node whose arcs go to the nodes 1, 2, 4, 5, 7 and 9; the look-up of target 5 visits the arcs to 4, 7 and 5.](../figures/04-arc-lookup.svg){#fig-4-3}
 
-We remark that `AllArcLookUp::refresh()`, the variant without arguments, does
-not compile in the present header (it passes an arc to `refresh(Node)`); one
-calls `refresh(v)` for each node `v` instead, which gives the same result. Our
-next program compares the four ways of finding an arc on a digraph with
+Our next program compares the four ways of finding an arc on a digraph with
 parallel arcs, and shows that only `DynArcLookUp` sees a new arc before a
 refresh.
+
+!!! note "abLEMON"
+    `AllArcLookUp::refresh()`, the variant without arguments, did not compile
+    in LEMON 1.3.1, since it passed an arc to `refresh(Node)`; the test
+    `graph_utils_test` calls it.
 
 ```cpp
 --8<-- "examples/04-arc-lookup.cc"

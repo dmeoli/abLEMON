@@ -62,12 +62,16 @@ int main()
  if( by_find != 3 || by_con != 3 || by_all != 3 || by_dyn != 3 )
   ++errors;
 
- // a new arc: DynArcLookUp sees it at once, ArcLookUp after refresh()
+ // a new arc: DynArcLookUp sees it at once, ArcLookUp after refresh() of
+ // its source, AllArcLookUp after refresh() of all the nodes
  SmartDigraph::Arc a03 = g.addArc( v[ 0 ] , v[ 3 ] );
  if( dyn( v[ 0 ] , v[ 3 ] ) != a03 )
   ++errors;
  one.refresh( v[ 0 ] );
  if( one( v[ 0 ] , v[ 3 ] ) != a03 )
+  ++errors;
+ all.refresh();
+ if( all( v[ 0 ] , v[ 3 ] ) != a03 )
   ++errors;
 
  std::cout << "arc look-up: " << errors << " errors" << std::endl;
