@@ -1924,8 +1924,12 @@ class ConEdgeIt : public GR::Edge
 
  /// \brief Constructor.
  ///
- /// Construct a new ConEdgeIt that continues iterating from edge \c e.
- ConEdgeIt( const GR & g , Edge e ) : Parent( e ) , _graph( g ) { }
+ /// Construct a new ConEdgeIt that continues iterating from edge \c e,
+ /// on the edges that connect its two end nodes.
+ ConEdgeIt( const GR & g , Edge e )
+     : Parent( e ) , _graph( g ) ,
+       _u( e != INVALID ? g.u( e ) : Node( INVALID ) ) ,
+       _v( e != INVALID ? g.v( e ) : Node( INVALID ) ) { }
 
  /// \brief Increment operator.
  ///

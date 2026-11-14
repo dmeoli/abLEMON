@@ -223,6 +223,25 @@ void checkAllArcLookUpRefresh()
  check( al( u , v , s ) == INVALID , "A third arc after refresh()." );
  }
 
+// ConEdgeIt constructed from an edge continues on the edges between its two
+// ends, where it searched the edges between two INVALID nodes
+void checkConEdgeItFromEdge()
+{
+ ListGraph g;
+ ListGraph::Node a = g.addNode() , b = g.addNode() , c = g.addNode();
+ g.addEdge( a , b );
+ g.addEdge( a , b );
+ g.addEdge( a , c );
+ g.addEdge( b , a );
+ ConEdgeIt< ListGraph > first( g , a , b );
+ int rest = 0;
+ for( ConEdgeIt< ListGraph > it( g , ListGraph::Edge( first ) ) ;
+      it != INVALID ;
+      ++it )
+  ++rest;
+ check( rest == 3 , "Wrong edges after a ConEdgeIt built from an edge." );
+ }
+
 int main()
 {
  // Checking ConArcIt, ConEdgeIt, ArcLookUp, AllArcLookUp, and DynArcLookUp
@@ -231,6 +250,7 @@ int main()
  checkFindEdges< ListGraph >();
  checkFindEdges< SmartGraph >();
  checkAllArcLookUpRefresh();
+ checkConEdgeItFromEdge();
 
  // Checking In/OutDegMap (and Snapshot feature)
  checkDeg< ListDigraph >();
