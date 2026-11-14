@@ -48,7 +48,7 @@ problem. Algorithmica, 19(4):390–410, 1997. doi:10.1007/PL00009180
 <span id="ref-christofides1976worst"></span> N. Christofides. Worst-case
 analysis of a new heuristic for the travelling salesman problem. Report 388,
 Graduate School of Industrial Administration, Carnegie Mellon University,
-1976. Reprinted in Operations Research Forum, 3(1):20, 2022.
+1976.  Reprinted in Operations Research Forum, 3(1):20, 2022.
 doi:10.1007/s43069-021-00101-z
 
 <span id="ref-chu1965shortest"></span> Yoeng-Jin Chu and Tseng-Hong Liu. On
@@ -141,7 +141,7 @@ doi:10.1007/BF01840439
 <span id="ref-gabow1986efficient"></span> Harold N. Gabow, Zvi Galil, Thomas
 Spencer and Robert E. Tarjan. Efficient algorithms for finding minimum
 spanning trees in undirected and directed graphs. Combinatorica, 6(2):109–122,
-1986. doi:10.1007/BF02579168
+1986.  doi:10.1007/BF02579168
 
 <span id="ref-gale1957theorem"></span> David Gale. A theorem on flows in
 networks. Pacific Journal of Mathematics, 7(2):1073–1082, 1957.
@@ -191,7 +191,7 @@ doi:10.1007/s10732-007-9055-x
 
 <span id="ref-gusfield1990very"></span> Dan Gusfield. Very simple methods for
 all pairs network flow analysis. SIAM Journal on Computing, 19(1):143–155,
-1990. doi:10.1137/0219009
+1990.  doi:10.1137/0219009
 
 <span id="ref-hamacher95kbestflows"></span> Horst W. Hamacher. A note on K
 best network flows. Annals of Operations Research, 57(1):65–72, 1995.
@@ -239,7 +239,7 @@ and Markov Processes. MIT Press, 1960.
 <span id="ref-johnson1993network"></span> D. S. Johnson and C. C. McGeoch
 (editors). Network Flows and Matching: First DIMACS Implementation Challenge.
 DIMACS Series in Discrete Mathematics and Theoretical Computer Science, volume
-12. American Mathematical Society, 1993. doi:10.1090/dimacs/012
+12.  American Mathematical Society, 1993. doi:10.1090/dimacs/012
 
 <span id="ref-johnson75heap"></span> Donald B. Johnson. Priority queues with
 update and finding minimum spanning trees. Information Processing Letters,
@@ -259,7 +259,7 @@ Master's thesis, University College, Dublin, 1991.
 
 <span id="ref-kempe1879geographical"></span> A. B. Kempe. On the geographical
 problem of the four colours. American Journal of Mathematics, 2(3):193–200,
-1879. doi:10.2307/2369235
+1879.  doi:10.2307/2369235
 
 <span id="ref-KiralyKovacs12MCF"></span> Zoltán Király and Péter Kovács.
 Efficient implementations of minimum-cost flow algorithms. Acta Universitatis
@@ -288,7 +288,7 @@ doi:10.4064/fm-15-1-271-283
 <span id="ref-lawler72kbest"></span> Eugene L. Lawler. A procedure for
 computing the K best solutions to discrete optimization problems and its
 application to the shortest path problem. Management Science, 18(7):401–405,
-1972. doi:10.1287/mnsc.18.7.401
+1972.  doi:10.1287/mnsc.18.7.401
 
 <span id="ref-marsaglia1964convenient"></span> George Marsaglia and Thomas A.
 Bray. A convenient method for generating normal variables. SIAM Review,
@@ -305,7 +305,7 @@ of the ACM, 30(3):417–427, 1983. doi:10.1145/2402.322385
 
 <span id="ref-mckay2014practical"></span> B. D. McKay and A. Piperno.
 Practical graph isomorphism, II. Journal of Symbolic Computation, 60:94–112,
-2014. doi:10.1016/j.jsc.2013.09.003
+2014.  doi:10.1016/j.jsc.2013.09.003
 
 <span id="ref-menger1927allgemeinen"></span> Karl Menger. Zur allgemeinen
 Kurventheorie. Fundamenta Mathematicae, 10:96–115, 1927.
@@ -313,7 +313,7 @@ doi:10.4064/fm-10-1-96-115
 
 <span id="ref-murty68ranking"></span> Katta G. Murty. Solving the fixed charge
 problem by ranking the extreme points. Operations Research, 16(2):268–279,
-1968. doi:10.1287/opre.16.2.268
+1968.  doi:10.1287/opre.16.2.268
 
 <span id="ref-nagamochi1992computing"></span> Hiroshi Nagamochi and Toshihide
 Ibaraki. Computing edge-connectivity in multigraphs and capacitated graphs.
@@ -352,7 +352,7 @@ with Applications, 7(1):67–72, 1981. doi:10.1016/0898-1221(81)90008-0
 
 <span id="ref-sleator1985selfadjusting"></span> D. D. Sleator and R. E.
 Tarjan. Self-adjusting binary search trees. Journal of the ACM, 32(3):652–686,
-1985. doi:10.1145/3828.3835
+1985.  doi:10.1145/3828.3835
 
 <span id="ref-soplex"></span> SoPlex, the Sequential object-oriented simPlex.
 https://soplex.zib.de/
@@ -373,7 +373,7 @@ doi:10.1137/0201010
 
 <span id="ref-tarjan1975efficiency"></span> Robert E. Tarjan. Efficiency of a
 good but not linear set union algorithm. Journal of the ACM, 22(2):215–225,
-1975. doi:10.1145/321879.321884
+1975.  doi:10.1145/321879.321884
 
 <span id="ref-tarjan1983data"></span> Robert E. Tarjan. Data Structures and
 Network Algorithms. SIAM, 1983. doi:10.1137/1.9781611970265

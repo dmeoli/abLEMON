@@ -51,29 +51,30 @@ also require separately. Each component exists in three versions, for
 digraphs, graphs and bipartite graphs, and it takes as a template parameter
 the component on which it is built (by default the base one):
 
--  `GraphItem< sel >`, the concept of a handle (default and copy construction,
-  assignment, conversion from `INVALID`, `==`, `!=`, `<`), with a character
-  `sel` that keeps the types of nodes, arcs and edges distinct.
--  `BaseDigraphComponent`, `BaseGraphComponent` and `BaseBpGraphComponent`,
-  the items with `source()` and `target()` (and `u()`, `v()`, `direction()`,
-  `direct()`, `oppositeArc()`, or the colours).
--  `IDableDigraphComponent` (and its graph and bipartite versions), the
-  identifiers and the functions that invert them, which must be unique and
-  immutable.
--  `IterableDigraphComponent`, the iterators, built on `GraphItemIt` (the
-  concept of `NodeIt`, `ArcIt` and `EdgeIt`) and `GraphIncIt` (that of
-  `OutArcIt`, `InArcIt` and `IncEdgeIt`), with the functions `first()`,
-  `next()`, `firstOut()` and the others of the base classes.
--  `AlterableDigraphComponent`, the alteration notifiers, by which the
-  structure informs its maps and other observers of each change (cf. [appendix
-  A](A-writing-graph-map.md#app-a)).
--  `MappableDigraphComponent`, the map templates, each of which must conform
-  to `GraphMap`, i.e., be a reference map constructed on the graph, with or
-  without an initial value.
--  `ExtendableDigraphComponent`, `ErasableDigraphComponent` and
-  `ClearableDigraphComponent`, the functions `addNode()` and `addArc()` (or
-  `addEdge()`, `addRedNode()`, `addBlueNode()`), `erase()`, and `clear()`,
-  each of which requires the alterable component.
+-   `GraphItem< sel >`, the concept of a handle (default and copy
+   construction,
+assignment, conversion from `INVALID`, `==`, `!=`, `<`), with a character
+`sel` that keeps the types of nodes, arcs and edges distinct.
+-   `BaseDigraphComponent`, `BaseGraphComponent` and `BaseBpGraphComponent`,
+the items with `source()` and `target()` (and `u()`, `v()`, `direction()`,
+`direct()`, `oppositeArc()`, or the colours).
+-   `IDableDigraphComponent` (and its graph and bipartite versions), the
+identifiers and the functions that invert them, which must be unique and
+immutable.
+-   `IterableDigraphComponent`, the iterators, built on `GraphItemIt` (the
+concept of `NodeIt`, `ArcIt` and `EdgeIt`) and `GraphIncIt` (that of
+`OutArcIt`, `InArcIt` and `IncEdgeIt`), with the functions `first()`,
+`next()`, `firstOut()` and the others of the base classes.
+-   `AlterableDigraphComponent`, the alteration notifiers, by which the
+structure informs its maps and other observers of each change (cf. [appendix
+A](A-writing-graph-map.md#app-a)).
+-   `MappableDigraphComponent`, the map templates, each of which must conform
+to `GraphMap`, i.e., be a reference map constructed on the graph, with or
+without an initial value.
+-   `ExtendableDigraphComponent`, `ErasableDigraphComponent` and
+`ClearableDigraphComponent`, the functions `addNode()` and `addArc()` (or
+`addEdge()`, `addRedNode()`, `addBlueNode()`), `erase()`, and `clear()`, each
+of which requires the alterable component.
 
 Thus, `concepts::Digraph` is made of the base, idable, iterable and mappable
 components. Besides it, the tests of the library check the components that
@@ -142,30 +143,31 @@ colour (`id(RedNode)`, `id(BlueNode)`), and a doubly linked list for each
 colour. Besides the functions of the concepts, the three classes have the
 following ones, which keep the iterators valid unless it is said otherwise.
 
--  `addNode()` and `addArc(s, t)` (`addEdge(u, v)` in `ListGraph`, and
-  `addRedNode()`, `addBlueNode()` and `addEdge(r, b)` in `ListBpGraph`),
-  `erase(item)` for a node, an arc or an edge (which invalidates the iterators
-  on the erased items), and `clear()`.
--  `valid(item)`, which returns whether a handle identifies an item at
-  present; an erased item may become valid again after an addition that reuses
-  its index.
--  `changeTarget(a, n)`, `changeSource(a, n)` and `reverseArc(a)` in
-  `ListDigraph`, which move the ends of an arc and keep its identifier and its
-  values in the maps. In the same way, `ListGraph` has `changeU(e, n)` and
-  `changeV(e, n)`, and `ListBpGraph` has `changeRed(e, n)` and
-  `changeBlue(e, n)`. The iterators along the lists that the arc leaves are
-  invalidated (e.g., an `InArcIt` on `a` after `changeTarget()`).
--  `contract(u, v, r = true)` in `ListDigraph` and `ListGraph`, which moves
-  the arcs (or edges) of `v` to `u` by the changes above and erases `v`. If
-  `r` is `true`, the arcs between `u` and `v` are erased instead of becoming
-  loops, while the loops that `u` already had are kept.
--  `split(n, connect = true)` in `ListDigraph`, which adds a node, moves to it
-  the arcs out of `n`, and, if `connect` is `true`, adds an arc from `n` to
-  it. Also, `split(a)` adds a node `w`, makes it the target of `a`, and adds
-  an arc from `w` to the old target of `a`; both return the new node.
--  `reserveNode(n)` and `reserveArc(m)` (`reserveEdge(m)` in the undirected
-  classes), which reserve the memory of the vectors before a large graph is
-  built.
+-   `addNode()` and `addArc(s, t)` (`addEdge(u, v)` in `ListGraph`, and
+`addRedNode()`, `addBlueNode()` and `addEdge(r, b)` in `ListBpGraph`),
+`erase(item)` for a node, an arc or an edge (which invalidates the iterators
+on the erased items), and `clear()`.
+-   `valid(item)`, which returns whether a handle identifies an item at
+present; an erased item may become valid again after an addition that reuses
+its index.
+-   `changeTarget(a, n)`, `changeSource(a, n)` and `reverseArc(a)` in
+`ListDigraph`, which move the ends of an arc and keep its identifier and its
+values in the maps. In the same way, `ListGraph` has `changeU(e, n)` and
+`changeV(e, n)`, and `ListBpGraph` has `changeRed(e, n)` and
+`changeBlue(e, n)`. The iterators along the lists that the arc leaves are
+invalidated (e.g., an `InArcIt` on `a` after `changeTarget()`).
+-   `contract(u, v, r = true)` in `ListDigraph` and `ListGraph`, which moves
+the arcs (or edges) of `v` to `u` by the changes above and erases `v`. If `r`
+is `true`, the arcs between `u` and `v` are erased instead of becoming loops,
+while the loops that `u` already had are kept.
+-   `split(n, connect = true)` in `ListDigraph`, which adds a node, moves to
+   it
+the arcs out of `n`, and, if `connect` is `true`, adds an arc from `n` to it.
+Also, `split(a)` adds a node `w`, makes it the target of `a`, and adds an arc
+from `w` to the old target of `a`; both return the new node.
+-   `reserveNode(n)` and `reserveArc(m)` (`reserveEdge(m)` in the undirected
+classes), which reserve the memory of the vectors before a large graph is
+built.
 
 *Snapshots.* A nested class `Snapshot` saves the state of the graph and
 restores it later, removing the items added in between. A snapshot is made by
@@ -226,15 +228,14 @@ indices, the index of an item being its identifier. Note that each class has
 `nodeNum()` and `arcNum()` (and `edgeNum()`), in $O(1)$ time, `clear()`, and
 two functions `build()`.
 
--  `build(g, nodeRef, arcRef)` copies any digraph `g` (any graph, for
-  `StaticGraph`). It writes into the map `nodeRef` the image of each node,
-  which it also reads, and into `arcRef` (or `edgeRef`) the image of each arc,
-  for which a `NullMap` may be given if it is not needed (one
-usually needs only the node references). The copies of section 4.9 call it, by
-the tag `BuildTag`.
--  `build(n, begin, end)` builds the structure with `n` nodes from a range of
-  `std::pair< int , int >`, the $k$-th pair $(i,j)$ giving the arc (or edge)
-  of index $k-1$ from the node of index $i$ to that of index $j$.
+-   `build(g, nodeRef, arcRef)` copies any digraph `g` (any graph, for
+`StaticGraph`). It writes into the map `nodeRef` the image of each node, which
+it also reads, and into `arcRef` (or `edgeRef`) the image of each arc, for
+which a `NullMap` may be given if it is not needed (one usually needs only the
+node references). The copies of section 4.9 call it, by the tag `BuildTag`.
+-   `build(n, begin, end)` builds the structure with `n` nodes from a range of
+`std::pair< int , int >`, the $k$-th pair $(i,j)$ giving the arc (or edge) of
+index $k-1$ from the node of index $i$ to that of index $j$.
 
 Rebuilding a structure, or clearing it, clears the values of its maps.
 
@@ -445,31 +446,30 @@ for $u=v$. The two functions dispatch on the tags through the internal classes
 classes of `lemon/core.h` answer faster than the scan, at the price of some
 memory and of a preprocessing:
 
--  `ArcLookUp< GR >` builds, for each node, a binary search tree of the arcs
-  out of it, keyed by the identifier of their target ([Figure
-  4.3](04-graphs.md#fig-4-3)). Its constructor calls `refresh()`, which builds
-  all the trees in $O(m\log\Delta)$ time, where $\Delta$ is the largest
-  out-degree, and `refresh(v)` rebuilds the tree of one node in
-  $O(d^+(v)\log d^+(v))$ time. A query `lookup(s, t)` returns an arc from `s`
-  to `t`, or `INVALID`, in $O(\log d^+(s))$ time. It finds one arc only, and
-  the structure is static: after a change of the digraph `refresh()` must be
-  called (or `refresh(v)`, if only the arcs out of `v` changed) before the
-  next query.
--  `AllArcLookUp< GR >` is an `ArcLookUp` that also links the arcs with the
-  same source and target, and `lookup(s, t, prev)` enumerates them: the first
-  in $O(\log d^+(s))$ time and each of the next ones in $O(1)$ time. It is
-  static as well, and `refresh(v)` rebuilds the data of one node.
--  `DynArcLookUp< GR >` keeps a self-adjusting binary search tree, the splay
-  tree of [Sleator and Tarjan
-  1985](Z-bibliography.md#ref-sleator1985selfadjusting), for the arcs out of
-  each node, and it observes the arcs of the digraph, so that it follows each
-  addition and erasure with no refresh. A query `lookup(s, t, prev)` takes
-  $O(\log d^+(s))$ amortized time, and, by the static optimality of splay
-  trees, the total time of a sequence of queries is within a constant factor
-  of that of the best static search tree for the frequencies of the sequence.
-  However, as the header remarks, its constant factors are often larger than
-  those of the two static classes, which are therefore preferable on a digraph
-  that changes rarely.
+-   `ArcLookUp< GR >` builds, for each node, a binary search tree of the arcs
+out of it, keyed by the identifier of their target ([Figure
+4.3](04-graphs.md#fig-4-3)). Its constructor calls `refresh()`, which builds
+all the trees in $O(m\log\Delta)$ time, where $\Delta$ is the largest
+out-degree, and `refresh(v)` rebuilds the tree of one node in
+$O(d^+(v)\log d^+(v))$ time. A query `lookup(s, t)` returns an arc from `s` to
+`t`, or `INVALID`, in $O(\log d^+(s))$ time. It finds one arc only, and the
+structure is static: after a change of the digraph `refresh()` must be called
+(or `refresh(v)`, if only the arcs out of `v` changed) before the next query.
+-   `AllArcLookUp< GR >` is an `ArcLookUp` that also links the arcs with the
+same source and target, and `lookup(s, t, prev)` enumerates them: the first in
+$O(\log d^+(s))$ time and each of the next ones in $O(1)$ time. It is static
+as well, and `refresh(v)` rebuilds the data of one node.
+-   `DynArcLookUp< GR >` keeps a self-adjusting binary search tree, the splay
+tree of [Sleator and Tarjan
+1985](Z-bibliography.md#ref-sleator1985selfadjusting), for the arcs out of
+each node, and it observes the arcs of the digraph, so that it follows each
+addition and erasure with no refresh. A query `lookup(s, t, prev)` takes
+$O(\log d^+(s))$ amortized time, and, by the static optimality of splay trees,
+the total time of a sequence of queries is within a constant factor of that of
+the best static search tree for the frequencies of the sequence. However, as
+the header remarks, its constant factors are often larger than those of the
+two static classes, which are therefore preferable on a digraph that changes
+rarely.
 
 In fact, the trees of `ArcLookUp` are perfectly balanced, since `refresh(v)`
 sorts the arcs out of `v` (by its private comparator `ArcLess`) and makes the
@@ -519,16 +519,17 @@ duplicate, possibly into a structure of another type, is made by the classes
 which return such an object. Before running it one can request the following
 data, each by a function that returns the object (and may thus be chained):
 
--  `nodeRef(map)`, a map with the nodes of `from` as keys, into which the copy
-  writes the image of each node, and `nodeCrossRef(map)`, a map with the nodes
-  of `to` as keys, into which it writes the original of each node; `arcRef()`,
-  `arcCrossRef()`, `edgeRef()`, `edgeCrossRef()`, `redRef()`, `redCrossRef()`,
-  `blueRef()` and `blueCrossRef()` do the same for the other kinds of items;
--  `nodeMap(fmap, tmap)`, which copies the values of the map `fmap` of `from`
-  into the map `tmap` of `to`, item by item; `arcMap()`, `edgeMap()`,
-  `redNodeMap()` and `blueNodeMap()` do the same for the other kinds of items;
--  `node(n, tn)`, which writes into `tn` the image of the node `n`, and
-  `arc()`, `edge()`, `redNode()` and `blueNode()` likewise.
+-   `nodeRef(map)`, a map with the nodes of `from` as keys, into which the
+   copy
+writes the image of each node, and `nodeCrossRef(map)`, a map with the nodes
+of `to` as keys, into which it writes the original of each node; `arcRef()`,
+`arcCrossRef()`, `edgeRef()`, `edgeCrossRef()`, `redRef()`, `redCrossRef()`,
+`blueRef()` and `blueCrossRef()` do the same for the other kinds of items;
+-   `nodeMap(fmap, tmap)`, which copies the values of the map `fmap` of `from`
+into the map `tmap` of `to`, item by item; `arcMap()`, `edgeMap()`,
+`redNodeMap()` and `blueNodeMap()` do the same for the other kinds of items;
+-   `node(n, tn)`, which writes into `tn` the image of the node `n`, and
+`arc()`, `edge()`, `redNode()` and `blueNode()` likewise.
 
 Then `run()` clears `to` and copies the structure, followed by the data that
 were requested. Internally, each request is an object of one of the classes

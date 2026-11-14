@@ -222,18 +222,20 @@ ResidualDigraph( const DGR & digraph, const CM & capacity, FM & flow,
 ```
 and the members that are specific to the residual digraph follow.
 
--  `residualCapacity(a)` returns $u_a-x_a$ for a forward arc and $x_a$ for a
-  backward one.
--  `augment(a, v)` adds `v` to the flow of the original arc if `a` is forward,
-  and it subtracts `v` if `a` is backward. It writes the flow map by `set()`,
-  and it does not check that the result stays within the bounds.
--  `forward(a)` and `backward(a)` (static), on an arc of the adaptor, give its
-  direction. On an arc of the digraph, they return the forward or the backward
-  residual arc that corresponds to it, whether or not that arc is currently
-  visible.
--  `ResidualCapacity` is a read-only arc map of the adaptor whose value at an
-  arc is `residualCapacity(a)`. It is created by `residualCapacity()`, and its
-  value type is that of the capacity map.
+-   `residualCapacity(a)` returns $u_a-x_a$ for a forward arc and $x_a$ for a
+backward one.
+-   `augment(a, v)` adds `v` to the flow of the original arc if `a` is
+   forward,
+and it subtracts `v` if `a` is backward. It writes the flow map by `set()`,
+and it does not check that the result stays within the bounds.
+-   `forward(a)` and `backward(a)` (static), on an arc of the adaptor, give
+   its
+direction. On an arc of the digraph, they return the forward or the backward
+residual arc that corresponds to it, whether or not that arc is currently
+visible.
+-   `ResidualCapacity` is a read-only arc map of the adaptor whose value at an
+arc is `residualCapacity(a)`. It is created by `residualCapacity()`, and its
+value type is that of the capacity map.
 
 The function `residualDigraph(digraph, capacity, flow)` returns the adaptor
 with the default tolerance.
@@ -322,13 +324,13 @@ digraph. `nodeNum()` and `arcNum()` are computed by `countNodes()` and
 `countArcs()` of the digraph, i.e., in the time of the digraph. The static
 members translate between the two structures, as follows.
 
--  `inNode(n)` and `outNode(n)`, on a node of the adaptor, return which of the
-  two it is; on a node of the digraph, they return its in-node or its
-  out-node.
--  `origArc(a)` and `bindArc(a)` return whether an arc of the adaptor is an
-  original arc or a bind arc.
--  `arc(n)` returns the bind arc of a node of the digraph, and `arc(a)` the
-  arc of the adaptor that corresponds to an arc of the digraph.
+-   `inNode(n)` and `outNode(n)`, on a node of the adaptor, return which of
+   the
+two it is; on a node of the digraph, they return its in-node or its out-node.
+-   `origArc(a)` and `bindArc(a)` return whether an arc of the adaptor is an
+original arc or a bind arc.
+-   `arc(n)` returns the bind arc of a node of the digraph, and `arc(a)` the
+arc of the adaptor that corresponds to an arc of the digraph.
 
 One gives the data by two combining maps, nested in the class.
 `CombinedNodeMap< In, Out >`, created by `combinedNodeMap(in_map, out_map)`,

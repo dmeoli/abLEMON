@@ -257,17 +257,16 @@ two items, by which one can impose any order.
 $O(\log n + c)$, where $c$ is the number of items with the old value of the
 key, among which it looks for the key (in LEMON 1.3.1 it recomputed the range
 of the old value at each step of that search, for $O(c\log n)$).
-`operator()(val)`, or the `InverseMap`, returns one
-item with the value (or `INVALID`) in $O(\log n)$. Also, `count(val)` returns
-the number of items with a value, and `beginValue()` and `endValue()` delimit
-a forward iterator (`ValueIt`) on the values, with multiplicity and in
-increasing order. We remark that the inverse structure holds only the values
-written by `set()`. On a newly built map, which reads `V()` at each item,
-`count( V() )` is therefore zero. The map is meant for values that are all
-different, or nearly so; when many items share a value, `IterableValueMap`
-(section 6.6) is usually the better choice. Neither `CrossRefMap` nor
-`IterableValueMap` is a reference map, i.e., their values are written only by
-`set()`.
+`operator()(val)`, or the `InverseMap`, returns one item with the value (or
+`INVALID`) in $O(\log n)$. Also, `count(val)` returns the number of items with
+a value, and `beginValue()` and `endValue()` delimit a forward iterator
+(`ValueIt`) on the values, with multiplicity and in increasing order. We
+remark that the inverse structure holds only the values written by `set()`. On
+a newly built map, which reads `V()` at each item, `count( V() )` is therefore
+zero. The map is meant for values that are all different, or nearly so; when
+many items share a value, `IterableValueMap` (section 6.6) is usually the
+better choice. Neither `CrossRefMap` nor `IterableValueMap` is a reference
+map, i.e., their values are written only by `set()`.
 
 !!! note "abLEMON"
     The iterators `ValueIt` of `CrossRefMap` and `IterableValueMap` define
@@ -381,22 +380,22 @@ graph, the kind given by the key type of the map, and use the values of a map.
 Each of them costs one pass over the items, i.e., $O(n_K)$ reads of the map,
 plus the cost of the predicate or of the comparison.
 
--  `mapCopy(g, from, to)` writes `from[x]` into `to` for each item `x` of the
-  kind of `to`. An edge map can thus be copied to an arc map of the same
-  graph, since an arc converts to its edge, but not vice versa.
-  `mapFill(g, map, val)` writes `val` at each item.
--  `mapCompare(g, m1, m2)` returns `true` if the two maps agree, by
-  `operator==`, at each item of the kind of `m2`.
--  `mapMin(g, map)` and `mapMax(g, map)` return an item of least and of
-  largest value, or `INVALID` on an empty item set. When there are ties (which
-  may well happen on integer data), they return the first one met in the order
-  of the item iterator. The variants with a third argument take a comparison
-  functor in place of `std::less< V >`. `mapMinValue()` and `mapMaxValue()`
-  return the value, and they require a non-empty item set.
--  `mapFind(g, map, val)` and `mapFindIf(g, map, pred)` return the first item
-  whose value equals `val` (or satisfies `pred`), and `INVALID` if there is
-  none. `mapCount(g, map, val)` and `mapCountIf(g, map, pred)` return the
-  number of such items.
+-   `mapCopy(g, from, to)` writes `from[x]` into `to` for each item `x` of the
+kind of `to`. An edge map can thus be copied to an arc map of the same graph,
+since an arc converts to its edge, but not vice versa. `mapFill(g, map, val)`
+writes `val` at each item.
+-   `mapCompare(g, m1, m2)` returns `true` if the two maps agree, by
+`operator==`, at each item of the kind of `m2`.
+-   `mapMin(g, map)` and `mapMax(g, map)` return an item of least and of
+largest value, or `INVALID` on an empty item set. When there are ties (which
+may well happen on integer data), they return the first one met in the order
+of the item iterator. The variants with a third argument take a comparison
+functor in place of `std::less< V >`. `mapMinValue()` and `mapMaxValue()`
+return the value, and they require a non-empty item set.
+-   `mapFind(g, map, val)` and `mapFindIf(g, map, pred)` return the first item
+whose value equals `val` (or satisfies `pred`), and `INVALID` if there is
+none. `mapCount(g, map, val)` and `mapCountIf(g, map, pred)` return the number
+of such items.
 
 The example of section 6.4 uses `mapMin()`, `mapCountIf()`, `mapCopy()`,
 `mapCompare()` and `mapMaxValue()`, and the test `test/maps_test.cc` checks

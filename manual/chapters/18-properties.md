@@ -99,8 +99,8 @@ blocks, whereas the map of the bi-edge-connected components is a node map;
 both are numbered from $0$ as in [§18.1](#sec-18-1). Those that find the cut
 nodes and the cut edges set `cutMap` to `true` on them (once each) and return
 their number, but they leave the other items untouched, and the caller must
-therefore initialize the map to `false` when it reads the other items too.
-The map is only written, as its concept check requires: in LEMON 1.3.1
+therefore initialize the map to `false` when it reads the other items too. The
+map is only written, as its concept check requires: in LEMON 1.3.1
 `biNodeConnectedCutNodes()` read it in order not to count a node twice, so
 that a node already `true` on entry was not counted (the test
 `connectivity_test` passes a map that is `true` everywhere).
@@ -465,13 +465,12 @@ has no return value; `runFiveColoring()` computes the embedding with
 results with `colorIndex(node)`, between $0$ and $4$ or $5$, and with
 `color(node)`, a `Color` of a palette of six (red, green, blue, yellow,
 magenta and cyan, in the order of the indices). As maps, `colorIndexMap()`
-returns a const reference to the node map of the indices (the type
-`IndexMap`; in LEMON 1.3.1 it returned a copy, made in $O(n)$), and
-`colorMap()` the map of the colors (the type `ColorMap`, a `ComposeMap` of the
-palette and of the indices). In all, the six coloring costs $O(n+m)$, whereas
-the five coloring adds a breadth-first search of a Kempe chain at each failure
-of step 3, and its cost is therefore $O(n^2)$ in the worst case, as the header
-states.
+returns a const reference to the node map of the indices (the type `IndexMap`;
+in LEMON 1.3.1 it returned a copy, made in $O(n)$), and `colorMap()` the map
+of the colors (the type `ColorMap`, a `ComposeMap` of the palette and of the
+indices). In all, the six coloring costs $O(n+m)$, whereas the five coloring
+adds a breadth-first search of a Kempe chain at each failure of step 3, and
+its cost is therefore $O(n^2)$ in the worst case, as the header states.
 
 The example computes the embedding of the cube and counts its faces against
 Euler's formula, draws the cube on the grid and checks that no two edges

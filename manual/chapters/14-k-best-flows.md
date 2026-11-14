@@ -67,12 +67,13 @@ After a `run()` that returned `INFEASIBLE`, the four classes give three kinds
 of certificates, all as sets of nodes of the digraph, and all empty after any
 other answer.
 
--  `infeasibleCut()` returns one set $N'$ with $viol(N')>0$.
--  `infeasibleCuts(k)` returns the $k$ sets of largest violation, in the order
-  of their violations, at most $k$ and only those that prove the problem
-  infeasible.
--  `disjointInfeasibleCuts()` returns sets of positive violation that are
-  pairwise disjoint, with no arc between any two of them.
+-   `infeasibleCut()` returns one set $N'$ with $viol(N')>0$.
+-   `infeasibleCuts(k)` returns the $k$ sets of largest violation, in the
+   order
+of their violations, at most $k$ and only those that prove the problem
+infeasible.
+-   `disjointInfeasibleCuts()` returns sets of positive violation that are
+pairwise disjoint, with no arc between any two of them.
 
 Each set is checked on the data as they were given, by (14.1), before it is
 returned. In floating point the check requires the violation to exceed both
@@ -91,19 +92,19 @@ algorithm has at hand when it finds no feasible flow, at no further cost. It
 is the set of all the nodes when the supplies sum to the wrong sign (positive
 under GEQ, negative under LEQ). Otherwise, it depends on the class:
 
--  `NetworkSimplex` takes it from its last tree, whose potentials under the
-  costs of the first phase (one on the artificial arcs that should carry no
-  flow, zero on the others) are an optimal solution of the dual of the first
-  phase; so is the indicator of each level set of them, i.e., the nodes whose
-  potential is at least, or at most, a value, and the first level set that
-  proves the answer is kept;
--  `CostScaling` and `CycleCanceling` take the nodes above the level that the
-  push-relabel algorithm of their starting flow leaves empty, together with
-  the node it was lifting, from which no residual arc leaves ([section
-  13.5](13-min-cost-flow.md#ch-13));
--  `CapacityScaling` takes the nodes that its last search for a shortest
-  augmenting path reached from a node with excess without finding a deficit,
-  from which no residual arc leaves.
+-   `NetworkSimplex` takes it from its last tree, whose potentials under the
+costs of the first phase (one on the artificial arcs that should carry no
+flow, zero on the others) are an optimal solution of the dual of the first
+phase; so is the indicator of each level set of them, i.e., the nodes whose
+potential is at least, or at most, a value, and the first level set that
+proves the answer is kept;
+-   `CostScaling` and `CycleCanceling` take the nodes above the level that the
+push-relabel algorithm of their starting flow leaves empty, together with the
+node it was lifting, from which no residual arc leaves ([section
+13.5](13-min-cost-flow.md#ch-13));
+-   `CapacityScaling` takes the nodes that its last search for a shortest
+augmenting path reached from a node with excess without finding a deficit,
+from which no residual arc leaves.
 
 If that set does not prove the answer (which may happen, although rarely, in
 floating point), the class falls back on a set of largest violation, by one
@@ -204,10 +205,11 @@ cycle the flow may grow without limit while the cost decreases ([section
 13.1](13-min-cost-flow.md#ch-13)). After such a run the four classes give two
 kinds of certificates, both empty after any other answer.
 
--  `unboundedCycle()` returns one such cycle, as the vector of its arcs in the
-  direction of the flow.
--  `unboundedCycles(k)` returns at most $k$ such cycles, pairwise
-  arc-disjoint, in the order of their mean costs.
+-   `unboundedCycle()` returns one such cycle, as the vector of its arcs in
+   the
+direction of the flow.
+-   `unboundedCycles(k)` returns at most $k$ such cycles, pairwise
+arc-disjoint, in the order of their mean costs.
 
 In `NetworkSimplex` the cycle is the one of the pivot that it could not
 perform, i.e., its entering arc and the path of the tree between the two ends
@@ -329,15 +331,15 @@ afterwards. Until they are given, the bounds are 0 and infinite, the costs 1
 and the supplies 0. Its setters, each returning the object, are the following
 ones:
 
--  `lowerMap(map)`, `upperMap(map)`, `costMap(map)` and `supplyMap(map)`,
-  which copy the data as in [chapter 13](13-min-cost-flow.md#ch-13), an upper
-  bound that is infinite or the largest value of `Value` meaning no bound;
--  `initFlow(map)`, an optimal flow to start from, which must be optimal for
-  the data given, and after which no minimum cost flow algorithm is run;
--  `tolerances(flow, cost)`, the tolerances of [section
-  13.3](13-min-cost-flow.md#ch-13) given to the `NetworkSimplex` that finds
-  the optimal flow, a negative value leaving them to the data;
-  `flowTolerance()` and `costTolerance()` return those in use.
+-   `lowerMap(map)`, `upperMap(map)`, `costMap(map)` and `supplyMap(map)`,
+which copy the data as in [chapter 13](13-min-cost-flow.md#ch-13), an upper
+bound that is infinite or the largest value of `Value` meaning no bound;
+-   `initFlow(map)`, an optimal flow to start from, which must be optimal for
+the data given, and after which no minimum cost flow algorithm is run;
+-   `tolerances(flow, cost)`, the tolerances of [section
+13.3](13-min-cost-flow.md#ch-13) given to the `NetworkSimplex` that finds the
+optimal flow, a negative value leaving them to the data; `flowTolerance()` and
+`costTolerance()` return those in use.
 
 Then `run(k)` finds the flows and returns their number, which is less than $k$
 if the problem has fewer integer flows, and zero if it has no optimal flow (it
@@ -417,18 +419,18 @@ spanning trees containing the path, and the ranking expands all those it
 meets. Two limits bound this work, and `exact()` returns whether a run stayed
 within them.
 
--  `basisLimit(limit)` sets the largest number of bases a run expands, by
-  default 1000. When it is reached the run stops; the flows given are still
-  distinct vertices in the order of their costs, but they may not be the $k$
-  best ones.
--  `vertexBasisLimit(limit)` sets the largest number of bases of one vertex
-  that a run expands, by default no limit (a value of 0). A basis counts only
-  if one of its pivots leads to another vertex, so that the bases whose pivots
-  are all degenerate do not take the place of one that is not. With a positive
-  limit, the bases of a vertex beyond it are not expanded, and the degenerate
-  pivots of its last basis are not taken. The flows given are then distinct
-  vertices in the order of their costs, the first one optimal and the others
-  adjacent to the bases expanded, but they may not be the $k$ best ones.
+-   `basisLimit(limit)` sets the largest number of bases a run expands, by
+default 1000. When it is reached the run stops; the flows given are still
+distinct vertices in the order of their costs, but they may not be the $k$
+best ones.
+-   `vertexBasisLimit(limit)` sets the largest number of bases of one vertex
+that a run expands, by default no limit (a value of 0). A basis counts only if
+one of its pivots leads to another vertex, so that the bases whose pivots are
+all degenerate do not take the place of one that is not. With a positive
+limit, the bases of a vertex beyond it are not expanded, and the degenerate
+pivots of its last basis are not taken. The flows given are then distinct
+vertices in the order of their costs, the first one optimal and the others
+adjacent to the bases expanded, but they may not be the $k$ best ones.
 
 When a limit has acted, a vertex reached only through a basis left out may
 have come after one of larger cost; hence, the flows are sorted by their costs

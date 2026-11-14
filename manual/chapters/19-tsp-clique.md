@@ -398,8 +398,7 @@ from 1 to about 50).
     says, where it copied it, so that two objects built one after the other
     drew the same sequence.
 
-The three
-rules are the private classes `RandomSelectionRule`,
+The three rules are the private classes `RandomSelectionRule`,
 `DegreeBasedSelectionRule` and `PenaltyBasedSelectionRule`, of which `start()`
 is a template.
 
@@ -420,15 +419,15 @@ The random choices use a generator of type `Random` ([chapter
 8](08-auxiliary.md#ch-8)), which depends on the constructor.
 `GrossoLocatelliPullanMc(graph)` draws from the global generator `rnd`, which
 it advances, so that two objects built one after the other draw different
-sequences; `GrossoLocatelliPullanMc(graph, seed)` draws from a generator of its
-own seeded with `seed`, and `GrossoLocatelliPullanMc(graph, random)` from a
-copy of the given one. Since the object may refer to a generator it owns, it
-cannot be copied. The
-results are read by `cliqueSize()` and by `cliqueMap(map)`, which writes
-`true` on the nodes of the clique and `false` elsewhere, in a writable node
-map with `bool` (or convertible) values. Also, the iterator `CliqueNodeIt`,
-constructed from the algorithm object, lists the nodes of the clique (note
-that its postfix increment returns a `Node`, not an iterator).
+sequences; `GrossoLocatelliPullanMc(graph, seed)` draws from a generator of
+its own seeded with `seed`, and `GrossoLocatelliPullanMc(graph, random)` from
+a copy of the given one. Since the object may refer to a generator it owns, it
+cannot be copied. The results are read by `cliqueSize()` and by
+`cliqueMap(map)`, which writes `true` on the nodes of the clique and `false`
+elsewhere, in a writable node map with `bool` (or convertible) values. Also,
+the iterator `CliqueNodeIt`, constructed from the algorithm object, lists the
+nodes of the clique (note that its postfix increment returns a `Node`, not an
+iterator).
 
 ## 19.7 The exact algorithm of Tomita and Seki {#sec-19-7}
 
@@ -489,9 +488,8 @@ Our example compares the exact algorithm with the enumeration of all the
 subsets on five random graphs of 14 nodes. On the larger graph, it checks that
 the heuristic, seeded and stopped at the maximum size, finds a clique no
 larger than the maximum one, and that the rules `RANDOM` and `PENALTY_BASED`
-with the same seed give the same clique when the penalty delay is 1;
-finally, it stops an exact search
-after 5 nodes of its tree.
+with the same seed give the same clique when the penalty delay is 1; finally,
+it stops an exact search after 5 nodes of its tree.
 
 ```cpp
 --8<-- "examples/19-clique.cc"
@@ -533,10 +531,10 @@ subsets, and that a tree limit of 1 stops the search after one node
 
 <span id="ex-19-7"></span>**Exercise 19.7.** Run `GrossoLocatelliPullanMc`
 with the rules `RANDOM` and `PENALTY_BASED` and the same seed on the same
-graph, observe that they return the same clique when the penalty delay is
-1, and explain why from [§19.6](19-tsp-clique.md#sec-19-6); then compare the
-sizes of the cliques found by `PENALTY_BASED` with penalty delays from 2 to
-50 (`manual/examples/19-clique.cc` checks the first part;
+graph, observe that they return the same clique when the penalty delay is 1,
+and explain why from [§19.6](19-tsp-clique.md#sec-19-6); then compare the
+sizes of the cliques found by `PENALTY_BASED` with penalty delays from 2 to 50
+(`manual/examples/19-clique.cc` checks the first part;
 `test/max_clique_test.cc` checks the termination causes of the three rules).
 
 <span id="ex-19-8"></span>**Exercise 19.8.** Plot the size of the search tree

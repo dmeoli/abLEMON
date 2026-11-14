@@ -29,15 +29,15 @@ changes must notify its maps. However, the concepts state only the syntax;
 some semantic requirements are written only in their documentation, and the
 algorithms rely on them as well.
 
--  The identifiers of the items of one kind are distinct and immutable, and
-  they lie between 0 and `maxNodeId()` (or the other maxima). The maximum
-  should not be much larger than the number of items, since the standard maps
-  allocate one slot for each identifier up to it.
--  Each iterator visits each item exactly once and then becomes `INVALID`. In
-  an undirected graph `ArcIt` visits each of the two arcs of an edge once, and
-  `InArcIt` and `OutArcIt` visit the arcs of the incident edges.
--  The ends `u(e)` and `v(e)` do not change while the edge exists, and
-  `direct(e, true)` goes from `u(e)` to `v(e)`.
+-   The identifiers of the items of one kind are distinct and immutable, and
+they lie between 0 and `maxNodeId()` (or the other maxima). The maximum should
+not be much larger than the number of items, since the standard maps allocate
+one slot for each identifier up to it.
+-   Each iterator visits each item exactly once and then becomes `INVALID`. In
+an undirected graph `ArcIt` visits each of the two arcs of an edge once, and
+`InArcIt` and `OutArcIt` visit the arcs of the incident edges.
+-   The ends `u(e)` and `v(e)` do not change while the edge exists, and
+`direct(e, true)` goes from `u(e)` to `v(e)`.
 
 For a map the contracts are `concepts::ReadMap< K , V >`,
 `concepts::WriteMap< K , V >`, `concepts::ReadWriteMap< K , V >` and
@@ -69,15 +69,16 @@ and the adaptors of [chapter 5](05-adaptors.md#ch-5), by the extenders of
 following members, which are those of `BaseDigraphComponent`,
 `IDableDigraphComponent` and the low-level part of `IterableDigraphComponent`.
 
--  The handle types `Node` and `Arc`, with default and `Invalid` constructors,
-  `==`, `!=` and `<`.
--  The functions `source(a)` and `target(a)`.
--  The functions `first(Node &)`, `next(Node &)`, `first(Arc &)` and
-  `next(Arc &)`, which enumerate the items and set the handle to the invalid
-  value after the last one. Also, `firstOut(Arc &, Node)`, `nextOut(Arc &)`,
-  `firstIn(Arc &, Node)` and `nextIn(Arc &)` enumerate the arcs at a node.
--  The functions `id(Node)`, `id(Arc)`, `nodeFromId(int)`, `arcFromId(int)`,
-  `maxNodeId()` and `maxArcId()`.
+-   The handle types `Node` and `Arc`, with default and `Invalid`
+   constructors,
+`==`, `!=` and `<`.
+-   The functions `source(a)` and `target(a)`.
+-   The functions `first(Node &)`, `next(Node &)`, `first(Arc &)` and
+`next(Arc &)`, which enumerate the items and set the handle to the invalid
+value after the last one. Also, `firstOut(Arc &, Node)`, `nextOut(Arc &)`,
+`firstIn(Arc &, Node)` and `nextIn(Arc &)` enumerate the arcs at a node.
+-   The functions `id(Node)`, `id(Arc)`, `nodeFromId(int)`, `arcFromId(int)`,
+`maxNodeId()` and `maxArcId()`.
 
 If the structure can change, the base also has `addNode()`, `addArc(s, t)`,
 `erase(Node)`, `erase(Arc)` and `clear()`, which modify the storage only,
@@ -150,12 +151,12 @@ is attached to a notifier by its constructor `ObserverBase( notifier )` or by
 `notifier()` and `attached()` give its notifier and its state. An observer
 overrides six pure virtual functions, which the notifier calls.
 
--  `add(item)` and `add(items)`, after one item or a `std::vector` of items
-  has been added to the container.
--  `erase(item)` and `erase(items)`, before one item or several items are
-  erased from it.
--  `build()`, after the container has been built from empty, and `clear()`,
-  before all its items are erased.
+-   `add(item)` and `add(items)`, after one item or a `std::vector` of items
+has been added to the container.
+-   `erase(item)` and `erase(items)`, before one item or several items are
+erased from it.
+-   `build()`, after the container has been built from empty, and `clear()`,
+before all its items are erased.
 
 A graph calls the functions `add()`, `erase()`, `build()` and `clear()` of its
 notifier in a fixed order with respect to its storage. An item is added to the
@@ -257,24 +258,25 @@ item in $O(1)$ time, and its key type `IM::Key` is the type of the items. The
 concept requires the following members, which one can compare with those of
 the heaps of the library.
 
--  The types `Item`, `Prio`, `ItemIntMap` and `State`, the last one an
-  enumeration with `IN_HEAP` $=0$, `PRE_HEAP` $=-1$ and `POST_HEAP` $=-2$.
--  The constructors `Heap( IM & map )` and
-  `Heap( IM & map , const CMP & comp )`, and a copy constructor (the
-  `Constraints` of the concept copy a heap).
--  The functions `size()`, `empty()` and `clear()`, the last of which empties
-  the heap without touching the cross reference map.
--  The functions `push(i, p)` for an item not in the heap, `top()` and
-  `prio()` for the item of least priority and its priority, `pop()`, which
-  removes that item, and `erase(i)` for an item in the heap.
--  The query `heap[i]`, the priority of an item in the heap, and the functions
-  `set(i, p)`, which inserts the item or changes its priority, and
-  `decrease(i, p)` and `increase(i, p)`, whose precondition is that the new
-  priority is not larger (resp. smaller) than the old one.
--  The functions `state(i)`, which returns `PRE_HEAP` for an item that has
-  never been in the heap, `IN_HEAP` for one in it and `POST_HEAP` for one
-  removed, and `state(i, st)`, which sets the state of an item that is not in
-  the heap.
+-   The types `Item`, `Prio`, `ItemIntMap` and `State`, the last one an
+enumeration with `IN_HEAP` $=0$, `PRE_HEAP` $=-1$ and `POST_HEAP` $=-2$.
+-   The constructors `Heap( IM & map )` and
+`Heap( IM & map , const CMP & comp )`, and a copy constructor (the
+`Constraints` of the concept copy a heap).
+-   The functions `size()`, `empty()` and `clear()`, the last of which empties
+the heap without touching the cross reference map.
+-   The functions `push(i, p)` for an item not in the heap, `top()` and
+`prio()` for the item of least priority and its priority, `pop()`, which
+removes that item, and `erase(i)` for an item in the heap.
+-   The query `heap[i]`, the priority of an item in the heap, and the
+   functions
+`set(i, p)`, which inserts the item or changes its priority, and
+`decrease(i, p)` and `increase(i, p)`, whose precondition is that the new
+priority is not larger (resp. smaller) than the old one.
+-   The functions `state(i)`, which returns `PRE_HEAP` for an item that has
+never been in the heap, `IN_HEAP` for one in it and `POST_HEAP` for one
+removed, and `state(i, st)`, which sets the state of an item that is not in
+the heap.
 
 The cross reference map is owned by the caller and shared with the heap. It
 must give `PRE_HEAP` for each item that may be pushed, and the heap typically

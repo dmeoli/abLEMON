@@ -315,11 +315,11 @@ of the largest level are kept in no list, so that `onLevel()` and
 !!! note "abLEMON"
     In LEMON 1.3.1 the constructors with a largest label also took it as the
     number of the items, so that `Elevator(graph, max_level)` sized its
-    storage and counted the items correctly only when the two were equal;
-    and `LinkedElevator::lift(i, new_level)` updated the ends of the list of
-    the new level, where it had to update those of the level that the item
-    leaves, whenever the item was the first or the last of its list. The
-    test `elevator_test` checks both.
+    storage and counted the items correctly only when the two were equal; and
+    `LinkedElevator::lift(i, new_level)` updated the ends of the list of the
+    new level, where it had to update those of the level that the item leaves,
+    whenever the item was the first or the last of its list. The test
+    `elevator_test` checks both.
 
 ## 8.4 Two-dimensional geometry {#sec-8-4}
 
@@ -349,13 +349,13 @@ emptiness. Its corners and sides are read by `bottomLeft()`, `topRight()`,
 `bottomRight()`, `topLeft()`, `bottom()`, `top()`, `left()` and `right()`, and
 set by the members of the same names that take the new value; `width()` and
 `height()` give the sizes. Values of an empty box are undefined, and the
-setters require a box that is not empty; the stream operator `>>`, which
-reads `((l,b),(r,t))`, gives the box of the two corners, which is not empty
-(in LEMON 1.3.1 it set the corners by the setters, and therefore left an empty
-box empty; the test `dim_test` reads one). Finally, the maps `XMap` and `YMap` (read and
-write) and `ConstXMap`, `ConstYMap` and `NormSquareMap` (read only) turn a map
-whose values are points into a map of their coordinates or of their squared
-norm, and are made by `xMap()`, `yMap()` and `normSquareMap()`.
+setters require a box that is not empty; the stream operator `>>`, which reads
+`((l,b),(r,t))`, gives the box of the two corners, which is not empty (in
+LEMON 1.3.1 it set the corners by the setters, and therefore left an empty box
+empty; the test `dim_test` reads one). Finally, the maps `XMap` and `YMap`
+(read and write) and `ConstXMap`, `ConstYMap` and `NormSquareMap` (read only)
+turn a map whose values are points into a map of their coordinates or of their
+squared norm, and are made by `xMap()`, `yMap()` and `normSquareMap()`.
 
 ## 8.5 Radix sort {#sec-8-5}
 
@@ -416,9 +416,9 @@ chosen at compile time, from the type of the key, by the helpers
     In LEMON 1.3.1, `radixSort()` built the mask of the highest bit as the
     `int` expression `1 << max_digit`, which overflowed for the keys of a
     64-bit type that use more than 31 bits (and the sort then did not end),
-    and shifted negative values to the left; the masks are now computed on
-    the unsigned type of the keys, and the test `radix_sort_test` sorts keys
-    of 64 bits, the extremes of the type included.
+    and shifted negative values to the left; the masks are now computed on the
+    unsigned type of the keys, and the test `radix_sort_test` sorts keys of 64
+    bits, the extremes of the type included.
 
 ## 8.6 Random numbers {#sec-8-6}
 

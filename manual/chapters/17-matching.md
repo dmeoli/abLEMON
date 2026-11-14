@@ -191,13 +191,13 @@ depth-first search is written without recursion, and each red node keeps the
 edge it has reached in a map; hence, each edge is scanned once per phase. The
 breadth-first search stops at the layer $L$ of the first uncovered blue node,
 and the depth-first searches augment only along paths of that length; hence,
-the paths of a phase are shortest augmenting paths, as the bound requires.
-The certificate does not depend on them, since step 10 builds it from the
-final matching alone. Indeed, the set of step 10 is a cover because an edge
-from a red node of $R^*$ to a blue node outside $R^*$ would extend an
-alternating path. Furthermore, it has $|M|$ nodes. Its nodes are all covered
-by $M$ (an uncovered blue node in $R^*$ would end an augmenting path), and no
-edge of $M$ has both ends in it.
+the paths of a phase are shortest augmenting paths, as the bound requires. The
+certificate does not depend on them, since step 10 builds it from the final
+matching alone. Indeed, the set of step 10 is a cover because an edge from a
+red node of $R^*$ to a blue node outside $R^*$ would extend an alternating
+path. Furthermore, it has $|M|$ nodes. Its nodes are all covered by $M$ (an
+uncovered blue node in $R^*$ would end an augmenting path), and no edge of $M$
+has both ends in it.
 
 This class follows the pattern of the algorithm classes of [chapter
 3](03-mental-model.md#ch-3), although it has no named template parameters,

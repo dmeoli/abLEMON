@@ -127,14 +127,14 @@ unless `reset()` is called. Then the parameters of the problem are given by
 functions that copy the data at once (hence, the maps need not outlive the
 call), each returning the object:
 
--  `lowerMap(map)`, the lower bounds, zero on the arcs if it is not called;
--  `upperMap(map)`, the upper bounds, `INF` on the arcs if it is not called;
--  `costMap(map)`, the costs, 1 on the arcs if it is not called;
--  `supplyMap(map)`, the supplies, zero if neither it nor `stSupply()` is
-  called, and `stSupply(s, t, k)`, which gives $k$ to $s$, $-k$ to $t$ and
-  zero to the other nodes;
--  `supplyType(type)`, with `GEQ` (the default) or `LEQ`, in `NetworkSimplex`
-  only.
+-   `lowerMap(map)`, the lower bounds, zero on the arcs if it is not called;
+-   `upperMap(map)`, the upper bounds, `INF` on the arcs if it is not called;
+-   `costMap(map)`, the costs, 1 on the arcs if it is not called;
+-   `supplyMap(map)`, the supplies, zero if neither it nor `stSupply()` is
+called, and `stSupply(s, t, k)`, which gives $k$ to $s$, $-k$ to $t$ and zero
+to the other nodes;
+-   `supplyType(type)`, with `GEQ` (the default) or `LEQ`, in `NetworkSimplex`
+only.
 
 Then `run()` solves the problem and returns its `ProblemType`, with arguments
 that differ from class to class (Table 13.1). After a run, the queries are
@@ -365,18 +365,18 @@ below $-\epsilon_c$. Let $m'$ be the number of arcs searched, i.e., those of
 the digraph and, under GEQ or LEQ with unbalanced supplies, also the second
 artificial arcs; the five rules are then as follows.
 
--  `FIRST_ELIGIBLE` takes the next eligible arc after the last one taken.
--  `BEST_ELIGIBLE` takes the most violating arc among all of them.
--  `BLOCK_SEARCH`, the default, examines blocks of
-  $\max\{\lfloor\sqrt{m'}\rfloor, 10\}$ arcs and takes the best eligible arc
-  of the first block that has one.
--  `CANDIDATE_LIST` builds, in a major iteration, a list of at most
-  $\max\{\lfloor 0.25\sqrt{m'}\rfloor, 10\}$ eligible arcs, and then takes the
-  best arc of the list in at most $\max\{\lfloor 0.1\,\ell\rfloor, 3\}$ minor
-  iterations, $\ell$ being the largest length of the list.
--  `ALTERING_LIST` keeps the $\max\{\lfloor 0.01\,b\rfloor, 3\}$ best
-  candidates of the previous iteration and extends them with a block of
-  $b=\max\{\lfloor\sqrt{m'}\rfloor, 10\}$ arcs at each iteration.
+-   `FIRST_ELIGIBLE` takes the next eligible arc after the last one taken.
+-   `BEST_ELIGIBLE` takes the most violating arc among all of them.
+-   `BLOCK_SEARCH`, the default, examines blocks of
+$\max\{\lfloor\sqrt{m'}\rfloor, 10\}$ arcs and takes the best eligible arc of
+the first block that has one.
+-   `CANDIDATE_LIST` builds, in a major iteration, a list of at most
+$\max\{\lfloor 0.25\sqrt{m'}\rfloor, 10\}$ eligible arcs, and then takes the
+best arc of the list in at most $\max\{\lfloor 0.1\,\ell\rfloor, 3\}$ minor
+iterations, $\ell$ being the largest length of the list.
+-   `ALTERING_LIST` keeps the $\max\{\lfloor 0.01\,b\rfloor, 3\}$ best
+candidates of the previous iteration and extends them with a block of
+$b=\max\{\lfloor\sqrt{m'}\rfloor, 10\}$ arcs at each iteration.
 
 Each rule is a private class of `NetworkSimplex` (`FirstEligiblePivotRule`,
 `BestEligiblePivotRule`, `BlockSearchPivotRule`, `CandidateListPivotRule` and
@@ -579,19 +579,20 @@ feasible flow of section 13.5 and cancel cycles of negative cost of the
 residual network until none is left, i.e., until the flow is optimal by
 Theorem 13.2. The nested enum `Method` selects one of them.
 
--  `SIMPLE_CYCLE_CANCELING` finds negative cycles by the algorithm of Bellman
-  and Ford on the residual network, with a limit on its rounds that starts at
-  2 and grows by a factor of 1.5 when no cycle is found, and cancels
-  node-disjoint cycles of the predecessor graph.
--  `MINIMUM_MEAN_CYCLE_CANCELING` cancels a cycle of minimum mean cost at each
-  step, found by Howard's algorithm with a limit of $\max\{n,5\}$ iterations
-  and, if the limit is reached, by the strongly polynomial algorithm of
-  Hartmann and Orlin ([chapter 16](16-min-mean-cycle.md#ch-16)); the header
-  gives the bound $O(n^2m^3\log n)$.
--  `CANCEL_AND_TIGHTEN`, the default, which the header calls by far the most
-  efficient and robust, is the improved version of the previous method of
-  [Goldberg and Tarjan 1989](Z-bibliography.md#ref-goldberg89cyclecanceling),
-  with the bound $O(n^2m^2\log n)$.
+-   `SIMPLE_CYCLE_CANCELING` finds negative cycles by the algorithm of Bellman
+and Ford on the residual network, with a limit on its rounds that starts at 2
+and grows by a factor of 1.5 when no cycle is found, and cancels node-disjoint
+cycles of the predecessor graph.
+-   `MINIMUM_MEAN_CYCLE_CANCELING` cancels a cycle of minimum mean cost at
+   each
+step, found by Howard's algorithm with a limit of $\max\{n,5\}$ iterations
+and, if the limit is reached, by the strongly polynomial algorithm of Hartmann
+and Orlin ([chapter 16](16-min-mean-cycle.md#ch-16)); the header gives the
+bound $O(n^2m^3\log n)$.
+-   `CANCEL_AND_TIGHTEN`, the default, which the header calls by far the most
+efficient and robust, is the improved version of the previous method of
+[Goldberg and Tarjan 1989](Z-bibliography.md#ref-goldberg89cyclecanceling),
+with the bound $O(n^2m^2\log n)$.
 
 In Cancel-and-Tighten an arc is admissible when its reduced cost is negative.
 A phase cancels, by a depth first search, the cycles of admissible arcs, until

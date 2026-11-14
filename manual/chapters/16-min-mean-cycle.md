@@ -152,11 +152,10 @@ ends have potentials.
     outside the component have no potentials computed, so that the test could
     fail more often and delay the stop.
 
-In the worst case the checks add to
-the work of Karp's algorithm, and the bounds of the header are the same,
-$O(nm)$ time and $O(n^2+m)$ space. According to the header, the early
-termination makes the algorithm significantly faster on some instances, but
-slower on others.
+In the worst case the checks add to the work of Karp's algorithm, and the
+bounds of the header are the same, $O(nm)$ time and $O(n^2+m)$ space.
+According to the header, the early termination makes the algorithm
+significantly faster on some instances, but slower on others.
 
 ## 16.4 Howard's policy iteration {#sec-16-4}
 
@@ -223,11 +222,11 @@ and by `componentCycle(i, path)`, which appends the $i$-th cycle to a path
 that has `addBack()`. These cycles are pairwise node-disjoint, since the
 components are. They are of minimum mean in their components only if
 `findCycleMean()` was not stopped by its limit; otherwise they are those of
-the components processed until then (a component where the limit stopped
-the search before its first policy cycle keeps none). The min-cost flow algorithms of [chapter
-13](13-min-cost-flow.md#ch-13) take from one run of `HowardMmc` the disjoint
-negative cycles that their function `unboundedCycles(k)` returns (see [chapter
-14](14-k-best-flows.md#ch-14)).
+the components processed until then (a component where the limit stopped the
+search before its first policy cycle keeps none). The min-cost flow algorithms
+of [chapter 13](13-min-cost-flow.md#ch-13) take from one run of `HowardMmc`
+the disjoint negative cycles that their function `unboundedCycles(k)` returns
+(see [chapter 14](14-k-best-flows.md#ch-14)).
 
 !!! note "abLEMON"
     `componentCycleNum()`, `componentCycleCost()`, `componentCycleSize()` and

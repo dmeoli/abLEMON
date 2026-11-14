@@ -172,20 +172,20 @@ object; a flow map or an elevator that is not given is allocated by `init()`
 and released by the destructor. The execution follows the pattern of [chapter
 3](03-mental-model.md#ch-3):
 
--  `run()` is `init()`, `startFirstPhase()` and `startSecondPhase()`, and
-  `runMinCut()` is `init()` and `startFirstPhase()`, which suffice for the
-  value and for the minimum cut;
--  `init()` starts from the zero flow, and `init(flowMap)` from a given map,
-  which must be at least a preflow: after copying the map, it returns `false`
-  if the excess of a node other than $s$ is negative beyond the tolerance, and
-  otherwise it saturates the residual arcs out of $s$ (and empties the arcs
-  into it) towards the nodes that reach $t$;
--  `flowValue()` returns the excess of $t$, i.e., the maximum value already
-  after the first phase, while `flow(arc)` and `flowMap()` give a maximum flow
-  only after the second phase;
--  `minCut(node)` returns `true` if a node is on the source side of the
-  minimum cut found, and `minCutMap(map)` writes that side into a writable
-  `bool` node map in $O(n)$ time.
+-   `run()` is `init()`, `startFirstPhase()` and `startSecondPhase()`, and
+`runMinCut()` is `init()` and `startFirstPhase()`, which suffice for the value
+and for the minimum cut;
+-   `init()` starts from the zero flow, and `init(flowMap)` from a given map,
+which must be at least a preflow: after copying the map, it returns `false` if
+the excess of a node other than $s$ is negative beyond the tolerance, and
+otherwise it saturates the residual arcs out of $s$ (and empties the arcs into
+it) towards the nodes that reach $t$;
+-   `flowValue()` returns the excess of $t$, i.e., the maximum value already
+after the first phase, while `flow(arc)` and `flowMap()` give a maximum flow
+only after the second phase;
+-   `minCut(node)` returns `true` if a node is on the source side of the
+minimum cut found, and `minCutMap(map)` writes that side into a writable
+`bool` node map in $O(n)$ time.
 
 After the first phase, `minCut()` gives the nodes at the top level, i.e.,
 those that do not reach $t$ in the residual digraph, which form the largest

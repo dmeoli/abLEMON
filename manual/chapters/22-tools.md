@@ -53,18 +53,18 @@ four options of the type form an exclusive group.
 At the start, the tool reads the problem line by `dimacsType()`, and, unless
 `-q` is given, writes the type of the problem and the numbers of nodes and
 arcs; a file that cannot be opened, or of unknown type, ends the program with
-a message and the exit status 1. Then it builds a `SmartDigraph` (or a `SmartGraph`
-for the type `mat`) and proceeds by type, as follows. For a `sp` file, it
-reads the digraph and the lengths by `readDimacsSp()` and computes the
-shortest paths from the source by `Dijkstra` ([chapter
+a message and the exit status 1. Then it builds a `SmartDigraph` (or a
+`SmartGraph` for the type `mat`) and proceeds by type, as follows. For a `sp`
+file, it reads the digraph and the lengths by `readDimacsSp()` and computes
+the shortest paths from the source by `Dijkstra` ([chapter
 10](10-shortest-paths.md#ch-10)), and writes a line `d v d(v)` for each node
 `v` reached. For a `max` file, it reads the capacities by `readDimacsMax()`,
 computes a maximum flow by `Preflow` ([chapter 12](12-max-flow.md#ch-12)), and
 writes its value as `s value` and a line `f u v x` for each arc $(u,v)$ with a
 nonzero flow $x$. For a `mat` file, it reads the graph by `readDimacsMat()`,
 computes a maximum matching by `MaxMatching` ([chapter
-17](17-matching.md#ch-17)), and writes its cardinality as `s k` and a line `m
-u v` for each matched edge. For a `min` file, it reads the problem by
+17](17-matching.md#ch-17)), and writes its cardinality as `s k` and a line
+`m u v` for each matched edge. For a `min` file, it reads the problem by
 `readDimacsMin()` and solves it by `NetworkSimplex` ([chapter
 13](13-min-cost-flow.md#ch-13)), as in Algorithm 22.1, printing whether a
 feasible flow was found and, unless the problem is infeasible, its cost, which

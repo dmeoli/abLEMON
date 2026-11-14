@@ -170,14 +170,14 @@ distances.
     already in the heap with a smaller one to `dst`, and pushed again a node
     already processed; the test `dijkstra_test` adds sources twice.
 
-Then `start()` processes the nodes until the heap is
-empty, while `start(t)` processes them until `t` is on the top of the heap,
-then writes the distance of `t`, marks it processed and pops it without
-relaxing its arcs; `run(s, t)` does `init()`, `addSource(s)` and `start(t)`,
-and returns whether `t` was processed. Similarly, `start(nm)` stops when a
-node with `nm` true is on the top of the heap, writes its distance and marks
-it processed (in the `ProcessedMap`, while it stays in the heap), and returns
-it, or returns `INVALID` if the heap empties first.
+Then `start()` processes the nodes until the heap is empty, while `start(t)`
+processes them until `t` is on the top of the heap, then writes the distance
+of `t`, marks it processed and pops it without relaxing its arcs; `run(s, t)`
+does `init()`, `addSource(s)` and `start(t)`, and returns whether `t` was
+processed. Similarly, `start(nm)` stops when a node with `nm` true is on the
+top of the heap, writes its distance and marks it processed (in the
+`ProcessedMap`, while it stays in the heap), and returns it, or returns
+`INVALID` if the heap empties first.
 
 Its queries are `dist(v)`, `predArc(v)`, `predNode(v)`, `path(t)` (a path
 dumper, cf. [§8.1](08-auxiliary.md#sec-8-1)), `distMap()`, `predMap()`,
@@ -524,8 +524,8 @@ least $k$ arc-disjoint paths, and their largest number otherwise. In turn,
 If the paths from one source to many targets are needed, `fullInit(s)`
 replaces `init(s)`: it runs one complete search of Dijkstra from `s` on the
 lengths, which then serves as the first iteration of each subsequent
-`start(t, k)`; each of them thus runs only $k-1$ searches, and returns 0
-when `t` cannot be reached from `s`, as it does after `init(s)`.
+`start(t, k)`; each of them thus runs only $k-1$ searches, and returns 0 when
+`t` cannot be reached from `s`, as it does after `init(s)`.
 
 !!! note "abLEMON"
     In LEMON 1.3.1, after `fullInit(s)`, `findFlow(t, k)` took the first path

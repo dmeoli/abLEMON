@@ -34,37 +34,39 @@ the heap keeps a reference to the map, the map must also outlive it.
 The operations are the following, where $n$ is the number of items in the
 heap; Table 7.1 gives their costs.
 
--  `size()` returns the number of items, and `empty()` returns whether it is
-  zero.
--  `push(i, p)` inserts the item `i`, which must not be in the heap, with
-  priority `p`.
--  `top()` and `prio()` return the item of least priority and its priority
-  (the heap must not be empty). With `std::greater` as `CMP`, they return the
-  item of largest priority.
--  `pop()` removes the item of least priority, whose state becomes
-  `POST_HEAP`, and `erase(i)` removes the item `i`, which must be in the heap.
--  `operator[](i)` returns the priority of the item `i`, which must be in the
-  heap.
--  `decrease(i, p)` and `increase(i, p)` change the priority of an item in the
-  heap to `p`, which must not be larger (respectively, smaller) than the
-  current one under `CMP`. The heaps do not check it.
--  `set(i, p)` changes the priority of `i` if it is in the heap, by
-  `decrease()` or `increase()` as the case may be, and it inserts `i`
-  otherwise (also when it is `POST_HEAP`).
--  `state(i)` returns the state of an item. `state(i, st)`, with `st` equal to
-  `PRE_HEAP` or `POST_HEAP`, erases the item if it is in the heap and then
-  writes `st` into the map (`IN_HEAP` is ignored).
--  `clear()` empties the heap without touching the map. To reuse the heap on
-  the same items, the caller must also reset the map to `PRE_HEAP`.
+-   `size()` returns the number of items, and `empty()` returns whether it is
+zero.
+-   `push(i, p)` inserts the item `i`, which must not be in the heap, with
+priority `p`.
+-   `top()` and `prio()` return the item of least priority and its priority
+(the heap must not be empty). With `std::greater` as `CMP`, they return the
+item of largest priority.
+-   `pop()` removes the item of least priority, whose state becomes
+`POST_HEAP`, and `erase(i)` removes the item `i`, which must be in the heap.
+-   `operator[](i)` returns the priority of the item `i`, which must be in the
+heap.
+-   `decrease(i, p)` and `increase(i, p)` change the priority of an item in
+   the
+heap to `p`, which must not be larger (respectively, smaller) than the current
+one under `CMP`. The heaps do not check it.
+-   `set(i, p)` changes the priority of `i` if it is in the heap, by
+`decrease()` or `increase()` as the case may be, and it inserts `i` otherwise
+(also when it is `POST_HEAP`).
+-   `state(i)` returns the state of an item. `state(i, st)`, with `st` equal
+   to
+`PRE_HEAP` or `POST_HEAP`, erases the item if it is in the heap and then
+writes `st` into the map (`IN_HEAP` is ignored).
+-   `clear()` empties the heap without touching the map. To reuse the heap on
+the same items, the caller must also reset the map to `PRE_HEAP`.
 
-Two remarks on the cross-reference map are in order. First, the heaps write
-it through `operator[]` (e.g., `state(i, st)` in all of them, `decrease()` of
+Two remarks on the cross-reference map are in order. First, the heaps write it
+through `operator[]` (e.g., `state(i, st)` in all of them, `decrease()` of
 `BinomialHeap`, and `push()` and `pop()` of `RadixHeap` and `BucketHeap`), and
 therefore need a reference map, as their documentation says; the maps used in
 practice (a graph map of `int` or a `RangeMap< int >`) are reference maps.
-Second, the state
-`POST_HEAP` allows an algorithm such as `Dijkstra` to distinguish a scanned
-node from an unreached one by one read of the map, without a further map.
+Second, the state `POST_HEAP` allows an algorithm such as `Dijkstra` to
+distinguish a scanned node from an unreached one by one read of the map,
+without a further map.
 
 Besides the concept, `BinHeap`, `QuadHeap`, `DHeap`, `BucketHeap` and
 `SimpleBucketHeap` have `push(pair)`, which takes a `std::pair< Item, Prio >`.
@@ -126,16 +128,15 @@ The library has three classes of this family, all with the template parameters
 `PR`, `IM` and `CMP` (by default `std::less< PR >`) and with both constructors
 of the concept.
 
--  `BinHeap< PR, IM, CMP >`, in `lemon/bin_heap.h`, is the binary heap. It is
-  the default heap of `Dijkstra`, `BidirDijkstra`, `AStar` and
-  `MinCostArborescence`, and the heap of the matching algorithms.
--  `QuadHeap< PR, IM, CMP >`, in `lemon/quad_heap.h`, is the 4-ary heap (the
-  header calls it "fourary"), whose four children are compared by unrolled
-  code.
--  `DHeap< PR, IM, D, CMP >`, in `lemon/dheap.h`, is the $d$-ary heap, with
-  the degree as the template parameter `D`, by default $16$. The header
-  suggests a power of two, which turns the divisions and multiplications of
-  the positions into shifts.
+-   `BinHeap< PR, IM, CMP >`, in `lemon/bin_heap.h`, is the binary heap. It is
+the default heap of `Dijkstra`, `BidirDijkstra`, `AStar` and
+`MinCostArborescence`, and the heap of the matching algorithms.
+-   `QuadHeap< PR, IM, CMP >`, in `lemon/quad_heap.h`, is the 4-ary heap (the
+header calls it "fourary"), whose four children are compared by unrolled code.
+-   `DHeap< PR, IM, D, CMP >`, in `lemon/dheap.h`, is the $d$-ary heap, with
+the degree as the template parameter `D`, by default $16$. The header suggests
+a power of two, which turns the divisions and multiplications of the positions
+into shifts.
 
 !!! note "abLEMON"
     `CapacityScaling` (cf. [chapter 13](13-min-cost-flow.md#ch-13)) keeps the
@@ -237,11 +238,11 @@ item of least priority is kept, so that `top()` and `prio()` cost $O(1)$.
     the case of the ticket.
 
 *Erasing an item.* In `PairingHeap`, `erase(i)` cuts the subtree of the item
-and makes it the root over the rest, while in `BinomialHeap` it moves the
-item up to the root of its tree; in both cases the item is then removed as
-the minimum, and `increase()` calls `erase()` and `push()`. Hence, `erase()`
-does not compare priorities at all, and it works for any priority type and
-any `CMP`.
+and makes it the root over the rest, while in `BinomialHeap` it moves the item
+up to the root of its tree; in both cases the item is then removed as the
+minimum, and `increase()` calls `erase()` and `push()`. Hence, `erase()` does
+not compare priorities at all, and it works for any priority type and any
+`CMP`.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 the two classes decreased the priority of the item to
@@ -302,12 +303,11 @@ box $0$. This is `minimum` at first and, once `top()`, `prio()` or `pop()` has
 been called, the least priority in the heap at that moment. A `push()`,
 `set()` or `decrease()` below it throws the exception
 `RadixHeap< IM >::PriorityUnderflowError`, even if no item has been removed
-yet. In
-`Dijkstra` with integer lengths in $[0,C]$, the priorities in the heap lie in
-$[d,d+C]$, where $d$ is the last distance removed. For this case, the analysis
-of [Ahuja et al. 1990](Z-bibliography.md#ref-ahuja1990faster) gives the bound
-$O(m+n\log(nC))$ on the running time, $m$ and $n$ being the numbers of arcs
-and nodes.
+yet. In `Dijkstra` with integer lengths in $[0,C]$, the priorities in the heap
+lie in $[d,d+C]$, where $d$ is the last distance removed. For this case, the
+analysis of [Ahuja et al. 1990](Z-bibliography.md#ref-ahuja1990faster) gives
+the bound $O(m+n\log(nC))$ on the running time, $m$ and $n$ being the numbers
+of arcs and nodes.
 
 !!! note "abLEMON"
     The boxes of a `RadixHeap` stay contiguous: in LEMON 1.3.1, `moveDown()`
