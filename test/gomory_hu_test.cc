@@ -175,6 +175,21 @@ void checkMinCutMapSameNode( const Graph & graph ,
   }
  }
 
+// run() on graphs of zero and one node
+void checkSmallGraphs()
+{
+ Graph graph;
+ IntEdgeMap capacity( graph );
+ GomoryHu< Graph > empty( graph , capacity );
+ empty.run();
+
+ Node u = graph.addNode();
+ GomoryHu< Graph > single( graph , capacity );
+ single.run();
+ check( single.predNode( u ) == INVALID , "Wrong root" );
+ check( single.rootDist( u ) == 0 , "Wrong order of the root" );
+ }
+
 int main()
 {
  Graph graph;
@@ -217,6 +232,7 @@ int main()
 
  checkMinCutMapSameNode( graph , ght );
  checkMinCutMapWrites();
+ checkSmallGraphs();
 
  return( 0 );
  }

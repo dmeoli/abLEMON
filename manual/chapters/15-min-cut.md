@@ -726,17 +726,17 @@ Theorem 15.8, and the postfix increments return a `Node` (respectively an
 `Arc`) instead of an iterator. Since a minimum cut need not be unique,
 `MinCutNodeIt(gomory, s, t, true)` and `MinCutNodeIt(gomory, t, s, false)` may
 list different nodes, whereas `MinCutNodeIt(gomory, s, t, true)` and
-`MinCutNodeIt(gomory, s, t, false)` together list each node once. The graph
-must have at least one node, since `run()` writes the maps of the class at the
-first node, which on an empty graph is `INVALID`.
+`MinCutNodeIt(gomory, s, t, false)` together list each node once. On an empty
+graph `run()` builds an empty tree.
 
 !!! note "abLEMON"
     `tolerance()` is new in abLEMON. LEMON 1.3.1 gave its maximum flows the
     default tolerance of the value type, while abLEMON gives them the one set
     on the class. In LEMON 1.3.1 `minCutMap()` did not mark the nodes it
     climbed through, and took $O(nh)$ time; for $s=t$ it wrote the maps at
-    the node `INVALID`. The test `gomory_hu_test` counts the writes
-    of `minCutMap()` on a path, and checks $s=t$.
+    the node `INVALID`, as `run()` did on an empty graph. The test
+    `gomory_hu_test` counts the writes of `minCutMap()` on a path, and checks
+    $s=t$ and the graphs of zero and one node.
 
 ![Figure 15.2. Left, an undirected graph $G$ and its minimum cut $X=\{0,1,2\}$, of value 3, with the two cut edges; right, the Gomory-Hu tree computed by `GomoryHu`, whose lightest edge (between 2 and 4) gives the same cut.](../figures/15-gomory-hu.svg){#fig-15-2}
 

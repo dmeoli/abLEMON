@@ -148,6 +148,8 @@ class GomoryHu
   createStructures();
 
   _root = NodeIt( _graph );
+  if( _root == INVALID )
+   return;
   for( NodeIt n( _graph ) ; n != INVALID ; ++n ) {
    ( *_pred )[ n ] = _root;
    ( *_order )[ n ] = -1;
@@ -159,6 +161,8 @@ class GomoryHu
 
  // Start the algorithm
  void start() {
+  if( _root == INVALID )
+   return;
   Preflow< Graph , Capacity > fa( _graph , _capacity , _root , INVALID );
   fa.tolerance( _tolerance );
 
