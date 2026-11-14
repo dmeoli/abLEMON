@@ -680,16 +680,18 @@ one, and the procedure stops when $x=y$, i.e., at the common ancestor; the
 edges climbed are those from $s$ and from $t$ up to it. $\square$
 
 <span id="thm-15-8"></span>**Theorem 15.8.** *`run()` takes the time of
-$n-1$ calls of `Preflow::runMinCut()` plus $O(n^2)$, i.e., $O(n^3\sqrt{m})$.
+$n-1$ calls of `Preflow::runMinCut()` plus $O(n^2)$, i.e., $O(n^3m\Delta)$.
 Let $h$ be the height of the tree. Then `minCutValue(s, t)` takes $O(h)$ time,
 and `minCutMap(s, t, cutMap)` and the constructors of the two iterators take
 $O(n)$ time.*
 
 *Proof.* Steps 5 to 7 scan the nodes once per iteration, in $O(n)$, and step 8
 climbs from each node to the first numbered ancestor and numbers the nodes on
-the way, in $O(n)$ in all. Each maximum flow costs $O(n^2\sqrt{m})$ by the
-bound of the highest-label preflow algorithm ([Ahuja, Magnanti and Orlin
-1993, §7.8](Z-bibliography.md#ref-amo93networkflows)). By Lemma 15.7
+the way, in $O(n)$ in all. Each first phase of `Preflow` costs
+$O(n^2m\Delta)$, $\Delta$ being the largest degree of a node, by
+[Theorem 12.3](12-max-flow.md#thm-12-3) (the bound $O(n^2\sqrt{m})$ of the
+highest label rule needs a current arc for each node, which `Preflow` does
+not keep). By Lemma 15.7
 `minCutValue()` makes at most $2h$ steps. Then `minCutMap()` finds the
 lightest edge of the path in the same way, in $O(h)$, and writes the side of
 each node by climbing from it to the first node whose side is known, the root

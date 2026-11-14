@@ -110,7 +110,11 @@ struct PreflowDefaultTraits
 /// The preflow algorithms are the fastest known maximum
 /// flow algorithms. The current implementation uses a mixture of the
 /// \e "highest label" and the \e "bound decrease" heuristics.
-/// The worst case time complexity of the algorithm is \f$O(n^2\sqrt{m})\f$.
+/// Each phase runs in \f$O(n^2 m \Delta)\f$ time, where \f$\Delta\f$ is
+/// the largest number of arcs incident to a node, since a node scans its
+/// arcs from the first one at each selection; the bound
+/// \f$O(n^2\sqrt{m})\f$ of the highest label rule needs a current arc for
+/// each node, which this implementation does not keep.
 ///
 /// The algorithm consists of two phases. After the first phase
 /// the maximum flow value and the minimum cut is obtained. The

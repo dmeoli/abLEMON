@@ -511,8 +511,9 @@ class EdmondsKarp
  /// Returns true when the node is on the source side of the found
  /// minimum cut.
  ///
- /// \pre Either \ref run() or \ref init() must be called before
- /// using this function.
+ /// \pre The last call of \ref augment() must have returned \c false,
+ /// as at the end of \ref run() and \ref start(): the cut is the set of
+ /// the nodes that its search reached.
  bool minCut( const Node & node ) const {
   return( ( ( *_pred )[ node ] != INVALID ) || node == _source );
   }
@@ -526,8 +527,7 @@ class EdmondsKarp
  /// \note This function calls \ref minCut() for each node, so it runs in
  /// O(n) time.
  ///
- /// \pre Either \ref run() or \ref init() must be called before
- /// using this function.
+ /// \pre As for \ref minCut().
  template< typename CutMap >
  void minCutMap( CutMap & cutMap ) const {
   for( NodeIt n( _graph ) ; n != INVALID ; ++n ) {

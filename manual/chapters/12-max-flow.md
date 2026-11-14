@@ -282,13 +282,13 @@ nodes inactive. This gives the bound on the emptying pushes. A selection of a
 node ends with an emptying push or with a relabel, and it scans at most the
 arcs incident to the node. $\square$
 
-The header states the worst case running time $O(n^2\sqrt{m})$, which is the
-bound of the highest label rule implemented with a current arc for each node
+The header states the bound of Theorem 12.3, and remarks that the bound
+$O(n^2\sqrt{m})$ of the highest label rule needs a current arc for each node
 ([Cheriyan and Maheshwari 1989](Z-bibliography.md#ref-cheriyan1989analysis);
 [Ahuja, Magnanti and Orlin 1993, chapter
 7](Z-bibliography.md#ref-amo93networkflows)). The code keeps no current arc,
 and its first phase is not the pure highest label rule; hence, the proof of
-that bound does not carry over to it, and Theorem 12.3 is the bound that we
+that bound does not carry over to it, and Theorem 12.3 is the bound that one
 can prove for the class as it is. In practice the algorithm is usually the
 fastest maximum flow method of the library, and the documentation of the
 module recommends it "in most cases". We remark that the header warns against
@@ -369,7 +369,9 @@ second `Preflow`, after the capacity of the arc $(d,t)$ has grown from 6 to
     exceed that epsilon (trac #625). A program may then start from the maximum
     flow of a previous run after a change of the capacities, provided that the
     old flow is still a preflow for the new ones (e.g., after some capacities
-    have grown).
+    have grown). The header of LEMON 1.3.1 stated the running time
+    $O(n^2\sqrt{m})$, which this code does not attain; it states the bound of
+    Theorem 12.3.
 
 ## 12.3 Augmenting paths: EdmondsKarp {#sec-12-3}
 
@@ -447,7 +449,9 @@ as another name of the same function.
     tolerance of the algorithm (conservation at the nodes other than $s$ and
     $t$, and $0\leq f\leq cap$ on the arcs), as `Preflow::init()` does; the
     flow is set in any case. In LEMON 1.3.1 it returned nothing, and only
-    `checkedInit()` made the same checks.
+    `checkedInit()` made the same checks. The header of LEMON 1.3.1 allowed
+    `minCut()` and `minCutMap()` after `init()` alone; it requires the last
+    call of `augment()` to have returned `false`.
 
 ## 12.4 Feasible circulations: Circulation {#sec-12-4}
 
