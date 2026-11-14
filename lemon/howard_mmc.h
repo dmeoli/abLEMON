@@ -371,9 +371,11 @@ class HowardMmc
   int iter_count = 0;
   bool iter_limit_reached = false;
   for( int comp = 0 ; comp < _comp_num ; ++comp ) {
-   // Find the minimum mean cycle in the current component
+   // Find the minimum mean cycle in the current component (none found yet,
+   // since the limit may stop the search before its first policy cycle)
    if( ! buildPolicyGraph( comp ) )
     continue;
+   _curr_found = false;
    while( true ) {
     if( ++iter_count > limit ) {
      iter_limit_reached = true;

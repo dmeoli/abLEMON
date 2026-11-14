@@ -218,11 +218,8 @@ and by `componentCycle(i, path)`, which appends the $i$-th cycle to a path
 that has `addBack()`. These cycles are pairwise node-disjoint, since the
 components are. They are of minimum mean in their components only if
 `findCycleMean()` was not stopped by its limit; otherwise they are those of
-the components processed until then. Furthermore, in the present code a run
-stopped by the limit just before the first iteration of a component keeps the
-cycle of the previous component a second time, and `componentCycleNum()` then
-counts it twice; hence, after an `ITERATION_LIMIT` these functions should be
-read with care. The min-cost flow algorithms of [chapter
+the components processed until then (a component where the limit stopped
+the search before its first policy cycle keeps none). The min-cost flow algorithms of [chapter
 13](13-min-cost-flow.md#ch-13) take from one run of `HowardMmc` the disjoint
 negative cycles that their function `unboundedCycles(k)` returns (see [chapter
 14](14-k-best-flows.md#ch-14)).

@@ -190,5 +190,25 @@ int main()
 	 "Wrong termination cause" );
   }
 
+ // Howard stopped by its limit at the start of a component keeps no cycle
+ // of it: the cycle of the component before was kept a second time
+ {
+  typedef SmartDigraph GR;
+  DIGRAPH_TYPEDEFS( GR );
+  GR gr;
+  IntArcMap cost( gr );
+  for( int k = 0 ; k < 3 ; ++k ) {  // three loops, one per component
+   Node u = gr.addNode();
+   cost[ gr.addArc( u , u ) ] = k + 1;
+   }
+  HowardMmc< GR , IntArcMap > mmc( gr , cost );
+  mmc.findCycleMean( 1 );
+  for( int i = 0 ; i < mmc.componentCycleNum() ; ++i )
+   for( int j = 0 ; j < i ; ++j )
+    check( mmc.componentCycleCost( i ) != mmc.componentCycleCost( j ) ,
+	   "The same cycle kept for two components" );
+  check( mmc.componentCycleNum() <= 1 , "Cycles kept beyond the limit" );
+  }
+
  return( 0 );
  }
