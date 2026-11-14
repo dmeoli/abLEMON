@@ -913,6 +913,15 @@ void checkSplitNodes()
  check( nd == n1 , "Wrong node conversion" );
  nd = adaptor.outNode( n2 );
  check( nd == n2 , "Wrong node conversion" );
+
+ // Check the maximum arc id when the bind arcs have the largest ids
+ Digraph sparse;
+ Adaptor sparse_adaptor( sparse );
+ sparse.addNode();
+ sparse.addNode();
+ checkGraphArcList( sparse_adaptor , 2 );
+ checkArcIds( sparse_adaptor );
+ check( sparse_adaptor.maxArcId() == 3 , "Wrong maximum id" );
  }
 
 void checkSubGraph()

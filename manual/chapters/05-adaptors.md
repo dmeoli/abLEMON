@@ -486,13 +486,15 @@ to both types, of which only the one that matches its kind is meaningful (that
 to the arc for an original arc, that to the node for a bind arc). The
 identifiers are $2i$ for the in-node and $2i+1$ for the out-node, and $2i$ for
 an original arc and $2i+1$ for the bind arc of a node, where $i$ is the
-identifier in the digraph. `nodeNum()` and `arcNum()` are computed by
-`countNodes()` and `countArcs()` of the digraph, i.e., in the time of the
-digraph. Also, `findArc(u, v)` returns the bind arc when `u` is the in-node
-and `v` the out-node of the same node, the original arcs found by `findArc()`
-of the digraph when `u` is an out-node and `v` an in-node, and `INVALID`
-otherwise. Besides the types `Digraph`, `DigraphNode` and `DigraphArc`, the
-static members translate between the two structures, as follows.
+identifier in the digraph, so that `maxArcId()` is the larger of
+$2\,$`maxArcId()` and $2\,$`maxNodeId()`$\,+1$ of the digraph. `nodeNum()`
+and `arcNum()` are computed by `countNodes()` and `countArcs()` of the
+digraph, i.e., in the time of the digraph. Also, `findArc(u, v)` returns the
+bind arc when `u` is the in-node and `v` the out-node of the same node, the
+original arcs found by `findArc()` of the digraph when `u` is an out-node and
+`v` an in-node, and `INVALID` otherwise. Besides the types `Digraph`,
+`DigraphNode` and `DigraphArc`, the static members translate between the two
+structures, as follows.
 
 -   `inNode(n)` and `outNode(n)`, on a node of the adaptor, return which of
     the two it is; on a node of the digraph, they return its in-node or its
@@ -501,6 +503,13 @@ static members translate between the two structures, as follows.
     original arc or a bind arc.
 -   `arc(n)` returns the bind arc of a node of the digraph, and `arc(a)` the
     arc of the adaptor that corresponds to an arc of the digraph.
+
+!!! note "abLEMON"
+    In LEMON 1.3.1, `maxArcId()` of `SplitNodes` was the larger of
+    $2\,$`maxNodeId()` and $2\,$`maxArcId()`$\,+1$ of the digraph, below
+    the identifier of the last bind arc when the digraph has more nodes than
+    arcs; `checkSplitNodes()` in `test/adaptors_test.cc` checks a digraph of
+    two nodes and no arc.
 
 One gives the data by two combining maps, nested in the class.
 `CombinedNodeMap< In, Out >`, created by `combinedNodeMap(in_map, out_map)`,

@@ -3198,8 +3198,8 @@ class SplitNodesBase
    }
   }
  int maxArcId() const {
-  return( ( std::max )( _digraph->maxNodeId() << 1 ,
-			 ( _digraph->maxArcId() << 1 ) | 1 ) );
+  return( ( std::max )( _digraph->maxArcId() << 1 ,
+			 ( _digraph->maxNodeId() << 1 ) | 1 ) );
   }
 
  static bool inNode( const Node & n ) { return( n._in ); }
