@@ -154,3 +154,16 @@ mjx-container[display="true"], div.math {
   overflow-x: auto;
   overflow-y: hidden;
 }
+
+/* the lists of the parameters within the column: the second column of the
+   grid of a field list may shrink, and a long word wraps */
+html.writer-html5 .rst-content dl.field-list {
+  grid-template-columns: fit-content(30%) minmax(0, 1fr);
+}
+html.writer-html5 .rst-content dl.field-list > dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html.writer-html5 .rst-content dl.field-list > dd code {
+  white-space: normal;
+}

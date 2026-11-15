@@ -506,13 +506,13 @@ struct BoolProducer
 ///
 /// This is a template implementation of both 32-bit and
 /// 64-bit architecture optimized versions. The generators differ
-/// sligthly in the initialization and generation phase so they
-/// produce two completly different sequences.
+/// slightly in the initialization and generation phase so they
+/// produce two completely different sequences.
 ///
-/// \alert Do not use this class directly, but instead one of \ref
+/// \warning Do not use this class directly, but instead one of \ref
 /// Random, \ref Random32 or \ref Random64.
 ///
-/// The generator gives back random numbers of serveral types. To
+/// The generator gives back random numbers of several types. To
 /// get a random number from a range of a floating point type, you
 /// can use one form of the \c operator() or the \c real() member
 /// function. If you want to get random number from the {0, 1, ...,
