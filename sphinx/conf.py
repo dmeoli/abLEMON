@@ -14,6 +14,7 @@ The theme is that of Read the Docs, set as the PDF of the manual by
 _static/ablemon.css with the Latin Modern fonts of manual/build/fonts.
 """
 
+import html
 import os
 import re
 import subprocess
@@ -89,6 +90,26 @@ INNERCLASS = re.compile(r'\s*<innerclass [^>]*>[^<]*</innerclass>')
 # LaTeX), which Breathe would show next to the PNG
 IMAGE = re.compile(r'<image type="(?!html")[^"]*"[^>]*?(?:/>|>.*?</image>)',
                    re.S)
+BRIEF = re.compile(r'(<briefdescription>)(.*?)(</briefdescription>\s*'
+                   r'<detaileddescription>)(.*?)(?=</detaileddescription>)',
+                   re.S)
+
+
+def plain(xml):
+    """the text of a description, without markup and spaces"""
+    return re.sub(r'\s+', '', html.unescape(re.sub(r'<[^>]*>', '', xml)))
+
+
+def mend_brief(m):
+    """the brief of a compound or member is dropped when its detailed
+    description begins with the same sentence, which the page would show
+    twice"""
+    brief = plain(m.group(2)).rstrip('.')
+    detail = plain(m.group(4))
+    if brief and detail.startswith(brief) and \
+       detail[len(brief):len(brief) + 1] in ('', '.'):
+        return m.group(1) + m.group(3) + m.group(4)
+    return m.group(0)
 
 
 def mend_member(m):
@@ -112,8 +133,9 @@ def mend_xml():
     """the copy of the XML that Breathe reads: the classes of a group, and
     the members of classes that it lists, are dropped from it, since each
     class has its page and the page of the group would render them a
-    second time, the images for LaTeX are dropped, and the variables are
-    mended by mend_member()"""
+    second time, the images for LaTeX are dropped, the briefs repeated by
+    the detailed descriptions are dropped by mend_brief(), and the
+    variables are mended by mend_member()"""
     with open(os.path.join(XML, 'index.xml'), encoding='utf-8') as f:
         classes = set(re.findall(r'kind="(?:class|struct|union)"><name>'
                                  r'([^<]*)</name>', f.read()))
@@ -130,6 +152,7 @@ def mend_xml():
         if name.endswith('.xml'):
             text = VARIABLE.sub(mend_member, data.decode('utf-8'))
             text = IMAGE.sub('', text)
+            text = BRIEF.sub(mend_brief, text)
             if name.startswith('group__'):
                 text = INNERCLASS.sub('', text)
                 text = MEMBER.sub(member_of_group, text)
