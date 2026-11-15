@@ -155,3 +155,17 @@ html_css_files = ['ablemon.css']
 html_theme_options = {'navigation_depth': 4, 'collapse_navigation': True,
                       'sticky_navigation': True,
                       'style_nav_header_background': '#ffffff'}
+
+
+def codestyle(app, exception):
+    """the template arguments and the parameter lists of the pages spaced as
+    in the code [see doc/codestyle_html.py]"""
+    if exception is None:
+        import sys
+        sys.path.insert(0, os.path.join(ROOT, 'doc'))
+        import codestyle_html
+        codestyle_html.main([app.outdir])
+
+
+def setup(app):
+    app.connect('build-finished', codestyle)
