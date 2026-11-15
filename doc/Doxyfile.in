@@ -280,3 +280,9 @@ HTML_COLORSTYLE        = LIGHT
 HTML_EXTRA_STYLESHEET  = "@abs_top_srcdir@/doc/theme/awesome/doxygen-awesome.css" \
                          "@abs_top_srcdir@/doc/theme/awesome/doxygen-awesome-sidebar-only.css" \
                          "@abs_top_srcdir@/doc/theme/custom.css"
+HTML_EXTRA_FILES       = "@abs_top_srcdir@/manual/build/fonts/lmroman10-regular.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmroman10-bold.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmroman10-italic.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmroman10-bolditalic.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmmono10-regular.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmmono10-italic.otf"
