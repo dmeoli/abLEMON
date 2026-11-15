@@ -1,7 +1,8 @@
 # The documentation of abLEMON, which Doxygen builds with the target html of
-# CMake, and the site of the user manual, which MkDocs builds from manual/
-# into the folder manual/ of the same pages, published on GitHub Pages at
-# every push on master.
+# CMake, the site of the user manual, which MkDocs builds from manual/ into
+# the folder manual/ of the same pages, and the API reference that Sphinx
+# builds from the XML of Doxygen into the folder sphinx/, published on
+# GitHub Pages at every push on master.
 
 name: Docs
 
@@ -56,6 +57,14 @@ jobs:
           # from manual/build, as the Makefile: the snippets are found
           # relative to the directory where MkDocs runs
           cd manual/build && mkdocs build -f mkdocs.yml -d "$out"
+
+      # the pages of README.md and NEWS and the API reference, which
+      # sphinx/conf.py writes from the XML that the target html wrote into
+      # build/doc/xml; the doctrees stay out of the pages
+      - name: Build the Sphinx site
+        run: |
+          pip install -r sphinx/requirements.txt
+          sphinx-build -b html -d build/doctrees sphinx build/doc/html/sphinx
 
       - name: Upload the pages
         uses: actions/upload-pages-artifact@v3
