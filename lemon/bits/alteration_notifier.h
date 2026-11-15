@@ -77,6 +77,13 @@ namespace lemon
 // an other alteration in the same notifier and should not
 // detach any observer from the notifier.
 //
+// The observers are notified in the order of their attachment at add()
+// and build(), the one attached first being called first, and in the
+// reverse order at erase() and clear(). Thus an observer attached after
+// another one (e.g., a map built on the values of another map) sees the
+// added items after the earlier one has them, and the erased items while
+// the earlier one still has them.
+//
 // Alteration observers try to be exception safe. If an add() or
 // a build() function throws an exception then the remaining
 // observers will not be notified and the fulfilled additions will

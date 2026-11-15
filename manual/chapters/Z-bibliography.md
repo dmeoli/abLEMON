@@ -71,6 +71,9 @@ Cohen, Stéphane Gaubert, Michael McGettrick and Jean-Pierre Quadrat. Numerical
 computation of spectral elements in max-plus algebra. IFAC Proceedings
 Volumes, 31(18):667–674, 1998. doi:10.1016/S1474-6670(17)42067-2
 
+<span id="ref-coinor"></span> COIN-OR, Computational Infrastructure for
+Operations Research. http://www.coin-or.org/
+
 <span id="ref-cordella2004sub"></span> L. P. Cordella, P. Foggia, C. Sansone
 and M. Vento. A (sub)graph isomorphism algorithm for matching large graphs.
 IEEE Transactions on Pattern Analysis and Machine Intelligence,
@@ -137,6 +140,9 @@ doi:10.6028/jres.071B.032
 <span id="ref-edmondskarp72theoretical"></span> Jack Edmonds and Richard M.
 Karp. Theoretical improvements in algorithmic efficiency for network flow
 problems. Journal of the ACM, 19(2):248–264, 1972. doi:10.1145/321694.321699
+
+<span id="ref-egres"></span> EGRES, Egerváry Research Group on Combinatorial
+Optimization. http://www.cs.elte.hu/egres/
 
 <span id="ref-englert2014worst"></span> M. Englert, H. Röglin, and B. Vöcking.
 Worst case and probabilistic analysis of the 2-Opt algorithm for the TSP.

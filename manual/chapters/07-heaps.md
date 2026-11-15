@@ -87,7 +87,10 @@ $O(1)$; after it, the map holds for `i` the state that it held for `j`. The
 test `test/heap_test.cc` checks each heap against the concept, by
 `checkConcept()`, and then by sorting, by increasing priorities, by priorities
 with many ties, by erasures under `std::less` and `std::greater`, and inside
-`Dijkstra`.
+`Dijkstra`; the function templates of these runs are in the header
+`test/heap_test.h`, and they can be called on any class of the concept (e.g.,
+`heapSortTest< H >()` or `dijkstraHeapTest< H >( g , length , s )` on any
+digraph).
 
 ## 7.2 Implicit d-ary heaps {#sec-7-2}
 
@@ -709,7 +712,7 @@ $m=n^{1+\epsilon}$ for a fixed $\epsilon>0$.
 with `std::greater` as the comparison for each comparison heap; then call
 `erase()` on an item that is not the top and check that the others still come
 out in order (Theorems 7.3 to 7.5). The function `heapEraseTest()` of
-`test/heap_test.cc` does it for the comparison heaps.
+`test/heap_test.h` does it for the comparison heaps.
 
 <span id="ex-7-3"></span>**Exercise 7.3.** On grid digraphs of growing size,
 time `manual/examples/07-dijkstra-heaps.cc` with each heap and with lengths in

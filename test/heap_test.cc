@@ -42,6 +42,7 @@
 #include <lemon/bucket_heap.h>
 
 #include "test_tools.h"
+#include "heap_test.h"
 
 using namespace lemon;
 using namespace lemon::concepts;
@@ -85,67 +86,6 @@ char test_lgf[] = "@nodes\n"
 		  "0       9       19      86\n"
 		  "@attributes\n"
 		  "source 3\n";
-
-int test_seq[] = { 2 , 28 , 19 , 27 , 33 , 25 , 13 , 41 , 10 , 26 , 1 , 9 , 4 ,
-		   34 };
-int test_inc[] = { 20 , 28 , 34 , 16 , 0 , 46 , 44 , 0 , 42 , 32 , 14 , 8 , 6 ,
-		   37 };
-
-int test_len = sizeof( test_seq ) / sizeof( test_seq[ 0 ] );
-
-template< typename Heap >
-void heapSortTest()
-{
- RangeMap< int > map( test_len , -1 );
- Heap heap( map );
-
- std::vector< int > v( test_len );
- for( int i = 0 ; i < test_len ; ++i ) {
-  v[ i ] = test_seq[ i ];
-  heap.push( i , v[ i ] );
-  }
- std::sort( v.begin() , v.end() );
- for( int i = 0 ; i < test_len ; ++i ) {
-  check( v[ i ] == heap.prio() , "Wrong order in heap sort." );
-  heap.pop();
-  }
- }
-
-// Priorities of a floating-point type, many of them equal and many below
-// one: the heap has to give them back in order, ties and fractions included
-template< typename Heap >
-void heapTiesTest()
-{
- const int n = 200;
- RangeMap< int > map( n , -1 );
- Heap heap( map );
- std::vector< double > v( n );
- for( int i = 0 ; i < n ; ++i ) {
-  v[ i ] = ( ( i * 37 ) % 11 ) / 4.0;
-  heap.push( i , v[ i ] );
-  }
- std::sort( v.begin() , v.end() );
- for( int i = 0 ; i < n ; ++i ) {
-  check( ! heap.empty() , "Heap emptied too early." );
-  check( v[ i ] == heap.prio() , "Wrong order with ties and fractions." );
-  heap.pop();
-  }
- check( heap.empty() , "Heap not emptied." );
- }
-
-// Two items of equal priority, popped one after the other: a heap that
-// keeps a minimum which is no longer a root loops for ever on the second
-template< typename Heap >
-void heapEqualPairTest()
-{
- RangeMap< int > map( 2 , -1 );
- Heap heap( map );
- heap.push( 0 , 0 );
- heap.push( 1 , 0 );
- heap.pop();
- heap.pop();
- check( heap.empty() , "Heap not emptied after two equal priorities." );
- }
 
 // RadixHeap after the increase of trac #681, and against a sorted set on a
 // pseudo-random monotone sequence of push, pop, increase, decrease, set and
@@ -251,104 +191,6 @@ void radixHeapTest()
    continue;
    }
   ref.insert( std::make_pair( pr[ i ] , i ) );
-  }
- }
-
-template< typename Heap >
-void heapIncreaseTest()
-{
- RangeMap< int > map( test_len , -1 );
-
- Heap heap( map );
-
- std::vector< int > v( test_len );
- for( int i = 0 ; i < test_len ; ++i ) {
-  v[ i ] = test_seq[ i ];
-  heap.push( i , v[ i ] );
-  }
- for( int i = 0 ; i < test_len ; ++i ) {
-  v[ i ] += test_inc[ i ];
-  heap.increase( i , v[ i ] );
-  }
- std::sort( v.begin() , v.end() );
- for( int i = 0 ; i < test_len ; ++i ) {
-  check( v[ i ] == heap.prio() , "Wrong order in heap increase test." );
-  heap.pop();
-  }
- }
-
-// erase() removes the given item, also where no priority is below the
-// minimum: under std::greater (the heap of maxima), and on doubles so
-// large that x - 1 == x, where an erase by decreasing below the minimum
-// removed the minimum in its place
-template< template< typename , typename , typename > class H >
-void heapEraseTest()
-{
- {
-  typedef H< double , RangeMap< int > , std::greater< double > > Heap;
-  RangeMap< int > map( 10 , -1 );
-  Heap heap( map );
-  for( int i = 0 ; i < 10 ; ++i )
-   heap.push( i , i );
-  heap.erase( 1 );
-  heap.erase( 9 );
-  check( heap.state( 1 ) == Heap::POST_HEAP &&
-	   heap.state( 9 ) == Heap::POST_HEAP ,
-	 "Wrong item erased under std::greater." );
-  for( int i = 8 ; i >= 0 ; --i ) {
-   if( i == 1 )
-    continue;
-   check( heap.top() == i , "Wrong order after erase under std::greater." );
-   heap.pop();
-   }
-  check( heap.empty() , "Wrong size after erase under std::greater." );
-  }
- {
-  typedef H< double , RangeMap< int > , std::less< double > > Heap;
-  RangeMap< int > map( 5 , -1 );
-  Heap heap( map );
-  for( int i = 0 ; i < 5 ; ++i )
-   heap.push( i , 1e20 * ( i + 1 ) );
-  heap.erase( 3 );
-  heap.erase( 0 );
-  check( heap.state( 3 ) == Heap::POST_HEAP &&
-	   heap.state( 0 ) == Heap::POST_HEAP ,
-	 "Wrong item erased on large priorities." );
-  const int rest[] = { 1 , 2 , 4 };
-  for( int k = 0 ; k < 3 ; ++k ) {
-   check( heap.top() == rest[ k ] , "Wrong order after erase on large "
-				   "priorities." );
-   heap.pop();
-   }
-  }
- }
-
-template< typename Heap >
-void dijkstraHeapTest( const Digraph & digraph , const IntArcMap & length ,
-		       Node source )
-{
-
- typename Dijkstra< Digraph , IntArcMap >::template SetStandardHeap<
-   Heap >::Create dijkstra( digraph , length );
-
- dijkstra.run( source );
-
- for( ArcIt a( digraph ) ; a != INVALID ; ++a ) {
-  Node s = digraph.source( a );
-  Node t = digraph.target( a );
-  if( dijkstra.reached( s ) ) {
-   check( dijkstra.dist( t ) - dijkstra.dist( s ) <= length[ a ] ,
-	  "Error in shortest path tree." );
-   }
-  }
-
- for( NodeIt n( digraph ) ; n != INVALID ; ++n ) {
-  if( dijkstra.reached( n ) && dijkstra.predArc( n ) != INVALID ) {
-   Arc a = dijkstra.predArc( n );
-   Node s = digraph.source( a );
-   check( dijkstra.dist( n ) - dijkstra.dist( s ) == length[ a ] ,
-	  "Error in shortest path tree." );
-   }
   }
  }
 
