@@ -794,7 +794,7 @@ class MinCostArborescence
 /// \param digraph The digraph the algorithm runs on.
 /// \param cost An arc map storing the costs.
 /// \param source The source node of the arborescence.
-/// \retval arborescence An arc map with \c bool (or convertible) value
+/// \param[out] arborescence An arc map with \c bool (or convertible) value
 /// type that stores the arborescence.
 /// \return The total cost of the arborescence.
 ///

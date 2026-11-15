@@ -543,9 +543,9 @@ class NoTimeReport
 ///and <tt>2*min_time</tt>.
 ///\param f the function object to be measured.
 ///\param min_time the minimum total running time.
-///\retval num if it is not \c NULL, then the actual
+///\param[out] num if it is not \c NULL, then the actual
 ///        number of execution of \c f will be written into <tt>*num</tt>.
-///\retval full_time if it is not \c NULL, then the actual
+///\param[out] full_time if it is not \c NULL, then the actual
 ///        total running time will be written into <tt>*full_time</tt>.
 ///\return The average running time of \c f.
 

@@ -483,7 +483,7 @@ class Bfs
  ///node, then the \c reach parameter will be set to \c true.
  ///
  ///\param target The target node.
- ///\retval reach Indicates if the target node is reached.
+ ///\param[in,out] reach Indicates if the target node is reached.
  ///It should be initially \c false.
  ///
  ///\return The processed node.
@@ -517,7 +517,7 @@ class Bfs
  ///
  ///\param nm A \c bool (or convertible) node map that indicates the
  ///possible targets.
- ///\retval rnode The reached target node.
+ ///\param[in,out] rnode The reached target node.
  ///It should be initially \c INVALID.
  ///
  ///\return The processed node.
@@ -1163,7 +1163,7 @@ class BfsWizard : public TR
 /// // Compute shortest path from s to t
 /// bool reached = bfs( g ).path( p ).dist( d ).run( s , t );
 ///\endcode
-///\warning Don't forget to put the \ref BfsWizard::run(Node) "run()"
+///\warning Don't forget to put the \ref BfsWizard::run "run()"
 ///to the end of the parameter list.
 ///\sa BfsWizard
 ///\sa Bfs
@@ -1475,7 +1475,7 @@ class BfsVisit
  /// node, then the \c reach parameter will be set to \c true.
  ///
  /// \param target The target node.
- /// \retval reach Indicates if the target node is reached.
+ /// \param[in,out] reach Indicates if the target node is reached.
  /// It should be initially \c false.
  ///
  /// \return The processed node.
@@ -1510,7 +1510,7 @@ class BfsVisit
  ///
  /// \param nm A \c bool (or convertible) node map that indicates the
  /// possible targets.
- /// \retval rnode The reached target node.
+ /// \param[in,out] rnode The reached target node.
  /// It should be initially \c INVALID.
  ///
  /// \return The processed node.

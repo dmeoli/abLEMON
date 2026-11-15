@@ -600,10 +600,10 @@ class LpBase
  /// e <= s e <= f e == f s <= e <= t e >= t
  ///\endcode
  ///\warning The validity of a constraint is checked only at run
- ///time, so e.g. \ref addRow(<tt>(x[1]\<=5)\<=6</tt>), which sets the
- ///upper bound twice, will compile, but will fail an assertion, while
- ///<tt>x[1]\<=x[2]\<=5</tt> is the valid constraint
- ///<tt>0\<=x[2]-x[1]\<=5</tt>.
+ ///time, so e.g. \ref addRow() "addRow()" of <tt>(x[1]\<=5)\<=6</tt>,
+ ///which sets the upper bound twice, will compile, but will fail an
+ ///assertion, while <tt>x[1]\<=x[2]\<=5</tt> is the valid
+ ///constraint <tt>0\<=x[2]-x[1]\<=5</tt>.
  class Constr
  {
   public:

@@ -48,7 +48,7 @@ namespace concepts
 /// An actual graph implementation like \ref ListGraph or
 /// \ref SmartGraph may have additional functionality.
 ///
-/// The undirected graphs also fulfill the concept of \ref Digraph
+/// The undirected graphs also fulfill the concept of \ref concepts::Digraph
 /// "directed graphs", since each edge can also be regarded as two
 /// oppositely directed arcs.
 /// Undirected graphs provide an Edge type for the undirected edges and

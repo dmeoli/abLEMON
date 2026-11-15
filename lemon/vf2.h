@@ -76,7 +76,8 @@ class BfsLeaveOrder : public BfsVisitor< G >
 
 ///%VF2 algorithm class.
 
-///\ingroup graph_isomorphism This class provides an efficient
+///\ingroup graph_isomorphism
+///This class provides an efficient
 ///implementation of the %VF2 algorithm \cite cordella2004sub
 ///for variants of the (Sub)graph Isomorphism problem.
 ///

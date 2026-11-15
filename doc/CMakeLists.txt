@@ -12,20 +12,9 @@ SET(LEMON_DOC_USE_MATHJAX "YES" CACHE STRING
 SET(LEMON_DOC_MATHJAX_RELPATH "https://cdn.jsdelivr.net/npm/mathjax@3"
   CACHE STRING "MathJax library location.")
 
-SET(LEMON_DOC_LIBSTDC++_URL
-  "http://gcc.gnu.org/onlinedocs/gcc-4.7.3/libstdc++/api"
-  CACHE STRING "GCC libstdc++ doxygen doc url.")
-
-
 CONFIGURE_FILE(
   ${PROJECT_SOURCE_DIR}/doc/Doxyfile.in
   ${PROJECT_BINARY_DIR}/doc/Doxyfile
-  @ONLY
-)
-
-CONFIGURE_FILE(
-  ${PROJECT_SOURCE_DIR}/doc/mainpage.dox.in
-  ${PROJECT_BINARY_DIR}/doc/mainpage.dox
   @ONLY
 )
 
@@ -98,11 +87,4 @@ IF(DOXYGEN_EXECUTABLE AND PYTHONINTERP_FOUND AND GHOSTSCRIPT_EXECUTABLE)
     )
   ENDIF()
 
-ENDIF()
-
-IF(WGET_FOUND)
-ADD_CUSTOM_TARGET(update-external-tags
-  COMMAND ${WGET_EXECUTABLE} -N ${LEMON_DOC_LIBSTDC++_URL}/libstdc++.tag
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  )
 ENDIF()

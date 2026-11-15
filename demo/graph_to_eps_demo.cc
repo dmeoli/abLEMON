@@ -18,15 +18,16 @@
 
 /// \ingroup demos
 /// \file
-/// \brief Demo of the graph drawing function \ref graphToEps()
+/// \brief Demo of the graph drawing function
+/// \ref lemon::graphToEps() "graphToEps()"
 ///
-/// This demo program shows examples how to use the function \ref
-/// graphToEps(). It takes no input but simply creates seven
-/// <tt>.eps</tt> files demonstrating the capability of \ref
-/// graphToEps(), and showing how to draw directed graphs,
-/// how to handle parallel egdes, how to change the properties (like
-/// color, shape, size, title etc.) of nodes and arcs individually
-/// using appropriate graph maps.
+/// This demo program shows examples how to use the function
+/// \ref lemon::graphToEps() "graphToEps()". It takes no input but simply
+/// creates seven <tt>.eps</tt> files demonstrating the capability of
+/// \ref lemon::graphToEps() "graphToEps()", and showing how to draw
+/// directed graphs, how to handle parallel egdes, how to change the
+/// properties (like color, shape, size, title etc.) of nodes and arcs
+/// individually using appropriate graph maps.
 ///
 /// \include graph_to_eps_demo.cc
 

@@ -1784,8 +1784,6 @@ class HeapUnionFind
   };
  };
 
-//! @}
-
 }  //namespace lemon
 
 #endif  //LEMON_UNION_FIND_H

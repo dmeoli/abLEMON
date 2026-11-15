@@ -36,7 +36,8 @@ namespace lemon
 
 ///%VF2 Plus Plus algorithm class \cite VF2PP.
 
-///\ingroup graph_isomorphism This class provides an efficient
+///\ingroup graph_isomorphism
+///This class provides an efficient
 ///implementation of the %VF2 Plus Plus algorithm \cite VF2PP
 ///for variants of the (Sub)graph Isomorphism problem.
 ///

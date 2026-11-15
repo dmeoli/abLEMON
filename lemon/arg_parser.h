@@ -250,7 +250,7 @@ class ArgParser
  ///\param name The name of the option. The leading '-' must be omitted.
  ///\param help A help string.
  ///\param obl Indicate if the option is mandatory.
- ///\retval ref The value of the argument will be written to this variable.
+ ///\param[out] ref The value of the argument will be written to this variable.
  ArgParser & refOption( const std::string & name , const std::string & help ,
 			int & ref , bool obl = false );
 
@@ -260,7 +260,7 @@ class ArgParser
  ///\param name The name of the option. The leading '-' must be omitted.
  ///\param help A help string.
  ///\param obl Indicate if the option is mandatory.
- ///\retval ref The value of the argument will be written to this variable.
+ ///\param[out] ref The value of the argument will be written to this variable.
  ArgParser & refOption( const std::string & name , const std::string & help ,
 			double & ref , bool obl = false );
 
@@ -270,7 +270,7 @@ class ArgParser
  ///\param name The name of the option. The leading '-' must be omitted.
  ///\param help A help string.
  ///\param obl Indicate if the option is mandatory.
- ///\retval ref The value of the argument will be written to this variable.
+ ///\param[out] ref The value of the argument will be written to this variable.
  ///\note A mandatory bool obtion is of very little use.
  ArgParser & refOption( const std::string & name , const std::string & help ,
 			bool & ref , bool obl = false );
@@ -281,7 +281,7 @@ class ArgParser
  ///\param name The name of the option. The leading '-' must be omitted.
  ///\param help A help string.
  ///\param obl Indicate if the option is mandatory.
- ///\retval ref The value of the argument will be written to this variable.
+ ///\param[out] ref The value of the argument will be written to this variable.
  ArgParser & refOption( const std::string & name , const std::string & help ,
 			std::string & ref , bool obl = false );
 

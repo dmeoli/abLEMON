@@ -1289,7 +1289,7 @@ class DijkstraWizard : public TR
 /// // Compute shortest path from s to t
 /// bool reached = dijkstra( g , length ).path( p ).dist( d ).run( s , t );
 ///\endcode
-///\warning Don't forget to put the \ref DijkstraWizard::run(Node) "run()"
+///\warning Don't forget to put the \ref DijkstraWizard::run "run()"
 ///to the end of the parameter list.
 ///\sa DijkstraWizard
 ///\sa Dijkstra

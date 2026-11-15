@@ -2320,15 +2320,14 @@ class DynArcLookUp
  ///  n++;
  ///\endcode
  ///
- ///Finding the first arc, with \c p not given, takes at most
- ///<em>O</em>(log<em>d</em>) amortized time, specifically, the time
- ///complexity of these lookups is equal to the optimal search tree
- ///implementation for the current query distribution in a constant
- ///factor. Finding the arc after \c p may walk from \c p up to its
- ///successor without splaying that path, hence it takes
- ///<em>O</em>(<em>h</em> + log<em>d</em>) amortized time, where
- ///<em>h</em> &le; <em>d</em> is the depth of \c p in the search tree
- ///of \c s.
+ ///Finding the first arc, with \c p not given, takes at most amortized
+ ///time <em>O</em>(log<em>d</em>), specifically, the time complexity of
+ ///these lookups is equal to the optimal search tree implementation for
+ ///the current query distribution in a constant factor. Finding the arc
+ ///after \c p may walk from \c p up to its successor without splaying
+ ///that path, hence it takes amortized time <em>O</em>(<em>h</em> +
+ ///log<em>d</em>), where <em>h</em> &le; <em>d</em> is the depth of
+ ///\c p in the search tree of \c s.
  ///
  ///\note This is a dynamic data structure, therefore the data
  ///structure is updated after each graph alteration. Thus although

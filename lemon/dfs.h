@@ -1092,7 +1092,7 @@ class DfsWizard : public TR
 /// // Compute the DFS path from s to t
 /// bool reached = dfs( g ).path( p ).dist( d ).run( s , t );
 ///\endcode
-///\warning Don't forget to put the \ref DfsWizard::run(Node) "run()"
+///\warning Don't forget to put the \ref DfsWizard::run "run()"
 ///to the end of the parameter list.
 ///\sa DfsWizard
 ///\sa Dfs

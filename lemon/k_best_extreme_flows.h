@@ -52,7 +52,7 @@ namespace lemon
 /// gives a convex combination of those of its vertices.
 ///
 /// The algorithm is the ranking of the vertices of Murty
-/// \cite murty68ranking: the next vertex is adjacent to one of those
+/// \cite murty68ranking, in which the next vertex is adjacent to one of those
 /// already given, i.e., one pivot of the network simplex away from one of
 /// their bases, along the cycle that a nonbasic arc closes with the tree of
 /// the basis, saturated. The candidates are kept in a queue by their

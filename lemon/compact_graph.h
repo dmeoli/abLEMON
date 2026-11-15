@@ -277,7 +277,7 @@ typedef DigraphExtender< CompactDigraphBase > ExtendedCompactDigraphBase;
 /// not provide efficient iteration over incoming arcs.
 ///
 /// It stores only one \c int value for each node and one \c int value
-/// for each arc. Its \ref InArcIt is provided only for compatibility with
+/// for each arc. Its \c InArcIt is provided only for compatibility with
 /// the \ref concepts::Digraph "Digraph concept": with no index of the
 /// incoming arcs, it scans the arcs, so that visiting the incoming arcs
 /// of one node takes \f$O(m)\f$ time, and of all nodes \f$O(nm)\f$. An

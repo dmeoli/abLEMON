@@ -132,7 +132,7 @@ int countConnectedComponents( const Graph & graph )
 /// \image latex connected_components.eps "Connected components" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval compMap A writable node map. The values will be set from 0 to
+/// \param[out] compMap A writable node map. The values will be set from 0 to
 /// the number of the connected components minus one. Each value of the map
 /// will be set exactly once, and the values of a certain component will be
 /// set continuously.
@@ -391,7 +391,7 @@ int countStronglyConnectedComponents( const Digraph & digraph )
 /// \image latex strongly_connected_components.eps "Strongly connected components" width=\textwidth
 ///
 /// \param digraph The digraph.
-/// \retval compMap A writable node map. The values will be set from 0 to
+/// \param[out] compMap A writable node map. The values will be set from 0 to
 /// the number of the strongly connected components minus one. Each value
 /// of the map will be set exactly once, and the values of a certain
 /// component will be set continuously.
@@ -463,7 +463,7 @@ int stronglyConnectedComponents( const Digraph & digraph , NodeMap & compMap )
 /// The strongly connected components are separated by the cut arcs.
 ///
 /// \param digraph The digraph.
-/// \retval cutMap A writable arc map. The values will be set to \c true
+/// \param[out] cutMap A writable arc map. The values will be set to \c true
 /// for the cut arcs (exactly once for each cut arc), and will not be
 /// changed for other arcs.
 /// \return The number of cut arcs.
@@ -842,7 +842,7 @@ int countBiNodeConnectedComponents( const Graph & graph )
 /// \image latex node_biconnected_components.eps "bi-node-connected components" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval compMap A writable edge map. The values will be set from 0
+/// \param[out] compMap A writable edge map. The values will be set from 0
 /// to the number of the bi-node-connected components minus one. Each
 /// value of the map will be set exactly once, and the values of a
 /// certain component will be set continuously.
@@ -890,7 +890,7 @@ int biNodeConnectedComponents( const Graph & graph , EdgeMap & compMap )
 /// the components.
 ///
 /// \param graph The undirected graph.
-/// \retval cutMap A writable node map. The values will be set to
+/// \param[out] cutMap A writable node map. The values will be set to
 /// \c true for the nodes that separate two or more components, i.e., whose
 /// removal increases the number of the connected components (exactly once
 /// for each cut node), and will not be changed for other nodes. A loop
@@ -1189,7 +1189,7 @@ int countBiEdgeConnectedComponents( const Graph & graph )
 /// \image latex edge_biconnected_components.eps "bi-edge-connected components" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval compMap A writable node map. The values will be set from 0 to
+/// \param[out] compMap A writable node map. The values will be set from 0 to
 /// the number of the bi-edge-connected components minus one. Each value
 /// of the map will be set exactly once, and the values of a certain
 /// component will be set continuously.
@@ -1238,7 +1238,7 @@ int biEdgeConnectedComponents( const Graph & graph , NodeMap & compMap )
 /// the components.
 ///
 /// \param graph The undirected graph.
-/// \retval cutMap A writable edge map. The values will be set to \c true
+/// \param[out] cutMap A writable edge map. The values will be set to \c true
 /// for the cut edges (exactly once for each cut edge), and will not be
 /// changed for other edges.
 /// \return The number of cut edges.
@@ -1345,7 +1345,7 @@ bool dag( const Digraph & digraph )
 /// into topolgical order.
 ///
 /// \param digraph The digraph, which must be DAG.
-/// \retval order A writable node map. The values will be set from 0 to
+/// \param[out] order A writable node map. The values will be set from 0 to
 /// the number of the nodes in the digraph minus one. Each value of the
 /// map will be set exactly once, and the values will be set descending
 /// order.
@@ -1386,7 +1386,7 @@ void topologicalSort( const Digraph & digraph , NodeMap & order )
 /// is DAG.
 ///
 /// \param digraph The digraph.
-/// \retval order A readable and writable node map. The values will be
+/// \param[out] order A readable and writable node map. The values will be
 /// set from 0 to the number of the nodes in the digraph minus one.
 /// Each value of the map will be set exactly once, and the values will
 /// be set descending order.
@@ -1605,7 +1605,7 @@ bool bipartite( const Graph & graph )
 /// \image latex bipartite_partitions.eps "Bipartite partititions" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval partMap A writable node map of \c bool (or convertible) value
+/// \param[out] partMap A writable node map of \c bool (or convertible) value
 /// type. The values will be set to \c true for one component and
 /// \c false for the other one.
 /// \return \c true if the graph is bipartite, \c false otherwise.

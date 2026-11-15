@@ -286,7 +286,7 @@ struct KruskalOutputSelector<
 /// - Any readable arc/edge map. The values of the map indicate the
 /// arc/edge costs.
 ///
-/// \retval out Here we also have a choice.
+/// \param[out] out Here we also have a choice.
 /// - It can be a writable arc/edge map with \c bool value type. After
 /// running the algorithm it will contain the found minimum cost spanning
 /// tree: the value of an arc/edge will be set to \c true if it belongs

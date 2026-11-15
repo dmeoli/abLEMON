@@ -47,7 +47,9 @@
 
 using namespace lemon;
 
+/// \cond
 typedef dim2::Point< double > Point;
+/// \endcond
 
 GRAPH_TYPEDEFS( ListGraph );
 

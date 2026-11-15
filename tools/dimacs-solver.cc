@@ -46,9 +46,11 @@
 #include <lemon/network_simplex.h>
 
 using namespace lemon;
+/// \cond
 typedef SmartDigraph Digraph;
 DIGRAPH_TYPEDEFS( Digraph );
 typedef SmartGraph Graph;
+/// \endcond
 
 template< class Value >
 void solve_sp( ArgParser & ap , std::istream & is , std::ostream & os ,

@@ -686,7 +686,7 @@ inline ConstYMap< M > yMap( const M & m )
 
 ///\brief Map of the normSquare() of a <tt>Point</tt>-map
 ///
-///Map of the \ref Point::normSquare() "normSquare()"
+///Map of the \ref Point::normSquare() const "normSquare()"
 ///of a \ref Point "Point"-map.
 template< class M >
 class NormSquareMap
