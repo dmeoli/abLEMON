@@ -17,7 +17,8 @@
 @font-face { font-family: "Latin Modern Mono"; font-style: italic;
   src: url("fonts/lmmono10-italic.otf") format("opentype"); }
 
-:root {
+/* also on the attributes of the palette, on which Material sets its own */
+:root, [data-md-color-primary], [data-md-color-accent] {
   --md-text-font: "Latin Modern Roman";
   --md-code-font: "Latin Modern Mono";
   --md-typeset-a-color: #7030A0;
