@@ -40,8 +40,8 @@ namespace lemon
 /// \brief Default traits class for NagamochiIbaraki class.
 ///
 /// Default traits class for NagamochiIbaraki class.
-/// \param GR The undirected graph type.
-/// \param CM Type of capacity map.
+/// \tparam GR The undirected graph type.
+/// \tparam CM Type of capacity map.
 template< typename GR , typename CM >
 struct NagamochiIbarakiDefaultTraits
 {
@@ -159,10 +159,10 @@ class NagamochiIbaraki
   };
 
  /// \brief \ref named-templ-param "Named parameter" for setting
- /// the capacity map to a constMap<Edge, int, 1>() instance
+ /// the capacity map to a constMap< Edge , int , 1 >() instance
  ///
  /// \ref named-templ-param "Named parameter" for setting
- /// the capacity map to a constMap<Edge, int, 1>() instance
+ /// the capacity map to a constMap< Edge , int , 1 >() instance
  struct SetUnitCapacity
      : public NagamochiIbaraki< Graph , CapacityMap , SetUnitCapacityTraits >
  {

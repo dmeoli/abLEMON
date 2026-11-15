@@ -521,10 +521,10 @@ class GridGraph : public ExtendedGridGraphBase
 
  public:
  /// \brief Map to get the indices of the nodes as \ref dim2::Point
- /// "dim2::Point<int>".
+ /// "dim2::Point< int >".
  ///
  /// Map to get the indices of the nodes as \ref dim2::Point
- /// "dim2::Point<int>".
+ /// "dim2::Point< int >".
  class IndexMap
  {
   public:

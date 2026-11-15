@@ -111,7 +111,7 @@ struct HartmannOrlinMmcDefaultTraits< GR , CM , true >
 /// map type is \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref HartmannOrlinMmcDefaultTraits
-/// "HartmannOrlinMmcDefaultTraits<GR, CM>".
+/// "HartmannOrlinMmcDefaultTraits< GR , CM >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifdef DOXYGEN

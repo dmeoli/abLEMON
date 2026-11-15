@@ -54,13 +54,13 @@ namespace lemon
 ///\tparam G2 The type of the graph g1 will be embedded into.
 ///The default type is \ref ListGraph.
 ///\tparam M The type of the NodeMap storing the mapping.
-///By default, it is G1::NodeMap<typename G2::Node>
+///By default, it is G1::NodeMap< typename G2::Node >
 ///\tparam M1 The type of the NodeMap storing the integer node labels of G1.
 ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
-///different labels. By default, it is G1::NodeMap<int>.
+///different labels. By default, it is G1::NodeMap< int >.
 ///\tparam M2 The type of the NodeMap storing the integer node labels of G2.
 ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
-///different labels. By default, it is G2::NodeMap<int>.
+///different labels. By default, it is G2::NodeMap< int >.
 ///
 ///\sa vf2pp()
 #ifdef DOXYGEN
@@ -508,7 +508,7 @@ class Vf2pp
  ///\param g1 The graph to be embedded.
  ///\param g2 The graph \e g1 will be embedded into.
  ///\param m The NodeMap storing the mapping, by default of the type
- ///G1::NodeMap<typename G2::Node>.
+ ///G1::NodeMap< typename G2::Node >.
  ///\param intLabels1 The NodeMap storing the integer node labels of G1.
  ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
  ///different labels.

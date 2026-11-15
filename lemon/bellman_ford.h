@@ -87,8 +87,8 @@ struct BellmanFordDefaultOperationTraits< V , false >
 /// \brief Default traits class of BellmanFord class.
 ///
 /// Default traits class of BellmanFord class.
-/// \param GR The type of the digraph.
-/// \param LEN The type of the length map.
+/// \tparam GR The type of the digraph.
+/// \tparam LEN The type of the length map.
 template< typename GR , typename LEN >
 struct BellmanFordDefaultTraits
 {
@@ -173,7 +173,7 @@ struct BellmanFordDefaultTraits
 /// \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref BellmanFordDefaultTraits
-/// "BellmanFordDefaultTraits<GR, LEN>".
+/// "BellmanFordDefaultTraits< GR , LEN >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifdef DOXYGEN

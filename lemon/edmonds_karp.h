@@ -33,8 +33,8 @@ namespace lemon
 /// \brief Default traits class of EdmondsKarp class.
 ///
 /// Default traits class of EdmondsKarp class.
-/// \param GR Digraph type.
-/// \param CAP Type of capacity map.
+/// \tparam GR Digraph type.
+/// \tparam CAP Type of capacity map.
 template< typename GR , typename CAP >
 struct EdmondsKarpDefaultTraits
 {
@@ -100,7 +100,7 @@ struct EdmondsKarpDefaultTraits
 /// type is \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref EdmondsKarpDefaultTraits
-/// "EdmondsKarpDefaultTraits<GR, CAP>".
+/// "EdmondsKarpDefaultTraits< GR , CAP >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 

@@ -119,7 +119,7 @@ struct CostScalingDefaultTraits< GR , V , C , true >
 /// algorithm. By default, it is the same as \c V.
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref CostScalingDefaultTraits
-/// "CostScalingDefaultTraits<GR, V, C>".
+/// "CostScalingDefaultTraits< GR , V , C >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 ///

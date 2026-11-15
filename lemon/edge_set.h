@@ -260,7 +260,7 @@ class ListArcSetBase
 /// "Digraph" concept.
 /// It provides only linear time counting for nodes and arcs.
 ///
-/// \param GR The type of the graph which shares its node set with
+/// \tparam GR The type of the graph which shares its node set with
 /// this class. Its interface must conform to the
 /// \ref concepts::Digraph "Digraph" or \ref concepts::Graph "Graph"
 /// concept.
@@ -693,7 +693,7 @@ class ListEdgeSetBase
 /// concept.
 /// It provides only linear time counting for nodes, edges and arcs.
 ///
-/// \param GR The type of the graph which shares its node set
+/// \tparam GR The type of the graph which shares its node set
 /// with this class. Its interface must conform to the
 /// \ref concepts::Digraph "Digraph" or \ref concepts::Graph "Graph"
 /// concept.
@@ -942,7 +942,7 @@ class SmartArcSetBase
 /// class. The node handling functions (id handling, observing, and
 /// iterators) works equivalently as in the original graph.
 ///
-/// \param GR The type of the graph which shares its node set with
+/// \tparam GR The type of the graph which shares its node set with
 /// this class. Its interface must conform to the
 /// \ref concepts::Digraph "Digraph" or \ref concepts::Graph "Graph"
 /// concept.
@@ -1293,7 +1293,7 @@ class SmartEdgeSetBase
 /// node handling functions (id handling, observing, and iterators)
 /// works equivalently as in the original graph.
 ///
-/// \param GR The type of the graph which shares its node set
+/// \tparam GR The type of the graph which shares its node set
 /// with this class. Its interface must conform to the
 /// \ref concepts::Digraph "Digraph" or \ref concepts::Graph "Graph"
 ///  concept.

@@ -70,7 +70,7 @@ class _NegY
 
 ///Default traits class of \ref GraphToEps.
 ///
-///\param GR is the type of the underlying graph.
+///\tparam GR is the type of the underlying graph.
 template< class GR >
 struct DefaultGraphToEpsTraits
 {

@@ -122,7 +122,7 @@ struct BfsDefaultTraits
 ///The default type is \ref ListDigraph.
 ///\tparam TR The traits class that defines various types used by the
 ///algorithm. By default, it is \ref BfsDefaultTraits
-///"BfsDefaultTraits<GR>".
+///"BfsDefaultTraits< GR >".
 ///In most cases, this parameter should not be set directly,
 ///consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -1293,7 +1293,7 @@ struct BfsVisitDefaultTraits
 /// events, you should implement your own visitor class.
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref BfsVisitDefaultTraits
-/// "BfsVisitDefaultTraits<GR>".
+/// "BfsVisitDefaultTraits< GR >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifdef DOXYGEN

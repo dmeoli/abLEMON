@@ -44,7 +44,7 @@ namespace lemon
 ///The general implementation is suitable only if the data type is exact,
 ///like the integer types, otherwise a specialized version must be
 ///implemented. These specialized classes like
-///Tolerance<double> may offer additional tuning parameters.
+///Tolerance< double > may offer additional tuning parameters.
 ///
 ///\sa Tolerance<float>
 ///\sa Tolerance<double>

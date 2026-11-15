@@ -47,8 +47,8 @@ namespace lemon
 ///
 ///\sa LinkedElevator
 ///
-///\param GR Type of the underlying graph.
-///\param Item Type of the items the data is assigned to (\c GR::Node,
+///\tparam GR Type of the underlying graph.
+///\tparam Item Type of the items the data is assigned to (\c GR::Node,
 ///\c GR::Arc or \c GR::Edge).
 template< class GR , class Item >
 class Elevator
@@ -441,8 +441,8 @@ class Elevator
 ///
 ///\sa Elevator
 ///
-///\param GR Type of the underlying graph.
-///\param Item Type of the items the data is assigned to (\c GR::Node,
+///\tparam GR Type of the underlying graph.
+///\tparam Item Type of the items the data is assigned to (\c GR::Node,
 ///\c GR::Arc or \c GR::Edge).
 template< class GR , class Item >
 class LinkedElevator

@@ -167,3 +167,12 @@ html.writer-html5 .rst-content dl.field-list > dd {
 html.writer-html5 .rst-content dl.field-list > dd code {
   white-space: normal;
 }
+
+/* a long signature wraps within the column instead of running past it */
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list)
+  > dt.sig {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

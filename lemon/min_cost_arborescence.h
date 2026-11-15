@@ -36,8 +36,8 @@ namespace lemon
 /// \brief Default traits class for MinCostArborescence class.
 ///
 /// Default traits class for MinCostArborescence class.
-/// \param GR Digraph type.
-/// \param CM Type of the cost map.
+/// \tparam GR Digraph type.
+/// \tparam CM Type of the cost map.
 template< class GR , class CM >
 struct MinCostArborescenceDefaultTraits
 {
@@ -114,15 +114,15 @@ struct MinCostArborescenceDefaultTraits
 /// The algorithm also provides an optimal dual solution, therefore
 /// the optimality of the solution can be checked.
 ///
-/// \param GR The digraph type the algorithm runs on.
-/// \param CM A read-only arc map storing the costs of the
+/// \tparam GR The digraph type the algorithm runs on.
+/// \tparam CM A read-only arc map storing the costs of the
 /// arcs. It is read once for each arc, so the map may involve in
 /// relatively time consuming process to compute the arc costs if
 /// it is necessary. The default map type is \ref
-/// concepts::Digraph::ArcMap "Digraph::ArcMap<int>".
+/// concepts::Digraph::ArcMap "Digraph::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref MinCostArborescenceDefaultTraits
-/// "MinCostArborescenceDefaultTraits<GR, CM>".
+/// "MinCostArborescenceDefaultTraits< GR , CM >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifndef DOXYGEN
