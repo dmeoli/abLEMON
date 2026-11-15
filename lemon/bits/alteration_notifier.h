@@ -78,12 +78,13 @@ namespace lemon
 // detach any observer from the notifier.
 //
 // Alteration observers try to be exception safe. If an add() or
-// a clear() function throws an exception then the remaining
-// observeres will not be notified and the fulfilled additions will
+// a build() function throws an exception then the remaining
+// observers will not be notified and the fulfilled additions will
 // be rolled back by calling the erase() or clear() functions.
-// Hence erase() and clear() should not throw exception.
-// Actullay, they can throw only \ref ImmediateDetach exception,
-// which detach the observer from the notifier.
+// Hence erase() and clear() must not throw exceptions (the notifier calls
+// them in noexcept functions), except \ref ImmediateDetach, which
+// detaches the observer from the notifier, also during a rollback, where
+// the original exception goes on to the caller.
 //
 // There are some cases, when the alteration observing is not completly
 // reliable. If we want to carry out the node degree in the graph
@@ -341,9 +342,19 @@ class AlterationNotifier
     }
    }
   catch( ... ) {
-   typename Observers::iterator jt;
-   for( jt = it.base() ; jt != _observers.end() ; ++jt ) {
-    ( *jt )->erase( item );
+   // the rollback of the observers already told, each of which may only
+   // detach itself, the original exception going on to the caller
+   typename Observers::iterator jt = it.base();
+   while( jt != _observers.end() ) {
+    try {
+     ( *jt )->erase( item );
+     ++jt;
+     }
+    catch( const ImmediateDetach & ) {
+     ( *jt )->_index = _observers.end();
+     ( *jt )->_notifier = 0;
+     jt = _observers.erase( jt );
+     }
     }
    throw;
    }
@@ -362,9 +373,19 @@ class AlterationNotifier
     }
    }
   catch( ... ) {
-   typename Observers::iterator jt;
-   for( jt = it.base() ; jt != _observers.end() ; ++jt ) {
-    ( *jt )->erase( items );
+   // the rollback of the observers already told, each of which may only
+   // detach itself, the original exception going on to the caller
+   typename Observers::iterator jt = it.base();
+   while( jt != _observers.end() ) {
+    try {
+     ( *jt )->erase( items );
+     ++jt;
+     }
+    catch( const ImmediateDetach & ) {
+     ( *jt )->_index = _observers.end();
+     ( *jt )->_notifier = 0;
+     jt = _observers.erase( jt );
+     }
     }
    throw;
    }
@@ -395,7 +416,7 @@ class AlterationNotifier
  //
  // It notifies all the registed observers about more item erased from
  // the container.
- void erase( const std::vector< Item > & items ) {
+ void erase( const std::vector< Item > & items ) noexcept {
   typename Observers::iterator it = _observers.begin();
   while( it != _observers.end() ) {
    try {
@@ -423,9 +444,19 @@ class AlterationNotifier
     }
    }
   catch( ... ) {
-   typename Observers::iterator jt;
-   for( jt = it.base() ; jt != _observers.end() ; ++jt ) {
-    ( *jt )->clear();
+   // the rollback of the observers already told, each of which may only
+   // detach itself, the original exception going on to the caller
+   typename Observers::iterator jt = it.base();
+   while( jt != _observers.end() ) {
+    try {
+     ( *jt )->clear();
+     ++jt;
+     }
+    catch( const ImmediateDetach & ) {
+     ( *jt )->_index = _observers.end();
+     ( *jt )->_notifier = 0;
+     jt = _observers.erase( jt );
+     }
     }
    throw;
    }
@@ -436,7 +467,7 @@ class AlterationNotifier
  //
  // Notifies all the registed observers about all items are erased
  // from the container.
- void clear() {
+ void clear() noexcept {
   typename Observers::iterator it = _observers.begin();
   while( it != _observers.end() ) {
    try {

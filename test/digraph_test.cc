@@ -590,9 +590,56 @@ void checkDigraphs()
   }
  }
 
+// An observer that accepts additions and detaches itself when told to erase
+// them, as a rollback of the notifier does when a later observer refuses.
+template< class Notifier >
+class DetachingObserver : public Notifier::ObserverBase
+{
+ typedef typename Notifier::Item Item;
+ typedef typename Notifier::ImmediateDetach Detach;
+
+ public:
+ explicit DetachingObserver( Notifier & nf ) { this->attach( nf ); }
+ bool isAttached() const { return( this->attached() ); }
+
+ protected:
+ void add( const Item & ) override { }
+ void add( const std::vector< Item > & ) override { }
+ void erase( const Item & ) override { throw( Detach() ); }
+ void erase( const std::vector< Item > & ) override { throw( Detach() ); }
+ void build() override { }
+ void clear() override { throw( Detach() ); }
+ };
+
+// The rollback of an addition refused by an observer detaches an observer
+// that throws ImmediateDetach from its erase(), and the caller sees the
+// original exception, where the ImmediateDetach went out in its place and
+// the observer stayed attached
+void checkRollbackDetach()
+{
+ typedef ListDigraph::NodeNotifier Notifier;
+ ListDigraph g;
+ DetachingObserver< Notifier > detaching( g.notifier( ListDigraph::Node() ) );
+ bool refused = false;
+ try {
+  RefusingObserver< Notifier > refusing( g.notifier( ListDigraph::Node() ) );
+  g.addNode();
+  }
+ catch( const RefusingObserver< Notifier >::Refused & ) {
+  refused = true;
+  }
+ catch( ... ) {
+  }
+ check( refused , "The rollback did not keep the original exception." );
+ check( ! detaching.isAttached() ,
+	"The rollback did not detach the observer." );
+ check( countNodes( g ) == 0 , "A refused node stayed in the digraph." );
+ }
+
 int main()
 {
  checkDigraphs();
  checkConcepts();
+ checkRollbackDetach();
  return( 0 );
  }
