@@ -144,9 +144,9 @@ the filter that the adaptor lacks).
 
 `ReverseDigraph< DGR >` presents the digraph `DGR` with all its arcs reversed.
 Its `source()` and `target()` are exchanged, the outgoing arcs of a node are
-its incoming arcs in the digraph (and vice versa), `findArc(u, v)` looks for
-an arc from `v` to `u` in the digraph, and `addArc(u, v)` adds the arc $(v,u)$
-to it. Its constructor takes the digraph
+its incoming arcs in the digraph (and vice versa), `findArc( u , v )` looks
+for an arc from `v` to `u` in the digraph, and `addArc( u , v )` adds the arc
+$(v,u)$ to it. Its constructor takes the digraph
 (`explicit ReverseDigraph( DGR & digraph )`), and the adaptor counts in the
 time of the digraph. One typically uses it to run a search backwards, e.g., to
 find the nodes from which a target is reachable, or to compute the distances
@@ -154,33 +154,34 @@ to a node by `Dijkstra` with the same length map.
 
 The filtering adaptors hide some of the items by means of `bool` maps, called
 filters: an item is visible if and only if its filter value is `true`.
-`SubDigraph< DGR, NF, AF >` filters both the nodes and the arcs of a digraph,
-with a node map `NF` and an arc map `AF`, whose defaults are
+`SubDigraph< DGR , NF , AF >` filters both the nodes and the arcs of a
+digraph, with a node map `NF` and an arc map `AF`, whose defaults are
 `DGR::NodeMap< bool >` and `DGR::ArcMap< bool >`. An arc is visible when it is
-enabled and both its ends are enabled. `SubGraph< GR, NF, EF >` does the same
-for a graph, with an edge filter `EF` (by default `GR::EdgeMap< bool >`), and
-an edge is visible when it and both its ends are enabled. Three specialized
-filters keep a constant map, i.e., a `ConstMap` with the inlined value `true`
-(cf. [§6.3](06-maps.md#sec-6-3)), in place of the filter they lack.
-`FilterNodes< GR, NF >` works on a digraph or on a graph (it chooses the
-concept from the `UndirectedTag` of `GR`), and it hides the nodes together
-with the arcs or edges incident to them. `FilterArcs< DGR, AF >` hides arcs of
-a digraph, and `FilterEdges< GR, EF >` hides edges of a graph (and both their
-arcs); neither of the two hides a node.
+enabled and both its ends are enabled. `SubGraph< GR , NF , EF >` does the
+same for a graph, with an edge filter `EF` (by default `GR::EdgeMap< bool >`),
+and an edge is visible when it and both its ends are enabled. Three
+specialized filters keep a constant map, i.e., a `ConstMap` with the inlined
+value `true` (cf. [§6.3](06-maps.md#sec-6-3)), in place of the filter they
+lack. `FilterNodes< GR , NF >` works on a digraph or on a graph (it chooses
+the concept from the `UndirectedTag` of `GR`), and it hides the nodes together
+with the arcs or edges incident to them. `FilterArcs< DGR , AF >` hides arcs
+of a digraph, and `FilterEdges< GR , EF >` hides edges of a graph (and both
+their arcs); neither of the two hides a node.
 
 Their constructors take the structure and references to the filters, which the
 adaptor keeps by pointer, e.g.,
-`SubDigraph( DGR & digraph, NF & node_filter, AF & arc_filter )` and
-`FilterArcs( DGR & digraph, AF & arc_filter )`. Thus, the filters must outlive
-the adaptor, and a value written directly into a filter is seen at once
-through the adaptor. The same can be done through the adaptor itself:
-`status(item, v)` sets the filter value of the item to `v` and `status(item)`
-reads it, while `enable(item)` and `disable(item)` are `status(item, true)`
-and `status(item, false)`. Each of them costs one access to the filter map (a
-`FilterNodes` has them for the nodes only, a `FilterArcs` for the arcs, a
-`FilterEdges` for the edges). Building the filters (e.g.,
-`DGR::ArcMap< bool > f( g, true )`, which shows the whole digraph) is left to
-the caller, since only the caller knows which items are to be seen.
+`SubDigraph( DGR & digraph , NF & node_filter , AF & arc_filter )` and
+`FilterArcs( DGR & digraph , AF & arc_filter )`. Thus, the filters must
+outlive the adaptor, and a value written directly into a filter is seen at
+once through the adaptor. The same can be done through the adaptor itself:
+`status( item , v )` sets the filter value of the item to `v` and
+`status( item )` reads it, while `enable( item )` and `disable( item )` are
+`status( item , true )` and `status( item , false )`. Each of them costs one
+access to the filter map (a `FilterNodes` has them for the nodes only, a
+`FilterArcs` for the arcs, a `FilterEdges` for the edges). Building the
+filters (e.g., `DGR::ArcMap< bool > f( g , true )`, which shows the whole
+digraph) is left to the caller, since only the caller knows which items are to
+be seen.
 
 A `SubDigraph` with an all-true node filter and a `FilterArcs` show the same
 digraph; the difference is one of efficiency. The former checks the filter
@@ -190,34 +191,35 @@ checks only the arc filter. The search of an arc between two nodes behaves as
 follows.
 
 <span id="lem-5-2"></span>**Lemma 5.2.** *On a filtering adaptor,
-`findArc(u, v, prev)` (and, on the graphs, `findEdge(u, v, prev)`) returns
-`INVALID` at once if `u` or `v` is hidden, and otherwise the first visible arc
-from `u` to `v` that the adapted structure returns after `prev`, or `INVALID`
-if there is none. It calls `findArc()` (or `findEdge()`) of the adapted
-structure $k+1$ times, where $k$ is the number of hidden arcs that it skips.*
+`findArc( u , v , prev )` (and, on the graphs, `findEdge( u , v , prev )`)
+returns `INVALID` at once if `u` or `v` is hidden, and otherwise the first
+visible arc from `u` to `v` that the adapted structure returns after `prev`,
+or `INVALID` if there is none. It calls `findArc()` (or `findEdge()`) of the
+adapted structure $k+1$ times, where $k$ is the number of hidden arcs that it
+skips.*
 
 *Proof.* The function reads the node filter at `u` and `v`; then it calls
-`findArc(u, v, prev)` of the adapted structure and, while the arc returned is
-hidden, calls it again from that arc. Each call either returns `INVALID`,
+`findArc( u , v , prev )` of the adapted structure and, while the arc returned
+is hidden, calls it again from that arc. Each call either returns `INVALID`,
 which ends the loop, or returns the next arc from `u` to `v`, which is either
 the result or one of the $k$ hidden arcs skipped. $\square$
 
 ## 5.3 Changing the orientation {#sec-5-3}
 
 `Undirector< DGR >` presents a digraph as an undirected graph. Each arc of the
-digraph is an edge of the adaptor, with `u(e)` its source and `v(e)` its
+digraph is an edge of the adaptor, with `u( e )` its source and `v( e )` its
 target, and, as for the other graphs of the library, each edge also gives two
-arcs: the forward one (`direction(a) == true`), oriented as the arc of the
+arcs: the forward one (`direction( a ) == true`), oriented as the arc of the
 digraph, and the backward one. The `Edge` type of the adaptor is the `Arc`
 type of the digraph, while its `Arc` is a pair (arc of the digraph,
 direction), which converts to the arc of the digraph. The constructor takes
-the digraph, `addEdge(u, v)` adds the arc $(u,v)$ to it, and the `ArcMap` of
-an `Undirector` keeps two arc maps of the digraph, one per direction. The
+the digraph, `addEdge( u , v )` adds the arc $(u,v)$ to it, and the `ArcMap`
+of an `Undirector` keeps two arc maps of the digraph, one per direction. The
 outgoing arcs of a node $v$ are the backward arcs of the arcs that enter $v$
 in the digraph, followed by the forward arcs of those that leave it; thus, an
 outgoing iteration over $v$ costs the in-degree plus the out-degree of $v$ in
 the digraph. Also, `edgeNum()` is `arcNum()` of the digraph and `arcNum()` is
-twice as much, both in the time of the digraph, and `findArc(s, t)` returns
+twice as much, both in the time of the digraph, and `findArc( s , t )` returns
 first the forward arcs of the arcs from $s$ to $t$ and then the backward arcs
 of those from $t$ to $s$. The identifiers obey the following rule.
 
@@ -227,36 +229,36 @@ its forward arc $2i+1$ and its backward arc $2i$; these are distinct for
 distinct arcs of the adaptor, `arcFromId()` inverts `id()`, and they do not
 exceed `maxArcId()`, which is $2\,$`maxArcId()`$\,+1$ of the digraph.*
 
-*Proof.* The code computes `id(a)` as $(i \ll 1) \mid d$, with $d$ the
-direction bit, and `arcFromId(x)` as the arc of identifier $x \gg 1$ with the
-direction $x \mathbin{\&} 1$; the two maps are inverse to each other, and
+*Proof.* The code computes `id( a )` as $(i \ll 1) \mid d$, with $d$ the
+direction bit, and `arcFromId( x )` as the arc of identifier $x \gg 1$ with
+the direction $x \mathbin{\&} 1$; the two maps are inverse to each other, and
 $2i+d\le 2\max_i i+1$. $\square$
 
 When an algorithm on the undirected graph needs an arc map and the data are on
-the digraph, the nested class `Undirector< DGR >::CombinedArcMap< FW, BK >`
+the digraph, the nested class `Undirector< DGR >::CombinedArcMap< FW , BK >`
 reads the forward arcs from the arc map `FW` and the backward ones from `BK`,
 and its `set()` writes to the one of the two that the direction selects. It is
-created by the static function `combinedArcMap(forward, backward)`, its value
-type is that of `FW`, and it is a reference map when `FW` is one. For
-instance, `Undirector< const G >::combinedArcMap( cost, cost )` gives an
+created by the static function `combinedArcMap( forward , backward )`, its
+value type is that of `FW`, and it is a reference map when `FW` is one. For
+instance, `Undirector< const G >::combinedArcMap( cost , cost )` gives an
 undirected length (or capacity) taken from one arc map of the digraph.
 
-`Orienter< GR, DM >` goes the other way, and it presents a graph as a digraph
-in which each edge is an arc. The arc goes from `u(e)` to `v(e)` when the
+`Orienter< GR , DM >` goes the other way, and it presents a graph as a digraph
+in which each edge is an arc. The arc goes from `u( e )` to `v( e )` when the
 direction map `DM` (a `bool` edge map, by default `GR::EdgeMap< bool >`, named
-by the type `DirectionMap`) is `true` on the edge, and from `v(e)` to `u(e)`
-otherwise. Its constructor takes the graph and the direction map, which is
-kept by pointer, and `reverseArc(a)` negates the direction of an arc by one
-write to the map. Furthermore, `addArc(u, v)` adds an edge to the graph and
-sets its direction, so that the new arc goes from `u` to `v`. Since the arcs
-of the adaptor are the edges of the graph, `arcNum()` is `edgeNum()` of the
-graph, and the identifier of an arc is that of its edge.
+by the type `DirectionMap`) is `true` on the edge, and from `v( e )` to
+`u( e )` otherwise. Its constructor takes the graph and the direction map,
+which is kept by pointer, and `reverseArc( a )` negates the direction of an
+arc by one write to the map. Furthermore, `addArc( u , v )` adds an edge to
+the graph and sets its direction, so that the new arc goes from `u` to `v`.
+Since the arcs of the adaptor are the edges of the graph, `arcNum()` is
+`edgeNum()` of the graph, and the identifier of an arc is that of its edge.
 
 <span id="lem-5-4"></span>**Lemma 5.4.** *On an `Orienter`, a complete
 iteration of `OutArcIt` (or `InArcIt`) over a node $v$ costs $O(1+\deg(v))$,
 where $\deg(v)$ is the number of edges incident to $v$ in the graph, and
-`findArc(u, v)` calls `findEdge(u, v)` of the graph once for each edge between
-$u$ and $v$ that it skips, plus one.*
+`findArc( u , v )` calls `findEdge( u , v )` of the graph once for each edge
+between $u$ and $v$ that it skips, plus one.*
 
 *Proof.* `firstOut()` and `nextOut()` iterate on the incident edges of $v$ by
 `firstInc()` and `nextInc()` of the graph and skip each edge whose direction
@@ -303,8 +305,8 @@ $u(S)=\sum_{(i,j)\in A:\,i\in S,\,j\notin S}u_{ij}$.
 
 ![Figure 5.1. A flow $x$ (left, flow/capacity on each arc) and its residual digraph (right): the forward arcs, in the primary colour, where $x$ is below the capacity, and the backward arcs, in the second colour, where $x$ is positive, each with its residual capacity.](../figures/05-residual.svg){#fig-5-1}
 
-`ResidualDigraph< DGR, CM, FM, TL >` implements (5.2) as an adaptor. `DGR` is
-the digraph (implicitly `const`), `CM` the capacity map (by default
+`ResidualDigraph< DGR , CM , FM , TL >` implements (5.2) as an adaptor. `DGR`
+is the digraph (implicitly `const`), `CM` the capacity map (by default
 `DGR::ArcMap< int >`, implicitly `const`), `FM` the flow map (by default
 `CM`), which the adaptor may write, and `TL` the tolerance (by default
 `Tolerance< CM::Value >`, cf. [chapter 3](03-mental-model.md#ch-3)). The class
@@ -321,26 +323,26 @@ of these two tests (the note of the header calls it a combination of
 the adaptor is an arc of the `Undirector` (convertible to the arc of the
 digraph it comes from), the adaptor counts in linear time, and its iterations
 skip the arcs of zero residual capacity one by one (Lemma 5.1). The
-constructor `ResidualDigraph( digraph, capacity, flow, tolerance )` takes the
-digraph and the capacity map by constant reference, the flow map by reference
-and the tolerance by constant reference, by default `Tolerance()`, and the
-members that are specific to the residual digraph are the following.
+constructor `ResidualDigraph( digraph , capacity , flow , tolerance )` takes
+the digraph and the capacity map by constant reference, the flow map by
+reference and the tolerance by constant reference, by default `Tolerance()`,
+and the members that are specific to the residual digraph are the following.
 
--   `residualCapacity(a)` returns $u_a-x_a$ for a forward arc and $x_a$ for a
-    backward one, computed without the tolerance.
--   `augment(a, v)` adds `v` to the flow of the original arc if `a` is
+-    `residualCapacity( a )` returns $u_a-x_a$ for a forward arc and $x_a$ for
+    a backward one, computed without the tolerance.
+-    `augment( a , v )` adds `v` to the flow of the original arc if `a` is
     forward, and it subtracts `v` if `a` is backward. It writes the flow map
     by `set()`, and it does not check that the result stays within the bounds.
--   `forward(a)` and `backward(a)` (static), on an arc of the adaptor, give
-    its direction. On an arc of the digraph, they return the forward or the
-    backward residual arc that corresponds to it, whether or not that arc is
-    currently visible.
--   `ResidualCapacity` is a read-only arc map of the adaptor whose value at
-    an arc is `residualCapacity(a)`. It is created by `residualCapacity()`,
+-    `forward( a )` and `backward( a )` (static), on an arc of the adaptor,
+    give its direction. On an arc of the digraph, they return the forward or
+    the backward residual arc that corresponds to it, whether or not that arc
+    is currently visible.
+-    `ResidualCapacity` is a read-only arc map of the adaptor whose value at
+    an arc is `residualCapacity( a )`. It is created by `residualCapacity()`,
     and its value type is that of the capacity map.
 
-The function `residualDigraph(digraph, capacity, flow)` returns the adaptor
-with the default tolerance.
+The function `residualDigraph( digraph , capacity , flow )` returns the
+adaptor with the default tolerance.
 
 The augmenting path method of [Ford and Fulkerson
 1956](Z-bibliography.md#ref-ford1956maximal) needs only the residual digraph,
@@ -409,7 +411,7 @@ $\square$
 
 <span id="thm-5-2"></span>**Theorem 5.2.** *If the capacities and the initial
 flow are integers, Algorithm 5.1 (with the default tolerance, under which
-`positive(y)` is $y>0$) terminates; its final flow is maximum and integral,
+`positive( y )` is $y>0$) terminates; its final flow is maximum and integral,
 and the set $S$ is a minimum cut. Hence, on integral capacities a maximum flow
 exists whose values are integers.*
 
@@ -418,7 +420,7 @@ since $\delta$ is a minimum of integers; each augmentation increases the value
 by $\delta\ge1$ (Lemma 5.5, where the path of the search tree has no repeated
 node), and the value is bounded by $u(\{s\})$ (Theorem 5.1). Therefore, the
 algorithm stops, which happens when the complete search from $s$ does not
-reach $t$ (`run(s, t)` stops early only when it reaches $t$); the reached
+reach $t$ (`run( s , t )` stops early only when it reaches $t$); the reached
 nodes are then all the nodes reachable from $s$, and Theorem 5.1 applies.
 $\square$
 
@@ -508,22 +510,22 @@ to the arc for an original arc, that to the node for a bind arc). The
 identifiers are $2i$ for the in-node and $2i+1$ for the out-node, and $2i$ for
 an original arc and $2i+1$ for the bind arc of a node, where $i$ is the
 identifier in the digraph, so that `maxArcId()` is the larger of
-$2\,$`maxArcId()` and $2\,$`maxNodeId()`$\,+1$ of the digraph. `nodeNum()`
-and `arcNum()` are computed by `countNodes()` and `countArcs()` of the
-digraph, i.e., in the time of the digraph. Also, `findArc(u, v)` returns the
-bind arc when `u` is the in-node and `v` the out-node of the same node, the
+$2\,$`maxArcId()` and $2\,$`maxNodeId()`$\,+1$ of the digraph. `nodeNum()` and
+`arcNum()` are computed by `countNodes()` and `countArcs()` of the digraph,
+i.e., in the time of the digraph. Also, `findArc( u , v )` returns the bind
+arc when `u` is the in-node and `v` the out-node of the same node, the
 original arcs found by `findArc()` of the digraph when `u` is an out-node and
 `v` an in-node, and `INVALID` otherwise. Besides the types `Digraph`,
 `DigraphNode` and `DigraphArc`, the static members translate between the two
 structures, as follows.
 
--   `inNode(n)` and `outNode(n)`, on a node of the adaptor, return which of
-    the two it is; on a node of the digraph, they return its in-node or its
+-    `inNode( n )` and `outNode( n )`, on a node of the adaptor, return which
+    of the two it is; on a node of the digraph, they return its in-node or its
     out-node.
--   `origArc(a)` and `bindArc(a)` return whether an arc of the adaptor is an
-    original arc or a bind arc.
--   `arc(n)` returns the bind arc of a node of the digraph, and `arc(a)` the
-    arc of the adaptor that corresponds to an arc of the digraph.
+-    `origArc( a )` and `bindArc( a )` return whether an arc of the adaptor is
+    an original arc or a bind arc.
+-    `arc( n )` returns the bind arc of a node of the digraph, and `arc( a )`
+    the arc of the adaptor that corresponds to an arc of the digraph.
 
 !!! note "abLEMON"
     In LEMON 1.3.1, `maxArcId()` of `SplitNodes` was the larger of
@@ -533,14 +535,14 @@ structures, as follows.
     two nodes and no arc.
 
 One gives the data by two combining maps, nested in the class.
-`CombinedNodeMap< In, Out >`, created by `combinedNodeMap(in_map, out_map)`,
-reads the in-nodes from the node map `In` and the out-nodes from `Out`.
-`CombinedArcMap< AM, NM >`, created by `combinedArcMap(arc_map, node_map)`,
-reads the original arcs from the arc map `AM` and the bind arcs from the node
-map `NM`. Their value types are those of `In` and `AM`, respectively, and
-their `set()` writes to the map that the kind of the item selects. In this
-way, one may turn a node capacity into the capacity of a bind arc, and the
-following form of the theorem of [Menger
+`CombinedNodeMap< In , Out >`, created by
+`combinedNodeMap( in_map , out_map )`, reads the in-nodes from the node map
+`In` and the out-nodes from `Out`. `CombinedArcMap< AM , NM >`, created by
+`combinedArcMap( arc_map , node_map )`, reads the original arcs from the arc
+map `AM` and the bind arcs from the node map `NM`. Their value types are those
+of `In` and `AM`, respectively, and their `set()` writes to the map that the
+kind of the item selects. In this way, one may turn a node capacity into the
+capacity of a bind arc, and the following form of the theorem of [Menger
 1927](Z-bibliography.md#ref-menger1927allgemeinen) (cf. [Ahuja, Magnanti and
 Orlin 1993, §6.6](Z-bibliography.md#ref-amo93networkflows)) computes the
 largest number of paths with no inner node in common as a maximum flow.

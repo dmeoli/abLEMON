@@ -172,26 +172,27 @@ of `NetworkSimplex` takes a second argument, `arc_mixing` (section 13.4). The
 parameters of the problem are then given by functions that copy the data at
 once, so that the maps need not outlive the call; each returns the object.
 
--   `lowerMap(map)` sets the lower bounds, zero on the arcs if it is not
+-    `lowerMap( map )` sets the lower bounds, zero on the arcs if it is not
 called.
--   `upperMap(map)` sets the upper bounds, `INF` on the arcs if it is not
+-    `upperMap( map )` sets the upper bounds, `INF` on the arcs if it is not
 called.
--   `costMap(map)` sets the costs, 1 on the arcs if it is not called.
--   `supplyMap(map)` sets the supplies, zero if neither it nor `stSupply()` is
-called, and `stSupply(s, t, k)` gives $k$ to $s$, $-k$ to $t$ and zero to the
-other nodes.
--   `supplyType(type)`, in `NetworkSimplex` only, sets the form, `GEQ` (the
+-    `costMap( map )` sets the costs, 1 on the arcs if it is not called.
+-    `supplyMap( map )` sets the supplies, zero if neither it nor `stSupply()`
+    is
+called, and `stSupply( s , t , k )` gives $k$ to $s$, $-k$ to $t$ and zero to
+the other nodes.
+-    `supplyType( type )`, in `NetworkSimplex` only, sets the form, `GEQ` (the
 default) or `LEQ`, constants of the nested enum `SupplyType`.
 
 Then `run()` solves the problem and returns its `ProblemType`, with arguments
 that differ from class to class (Table 13.1). After a run, the queries are
-`totalCost()`, i.e., the cost of the flow in $O(m)$ time, `flow(arc)` and
-`flowMap(map)`, which give the flow, and `potential(node)` and
-`potentialMap(map)`, which give the potentials. With a template argument,
+`totalCost()`, i.e., the cost of the flow in $O(m)$ time, `flow( arc )` and
+`flowMap( map )`, which give the flow, and `potential( node )` and
+`potentialMap( map )`, which give the potentials. With a template argument,
 e.g., `totalCost< double >()`, the sum is made in another type, which helps
 when it may overflow `Cost`. We describe the certificates `infeasibleCut()`,
-`infeasibleCuts(k)`, `disjointInfeasibleCuts()`, `unboundedCycle()` and
-`unboundedCycles(k)`, which are meaningful after a run that returned
+`infeasibleCuts( k )`, `disjointInfeasibleCuts()`, `unboundedCycle()` and
+`unboundedCycles( k )`, which are meaningful after a run that returned
 `INFEASIBLE` or `UNBOUNDED`, in [chapter 14](14-k-best-flows.md#ch-14), and
 the tolerances in section 13.3.
 
@@ -205,7 +206,8 @@ second run solves the problem from scratch, whatever changed. A typical use is
 ```cpp
 NetworkSimplex< ListDigraph > ns( g );
 ns.upperMap( cap ).costMap( cost ).supplyMap( sup );
-if( ns.run() == NetworkSimplex< ListDigraph >::OPTIMAL ) c = ns.totalCost();
+if( ns.run() == NetworkSimplex< ListDigraph >::OPTIMAL )
+ c = ns.totalCost();
 ```
 
 and the other three classes are called in the same way.
@@ -281,7 +283,7 @@ $\epsilon_f$ of zero is taken as zero, since supplies such as $0.1$, $0.2$ and
 $-0.3$, which sum to zero in decimal, in binary sum to a few units in the last
 place of either sign.
 
-A call of `tolerances(flow, cost)` sets the two tolerances, and a negative
+A call of `tolerances( flow , cost )` sets the two tolerances, and a negative
 value, the default, leaves them to (13.6). In turn, `flowTolerance()` and
 `costTolerance()` return the tolerances in use, as a `Tolerance< Value >` and
 a `Tolerance< Cost >` (types named `FlowTolerance` and `CostTolerance` in each
@@ -861,13 +863,14 @@ deficit at least $\Delta$ in the residual network of the arcs of capacity at
 least $\Delta$. The code skips a node that does not, until a smaller $\Delta$,
 which the count does not cover. In the searches the class uses the heap type
 `Heap` of the traits class `CapacityScalingDefaultTraits< GR , V , C >` (which
-also defines `Digraph`, `Value` and `Cost`), by default `QuadHeap< Cost ,
-RangeMap< int > >`, whose fewer levels make the searches cheaper than on a
-binary heap ([Johnson 1975](Z-bibliography.md#ref-johnson75heap)). The named
-parameter `SetHeap< T >` replaces it by any heap that meets the concept of
-[chapter 7](07-heaps.md#ch-7) with the priority type `Cost` and the cross
-reference map `RangeMap< int >`, and the class names the traits `Traits` and
-the heap `Heap`.
+also defines `Digraph`, `Value` and `Cost`), by default
+`QuadHeap< Cost , RangeMap< int > >`, whose fewer levels make the searches
+cheaper than on a binary heap ([Johnson
+1975](Z-bibliography.md#ref-johnson75heap)). The named parameter
+`SetHeap< T >` replaces it by any heap that meets the concept of [chapter
+7](07-heaps.md#ch-7) with the priority type `Cost` and the cross reference map
+`RangeMap< int >`, and the class names the traits `Traits` and the heap
+`Heap`.
 
 !!! note "abLEMON"
     The default heap is a 4-ary heap (version 1.4.0), the class compiles on
@@ -1012,11 +1015,11 @@ its residual network is not optimal. Then check (13.5) on the four answers of
 <span id="ex-13-2"></span>**Exercise 13.2.** Transform a problem in the LEQ
 form (13.2) into the GEQ form with `ReverseDigraph` and `NegMap`, solve it
 with `CostScaling`, and compare the cost with that of `NetworkSimplex` with
-`supplyType(LEQ)`. (The supply types are checked by `checkSupplyTypes()` in
+`supplyType( LEQ )`. (The supply types are checked by `checkSupplyTypes()` in
 `test/min_cost_flow_test.cc`.)
 
 <span id="ex-13-3"></span>**Exercise 13.3.** Solve the problem of
-`manual/examples/13-floating-point.cc` with `tolerances(0, 0)` on supplies
+`manual/examples/13-floating-point.cc` with `tolerances( 0 , 0 )` on supplies
 that are exact in binary (e.g., $0.25$, $0.5$ and $-0.75$), and then on $0.1$,
 $0.2$ and $-0.3$ with the default tolerances; explain the difference by
 (13.6). (The tolerances are checked by `checkTolerances()` and

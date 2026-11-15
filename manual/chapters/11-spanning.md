@@ -135,25 +135,25 @@ work after the last useful edge is only one `join()` per edge. Of course, when
 the costs come already sorted (e.g., from a previous run), passing them as a
 list saves the sort, which is usually the dominating cost.
 
-**Interface.** Function `kruskal(g, in, out)` accepts various types for its
-arguments, and returns the cost of the forest found, of the type of the costs.
-Its graph `g` may be undirected, with the costs on its edges, or directed, in
-which case the arcs are taken as edges (the union-find structure joins the
-target and the source of each arc) and their direction is disregarded. Its
-costs `in` may be given either (i) as a readable map on the edges (or arcs),
-whose values are the costs, or (ii) as an STL container of pairs
-`std::pair<GR::Edge, C>` (or `std::pair<GR::Arc, C>`), where `C` is the type
-of the costs. In case (i), the function collects the pairs of each item and
-its cost into a vector, and sorts it by cost with `std::sort`. In case (ii),
-the pairs must already be sorted by nondecreasing cost, since no sort is done
-(Theorem 11.2 gives what is computed otherwise), and an edge that is not in
-the container receives no value in `out`.
+**Interface.** Function `kruskal( g , in , out )` accepts various types for
+its arguments, and returns the cost of the forest found, of the type of the
+costs. Its graph `g` may be undirected, with the costs on its edges, or
+directed, in which case the arcs are taken as edges (the union-find structure
+joins the target and the source of each arc) and their direction is
+disregarded. Its costs `in` may be given either (i) as a readable map on the
+edges (or arcs), whose values are the costs, or (ii) as an STL container of
+pairs `std::pair< GR::Edge , C >` (or `std::pair< GR::Arc , C >`), where `C`
+is the type of the costs. In case (i), the function collects the pairs of each
+item and its cost into a vector, and sorts it by cost with `std::sort`. In
+case (ii), the pairs must already be sorted by nondecreasing cost, since no
+sort is done (Theorem 11.2 gives what is computed otherwise), and an edge that
+is not in the container receives no value in `out`.
 
 Its output `out` may also be given in two ways. It may be (i) a writable map
 on the edges with `bool` values, which receives `true` for the edges of the
 forest and `false` for the others, each edge of the list being written once.
 Alternatively, it may be (ii) an output iterator, e.g.,
-`std::back_inserter(tree)`, into which the edges of the forest are copied in
+`std::back_inserter( tree )`, into which the edges of the forest are copied in
 the order in which they are found; the function wraps it in a `LoggerBoolMap`
 (cf. [chapter 6](06-maps.md#ch-6)), which copies the keys set to `true` and
 ignores the others. A second overload takes `out` by constant reference, so
@@ -161,11 +161,10 @@ that a temporary iterator may be passed. The choice among the forms is made at
 compile time by the helper templates of the namespace `_kruskal_bits`, which
 are not part of the interface: `KruskalValueSelector`, `KruskalInputSelector`,
 `KruskalOutputSelector`, `SequenceInputIndicator`, `MapInputIndicator`,
-`SequenceOutputIndicator`, `MapOutputIndicator`, `RemoveConst` and
-`PairComp`. They take an input for a sequence if its `value_type` has a
-`first_type`, and for a map if it has a type `Value`; an output is taken for a
-sequence (an iterator) if it has a `value_type`, and for a map if it has a
-`Value`.
+`SequenceOutputIndicator`, `MapOutputIndicator`, `RemoveConst` and `PairComp`.
+They take an input for a sequence if its `value_type` has a `first_type`, and
+for a map if it has a type `Value`; an output is taken for a sequence (an
+iterator) if it has a `value_type`, and for a map if it has a `Value`.
 
 Figure 11.1 shows the tree that the program of this section computes. Its
 edges, sorted by cost, are kept in the order 1, 2, 3, 5, 6, while the edges of
@@ -366,7 +365,7 @@ For (iv), consider the stack $L_0,\dots,L_t$ of the levels, from the bottom.
 The chosen arc of $L_i$, for $i<t$, comes from a node of $L_{i+1}$: indeed,
 $L_{i+1}$ was pushed by `prepare()` on the tail of that arc, and the later
 contractions only enlarge $L_{i+1}$ (or pop $L_i$ too). Thus, when
-`contract(u)` merges the levels $L_j,\dots,L_t$, with $u\in L_j$, the chosen
+`contract( u )` merges the levels $L_j,\dots,L_t$, with $u\in L_j$, the chosen
 arcs of $L_j,\dots,L_{t-1}$ go from each level to the one below it, and that
 of $L_t$ goes from $L_j$ to $L_t$. They form a cycle through the levels, all
 inside $X$, created before $X$. Together with the induction hypothesis for the
@@ -378,7 +377,7 @@ that merges $X$ with other levels, of which $a_X$ is then an inside arc by
 what precedes. Hence, no later set is entered by $a_X$, and $c'(a_X)$ stays
 zero. $\square$
 
-<span id="lem-11-4"></span>**Lemma 11.4.** *When `finalize(a)` is called at
+<span id="lem-11-4"></span>**Lemma 11.4.** *When `finalize( a )` is called at
 step 8 of `processNextNode()`, it marks processed all the nodes on the path,
 and gives each of them an arc `pred` whose tail was processed before it. These
 arcs are such that exactly one of these arcs enters each set created in the
@@ -408,17 +407,17 @@ $\mathit{ord}$ is that key, is not an arc entering $X$ from outside, and
 exactly one arc `pred` enters $X$. $\square$
 
 <span id="thm-11-4"></span>**Theorem 11.4.** *After `init()`, the calls
-`addSource(s)` for the sources $s\in S$ and `start()`, the arcs `pred(v)` for
-$v\in R\setminus S$ form a minimum cost arborescence $B$ of $R$ rooted at $S$.
-The arborescence map is `true` on the arcs of $B$ only, and the dual variables
-satisfy the conditions of Lemma 11.2 with $B$; hence, `dualValue()`
+`addSource( s )` for the sources $s\in S$ and `start()`, the arcs `pred( v )`
+for $v\in R\setminus S$ form a minimum cost arborescence $B$ of $R$ rooted at
+$S$. The arborescence map is `true` on the arcs of $B$ only, and the dual
+variables satisfy the conditions of Lemma 11.2 with $B$; hence, `dualValue()`
 $=\sum_X y_X=c(B)=$ `arborescenceCost()`.*
 
 *Proof.* Each node of $R\setminus S$ is appended to $Q$ when it is reached,
 and is processed either when it is taken from $Q$ or, before, by `finalize()`
 in the call of another node (Lemma 11.4). A source is processed by
 `addSource()` and receives no arc, and no node out of $R$ is touched. Each
-node $v\in R\setminus S$ gets its arc `pred(v)` when it is processed, from a
+node $v\in R\setminus S$ gets its arc `pred( v )` when it is processed, from a
 node processed before, and keeps it. Hence, $B$ satisfies (11.4), and the
 order of processing shows that it has no cycle and that each node of $R$ is
 reachable from $S$ along $B$, i.e., $B$ is an arborescence of $R$ rooted at
@@ -466,25 +465,25 @@ use them. Note that the dual solution makes the result somewhat easier to
 check: the conditions of Lemma 11.2 can be verified arc by arc, and the sum of
 the $y_X$ must equal the cost of the arborescence.
 
-**Interface.** `MinCostArborescence<GR, CM, TR>` takes the digraph type `GR`,
-the type `CM` of the cost map (by default `GR::ArcMap<int>`), and the traits
-class `TR`, by default `MinCostArborescenceDefaultTraits<GR, CM>`. The cost
-map is read once for each arc at each node that the arc enters (in step 2 of
-`prepare()`), and once more by `arborescenceCost()`. The traits give the types
-`Digraph`, `CostMap`, `Value` (the type of the costs), `ArborescenceMap` and
-`PredMap`, with the functions `createArborescenceMap()` and `createPredMap()`
-that allocate the two maps. The `ArborescenceMap` (by default an
-`ArcMap<bool>`) receives `false` on each arc at `init()`, and then `true` once
-on each arc of the arborescence; the `PredMap` is a `NodeMap<Arc>`. They also
-give `HeapCrossRef` and `Heap`, i.e., a `NodeMap<int>` and a `BinHeap` on
-integer keys, which `finalize()` uses for $H$. The named parameters
-`SetArborescenceMap<T>` and `SetPredMap<T>` set the types of the two maps,
-which must then be given by `arborescenceMap(m)` and `predMap(m)` (their
-`create` functions assert). Similarly, `SetHeap<H, CR>` sets the type of the
-heap and of its cross reference map (by default a `NodeMap<int>`), which the
-algorithm constructs on the digraph with $-1$ as the value of each node. The
-class also defines `Create`, the type itself, which the named parameters
-produce.
+**Interface.** `MinCostArborescence< GR , CM , TR >` takes the digraph type
+`GR`, the type `CM` of the cost map (by default `GR::ArcMap< int >`), and the
+traits class `TR`, by default `MinCostArborescenceDefaultTraits< GR , CM >`.
+The cost map is read once for each arc at each node that the arc enters (in
+step 2 of `prepare()`), and once more by `arborescenceCost()`. The traits give
+the types `Digraph`, `CostMap`, `Value` (the type of the costs),
+`ArborescenceMap` and `PredMap`, with the functions `createArborescenceMap()`
+and `createPredMap()` that allocate the two maps. The `ArborescenceMap` (by
+default an `ArcMap< bool >`) receives `false` on each arc at `init()`, and
+then `true` once on each arc of the arborescence; the `PredMap` is a
+`NodeMap< Arc >`. They also give `HeapCrossRef` and `Heap`, i.e., a
+`NodeMap< int >` and a `BinHeap` on integer keys, which `finalize()` uses for
+$H$. The named parameters `SetArborescenceMap< T >` and `SetPredMap< T >` set
+the types of the two maps, which must then be given by `arborescenceMap( m )`
+and `predMap( m )` (their `create` functions assert). Similarly,
+`SetHeap< H , CR >` sets the type of the heap and of its cross reference map
+(by default a `NodeMap< int >`), which the algorithm constructs on the digraph
+with $-1$ as the value of each node. The class also defines `Create`, the type
+itself, which the named parameters produce.
 
 !!! note "abLEMON"
     `MinCostArborescence` takes the type of its heap from its traits class,
@@ -492,30 +491,31 @@ produce.
     could not be changed.
 
 Its constructor takes the digraph and the cost map, and the setters
-`arborescenceMap(m)` and `predMap(m)` return the object; the maps not given
-are allocated by `init()` and deleted by the destructor. Its execution control
-is made of `init()`, `addSource(s)`, `processNextNode()` (which returns the
-node taken from $Q$, and must not be called on an empty $Q$), `queueSize()`,
-`emptyQueue()`, `start()` and `run(s)`, which is `init()`, `addSource(s)` and
-`start()`. A call `addSource(s)` marks the nodes reachable from `s`, and may
-be repeated for several sources, before `start()` as Theorem 11.4 requires.
-Despite the word "queue" of the documentation, $Q$ is a stack: the nodes are
-taken in the reverse of the order in which they were reached.
+`arborescenceMap( m )` and `predMap( m )` return the object; the maps not
+given are allocated by `init()` and deleted by the destructor. Its execution
+control is made of `init()`, `addSource( s )`, `processNextNode()` (which
+returns the node taken from $Q$, and must not be called on an empty $Q$),
+`queueSize()`, `emptyQueue()`, `start()` and `run( s )`, which is `init()`,
+`addSource( s )` and `start()`. A call `addSource( s )` marks the nodes
+reachable from `s`, and may be repeated for several sources, before `start()`
+as Theorem 11.4 requires. Despite the word "queue" of the documentation, $Q$
+is a stack: the nodes are taken in the reverse of the order in which they were
+reached.
 
-Its queries on the arborescence are `arborescence(a)`, which is true if the
-arc $a$ is the arc `pred` of its target, `arborescenceMap()`, `pred(v)`
+Its queries on the arborescence are `arborescence( a )`, which is true if the
+arc $a$ is the arc `pred` of its target, `arborescenceMap()`, `pred( v )`
 (`INVALID` for a source and for an unreached node), `predMap()`, and
 `arborescenceCost()`, computed in $O(m)$ from the arcs `pred`. Also,
-`reached(v)` is true if $v$ is reachable from a source, and `processed(v)` if
-it has been processed. Its queries on the dual solution are `dualNum()`, the
-number of the dual variables (some of which may have value zero), and
-`dualValue(k)` and `dualSize(k)`, the value and the number of nodes of the
+`reached( v )` is true if $v$ is reachable from a source, and `processed( v )`
+if it has been processed. Its queries on the dual solution are `dualNum()`,
+the number of the dual variables (some of which may have value zero), and
+`dualValue( k )` and `dualSize( k )`, the value and the number of nodes of the
 $k$-th one; `dualValue()` is the sum of all of them, in $O(n)$. An iterator
-`DualIt(mca, k)` lists the nodes of the $k$-th set, converts to `Node`, and is
-compared with `INVALID` to stop. Finally, the function
-`minCostArborescence(g, cost, source, arborescence)` runs the algorithm from
-one source, writes the arborescence into the given `bool` arc map, and returns
-its cost.
+`DualIt( mca , k )` lists the nodes of the $k$-th set, converts to `Node`, and
+is compared with `INVALID` to stop. Finally, the function
+`minCostArborescence( g , cost , source , arborescence )` runs the algorithm
+from one source, writes the arborescence into the given `bool` arc map, and
+returns its cost.
 
 The program `manual/examples/11-arborescence.cc` (the test
 `manual_11_arborescence`) solves the instance of Figure 11.2, reads the dual

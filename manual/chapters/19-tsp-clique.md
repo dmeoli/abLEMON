@@ -38,7 +38,7 @@ classes of the library is the factor $3/2$ of Christofides' algorithm (Theorem
 19.5).
 
 All five classes run on a `FullGraph` ([chapter 4](04-graphs.md#ch-4)), the
-complete undirected graph in which `edge(u, v)` finds the edge between two
+complete undirected graph in which `edge( u , v )` finds the edge between two
 nodes in constant time, and they have the same interface, which we describe
 once. The class template takes one parameter `CM`, the type of the cost map,
 i.e., a readable edge map of `FullGraph`; it is exported as `CostMap`, and its
@@ -48,18 +48,18 @@ keeps references to them, which must therefore live as long as the object.
 A call of `run()` computes a tour and returns its cost, which `tourCost()`
 gives again afterwards. Then `tourNodes()` returns a constant reference to the
 `std::vector< FullGraph::Node >` of the nodes in the order of the tour,
-`tourNodes(out)` copies this sequence through an output iterator (e.g.,
+`tourNodes( out )` copies this sequence through an output iterator (e.g.,
 `nodes.begin()` of a vector of the right size, or a `std::back_inserter`),
-while `tour(path)` clears a path structure ([chapter 8](08-auxiliary.md#ch-8))
-and fills it with the arcs of the tour, the last of which goes from the last
-node of the sequence back to the first. The returned cost is recomputed at the
-end as the sum of the $n$ edges of the sequence, and hence it agrees with
-`tourNodes()` up to the order of the floating-point sums. The query functions
-require that `run()` has been called. The degenerate graphs are handled alike
-by all the classes: with no node the tour is empty and costs 0, with one node
-it consists of that node, costs 0 and gives a path of no arc, and with two
-nodes it visits both, costs twice their edge and gives a path of two opposite
-arcs.
+while `tour( path )` clears a path structure ([chapter
+8](08-auxiliary.md#ch-8)) and fills it with the arcs of the tour, the last of
+which goes from the last node of the sequence back to the first. The returned
+cost is recomputed at the end as the sum of the $n$ edges of the sequence, and
+hence it agrees with `tourNodes()` up to the order of the floating-point sums.
+The query functions require that `run()` has been called. The degenerate
+graphs are handled alike by all the classes: with no node the tour is empty
+and costs 0, with one node it consists of that node, costs 0 and gives a path
+of no arc, and with two nodes it visits both, costs twice their edge and gives
+a path of two opposite arcs.
 
 Two facts on metric costs are used by several proofs of this chapter. We
 remark that a metric cost on at least three nodes is nonnegative, since adding
@@ -198,7 +198,7 @@ very bad in special cases; the header gives no guarantee on their cost.
 In `InsertionTsp< CM >` one maintains a subtour $T$, initially of two nodes,
 and inserts the other nodes one at a time, each at the position that minimizes
 (19.2). The node that enters next is decided by one of the four selection
-rules of the enumeration `SelectionRule`, passed to `run(rule)`; the default
+rules of the enumeration `SelectionRule`, passed to `run( rule )`; the default
 is `FARTHEST`.
 
 | Rule | Initial subtour | Node selected at each step | Time |
@@ -451,15 +451,16 @@ pair satisfies (19.3), i.e., at a *2-optimal* tour.
 ![Figure 19.2. A 2-opt move: the two edges of the tour that cross (primary) are replaced by the two that do not (the added colour), and the path between $u^+$ and $v$ is traversed in the opposite direction.](../figures/19-two-opt.svg){#fig-19-2}
 
 There are three ways to give the starting tour. A call of `run()` starts from
-the order of the node ids; `run(path)` starts from a path structure, which
+the order of the node ids; `run( path )` starts from a path structure, which
 must be a valid path of $n$ arcs (cf. `checkPath()` in [chapter
-8](08-auxiliary.md#ch-8)); and `run(nodes)` starts from a `std::vector< Node
->` that holds all the nodes in the order of the tour. The typical use is the
-improvement of the tour of a construction heuristic, e.g., by passing to
-`run()` the `tourNodes()` of an `InsertionTsp`. The tour is kept as a list of
-two neighbors per node, without an orientation, which the private iterator
-`PathListIt` follows by remembering the node it comes from; hence, a move
-rewires four entries and costs $O(1)$, with no explicit reversal of a path.
+8](08-auxiliary.md#ch-8)); and `run( nodes )` starts from a
+`std::vector< Node >` that holds all the nodes in the order of the tour. The
+typical use is the improvement of the tour of a construction heuristic, e.g.,
+by passing to `run()` the `tourNodes()` of an `InsertionTsp`. The tour is kept
+as a list of two neighbors per node, without an orientation, which the private
+iterator `PathListIt` follows by remembering the node it comes from; hence, a
+move rewires four entries and costs $O(1)$, with no explicit reversal of a
+path.
 
 <span id="lem-19-6"></span>**Lemma 19.6.** *A 2-opt move turns a tour into a
 tour, whose cost is the old one minus the difference between the two sides of
@@ -677,10 +678,10 @@ Thus every run ends, although with both limits disabled the bound of Theorem
 19.8 is the largest `int`, and the header warns that one should set a
 reasonable limit on the iterations or on the steps. The node selected among
 the eligible ones at lines 6, 7 and 8 depends on the rule passed to
-`run(rule)`, of the enumeration `SelectionRule`, and each selection scans the
-nodes in cyclic order from a starting index drawn uniformly at random. With
-`RANDOM` it is the first eligible node in this order; with `DEGREE_BASED` it
-is an eligible node of maximum degree, ties going to the first one in the
+`run( rule )`, of the enumeration `SelectionRule`, and each selection scans
+the nodes in cyclic order from a starting index drawn uniformly at random.
+With `RANDOM` it is the first eligible node in this order; with `DEGREE_BASED`
+it is an eligible node of maximum degree, ties going to the first one in the
 order; with `PENALTY_BASED`, the default, it is an eligible node of minimum
 penalty, ties going to the first one, as in [Grosso, Locatelli and Pullan
 2008](Z-bibliography.md#ref-grosso08maxclique). The three rules are the
@@ -693,14 +694,14 @@ The penalties start at zero at each `run()` and are updated at line 11 as in
 DLS-MC [(Pullan and Hoos 2006)](Z-bibliography.md#ref-pullan2006dynamic).
 Those of the nodes of the current clique increase by one, and every $p_d$
 iterations all the positive ones decrease by one, where the penalty delay
-$p_d$ is set by `penaltyDelay(pd)` (2 by default, and a value smaller than 1
+$p_d$ is set by `penaltyDelay( pd )` (2 by default, and a value smaller than 1
 is taken as 1). Larger values keep the nodes of the recent cliques out of the
 next ones for longer, and the best value depends on the graph (DLS-MC uses
 values from 1 to about 50). The smallest value makes the rule degenerate, as
 follows.
 
 <span id="lem-19-9"></span>**Lemma 19.9.** *With $p_d=1$, all the penalties
-stay at zero, and `run(PENALTY_BASED)` and `run(RANDOM)`, started with
+stay at zero, and `run( PENALTY_BASED )` and `run( RANDOM )`, started with
 generators in the same state, give the same clique and the same termination
 cause.*
 
@@ -723,16 +724,16 @@ steps, the two runs pass through the same states. $\square$
 
 Three limits control the search; each is set by a function that returns a
 reference to the object, and read by the function of the same name without
-argument. The function `iterationLimit(int)` sets the number of iterations
-`max_restart`, 1000 by default; `stepLimit(int)` sets the number of steps
-`max_select` over all the iterations, by default $-1$; and `sizeLimit(int)`
+argument. The function `iterationLimit( int )` sets the number of iterations
+`max_restart`, 1000 by default; `stepLimit( int )` sets the number of steps
+`max_select` over all the iterations, by default $-1$; and `sizeLimit( int )`
 sets the clique size `max_size` at which the search stops, by default $-1$,
 which stands for the number of nodes. A negative iteration or step limit means
 no limit (the largest `int`), and with a limit of zero no iteration is made,
 so that the clique is empty and the cause is `ITERATION_LIMIT` (or
 `STEP_LIMIT` for a step limit of zero). The size limit is tested only when an
 iteration has found a larger clique (line 10), and therefore a size limit of 0
-stops the search after the first iteration. The function `run(rule)` returns
+stops the search after the first iteration. The function `run( rule )` returns
 the cause of the termination, of the enumeration `TerminationCause`:
 `ITERATION_LIMIT`, `STEP_LIMIT` or `SIZE_LIMIT`. The last one is also the
 answer on a graph with no node (clique of size 0) and on a graph with one node
@@ -740,18 +741,19 @@ answer on a graph with no node (clique of size 0) and on a graph with one node
 
 The random choices use a generator of type `Random` ([chapter
 8](08-auxiliary.md#ch-8)), which depends on the constructor.
-`GrossoLocatelliPullanMc(graph)` draws from the global generator `rnd`, which
-it advances, so that two objects built one after the other draw different
-sequences; `GrossoLocatelliPullanMc(graph, seed)` draws from a generator of
-its own seeded with `seed`, and `GrossoLocatelliPullanMc(graph, random)` from
-a copy of the given one. Since the object may refer to a generator it owns, it
-cannot be copied (its copy constructor and assignment are private). The
-results are read by `cliqueSize()` and by `cliqueMap(map)`, which writes
-`true` on the nodes of the clique and `false` elsewhere, in a writable node
-map with `bool` (or convertible) values. Also, the iterator `CliqueNodeIt`,
-constructed from the algorithm object, lists the nodes of the clique in the
-order of the node iterator; it converts to `Node`, compares with `INVALID`,
-and its postfix increment returns a `Node`, not an iterator.
+`GrossoLocatelliPullanMc( graph )` draws from the global generator `rnd`,
+which it advances, so that two objects built one after the other draw
+different sequences; `GrossoLocatelliPullanMc( graph , seed )` draws from a
+generator of its own seeded with `seed`, and
+`GrossoLocatelliPullanMc( graph , random )` from a copy of the given one.
+Since the object may refer to a generator it owns, it cannot be copied (its
+copy constructor and assignment are private). The results are read by
+`cliqueSize()` and by `cliqueMap( map )`, which writes `true` on the nodes of
+the clique and `false` elsewhere, in a writable node map with `bool` (or
+convertible) values. Also, the iterator `CliqueNodeIt`, constructed from the
+algorithm object, lists the nodes of the clique in the order of the node
+iterator; it converts to `Node`, compares with `INVALID`, and its postfix
+increment returns a `Node`, not an iterator.
 
 ## 19.7 The exact algorithm of Tomita and Seki {#sec-19-7}
 
@@ -790,7 +792,8 @@ every node of the prefix belongs to a class of number at most `color[k]`. Each
 candidate is compared with at most all the nodes already placed, i.e., with
 $O(|P|)$ nodes. $\square$
 
-<span id="alg-19-7"></span>**Algorithm 19.7** (Tomita and Seki, `expand(P)`).
+<span id="alg-19-7"></span>**Algorithm 19.7** (Tomita and Seki,
+`expand( P )`).
 
 ```
 1  order, color := colorSort(P)
@@ -807,7 +810,7 @@ $O(|P|)$ nodes. $\square$
 At the root, $C$ is empty and the candidates are all the nodes, sorted by
 nonincreasing degree as Tomita and Seki order them; the degree counts distinct
 neighbors, the sort is stable, and ties keep the order of the node iterator.
-The function `treeLimit(long long)` sets the largest number of nodes of the
+The function `treeLimit( long long )` sets the largest number of nodes of the
 search tree, i.e., of the cliques that line 5 extends, after which `run()`
 stops; a negative value, the default ($-1$), means no limit, and a limit of 0
 stops the search before its first node.
@@ -819,7 +822,7 @@ clique found is a clique of $G$, and if `run()` returns `true` it is maximum.*
 *Proof.* By induction on line 5, $C$ is a clique and every node of $P$ is
 adjacent to all of $C$, since $P'$ keeps the candidates adjacent to $v$; hence
 `best`, a copy of $C$, is a clique. We show by induction on $|P|$ that, if
-`expand(P)` is not stopped, then on return `best` is at least as large as
+`expand( P )` is not stopped, then on return `best` is at least as large as
 every clique $K$ with $K\supseteq C$ and $K\setminus C\subseteq P$. Let
 $v=$`order[k]` be the node of $K\setminus C$ of largest index (if $K=C$, the
 clique $C+v$ of any $v\in P$ is larger and is covered by what follows, since
@@ -828,7 +831,7 @@ $k$ only at line 3 for some $k'\ge k$, where
 $|K|\le|C|+$`color[k']`$\le|$`best`$|$ by Lemma 19.11, since $K\setminus C$
 lies in `order[0..k']`. Otherwise the branch of $v$ is entered,
 $K\setminus(C\cup\{v\})\subseteq P'$, and either $P'$ is empty, in which case
-$K=C+v$ is recorded at line 7, or `expand(P')` covers $K$ by the induction
+$K=C+v$ is recorded at line 7, or `expand( P' )` covers $K$ by the induction
 hypothesis. Applying the claim at the root, with $C=\emptyset$ and $P=V$,
 gives `cliqueSize()` $=\omega(G)$ whenever the search is never stopped, and
 `run()` returns `true` exactly in this case. $\square$
@@ -853,7 +856,7 @@ of the graph. The function `run()` returns `true` when the clique found is
 proved maximum, and `false` when the limit stopped the search first; in this
 case the clique is the largest one found so far. The results are read by
 `cliqueSize()`, by `treeSize()` (the number of nodes of the search tree of the
-last run) and by `cliqueMap(map)`, with the same contract as in
+last run) and by `cliqueMap( map )`, with the same contract as in
 [§19.6](19-tsp-clique.md#sec-19-6). On sparse graphs the coloring bound prunes
 almost all the branches: in the program described below, a planted clique of 9
 nodes in a random graph of 60 nodes and density 0.2 is proved maximum with a
@@ -879,7 +882,7 @@ costs at most twice it (Lemma 19.5); `manual/examples/19-tsp.cc` does it for
 <span id="ex-19-2"></span>**Exercise 19.2.** Give five points of the plane,
 not in convex position, and a 2-optimal tour on them that is not optimal;
 deduce that Lemma 19.7 (ii) needs the convex position, and check it with
-`Opt2Tsp::run(nodes)` started from that tour (`manual/examples/19-tsp.cc`
+`Opt2Tsp::run( nodes )` started from that tour (`manual/examples/19-tsp.cc`
 checks the convex case on twelve points of a circle).
 
 <span id="ex-19-3"></span>**Exercise 19.3.** Build a metric instance on which

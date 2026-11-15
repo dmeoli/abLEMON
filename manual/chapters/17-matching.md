@@ -378,12 +378,13 @@ red node, in the order of `RedNodeIt`, to the first uncovered blue node among
 its neighbours (in the order of `IncEdgeIt`). Then `start()` augments the
 matching until it is maximum and computes the cover, and `run()` is simply
 `greedyInit()` followed by `start()`. Among the queries, `matchingSize()`,
-`matching( const Edge & )` (whether the edge is in the matching), `matching(
-const Node & )` (the matching edge at the node, or `INVALID`), `matchingMap()`
-(a const reference to the map of the matching) and `mate( const Node & )` give
-the primal solution. Finally, `cover( const Node & )` returns whether the node
-is in the minimum vertex cover. It is meaningful only after `start()` or
-`run()`, and before them it is `false` on every node.
+`matching( const Edge & )` (whether the edge is in the matching),
+`matching( const Node & )` (the matching edge at the node, or `INVALID`),
+`matchingMap()` (a const reference to the map of the matching) and
+`mate( const Node & )` give the primal solution. Finally,
+`cover( const Node & )` returns whether the node is in the minimum vertex
+cover. It is meaningful only after `start()` or `run()`, and before them it is
+`false` on every node.
 
 !!! note "abLEMON"
     Both `HopcroftKarp` and `MinCostAssignment` are new in abLEMON (version
@@ -395,7 +396,7 @@ is in the minimum vertex cover. It is meaningful only after `start()` or
 
 We now give a cost $c_e$ to each edge of a bipartite graph, which may have any
 number of blue nodes and need not be complete. In this setting
-`MinCostAssignment< BPGR, CM >` solves
+`MinCostAssignment< BPGR , CM >` solves
 $$
 \min\Big\{\sum_{e\in E} c_e x_e \;:\; \sum_{e\in\delta(r)} x_e = 1
 \ \ \forall r\in R,\ \ \sum_{e\in\delta(b)} x_e\le 1\ \ \forall b\in B,
@@ -662,20 +663,22 @@ first uncovered neighbour in the order of `OutArcIt`, loops excluded) and
 `matchingInit( const MatchingMap & matching )`, a template on the type of the
 map, which takes a `bool` edge map and returns `false` if two edges with value
 `true` share a node (in which case the matching is left half built, and the
-function must be called again before a start). Two functions, `startSparse(
-bool decomposition = true )` and `startDense( bool decomposition = true )`,
-run the two variants of Algorithm 17.3, after one of the three
-initializations, and `run( bool decomposition = true )` calls `greedyInit()`
-and `startSparse()` if $m<2n$, and `init()` and `startDense()` otherwise. The
-types of the class are `Graph` (i.e., `GR`), `MatchingMap` (i.e.,
-`Graph::NodeMap< Arc >`) and `StatusMap` (i.e., `Graph::NodeMap< Status >`).
-Of the queries, `matchingSize()` counts the covered nodes (in $O(n)$ time),
-and `matching( const Edge & )`, `matching( const Node & )` (the matching arc
-at the node, directed away from it, or `INVALID`), `matchingMap()` and `mate(
-const Node & )` complete the primal solution. Lastly, `status( const Node & )`
-and `statusMap()` give the values of the enum `Status`, i.e., `EVEN` $=1$
-(also called `D`), `MATCHED` $=0$ (also `C`), `ODD` $=-1$ (also `A`) and
-`UNMATCHED` $=-2$, and `barrier( const Node & )` is `true` on the `ODD` nodes.
+function must be called again before a start). Two functions,
+`startSparse( bool decomposition = true )` and
+`startDense( bool decomposition = true )`, run the two variants of Algorithm
+17.3, after one of the three initializations, and
+`run( bool decomposition = true )` calls `greedyInit()` and `startSparse()` if
+$m<2n$, and `init()` and `startDense()` otherwise. The types of the class are
+`Graph` (i.e., `GR`), `MatchingMap` (i.e., `Graph::NodeMap< Arc >`) and
+`StatusMap` (i.e., `Graph::NodeMap< Status >`). Of the queries,
+`matchingSize()` counts the covered nodes (in $O(n)$ time), and
+`matching( const Edge & )`, `matching( const Node & )` (the matching arc at
+the node, directed away from it, or `INVALID`), `matchingMap()` and
+`mate( const Node & )` complete the primal solution. Lastly,
+`status( const Node & )` and `statusMap()` give the values of the enum
+`Status`, i.e., `EVEN` $=1$ (also called `D`), `MATCHED` $=0$ (also `C`),
+`ODD` $=-1$ (also `A`) and `UNMATCHED` $=-2$, and `barrier( const Node & )` is
+`true` on the `ODD` nodes.
 
 ![Figure 17.1. The graph of the example below, with the maximum matching found by MaxMatching (the edges in the colour of the added objects) and its Gallai–Edmonds decomposition: the EVEN nodes (D) induce the factor-critical components {a, b, c}, {d} and {e}, the barrier A is {x}, and the MATCHED nodes (C) induce a square with a perfect matching. By (17.2), at least 3 − 1 = 2 nodes are uncovered by any matching.](../figures/17-gallai-edmonds.svg){#fig-17-1}
 
@@ -695,22 +698,23 @@ found, and runs the algorithm once more without the decomposition.
 
 ## 17.5 Maximum weight matchings in general graphs {#sec-17-5}
 
-`MaxWeightedMatching< GR, WM >` solves (17.1), and
-`MaxWeightedPerfectMatching< GR, WM >` its perfect version, by the primal-dual
-blossom algorithm of [Edmonds 1965a](Z-bibliography.md#ref-edmonds1965paths).
-Throughout, the algorithm keeps a matching, a family of nested blossoms and a
-dual solution of (17.5) with $z_S>0$ only on blossoms, and it changes the
-duals until all the nodes are covered or, in the version with inequalities,
-until the uncovered nodes have $y_u=0$. Its weight map `WM` defaults to
-`GR::EdgeMap< int >`, and loops are ignored. Both classes use binary heaps
-(`BinHeap`) for the kinds of dual change, four in `MaxWeightedMatching` and
-three in the perfect version, and a `HeapUnionFind` for the nested blossoms,
-which gives the bound $O(nm\log n)$ stated by the header, i.e., that of
-[Galil, Micali and Gabow 1986](Z-bibliography.md#ref-galil1986algorithm). In
-the following, a node or a blossom is *in the forest* when it belongs to an
-alternating tree rooted at an uncovered blossom, `EVEN` or `ODD` as in section
-17.4. The others are `MATCHED`, and they include the nodes that left the
-forest uncovered with $y_u=0$.
+`MaxWeightedMatching< GR , WM >` solves (17.1), and
+`MaxWeightedPerfectMatching< GR , WM >` its perfect version, by the
+primal-dual blossom algorithm of [Edmonds
+1965a](Z-bibliography.md#ref-edmonds1965paths). Throughout, the algorithm
+keeps a matching, a family of nested blossoms and a dual solution of (17.5)
+with $z_S>0$ only on blossoms, and it changes the duals until all the nodes
+are covered or, in the version with inequalities, until the uncovered nodes
+have $y_u=0$. Its weight map `WM` defaults to `GR::EdgeMap< int >`, and loops
+are ignored. Both classes use binary heaps (`BinHeap`) for the kinds of dual
+change, four in `MaxWeightedMatching` and three in the perfect version, and a
+`HeapUnionFind` for the nested blossoms, which gives the bound $O(nm\log n)$
+stated by the header, i.e., that of [Galil, Micali and Gabow
+1986](Z-bibliography.md#ref-galil1986algorithm). In the following, a node or a
+blossom is *in the forest* when it belongs to an alternating tree rooted at an
+uncovered blossom, `EVEN` or `ODD` as in section 17.4. The others are
+`MATCHED`, and they include the nodes that left the forest uncovered with
+$y_u=0$.
 
 <span id="alg-17-4"></span>**Algorithm 17.4** (Primal-dual blossom algorithm).
 
@@ -879,8 +883,8 @@ returns 1 for it, its node being counted once.
     `fractional_matching_test` checks that the values of the edges add up to
     `matchingSize()`.
 
-`MaxFractionalMatching< GR, TR >` maximizes the cardinality. The relaxation is
-equivalent to a bipartite matching problem on the *double cover* of $G$, in
+`MaxFractionalMatching< GR , TR >` maximizes the cardinality. The relaxation
+is equivalent to a bipartite matching problem on the *double cover* of $G$, in
 which each node $u$ has a copy $u'$ on the left and a copy $u''$ on the right,
 and each edge $uv$ joins $u'$ to $v''$ and $v'$ to $u''$: a pointer from $u$
 to $v$ is the edge $u'v''$, and the value of a fractional matching is half the
@@ -1009,7 +1013,7 @@ The header states no bound; push-relabel methods are often much faster in
 practice than their bound. We have modeled the interface on the push-relabel
 classes of [chapter 12](12-max-flow.md#ch-12). The traits class
 `MaxFractionalMatchingDefaultTraits< GR >` defines `Graph`, `MatchingMap`
-(`GR::NodeMap< GR::Arc >`) and `Elevator` (`LinkedElevator< GR, GR::Node >`)
+(`GR::NodeMap< GR::Arc >`) and `Elevator` (`LinkedElevator< GR , GR::Node >`)
 with their factory functions `createMatchingMap()` and `createElevator()`, and
 the named template parameters `SetMatchingMap< T >` (a map that the caller
 passes with `matchingMap()`), `SetElevator< T >` (an elevator that the caller
@@ -1021,14 +1025,14 @@ functions, `matchingMap( MatchingMap & )` and `elevator( Elevator & )`, set
 external structures before `init()`, and `elevator()` returns the one in use.
 Execution is controlled by `init()`, `start( bool postprocess = true )` and
 `startPerfect( bool postprocess = true )` (which returns whether a perfect
-fractional matching exists), or by their shortcuts `run( bool postprocess =
-true )` and `runPerfect( bool postprocess = true )`. Its queries are
-`matchingSize()`, `matchingMap()`, `matching( const Edge & )`, `matching(
-const Node & )` (the pointer of the node, i.e., on a half-valued cycle its arc
-to the successor) and `barrier( const Node & )`.
+fractional matching exists), or by their shortcuts
+`run( bool postprocess = true )` and `runPerfect( bool postprocess = true )`.
+Its queries are `matchingSize()`, `matchingMap()`, `matching( const Edge & )`,
+`matching( const Node & )` (the pointer of the node, i.e., on a half-valued
+cycle its arc to the successor) and `barrier( const Node & )`.
 
-`MaxWeightedFractionalMatching< GR, WM >` and
-`MaxWeightedPerfectFractionalMatching< GR, WM >` solve the weighted
+`MaxWeightedFractionalMatching< GR , WM >` and
+`MaxWeightedPerfectFractionalMatching< GR , WM >` solve the weighted
 relaxation, without and with the perfection constraint, by the primal-dual
 method of Algorithm 17.4 applied to the problem without (17.4). An edge that
 closes an odd cycle in a tree is not shrunk into a blossom: the cycle is kept

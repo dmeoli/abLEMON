@@ -160,76 +160,78 @@ paths whose longest arc is as short as possible. Note that the heap still
 orders the priorities by the comparison of its own type (`std::less` in the
 default traits), which must agree with `less()`.
 
-**Template parameters and traits.** `Dijkstra<GR, LEN, TR>` takes the digraph
-type `GR` (`ListDigraph` by default), the type `LEN` of the map of the lengths
-(by default `GR::ArcMap<int>`), whose `Value` is the type of the distances,
-and the traits class `TR`, by default `DijkstraDefaultTraits<GR, LEN>`. These
-traits give `Digraph`, `LengthMap`, `Value`, `OperationTraits`, i.e., the
-operations on the distances (by default
-`DijkstraDefaultOperationTraits<Value>`, with the static `zero()`, `plus()`
+**Template parameters and traits.** `Dijkstra< GR , LEN , TR >` takes the
+digraph type `GR` (`ListDigraph` by default), the type `LEN` of the map of the
+lengths (by default `GR::ArcMap< int >`), whose `Value` is the type of the
+distances, and the traits class `TR`, by default
+`DijkstraDefaultTraits< GR , LEN >`. These traits give `Digraph`, `LengthMap`,
+`Value`, `OperationTraits`, i.e., the operations on the distances (by default
+`DijkstraDefaultOperationTraits< Value >`, with the static `zero()`, `plus()`
 and `less()` that are the zero, the sum and the comparison of the type), and
-`HeapCrossRef` and `Heap`, i.e., a `NodeMap<int>` and a `BinHeap` with
-`std::less`. They also give the three maps `PredMap` (a `NodeMap<Arc>`),
+`HeapCrossRef` and `Heap`, i.e., a `NodeMap< int >` and a `BinHeap` with
+`std::less`. They also give the three maps `PredMap` (a `NodeMap< Arc >`),
 `DistMap` (a `NodeMap` of the distances) and `ProcessedMap` (a `NullMap`),
-each with a function `create...()`. Named parameters `SetPredMap<T>`,
-`SetDistMap<T>`, `SetProcessedMap<T>` and `SetStandardProcessedMap` change
-the maps as in [§9.1](09-search.md#sec-9-1). Moreover, `SetHeap<H, CR>` sets
-the types of the heap and of its cross reference map, both of which must then
-be given by `heap()`; `SetStandardHeap<H, CR>` sets them for a heap that the
-algorithm can allocate (one whose constructor takes the cross reference map,
-which takes the digraph). Finally, `SetOperationTraits<T>` replaces the
-operations. The class also defines `Traits`, `Path` (the type of the path
-dumper of `path()`) and `Create`.
+each with a function `create...()`. Named parameters `SetPredMap< T >`,
+`SetDistMap< T >`, `SetProcessedMap< T >` and `SetStandardProcessedMap` change
+the maps as in [§9.1](09-search.md#sec-9-1). Moreover, `SetHeap< H , CR >`
+sets the types of the heap and of its cross reference map, both of which must
+then be given by `heap()`; `SetStandardHeap< H , CR >` sets them for a heap
+that the algorithm can allocate (one whose constructor takes the cross
+reference map, which takes the digraph). Finally, `SetOperationTraits< T >`
+replaces the operations. The class also defines `Traits`, `Path` (the type of
+the path dumper of `path()`) and `Create`.
 
 !!! note "abLEMON"
     `Dijkstra` (and `BellmanFord`, [§10.4](#sec-10-4)) keep an object of their
     operation traits class, default constructed or given by
-    `operationTraits(ops)`, and call its members `plus()` and `less()`; hence,
-    the operations may depend on the instance, e.g., on a tolerance stored in
-    the object. In LEMON 1.3.1 they were static functions of the traits class.
+    `operationTraits( ops )`, and call its members `plus()` and `less()`;
+    hence, the operations may depend on the instance, e.g., on a tolerance
+    stored in the object. In LEMON 1.3.1 they were static functions of the
+    traits class.
 
 **Interface.** Its constructor takes the digraph and the length map, and its
-setters are `lengthMap(m)`, `operationTraits(ops)` (with the reader
-`operationTraits()`), `predMap(m)`, `distMap(m)`, `processedMap(m)` and
-`heap(hp, cr)`; the maps and the heap not given are allocated by `init()` and
-deleted by the destructor. Its execution control is made of `init()`,
-`addSource(s, dst)`, `processNextNode()`, `nextNode()`, `emptyQueue()` and
-`queueSize()`, the three forms of `start()`, and `run(s)` and `run(s, t)`. A
-call `addSource(s, dst)` adds a source with the initial distance `dst`
-(`zero()` by default), by steps 2 and 3 of Algorithm 10.1. Hence, a source
-added twice keeps the smaller of its two distances, and a node already
-processed is left as it is.
+setters are `lengthMap( m )`, `operationTraits( ops )` (with the reader
+`operationTraits()`), `predMap( m )`, `distMap( m )`, `processedMap( m )` and
+`heap( hp , cr )`; the maps and the heap not given are allocated by `init()`
+and deleted by the destructor. Its execution control is made of `init()`,
+`addSource( s , dst )`, `processNextNode()`, `nextNode()`, `emptyQueue()` and
+`queueSize()`, the three forms of `start()`, and `run( s )` and
+`run( s , t )`. A call `addSource( s , dst )` adds a source with the initial
+distance `dst` (`zero()` by default), by steps 2 and 3 of Algorithm 10.1.
+Hence, a source added twice keeps the smaller of its two distances, and a node
+already processed is left as it is.
 
 !!! note "abLEMON"
-    In LEMON 1.3.1, `addSource(s, dst)` raised the priority of a source
+    In LEMON 1.3.1, `addSource( s , dst )` raised the priority of a source
     already in the heap with a smaller one to `dst`, and pushed again a node
     already processed; the test `dijkstra_test` adds sources twice.
 
-Then `start()` processes the nodes until the heap is empty, while `start(t)`
+Then `start()` processes the nodes until the heap is empty, while `start( t )`
 processes them until `t` is on the top of the heap, then writes the distance
 of `t`, marks it processed and pops it without relaxing its arcs. Also,
-`run(s, t)` does `init()`, `addSource(s)` and `start(t)`, and returns whether
-`t` was processed. Similarly, `start(nm)` stops when a node with `nm` true is
-on the top of the heap, writes its distance and marks it processed (in the
-`ProcessedMap`, while it stays in the heap), and returns it, or returns
-`INVALID` if the heap empties first. By Theorem 10.2, the distance of the node
-at which these searches stop is final.
+`run( s , t )` does `init()`, `addSource( s )` and `start( t )`, and returns
+whether `t` was processed. Similarly, `start( nm )` stops when a node with
+`nm` true is on the top of the heap, writes its distance and marks it
+processed (in the `ProcessedMap`, while it stays in the heap), and returns it,
+or returns `INVALID` if the heap empties first. By Theorem 10.2, the distance
+of the node at which these searches stop is final.
 
-Its queries are `dist(v)`, `predArc(v)`, `predNode(v)`, `path(t)` (a path
-dumper, cf. [§8.1](08-auxiliary.md#sec-8-1)), `distMap()`, `predMap()`,
-`reached(v)` (whether $v$ has been in the heap) and `processed(v)` (whether it
-has left it). The distance is written into the `DistMap` only when a node is
-processed; hence, `dist(v)` is undefined for a node that is reached but not
-processed, and for such a node, `currentDist(v)` returns its priority in the
-heap, i.e., an upper bound on its distance that may still decrease.
+Its queries are `dist( v )`, `predArc( v )`, `predNode( v )`, `path( t )` (a
+path dumper, cf. [§8.1](08-auxiliary.md#sec-8-1)), `distMap()`, `predMap()`,
+`reached( v )` (whether $v$ has been in the heap) and `processed( v )`
+(whether it has left it). The distance is written into the `DistMap` only when
+a node is processed; hence, `dist( v )` is undefined for a node that is
+reached but not processed, and for such a node, `currentDist( v )` returns its
+priority in the heap, i.e., an upper bound on its distance that may still
+decrease.
 
-**Function-type interface.** Finally, `dijkstra(g, length)` returns a
-`DijkstraWizard`, whose named function parameters are `predMap(m)`,
-`distMap(m)`, `processedMap(m)`, `path(p)` and `dist(d)`, and whose runs are
-`run(s)` and `run(s, t)`. The latter returns whether `t` is reached and fills
-the path and the distance, as in [§9.4](09-search.md#sec-9-4); the base class
-`DijkstraWizardBase` holds the parameters, and `DijkstraWizardDefaultTraits`
-their default types.
+**Function-type interface.** Finally, `dijkstra( g , length )` returns a
+`DijkstraWizard`, whose named function parameters are `predMap( m )`,
+`distMap( m )`, `processedMap( m )`, `path( p )` and `dist( d )`, and whose
+runs are `run( s )` and `run( s , t )`. The latter returns whether `t` is
+reached and fills the path and the distance, as in
+[§9.4](09-search.md#sec-9-4); the base class `DijkstraWizardBase` holds the
+parameters, and `DijkstraWizardDefaultTraits` their default types.
 
 The program `manual/examples/10-dijkstra.cc` (the test `manual_10_dijkstra`)
 runs Dijkstra's algorithm on a grid and checks the distances against (10.2).
@@ -240,35 +242,35 @@ point-to-point searches of the next section.
 ## 10.3 Shortest paths between two nodes {#sec-10-3}
 
 When only the path from a source $s$ to a target $t$ is wanted,
-`Dijkstra::run(s, t)` stops when $t$ is processed, but it still processes all
-the nodes closer to $s$ than $t$. Both classes of this section usually scan
-far fewer nodes. Both have nonnegative lengths, and both answer any number of
-queries with one object, each by a call `run(s, t)` that returns whether $t$
-is reachable from $s$. Both give the result by `dist()` and `path()` (a
-`lemon::Path`, empty when $s=t$), with the sums and the comparisons of the
-type of the lengths. Their node maps are allocated once, by the constructor;
-each run resets only the nodes that the previous run touched, and its time is
-therefore proportional to the part of the digraph that it scans (times the
-logarithm of the size of the heap). Their heap is a `BinHeap` by default. The
-named parameter `SetHeap<H, CR>` replaces it by a heap of type `H` with a
-cross reference map of type `CR` (a `NodeMap<int>` by default), as in
-`SetHeap<FibHeap<int, IntNodeMap>>::Create`.
+`Dijkstra::run( s , t )` stops when $t$ is processed, but it still processes
+all the nodes closer to $s$ than $t$. Both classes of this section usually
+scan far fewer nodes. Both have nonnegative lengths, and both answer any
+number of queries with one object, each by a call `run( s , t )` that returns
+whether $t$ is reachable from $s$. Both give the result by `dist()` and
+`path()` (a `lemon::Path`, empty when $s=t$), with the sums and the
+comparisons of the type of the lengths. Their node maps are allocated once, by
+the constructor; each run resets only the nodes that the previous run touched,
+and its time is therefore proportional to the part of the digraph that it
+scans (times the logarithm of the size of the heap). Their heap is a `BinHeap`
+by default. The named parameter `SetHeap< H , CR >` replaces it by a heap of
+type `H` with a cross reference map of type `CR` (a `NodeMap< int >` by
+default), as in `SetHeap< FibHeap< int , IntNodeMap > >::Create`.
 
 !!! note "abLEMON"
     `BidirDijkstra` and `AStar` are new in abLEMON (from trac #249 and #376 of
     LEMON), and take the type of their heap from a traits class
     (`BidirDijkstraDefaultTraits`, `AStarDefaultTraits`) through `SetHeap`.
 
-**Bidirectional search.** `BidirDijkstra<GR, LEN, TR>` runs two searches of
-Dijkstra ([Pohl 1971](Z-bibliography.md#ref-pohl1971bidirectional)), a forward
-one from $s$ along the arcs and a backward one from $t$ against them, with
-tentative distances $d_f$ and $d_b$ and heaps $H_f$ and $H_b$. At each step it
-advances the search whose least priority is smaller (the forward one on a
-tie). Each arc $uv$ scanned by one search whose other end has been seen by the
-other search gives a path from $s$ to $t$, of length $d_f(u)+\ell(uv)+d_b(v)$,
-and the algorithm keeps the shortest one found, of length $\mu$, with the arc
-$\mathit{meet}$ that gave it. Writing $\min H$ for the least priority in $H$
-($+\infty$ for an empty heap), it stops as soon as
+**Bidirectional search.** `BidirDijkstra< GR , LEN , TR >` runs two searches
+of Dijkstra ([Pohl 1971](Z-bibliography.md#ref-pohl1971bidirectional)), a
+forward one from $s$ along the arcs and a backward one from $t$ against them,
+with tentative distances $d_f$ and $d_b$ and heaps $H_f$ and $H_b$. At each
+step it advances the search whose least priority is smaller (the forward one
+on a tie). Each arc $uv$ scanned by one search whose other end has been seen
+by the other search gives a path from $s$ to $t$, of length
+$d_f(u)+\ell(uv)+d_b(v)$, and the algorithm keeps the shortest one found, of
+length $\mu$, with the arc $\mathit{meet}$ that gave it. Writing $\min H$ for
+the least priority in $H$ ($+\infty$ for an empty heap), it stops as soon as
 $$
 \min H_f \;+\; \min H_b \;\ge\; \mu \tag{10.4}
 $$
@@ -276,7 +278,7 @@ $$
 its heap, and *done* once it has left it).
 
 <span id="alg-10-2"></span>**Algorithm 10.2** (Bidirectional Dijkstra,
-`BidirDijkstra::run(s, t)`).
+`BidirDijkstra::run( s , t )`).
 
 ```
 1  if s = t: return true with the empty path
@@ -294,10 +296,11 @@ its heap, and *done* once it has left it).
 ```
 
 <span id="thm-10-3"></span>**Theorem 10.3.** *With nonnegative lengths,
-`BidirDijkstra::run(s, t)` returns `false` if and only if $t$ is not reachable
-from $s$; otherwise, $\mu$ is the distance $\delta(s,t)$ from $s$ to $t$, and
-the path built at step 12 has length $\mu$. Each node is pushed and popped at
-most once by each search, and each arc relaxed at most once by each.*
+`BidirDijkstra::run( s , t )` returns `false` if and only if $t$ is not
+reachable from $s$; otherwise, $\mu$ is the distance $\delta(s,t)$ from $s$ to
+$t$, and the path built at step 12 has length $\mu$. Each node is pushed and
+popped at most once by each search, and each arc relaxed at most once by
+each.*
 
 *Proof.* Each search is a search of Dijkstra, interrupted at times. Hence, by
 Theorem 10.2, a node done by the forward search has $d_f$ equal to its
@@ -327,16 +330,16 @@ $\mu$. The bounds follow from step 8, which ignores the nodes done. $\square$
 In practice, the two searches meet roughly halfway. On a digraph in which the
 number of nodes within distance $r$ grows quickly with $r$ (as in a road
 network, roughly as $r^2$), they scan far fewer nodes than one search from
-$s$. Its template parameters are `GR`, `LEN` (by default `GR::ArcMap<int>`)
-and `TR` (by default `BidirDijkstraDefaultTraits<GR, LEN>`, which gives
+$s$. Its template parameters are `GR`, `LEN` (by default `GR::ArcMap< int >`)
+and `TR` (by default `BidirDijkstraDefaultTraits< GR , LEN >`, which gives
 `HeapCrossRef` and `Heap`), and the backward search needs the in-arcs of the
 digraph. The class defines `Digraph`, `LengthMap`, `Value`, `Path`,
 `HeapCrossRef` and `Heap`, and its private record `Search` holds the
 distances, the predecessors, the cross reference map and the heap of one
 search.
 
-**Search guided by a heuristic.** `AStar<GR, LEN, HM, TR>` runs a search of
-Dijkstra from $s$ in which the priority of a node is its tentative distance
+**Search guided by a heuristic.** `AStar< GR , LEN , HM , TR >` runs a search
+of Dijkstra from $s$ in which the priority of a node is its tentative distance
 $g(v)$ plus a heuristic value $h(v)$, an estimate of its distance
 $\delta(v,t)$ to $t$, given by a node map of type `HM` with the value type of
 the lengths ([Hart, Nilsson and Raphael
@@ -359,7 +362,7 @@ algorithm stopped at $t$; the closer $h$ is to $\delta(\cdot,t)$, the fewer
 nodes it scans, and on a road network the straight-line distance to $t$ is a
 typical choice.
 
-<span id="alg-10-3"></span>**Algorithm 10.3** (A*, `AStar::run(s, t)`).
+<span id="alg-10-3"></span>**Algorithm 10.3** (A*, `AStar::run( s , t )`).
 
 ```
 1  g(s) := 0; push s on H with priority h(s); scanned := 0
@@ -412,7 +415,7 @@ admissible for the target of each run; since the map is read through a
 reference, its values may be changed between two runs with different targets.
 We remark that `AStar` has no default for the type of the length map, that its
 heap is ordered by the priorities $g+h$, and that its traits
-`AStarDefaultTraits<GR, LEN>` give `HeapCrossRef` and `Heap`; the class
+`AStarDefaultTraits< GR , LEN >` give `HeapCrossRef` and `Heap`; the class
 defines `Digraph`, `LengthMap`, `HeuristicMap`, `Value`, `Path`,
 `HeapCrossRef` and `Heap`. Its constructor takes the digraph, the lengths and
 the heuristic.
@@ -491,12 +494,12 @@ changes no distance, which takes $O(nm)$ time in the worst case and much less
 in practice when the active nodes are few. `checkedStart()` performs at most
 $n$ and returns `false` if some node is still active, which happens if and
 only if a negative cycle is reachable from the sources. On the other hand,
-`limitedStart(num)` performs at most `num` exact rounds, and computes the
+`limitedStart( num )` performs at most `num` exact rounds, and computes the
 values $D_{\mathit{num}}$ (the predecessor arcs, however, do not form such
-paths in general, as the documentation warns). Also, `run(s)` and
-`run(s, num)` are `init()` and `addSource(s)` followed by `start()` and
-`limitedStart(num)`. The predecessor arcs satisfy the following lemma,
-which `negativeCycle()` uses.
+paths in general, as the documentation warns). Also, `run( s )` and
+`run( s , num )` are `init()` and `addSource( s )` followed by `start()` and
+`limitedStart( num )`. The predecessor arcs satisfy the following lemma, which
+`negativeCycle()` uses.
 
 <span id="lem-10-1"></span>**Lemma 10.1.** *At any moment of the algorithm,
 every cycle formed by predecessor arcs has negative length.*
@@ -514,52 +517,52 @@ $d(v_1)>d(v_1)+\ell(C)$, i.e., $\ell(C)<0$. $\square$
 
 Its other members are those of `Dijkstra`, with a few differences. Its
 template parameters `GR`, `LEN` and `TR` default to `ListDigraph`,
-`GR::ArcMap<int>` and `BellmanFordDefaultTraits<GR, LEN>`, whose types are
-`Digraph`, `LengthMap`, `Value`, `OperationTraits`, `PredMap` and `DistMap`
-(with their `create...()` functions), and the named parameters are
-`SetPredMap<T>`, `SetDistMap<T>` and `SetOperationTraits<T>`. Its default
-operation traits `BellmanFordDefaultOperationTraits<V>` have, besides
-`zero()`, `plus()` and `less()`, a static `infinity()`, the infinity of `V` if
-it has one and its largest value otherwise. In the latter case (the
+`GR::ArcMap< int >` and `BellmanFordDefaultTraits< GR , LEN >`, whose types
+are `Digraph`, `LengthMap`, `Value`, `OperationTraits`, `PredMap` and
+`DistMap` (with their `create...()` functions), and the named parameters are
+`SetPredMap< T >`, `SetDistMap< T >` and `SetOperationTraits< T >`. Its
+default operation traits `BellmanFordDefaultOperationTraits< V >` have,
+besides `zero()`, `plus()` and `less()`, a static `infinity()`, the infinity
+of `V` if it has one and its largest value otherwise. In the latter case (the
 specialization for the types without infinity) `plus()` returns the largest
 value if one of its terms is that value, and an unreached node thus keeps its
-distance. The call `init(value)` gives all the nodes the distance `value`
+distance. The call `init( value )` gives all the nodes the distance `value`
 (`infinity()` by default). If `value` is finite, all the nodes are active;
 this computes the least lengths of the paths that may start anywhere, and is
 the usual way of looking for a negative cycle anywhere in the digraph (e.g.,
-`init(0)` followed by `checkedStart()`). Then `addSource(s, dst)` sets the
-distance of `s` to `dst` (`zero()` by default) and makes it active.
+`init( 0 )` followed by `checkedStart()`). Then `addSource( s , dst )` sets
+the distance of `s` to `dst` (`zero()` by default) and makes it active.
 
-Its queries are `dist(v)`, `predArc(v)`, `predNode(v)`, `path(t)`,
-`distMap()`, `predMap()` and `reached(v)`, which is true if the distance of
+Its queries are `dist( v )`, `predArc( v )`, `predNode( v )`, `path( t )`,
+`distMap()`, `predMap()` and `reached( v )`, which is true if the distance of
 $v$ is not `infinity()`. Furthermore, the iterator `ActiveIt`, and the range
 `activeNodes()`, list the active nodes after the last round. Finally,
 `negativeCycle()` follows the predecessor arcs back from each active node in
-turn, marking the nodes it meets with the index of that node. It returns, as
-a `lemon::Path`, the first cycle of predecessor arcs that it closes, or an
-empty path if it closes none; it takes $O(n)$ time, and the cycle has
-negative length by Lemma 10.1. It may be called at any time, e.g., after each
-round. The function `bellmanFord(g, length)` returns a `BellmanFordWizard`,
-with the named function parameters `predMap(m)`, `distMap(m)`, `path(p)` and
-`dist(d)` (its base `BellmanFordWizardBase` and its traits
-`BellmanFordWizardDefaultTraits` hold them). Its runs are `run(s)` and
-`run(s, t)`, the latter running `run(s)` in full and then reading the path and
-the distance of `t`, and returning whether `t` is reached.
+turn, marking the nodes it meets with the index of that node. It returns, as a
+`lemon::Path`, the first cycle of predecessor arcs that it closes, or an empty
+path if it closes none; it takes $O(n)$ time, and the cycle has negative
+length by Lemma 10.1. It may be called at any time, e.g., after each round.
+The function `bellmanFord( g , length )` returns a `BellmanFordWizard`, with
+the named function parameters `predMap( m )`, `distMap( m )`, `path( p )` and
+`dist( d )` (its base `BellmanFordWizardBase` and its traits
+`BellmanFordWizardDefaultTraits` hold them). Its runs are `run( s )` and
+`run( s , t )`, the latter running `run( s )` in full and then reading the
+path and the distance of `t`, and returning whether `t` is reached.
 
 !!! note "abLEMON"
     `BellmanFord` keeps the maps it allocates in a `std::unique_ptr`, apart
     from the pointers through which it reads them, and a map given by the user
     is therefore never deleted; LEMON 1.3.1 could delete one. Like `Dijkstra`,
-    it keeps an object of its operation traits, set by `operationTraits(ops)`
-    and read by `operationTraits()`; the test `test/bellman_ford_test.cc` uses
-    one whose comparison has a tolerance, for which an improvement within the
-    tolerance is no improvement.
+    it keeps an object of its operation traits, set by
+    `operationTraits( ops )` and read by `operationTraits()`; the test
+    `test/bellman_ford_test.cc` uses one whose comparison has a tolerance, for
+    which an improvement within the tolerance is no improvement.
 
 The program `manual/examples/10-bellman-ford.cc` (the test
 `manual_10_bellman_ford`) computes the distances with negative lengths and
 checks them against (10.2). It also computes the distances of the paths of at
-most two arcs by `run(s, 2)`, and finds a negative cycle by `checkedStart()`
-and `negativeCycle()`, whose length it checks.
+most two arcs by `run( s , 2 )`, and finds a negative cycle by
+`checkedStart()` and `negativeCycle()`, whose length it checks.
 
 ## 10.5 Arc-disjoint paths of least total length {#sec-10-5}
 
@@ -599,7 +602,7 @@ removed from the heap before $t$) is increased by
 $\delta_\pi(v)-\delta_\pi(t)$, and the others are left as they are.
 
 <span id="alg-10-5"></span>**Algorithm 10.5** (Successive shortest paths with
-potentials, `Suurballe::findFlow(t, k)` after `init(s)`).
+potentials, `Suurballe::findFlow( t , k )` after `init( s )`).
 
 ```
 1  x := 0; pi := 0; i := 0
@@ -670,41 +673,41 @@ class on the digraph of the adaptor `SplitNodes` of [chapter
 5](05-adaptors.md#ch-5), in which each node is split into an arc of capacity
 one.
 
-**Interface.** `Suurballe<GR, LEN, TR>` takes the digraph type, the type of
-the length map (by default `GR::ArcMap<int>`) and the traits class, by default
-`SuurballeDefaultTraits<GR, LEN>`. These traits give `Digraph`, `LengthMap`,
-`Length` (the type of the lengths), `FlowMap` (an `ArcMap<int>`),
-`PotentialMap` (a `NodeMap` of the lengths), `Path` (a `lemon::Path`, or any
-path type with `addBack()`), and the `HeapCrossRef` and the `Heap` (a
-`BinHeap`) of the internal searches; the named parameters `SetFlowMap<T>`,
-`SetPotentialMap<T>`, `SetPath<T>` and `SetHeap<H, CR>` change them. Its
-constructor takes the digraph and the lengths, which must be nonnegative. The
-setters `flowMap(m)` and `potentialMap(m)` set the maps of the flow and of the
-potentials (allocated otherwise), and the searches are made by its private
-class `ResidualDijkstra`.
+**Interface.** `Suurballe< GR , LEN , TR >` takes the digraph type, the type
+of the length map (by default `GR::ArcMap< int >`) and the traits class, by
+default `SuurballeDefaultTraits< GR , LEN >`. These traits give `Digraph`,
+`LengthMap`, `Length` (the type of the lengths), `FlowMap` (an
+`ArcMap< int >`), `PotentialMap` (a `NodeMap` of the lengths), `Path` (a
+`lemon::Path`, or any path type with `addBack()`), and the `HeapCrossRef` and
+the `Heap` (a `BinHeap`) of the internal searches; the named parameters
+`SetFlowMap< T >`, `SetPotentialMap< T >`, `SetPath< T >` and
+`SetHeap< H , CR >` change them. Its constructor takes the digraph and the
+lengths, which must be nonnegative. The setters `flowMap( m )` and
+`potentialMap( m )` set the maps of the flow and of the potentials (allocated
+otherwise), and the searches are made by its private class `ResidualDijkstra`.
 
-A call `run(s, t, k)` is `init(s)` followed by `start(t, k)`, with $k=2$ by
-default, and returns the number of paths found, i.e., $k$ if there are at
-least $k$ arc-disjoint paths, and their largest number otherwise. In turn,
-`start(t, k)` is `findFlow(t, k)` (Algorithm 10.5) followed by `findPaths()`.
-If the paths from one source to many targets are needed, `fullInit(s)`
-replaces `init(s)`. It runs one complete search of Dijkstra from `s` on the
-lengths, which then serves as the first iteration of each subsequent `start(t,
-k)`, with $\pi$ equal to the distances from $s$ (for which Lemma 10.2 holds as
-well, since they satisfy (10.2) and are tight on the tree of the search). Each
-such call thus runs only $k-1$ searches, and returns 0 when `t` cannot be
-reached from `s`, as it does after `init(s)`.
+A call `run( s , t , k )` is `init( s )` followed by `start( t , k )`, with
+$k=2$ by default, and returns the number of paths found, i.e., $k$ if there
+are at least $k$ arc-disjoint paths, and their largest number otherwise. In
+turn, `start( t , k )` is `findFlow( t , k )` (Algorithm 10.5) followed by
+`findPaths()`. If the paths from one source to many targets are needed,
+`fullInit( s )` replaces `init( s )`. It runs one complete search of Dijkstra
+from `s` on the lengths, which then serves as the first iteration of each
+subsequent `start( t , k )`, with $\pi$ equal to the distances from $s$ (for
+which Lemma 10.2 holds as well, since they satisfy (10.2) and are tight on the
+tree of the search). Each such call thus runs only $k-1$ searches, and returns
+0 when `t` cannot be reached from `s`, as it does after `init( s )`.
 
 !!! note "abLEMON"
-    In LEMON 1.3.1, after `fullInit(s)`, `findFlow(t, k)` took the first path
-    from the complete search without checking that `t` was reached, counted
-    one path for a target that cannot be reached, and `findPaths()` then did
-    not end; the test `suurballe_test` checks such a target.
+    In LEMON 1.3.1, after `fullInit( s )`, `findFlow( t , k )` took the first
+    path from the complete search without checking that `t` was reached,
+    counted one path for a target that cannot be reached, and `findPaths()`
+    then did not end; the test `suurballe_test` checks such a target.
 
 Its queries are `totalLength()` (the length of the flow, computed in $O(m)$),
-`flow(a)` and `flowMap()`, `potential(v)` and `potentialMap()` (an optimal
+`flow( a )` and `flowMap()`, `potential( v )` and `potentialMap()` (an optimal
 dual solution, i.e., potentials that satisfy (10.9) with the flow),
-`pathNum()` and `path(i)` for $i$ from 0 to `pathNum()` $-1$.
+`pathNum()` and `path( i )` for $i$ from 0 to `pathNum()` $-1$.
 
 The program `manual/examples/10-suurballe.cc` (the test
 `manual_10_suurballe`) solves the instance of Figure 10.1, checks that the two
@@ -727,17 +730,17 @@ lengths in $(0,1]$ and the comparison reversed, also does, and gives the paths
 of greatest reliability.
 
 <span id="ex-10-3"></span>**Exercise 10.3.** Compare the number of nodes
-scanned by `Dijkstra::run(s, t)`, by `BidirDijkstra` and by `AStar` with the
-Manhattan distance on a grid of $100\times 100$ nodes with random lengths at
-least 1, for random pairs of nodes. (The test `test/point_to_point_test.cc`
+scanned by `Dijkstra::run( s , t )`, by `BidirDijkstra` and by `AStar` with
+the Manhattan distance on a grid of $100\times 100$ nodes with random lengths
+at least 1, for random pairs of nodes. (The test `test/point_to_point_test.cc`
 checks the two point-to-point classes against `Dijkstra`, with heuristics that
 are zero, exact, half the exact one, and admissible but not consistent.)
 
 <span id="ex-10-4"></span>**Exercise 10.4.** Find a negative cycle anywhere in
-a digraph by `init(0)` and `checkedStart()` of `BellmanFord`, and explain why
-`init(0)` is equivalent to adding a new source joined to each node by an arc
-of length zero. (The program `manual/examples/10-bellman-ford.cc` and the test
-`test/bellman_ford_test.cc` find negative cycles.)
+a digraph by `init( 0 )` and `checkedStart()` of `BellmanFord`, and explain
+why `init( 0 )` is equivalent to adding a new source joined to each node by an
+arc of length zero. (The program `manual/examples/10-bellman-ford.cc` and the
+test `test/bellman_ford_test.cc` find negative cycles.)
 
 <span id="ex-10-5"></span>**Exercise 10.5.** Use `Suurballe` on the digraph of
 `SplitNodes` to find two node-disjoint paths of least total length, and verify

@@ -29,19 +29,20 @@ four nodes $s$, $a$, $b$, $t$ and five arcs, each with a cost, on which we
 want the shortest path from $s$ to $t$. A program that computes it goes
 through the four steps that every use of the library repeats. (i) It builds
 the structure, here a `ListDigraph` ([chapter 4](04-graphs.md#ch-4)), which is
-empty when constructed and grows by `addNode()` and `addArc(s, t)`, each of
+empty when constructed and grows by `addNode()` and `addArc( s , t )`, each of
 which returns a handle to the new item (section 3.2). (ii) It attaches the
 costs to the arcs by a map, here a `ListDigraph::ArcMap< int >`, which holds
 one `int` for each arc and is read and written by `cost[a]` (section 3.4),
 since an arc has no field that a user could set. (iii) It constructs the
 algorithm, the class template `Dijkstra` of [chapter
 10](10-shortest-paths.md#ch-10), on the digraph and on the map, and runs it
-from the source by `run(s)`. (iv) It reads the results by queries such as
-`dist(t)` and `predNode(v)` (section 3.6), the second of which gives the node
-that precedes $v$ on the shortest path found, so that the path is followed
-backwards from $t$ to $s$. The program `manual/examples/03-first-program.cc`
-(the test `manual_03_first_program`) follows these steps, prints the
-identifiers of the nodes of the path, and checks that the distance of $t$ is
+from the source by `run( s )`. (iv) It reads the results by queries such as
+`dist( t )` and `predNode( v )` (section 3.6), the second of which gives the
+node that precedes $v$ on the shortest path found, so that the path is
+followed backwards from $t$ to $s$. The program
+`manual/examples/03-first-program.cc` (the test `manual_03_first_program`)
+follows these steps, prints the identifiers of the nodes of the path, and
+checks that the distance of $t$ is
 5. As all the programs of the manual, it is built and run by the tests of the
 library, while how a user program is built against an installed abLEMON is
 explained in [chapter 2](02-installation.md#ch-2).
@@ -52,7 +53,7 @@ explained in [chapter 2](02-installation.md#ch-2).
 
 A digraph has two kinds of items, of the types `Node` and `Arc` nested in its
 class. An undirected graph also has the type `Edge`: each edge $e$ has two end
-nodes, `u(e)` and `v(e)`, and it is represented by two arcs of opposite
+nodes, `u( e )` and `v( e )`, and it is represented by two arcs of opposite
 directions, which the graph creates and erases together with the edge. A
 bipartite graph (`BpGraph`) is an undirected graph whose nodes are either red
 or blue, and whose edges join a red node to a blue one; its types `RedNode`
@@ -61,8 +62,8 @@ type `Node` does not contain a node but identifies one, typically by an
 integer index, and it is "cheap" to copy, to compare and to store. We remark
 that a handle is meaningful only together with its graph (the same index may
 identify another node in another graph), and the graph is therefore passed
-explicitly to each function that reads the structure, as in `g.source(a)` or
-`g.id(v)`.
+explicitly to each function that reads the structure, as in `g.source( a )` or
+`g.id( v )`.
 
 *The constant INVALID.* In `lemon/core.h` one finds the empty type `Invalid`
 (whose operators `==`, `!=` and `<` find any two of its objects equal) and its
@@ -71,11 +72,11 @@ only object, `INVALID`. Indeed, each handle and each iterator converts from
 an item at all. In this way an iteration ends (section 3.3), a function such
 as `findArc()` of [chapter 4](04-graphs.md#ch-4) returns the absence of a
 result, and an algorithm marks a node without a predecessor (e.g., the source
-of a search has `predArc(s) == INVALID`). Also, the handles have the operators
-`==`, `!=` and `<`, the last of which is an artificial order (unrelated to the
-order of iteration, and, in the structures of [chapter 4](04-graphs.md#ch-4),
-the order of the identifiers) that lets the handles be the keys of ordered
-containers.
+of a search has `predArc( s ) == INVALID`). Also, the handles have the
+operators `==`, `!=` and `<`, the last of which is an artificial order
+(unrelated to the order of iteration, and, in the structures of [chapter
+4](04-graphs.md#ch-4), the order of the identifiers) that lets the handles be
+the keys of ordered containers.
 
 !!! note "abLEMON"
     A default-constructed handle (`ListDigraph::Node v;`) is `INVALID` in all
@@ -86,34 +87,35 @@ containers.
     undefined; hence, a generic algorithm should assign `INVALID` explicitly
     instead of relying on it.
 
-*Identifiers.* Each item has an integer identifier, `g.id(item)`, which is
+*Identifiers.* Each item has an integer identifier, `g.id( item )`, which is
 unique among the items of its kind in the graph and does not change while the
-item exists, while `g.nodeFromId(i)`, `g.arcFromId(i)` and `g.edgeFromId(i)`
-give the item back, and `g.maxNodeId()`, `g.maxArcId()` and `g.maxEdgeId()`
-give an upper bound on the identifiers in use. Identifiers are the indices of
-the vectors that store the items and the values of the maps, and they are not
-necessarily contiguous: a `ListDigraph`, e.g., keeps the identifiers of the
-erased nodes on a free list and gives them to the next nodes added. An erased
-node may thus become valid again, and the structures that allow erasing (the
-`List` ones, and the `Smart` ones through their snapshots), as well as
-`StaticGraph` and `FullBpGraph`, have the function `valid(item)`, which
-returns whether a handle identifies an item of the graph at present. In fact,
-a bipartite graph also numbers the red and the blue nodes separately. Thus,
-`g.id(RedNode)` is the index of a node among the red ones (bounded by
-`g.maxRedId()`), and it usually differs from `g.id(Node)` of the same node.
-Finally, the generic forms `g.maxId(Node())` and `g.fromId(i, Node())`, with a
-dummy item that selects the kind, serve the templates that work on any kind of
-item.
+item exists, while `g.nodeFromId( i )`, `g.arcFromId( i )` and
+`g.edgeFromId( i )` give the item back, and `g.maxNodeId()`, `g.maxArcId()`
+and `g.maxEdgeId()` give an upper bound on the identifiers in use. Identifiers
+are the indices of the vectors that store the items and the values of the
+maps, and they are not necessarily contiguous: a `ListDigraph`, e.g., keeps
+the identifiers of the erased nodes on a free list and gives them to the next
+nodes added. An erased node may thus become valid again, and the structures
+that allow erasing (the `List` ones, and the `Smart` ones through their
+snapshots), as well as `StaticGraph` and `FullBpGraph`, have the function
+`valid( item )`, which returns whether a handle identifies an item of the
+graph at present. In fact, a bipartite graph also numbers the red and the blue
+nodes separately. Thus, `g.id( RedNode )` is the index of a node among the red
+ones (bounded by `g.maxRedId()`), and it usually differs from `g.id( Node )`
+of the same node. Finally, the generic forms `g.maxId( Node() )` and
+`g.fromId( i , Node() )`, with a dummy item that selects the kind, serve the
+templates that work on any kind of item.
 
-*Edges and arcs.* Each edge has an inherent orientation, from `u(e)` to
-`v(e)`, given by the order in which its end nodes were passed to `addEdge(u,
-v)`. Of the two arcs of an edge, the forward one goes from `u(e)` to `v(e)`
-and the backward one from `v(e)` to `u(e)`. These arcs are `g.direct(e, true)`
-and `g.direct(e, false)`, while `g.direct(e, w)` is the arc of $e$ whose
-source is the node `w`. Also, `g.direction(a)` is `true` for a forward arc and
-`g.oppositeArc(a)` is the other arc of the same edge. An `Arc` converts to the
-`Edge` it represents (so that an edge map can be read with an arc as its key),
-and `g.oppositeNode(w, e)` is the end of $e$ other than `w`. In the undirected
+*Edges and arcs.* Each edge has an inherent orientation, from `u( e )` to
+`v( e )`, given by the order in which its end nodes were passed to
+`addEdge( u , v )`. Of the two arcs of an edge, the forward one goes from
+`u( e )` to `v( e )` and the backward one from `v( e )` to `u( e )`. These
+arcs are `g.direct( e , true )` and `g.direct( e , false )`, while
+`g.direct( e , w )` is the arc of $e$ whose source is the node `w`. Also,
+`g.direction( a )` is `true` for a forward arc and `g.oppositeArc( a )` is the
+other arc of the same edge. An `Arc` converts to the `Edge` it represents (so
+that an edge map can be read with an arc as its key), and
+`g.oppositeNode( w , e )` is the end of $e$ other than `w`. In the undirected
 structures of [chapter 4](04-graphs.md#ch-4) (the list, smart, static and
 implicit graphs, and the edge sets) the edge of identifier $i$ is represented
 by the arcs of identifiers $2i+1$ (forward) and $2i$ (backward), as [Figure
@@ -126,16 +128,17 @@ enters the same node.
 ![Figure 3.2. An edge e of a ListGraph, with its inherent orientation from u(e) to v(e), and the two arcs that represent it, with their identifiers.](../figures/03-edge-arcs.svg){#fig-3-2}
 
 In a bipartite graph the inherent orientation of each edge goes from its red
-end to its blue end, which `g.redNode(e)` and `g.blueNode(e)` return, while
-`g.red(v)` and `g.blue(v)` give the colour of a node and `g.asRedNode(v)`
-converts a `Node` to a `RedNode` (returning `INVALID` if the node is blue).
-Its variant `g.asRedNodeUnsafe(v)` omits the check, which makes it somewhat
-faster, but it is correct only on red nodes and on `INVALID`; the functions of
-the blue nodes are symmetric. Since an undirected graph is also a digraph
-(with two arcs for each edge), any algorithm written for digraphs runs on it.
-Furthermore, the function `undirected(g)` of `lemon/core.h` returns whether
-the type of `g` is undirected; its value is selected at compile time from the
-tag `UndirectedTag` that the undirected structures define.
+end to its blue end, which `g.redNode( e )` and `g.blueNode( e )` return,
+while `g.red( v )` and `g.blue( v )` give the colour of a node and
+`g.asRedNode( v )` converts a `Node` to a `RedNode` (returning `INVALID` if
+the node is blue). Its variant `g.asRedNodeUnsafe( v )` omits the check, which
+makes it somewhat faster, but it is correct only on red nodes and on
+`INVALID`; the functions of the blue nodes are symmetric. Since an undirected
+graph is also a digraph (with two arcs for each edge), any algorithm written
+for digraphs runs on it. Furthermore, the function `undirected( g )` of
+`lemon/core.h` returns whether the type of `g` is undirected; its value is
+selected at compile time from the tag `UndirectedTag` that the undirected
+structures define.
 
 ## 3.3 Iterators and ranges {#sec-3-3}
 
@@ -158,25 +161,25 @@ which it becomes after the last item. Each iterator also has a constructor
 from the graph and an item, which continues the iteration from that item.
 
 We call base node of an incidence iterator `it` the node on which it was
-constructed. Then `g.baseNode(it)` is the base node and `g.runningNode(it)`
-the other end of the current item: for `OutArcIt` they are the source and the
-target of the arc, for `InArcIt` the target and the source, and for
-`IncEdgeIt` the node of the iterator and the opposite end of the edge. In an
-undirected graph `OutArcIt` and `InArcIt` visit the arcs of the incident edges
-in the two directions, whereas `IncEdgeIt` visits the edges. A loop is visited
-twice by the first two, once for each of its arcs, and also twice by
-`IncEdgeIt` in `ListGraph` and `SmartGraph`. Note that the order of iteration
-is not specified by the concepts, and it differs between the structures (e.g.,
-`ListDigraph`, `SmartDigraph` and the static structures visit their nodes from
-the last added, or the one of largest index, to the first); a program should
-not depend on it.
+constructed. Then `g.baseNode( it )` is the base node and
+`g.runningNode( it )` the other end of the current item: for `OutArcIt` they
+are the source and the target of the arc, for `InArcIt` the target and the
+source, and for `IncEdgeIt` the node of the iterator and the opposite end of
+the edge. In an undirected graph `OutArcIt` and `InArcIt` visit the arcs of
+the incident edges in the two directions, whereas `IncEdgeIt` visits the
+edges. A loop is visited twice by the first two, once for each of its arcs,
+and also twice by `IncEdgeIt` in `ListGraph` and `SmartGraph`. Note that the
+order of iteration is not specified by the concepts, and it differs between
+the structures (e.g., `ListDigraph`, `SmartDigraph` and the static structures
+visit their nodes from the last added, or the one of largest index, to the
+first); a program should not depend on it.
 
 For the range-based `for` of C++11, the graphs also have functions that return
 a range of the same items, since a range is easier to pass to a loop or to an
 algorithm than a pair of iterators. These are `g.nodes()`, `g.arcs()`,
-`g.edges()`, `g.outArcs(v)`, `g.inArcs(v)`, `g.incEdges(v)` and, in a
+`g.edges()`, `g.outArcs( v )`, `g.inArcs( v )`, `g.incEdges( v )` and, in a
 bipartite graph, `g.redNodes()` and `g.blueNodes()`, so that one may write
-`for (auto a : g.outArcs(v))`. A range holds a pair of wrapped iterators
+`for (auto a : g.outArcs( v ))`. A range holds a pair of wrapped iterators
 (`LemonRangeWrapper1` and `LemonRangeWrapper2` of
 `lemon/bits/stl_iterators.h`), which define the member types of an input
 iterator, a dereference that returns the item, and a postfix `++`; hence, the
@@ -191,15 +194,15 @@ algorithms of the standard library that read an input range (e.g.,
 
 Writing the names of the nested types becomes tedious in a function that uses
 several of them, and `lemon/core.h` has macros that define them in the current
-scope. `DIGRAPH_TYPEDEFS(Digraph)` defines `Node`, `NodeIt`, `Arc`, `ArcIt`,
+scope. `DIGRAPH_TYPEDEFS( Digraph )` defines `Node`, `NodeIt`, `Arc`, `ArcIt`,
 `InArcIt` and `OutArcIt`, with the maps `BoolNodeMap`, `IntNodeMap`,
 `DoubleNodeMap`, `BoolArcMap`, `IntArcMap` and `DoubleArcMap` of that type.
-`GRAPH_TYPEDEFS(Graph)` adds `Edge`, `EdgeIt`, `IncEdgeIt` and the three edge
-maps `BoolEdgeMap`, `IntEdgeMap` and `DoubleEdgeMap`, and
-`BPGRAPH_TYPEDEFS(BpGraph)` adds `RedNode`, `RedNodeIt`, `BlueNode`,
+`GRAPH_TYPEDEFS( Graph )` adds `Edge`, `EdgeIt`, `IncEdgeIt` and the three
+edge maps `BoolEdgeMap`, `IntEdgeMap` and `DoubleEdgeMap`, and
+`BPGRAPH_TYPEDEFS( BpGraph )` adds `RedNode`, `RedNodeIt`, `BlueNode`,
 `BlueNodeIt` and their maps (`BoolRedNodeMap` and so on). Inside a template,
 where the graph type is a dependent name, one writes
-`TEMPLATE_DIGRAPH_TYPEDEFS(GR)` (and its counterparts
+`TEMPLATE_DIGRAPH_TYPEDEFS( GR )` (and its counterparts
 `TEMPLATE_GRAPH_TYPEDEFS` and `TEMPLATE_BPGRAPH_TYPEDEFS`), which inserts the
 keywords `typename` and `template` that the compiler then requires. In abLEMON
 the types defined by these macros are marked as possibly unused by the macro
@@ -212,23 +215,23 @@ by a pragma, for the whole compilation of the user.
 
 A graph stores its structure and no other datum. A cost, a capacity, a flow, a
 label or the distance computed by an algorithm is kept in a map. This is an
-object that has the types `Key` and `Value` and that offers `operator[]( key
-)` to read a value, `set( key , value )` to write one, or both (the concepts
-that make this precise are given in [chapter 6](06-maps.md#ch-6), together
-with the maps of `lemon/maps.h`). Each graph structure provides the standard
-maps of its items, namely `NodeMap< V >`, `ArcMap< V >`, `EdgeMap< V >` and,
-in a bipartite graph, `RedNodeMap< V >` and `BlueNodeMap< V >`. Such a map
-stores a value of type `V` for each item of the graph on which it is
-constructed, in a vector indexed by the identifiers, and `map[item]` reads and
-writes it in $O(1)$ time. Furthermore, the map follows the changes of the
-graph, since the graph informs its maps of each item added or erased (cf.
-[appendix A](A-writing-graph-map.md#app-a)): a map constructed on `g` gets a
-slot for each item added to `g` afterwards, whose value is `V()` (not the
-value given to the constructor), and it drops the slot of each item erased. Of
-the two constructors, `NodeMap( g )` value-initializes the values and
-`NodeMap( g , value )` sets them all to `value`; we remark that the standard
-maps can be neither copied nor assigned, and the values of one map are copied
-into another by `mapCopy()` of [chapter 6](06-maps.md#ch-6).
+object that has the types `Key` and `Value` and that offers
+`operator[]( key )` to read a value, `set( key , value )` to write one, or
+both (the concepts that make this precise are given in [chapter
+6](06-maps.md#ch-6), together with the maps of `lemon/maps.h`). Each graph
+structure provides the standard maps of its items, namely `NodeMap< V >`,
+`ArcMap< V >`, `EdgeMap< V >` and, in a bipartite graph, `RedNodeMap< V >` and
+`BlueNodeMap< V >`. Such a map stores a value of type `V` for each item of the
+graph on which it is constructed, in a vector indexed by the identifiers, and
+`map[item]` reads and writes it in $O(1)$ time. Furthermore, the map follows
+the changes of the graph, since the graph informs its maps of each item added
+or erased (cf. [appendix A](A-writing-graph-map.md#app-a)): a map constructed
+on `g` gets a slot for each item added to `g` afterwards, whose value is `V()`
+(not the value given to the constructor), and it drops the slot of each item
+erased. Of the two constructors, `NodeMap( g )` value-initializes the values
+and `NodeMap( g , value )` sets them all to `value`; we remark that the
+standard maps can be neither copied nor assigned, and the values of one map
+are copied into another by `mapCopy()` of [chapter 6](06-maps.md#ch-6).
 
 An algorithm reads and writes its data through maps whose types are template
 parameters; hence, any object with the right interface may be passed in place
@@ -265,18 +268,18 @@ maximum flows, minimum cost flows, minimum mean cycles) in the chapters of
 their families.
 
 Checking is done by two function templates of `lemon/concept_check.h`. A call
-`checkConcept< Concept , T >()` takes the address of `Concept::Constraints< T
->::constraints`, which forces the compiler to instantiate that function. If
-`T` lacks one of the operations the concept requires, the compilation fails
-with an error that names it; at run time the call does nothing. Its older form
-`function_requires< C >()` does the same for a class `C` whose member
-`constraints()` is to be instantiated (a form that is now rarely used). Both
-are empty when `NDEBUG` is defined (i.e., in an optimized build without
-assertions, where they check nothing), and in a build without `NDEBUG` they
-cost only compilation time. In the library, the tests check each graph
-structure, map and heap against its concept (e.g., `test/digraph_test.cc`
-calls `checkConcept< Digraph , ListDigraph >()`), and a user who writes a new
-structure checks it in the same way ([appendix
+`checkConcept< Concept , T >()` takes the address of
+`Concept::Constraints< T >::constraints`, which forces the compiler to
+instantiate that function. If `T` lacks one of the operations the concept
+requires, the compilation fails with an error that names it; at run time the
+call does nothing. Its older form `function_requires< C >()` does the same for
+a class `C` whose member `constraints()` is to be instantiated (a form that is
+now rarely used). Both are empty when `NDEBUG` is defined (i.e., in an
+optimized build without assertions, where they check nothing), and in a build
+without `NDEBUG` they cost only compilation time. In the library, the tests
+check each graph structure, map and heap against its concept (e.g.,
+`test/digraph_test.cc` calls `checkConcept< Digraph , ListDigraph >()`), and a
+user who writes a new structure checks it in the same way ([appendix
 A](A-writing-graph-map.md#app-a)). A generic function may also call
 `checkConcept` on its template parameters, as the function `incidentWeight()`
 of `manual/examples/03-items-maps.cc` does, in which case a wrong argument is
@@ -314,17 +317,18 @@ a `BinHeap` on them.
 *Named template parameters.* We remark that a traits class is rarely written
 by hand, since each of its types can be replaced by a named template
 parameter. This is a nested template of the algorithm class, whose member
-`Create` is the class with that type replaced. For instance, `Dijkstra< GR ,
-LEN >::SetDistMap< M >::Create` is a `Dijkstra` that writes the distances into
-a map of type `M`, which the caller passes by `distMap(m)`, and `SetHeap< H ,
-CR >` replaces the heap and its cross reference map (cf. [chapter
-7](07-heaps.md#ch-7)), while `SetOperationTraits< T >` replaces the operations
-on the lengths. Named parameters can be chained, as in `SetPredMap< P
->::Create::SetDistMap< M >::Create`. A type replaced in this way is not
-created by the algorithm (its creating function only asserts), and the caller
-must give the object before the first run; the variants `SetStandardHeap< H >`
-and `SetStandardProcessedMap` instead let the algorithm create the new type
-itself.
+`Create` is the class with that type replaced. For instance,
+`Dijkstra< GR , LEN >::SetDistMap< M >::Create` is a `Dijkstra` that writes
+the distances into a map of type `M`, which the caller passes by
+`distMap( m )`, and `SetHeap< H , CR >` replaces the heap and its cross
+reference map (cf. [chapter 7](07-heaps.md#ch-7)), while
+`SetOperationTraits< T >` replaces the operations on the lengths. Named
+parameters can be chained, as in
+`SetPredMap< P >::Create::SetDistMap< M >::Create`. A type replaced in this
+way is not created by the algorithm (its creating function only asserts), and
+the caller must give the object before the first run; the variants
+`SetStandardHeap< H >` and `SetStandardProcessedMap` instead let the algorithm
+create the new type itself.
 
 *Execution.* A constructor takes the input objects (here the digraph and the
 length map) by reference, and they must outlive the algorithm, while the maps
@@ -333,17 +337,17 @@ caller has given them by the setter functions `predMap()`, `distMap()`,
 `processedMap()` and `heap()` (which takes the heap and its cross reference
 map). Each setter returns a reference to the algorithm, so that the calls can
 be chained, and `lengthMap()` and `operationTraits()` replace the input in the
-same way. The simplest way to execute the algorithm is `run(s)`, which
+same way. The simplest way to execute the algorithm is `run( s )`, which
 computes the shortest paths from `s` to all the nodes reachable from it, while
-`run(s, t)` stops as soon as `t` is processed and returns whether `t` is
-reachable. For a finer control, `run(s)` is the sequence `init()`,
-`addSource(s)`, `start()` of Algorithm 3.1, and these functions may also be
+`run( s , t )` stops as soon as `t` is processed and returns whether `t` is
+reachable. For a finer control, `run( s )` is the sequence `init()`,
+`addSource( s )`, `start()` of Algorithm 3.1, and these functions may also be
 called one by one. Thus, `init()` resets the data of the nodes, and
-`addSource(s, d)` adds a source with the initial distance `d` (zero by
+`addSource( s , d )` adds a source with the initial distance `d` (zero by
 default); one may give several sources, a node already in the heap keeps the
 smaller of its two distances, and a node already processed is left alone. Then
-`start()` runs the search until the heap is empty, `start(t)` stops when `t`
-is processed, and `start(nm)` stops at the first node `v` with `nm[v]` true
+`start()` runs the search until the heap is empty, `start( t )` stops when `t`
+is processed, and `start( nm )` stops at the first node `v` with `nm[v]` true
 that reaches the top of the heap, which it processes and returns (or `INVALID`
 if there is none). Between these calls, `processNextNode()` performs one step
 and returns the node it processed, `nextNode()` gives the node that the next
@@ -376,17 +380,17 @@ paths; this correctness of Algorithm 3.1 is [Theorem
 10](10-shortest-paths.md#ch-10); the same theorem bounds the run by $n$ pushes
 and pops and $m$ decreases of a priority, whose cost depends on the heap
 ([chapter 7](07-heaps.md#ch-7)). Since the nodes leave the heap in
-nondecreasing order of distance, `run(s, t)` and `start(t)` give the distance
-of `t` as soon as `t` has left it.
+nondecreasing order of distance, `run( s , t )` and `start( t )` give the
+distance of `t` as soon as `t` has left it.
 
 *Queries.* After a run the results are read by query functions, named after
-the objects of the problem: `dist(v)`, `predArc(v)`, `predNode(v)` and
-`path(t)` for the shortest paths, `currentDist(v)` for the priority of a node
-still in the heap, `reached(v)` and `processed(v)` for the state of a node,
-and `distMap()` and `predMap()` for the maps. A query is meaningful only after
-a run that reached the node (and, for `dist(v)`, that processed it): this is
-its precondition, stated in the documentation of each function, and its value
-remains available until the next `init()`.
+the objects of the problem: `dist( v )`, `predArc( v )`, `predNode( v )` and
+`path( t )` for the shortest paths, `currentDist( v )` for the priority of a
+node still in the heap, `reached( v )` and `processed( v )` for the state of a
+node, and `distMap()` and `predMap()` for the maps. A query is meaningful only
+after a run that reached the node (and, for `dist( v )`, that processed it):
+this is its precondition, stated in the documentation of each function, and
+its value remains available until the next `init()`.
 
 *Function-type interface.* Some algorithms (among them `bfs()`, `dfs()` and
 `dijkstra()`) also have a function that returns a "wizard" object, on which
@@ -403,7 +407,7 @@ simple cases, whereas the class gives access to the intermediate state and to
 repeated runs. The program `manual/examples/03-algorithm-pattern.cc` (the test
 `manual_03_algorithm_pattern`) goes through the pattern on a `SmartDigraph`.
 It uses the named parameter `SetDistMap`, the separate steps `init()`,
-`addSource()` and `start(t)`, a run with two sources at different initial
+`addSource()` and `start( t )`, a run with two sources at different initial
 distances, the queries on a node that is not reachable, and the function-type
 interface.
 
@@ -446,7 +450,7 @@ compare values under a tolerance.
 
 <span id="lem-3-1"></span>**Lemma 3.1.** *Let $\varepsilon\ge 0$, let the
 operands be numbers of `T` other than NaN, and let $a\approx b$ mean that
-`different(a, b)` is false. Then (i) `less` is irreflexive and transitive,
+`different( a , b )` is false. Then (i) `less` is irreflexive and transitive,
 i.e., a strict partial order, also when $a+\varepsilon$ is rounded; (ii)
 $\approx$ is reflexive and symmetric; (iii) for $\varepsilon=0$, $a\approx b$
 holds if and only if $a=b$; (iv) for $\varepsilon>0$ and in exact arithmetic,
@@ -459,14 +463,15 @@ has $\mathrm{fl}(a+\varepsilon)\ge\mathrm{fl}(a)=a$, and therefore
 $\mathrm{fl}(a+\varepsilon)<a$ never holds. If $\mathrm{fl}(a+\varepsilon)<b$
 and $\mathrm{fl}(b+\varepsilon)<c$, then
 $\mathrm{fl}(a+\varepsilon)<b\le\mathrm{fl}(b+\varepsilon)<c$ by the same
-argument on $b$, i.e., `less(a, c)`. (ii) `different(a, a)` is `less(a, a)`,
-which is false by (i), and `different` is symmetric by its definition. (iii)
-With $\varepsilon=0$, `different(a, b)` is $a\ne b$ in the general template,
-and $a<b$ or $b<a$ in the specializations (since then $\mathrm{fl}(a+0)=a$),
-which for numbers other than NaN is again $a\ne b$. (iv) In exact arithmetic
-`different(a, b)` is $a+\varepsilon<b$ or $b+\varepsilon<a$, i.e.,
-$|a-b|>\varepsilon$. Hence, $a=0$, $b=\varepsilon$ and $c=2\varepsilon$ give
-$a\approx b$ and $b\approx c$, but not $a\approx c$. $\square$
+argument on $b$, i.e., `less( a , c )`. (ii) `different( a , a )` is
+`less( a , a )`, which is false by (i), and `different` is symmetric by its
+definition. (iii) With $\varepsilon=0$, `different( a , b )` is $a\ne b$ in
+the general template, and $a<b$ or $b<a$ in the specializations (since then
+$\mathrm{fl}(a+0)=a$), which for numbers other than NaN is again $a\ne b$.
+(iv) In exact arithmetic `different( a , b )` is $a+\varepsilon<b$ or
+$b+\varepsilon<a$, i.e., $|a-b|>\varepsilon$. Hence, $a=0$, $b=\varepsilon$
+and $c=2\varepsilon$ give $a\approx b$ and $b\approx c$, but not $a\approx c$.
+$\square$
 
 We stress that the threshold is absolute, i.e., $\varepsilon$ in (3.1) does
 not scale with the operands; hence, `Tolerance< double >` finds $10^{20}$ and
@@ -487,8 +492,8 @@ section.
 *Numeric constants.* The "small" header `lemon/math.h` includes `<cmath>` and
 defines, in the namespace `lemon`, the constants `E`, `LOG2E`, `LOG10E`,
 `LN2`, `LN10`, `PI`, `PI_2`, `PI_4`, `SQRT2` and `SQRT1_2`, as `long double`
-values written with 35 significant digits. It also defines `isNaN(v)`, which
-tests `v != v` on a `double`, and `round(r)`, which rounds a `double` to the
+values written with 35 significant digits. It also defines `isNaN( v )`, which
+tests `v != v` on a `double`, and `round( r )`, which rounds a `double` to the
 nearest integer with the halves away from zero, i.e., $\lfloor r+1/2\rfloor$
 for $r>0$ and $\lceil r-1/2\rceil$ otherwise. In abLEMON the constants (and
 the object `ignore_unused_variable_warning` of section 3.5) are declared by
@@ -502,26 +507,26 @@ implementation at compile time from the properties of a type. Thus,
 iterator (`ItemIt`), the map template (`Map< V >::Type`) and the notifier of
 the items, and a template can be written once for nodes, arcs and edges. Also,
 `MapTraits< M >` gives whether a map is a reference map and which types its
-`operator[]` returns ([chapter 6](06-maps.md#ch-6)), and `MatrixMapTraits< M
->` does the same for the maps with two keys. Other templates detect the tags
-that a structure may define (`NodeNumTagIndicator< GR >` and its siblings,
-whose member `value` is `true` when the tag is there). Among these tags,
-`NodeNumTag`, `ArcNumTag` and `EdgeNumTag` mean that the structure counts its
-items in $O(1)$ time, `FindArcTag` and `FindEdgeTag` that it finds the arc
-between two nodes directly, `BuildTag` that it is built in one call from
-another graph, and `UndirectedTag` that it is undirected. Typically, a
-counting function of `lemon/core.h` is selected by these tags; indeed,
-`countNodes(g)` calls `g.nodeNum()` on a structure with `NodeNumTag`, in
-$O(1)$ time, and scans the nodes with `NodeIt` otherwise, in $O(n)$ time, and
-the other utilities of [chapter 4](04-graphs.md#ch-4) (`countArcs()`,
-`findArc()`, the copies) are selected in the same way, by `enable_if` on the
-tag.
+`operator[]` returns ([chapter 6](06-maps.md#ch-6)), and
+`MatrixMapTraits< M >` does the same for the maps with two keys. Other
+templates detect the tags that a structure may define
+(`NodeNumTagIndicator< GR >` and its siblings, whose member `value` is `true`
+when the tag is there). Among these tags, `NodeNumTag`, `ArcNumTag` and
+`EdgeNumTag` mean that the structure counts its items in $O(1)$ time,
+`FindArcTag` and `FindEdgeTag` that it finds the arc between two nodes
+directly, `BuildTag` that it is built in one call from another graph, and
+`UndirectedTag` that it is undirected. Typically, a counting function of
+`lemon/core.h` is selected by these tags; indeed, `countNodes( g )` calls
+`g.nodeNum()` on a structure with `NodeNumTag`, in $O(1)$ time, and scans the
+nodes with `NodeIt` otherwise, in $O(n)$ time, and the other utilities of
+[chapter 4](04-graphs.md#ch-4) (`countArcs()`, `findArc()`, the copies) are
+selected in the same way, by `enable_if` on the tag.
 
 ## 3.8 Exercises {#sec-3-8}
 
 <span id="ex-3-1"></span>**Exercise 3.1.** Write a variant of the first
 example that prints the nodes of the shortest path from $s$ to $t$ in the
-order in which the path visits them, by `dijkstra.path(t)` and the path
+order in which the path visits them, by `dijkstra.path( t )` and the path
 utilities of [chapter 8](08-auxiliary.md#ch-8) instead of a loop on
 `predNode()`. (The program `manual/examples/03-first-program.cc` gives the
 distance against which to check the result.)
@@ -547,8 +552,9 @@ order of the input, although two values of one group may be different. (The
 program `manual/examples/03-tolerance.cc` checks the threshold.)
 
 <span id="ex-3-5"></span>**Exercise 3.5.** Replace the length map of the
-program of section 3.6 by a map of type `ConstMap< SmartDigraph::Arc , double
->` with value 1 (cf. [chapter 6](06-maps.md#ch-6)), so that `Dijkstra`
-computes the number of arcs of the shortest paths, and check the result
-against a breadth-first search ([chapter 9](09-search.md#ch-9)). (The test
-`test/bfs_test.cc` shows the breadth-first search.)
+program of section 3.6 by a map of type
+`ConstMap< SmartDigraph::Arc , double >` with value 1 (cf. [chapter
+6](06-maps.md#ch-6)), so that `Dijkstra` computes the number of arcs of the
+shortest paths, and check the result against a breadth-first search ([chapter
+9](09-search.md#ch-9)). (The test `test/bfs_test.cc` shows the breadth-first
+search.)

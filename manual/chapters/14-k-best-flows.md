@@ -76,7 +76,7 @@ of certificates, as sets of nodes of the digraph (vectors of `Node`); after
 any other answer they are empty.
 
 -   `infeasibleCut()` returns one set $N'$ with $viol(N')>0$.
--   `infeasibleCuts(k)` returns the $k$ sets of largest violation, in the
+-    `infeasibleCuts( k )` returns the $k$ sets of largest violation, in the
 order of their violations, at most $k$ and only those that prove the problem
 infeasible.
 -   `disjointInfeasibleCuts()` returns sets of positive violation that are
@@ -134,7 +134,7 @@ three classes give a set of violation 2, which is a single component.
 
 ### 14.1.3 The k most violated sets {#sec-14-1-3}
 
-We find the sets of `infeasibleCuts(k)` by the partition of [Lawler
+We find the sets of `infeasibleCuts( k )` by the partition of [Lawler
 1972](Z-bibliography.md#ref-lawler72kbest), applied to the cuts of the network
 of Theorem 14.1 as in [Hamacher, Picard and Queyranne
 1984](Z-bibliography.md#ref-hamacher1984finding). Here the space of the sets
@@ -173,7 +173,7 @@ is made only for the parts that might hold one of the $k$ sets, rather than
 for each child of each set given. Second, the maximum flow of a part is a
 preflow of each of its children, whose capacities are only larger (one more
 fixed node adds capacity on one arc from the source or to the target); hence,
-`Preflow::init(flowMap)` starts each child from the flow of its parent
+`Preflow::init( flowMap )` starts each child from the flow of its parent
 ([chapter 12](12-max-flow.md#ch-12)). The ties of step 2 come from Lemma 12.1,
 as [Picard and Queyranne 1980](Z-bibliography.md#ref-picard1980structure)
 observed; the partition then runs as usual, and a set that it finds again is
@@ -208,8 +208,8 @@ the network replaces by $P+1$: a cut that contains one has a capacity above
 $P$. $\square$
 
 <span id="thm-14-2"></span>**Theorem 14.2.** *(The k most violated sets.)
-`infeasibleCuts(k)` returns the $\min\{k,q\}$ sets of largest violation, where
-$q$ is the number of sets of positive violation, distinct and in a
+`infeasibleCuts( k )` returns the $\min\{k,q\}$ sets of largest violation,
+where $q$ is the number of sets of positive violation, distinct and in a
 nonincreasing order of violation. It makes at most $1+n\,s$ maximum flows,
 where $s$ is the number of parts whose best set was given; i.e., at most $n$
 maximum flows for each set, as the header states.*
@@ -236,7 +236,7 @@ Figure 14.1 shows a problem of five nodes, in which the node $a$ must send 4
 units on an arc of capacity 2, and $d$ must send 3 units on one of capacity 1,
 while $b$, with no supply, can only feed $a$. The sets $\{a\}$, $\{a,b\}$ and
 $\{d\}$ have violation 2, and the sets $\{a,d\}$ and $\{a,b,d\}$ have
-violation 4, the largest; hence, the four best sets of `infeasibleCuts(4)`
+violation 4, the largest; hence, the four best sets of `infeasibleCuts( 4 )`
 have the violations 4, 4, 2 and 2.
 
 ![Figure 14.1. An infeasible problem: the supply of each node next to it, the capacity on each arc; the sets {a, b} and {d}, each of violation 2, are disjoint and joined by no arc, and their union, of violation 4, is a set of largest violation.](../figures/14-infeasible-cut.svg){#fig-14-1}
@@ -260,7 +260,7 @@ two kinds of certificates, both empty after any other answer.
 
 -   `unboundedCycle()` returns one such cycle, as the vector of its arcs in
 the direction of the flow.
--   `unboundedCycles(k)` returns at most $k$ such cycles, pairwise
+-    `unboundedCycles( k )` returns at most $k$ such cycles, pairwise
 arc-disjoint, in the order of their mean costs.
 
 In `NetworkSimplex` the cycle is the one of the pivot that it could not
@@ -290,7 +290,7 @@ C}c(a)$. $\square$
 One might think of the cycle of least total cost as the natural choice for
 several cycles, but it is NP-hard to find, since it would decide whether a
 digraph is Hamiltonian (cf. Exercise 14.3). Instead, the cycles of
-`unboundedCycles(k)` are those of minimum mean cost, which are the most
+`unboundedCycles( k )` are those of minimum mean cost, which are the most
 negative per arc. Howard's algorithm (class `HowardMmc`, [chapter
 16](16-min-mean-cycle.md#ch-16)), run on the arcs of infinite upper bound,
 ends on each strongly connected component with a policy whose cycle has the
@@ -331,7 +331,7 @@ again only when fewer than $k$ cycles were found.
 In the problem of Figure 14.2, the four nodes form one strongly connected
 component of the arcs of infinite capacity, whose cycle of minimum mean is
 $(r,s,r)$, of cost $-2$ and mean $-1$. A second run on the arcs left finds
-$(p,q,r,p)$, of cost $-1$ and mean $-1/3$, and `unboundedCycles(3)` gives
+$(p,q,r,p)$, of cost $-1$ and mean $-1/3$, and `unboundedCycles( 3 )` gives
 these two cycles, as the program of section 14.1.4 checks. The arc $(q,p)$
 closes with $(p,q)$ a cycle of cost $-12$, but its capacity is finite; hence,
 it bounds the flow on that cycle, and it never appears in a certificate.
@@ -393,10 +393,10 @@ flows of the sides.
 7      add (B', g) to S; compute the second best flows of (B, f), (B', g)
 ```
 
-<span id="thm-14-4"></span>**Theorem 14.4.** *(KBestFlows.) `run(k)` gives the
-$\min\{k,q\}$ integer flows of least cost of (13.1) in a nondecreasing order
-of cost, where $q$ is the number of integer flows, provided that the first
-flow is optimal.*
+<span id="thm-14-4"></span>**Theorem 14.4.** *(KBestFlows.) `run( k )` gives
+the $\min\{k,q\}$ integer flows of least cost of (13.1) in a nondecreasing
+order of cost, where $q$ is the number of integer flows, provided that the
+first flow is optimal.*
 
 *Proof.* We show by induction that the sets of $S$ partition the integer flows
 not yet given, and that the given flow of each set is its best flow. This
@@ -427,33 +427,35 @@ for the order of the flows of equal cost.
 
 ### 14.3.2 The interface {#sec-14-3-2}
 
-`KBestFlows<GR, V, C>` takes the type of the digraph, the number type `V` of
-the flows, of the bounds and of the supplies (by default `int`), and the
+`KBestFlows< GR , V , C >` takes the type of the digraph, the number type `V`
+of the flows, of the bounds and of the supplies (by default `int`), and the
 number type `C` of the costs (by default `V`), which it names `Digraph`,
 `Value` and `Cost`. Its constructor takes the digraph, whose nodes and arcs it
 numbers at once; the digraph must not change afterwards. Until they are given,
 the bounds are 0 and infinite, the costs 1 and the supplies 0. Its setters,
 each returning the object, are the following ones.
 
--   `lowerMap(map)`, `upperMap(map)`, `costMap(map)` and `supplyMap(map)` copy
+-    `lowerMap( map )`, `upperMap( map )`, `costMap( map )` and
+    `supplyMap( map )` copy
 the data as in [chapter 13](13-min-cost-flow.md#ch-13), an upper bound that is
 infinite or the largest value of `Value` meaning no bound.
--   `initFlow(map)` gives an optimal flow to start from, which must be optimal
+-    `initFlow( map )` gives an optimal flow to start from, which must be
+    optimal
 for the data given, and after which no minimum cost flow algorithm is run.
--   `tolerances(flow, cost)` sets the tolerances of [section
+-    `tolerances( flow , cost )` sets the tolerances of [section
 13.3](13-min-cost-flow.md#sec-13-3), which are given to the `NetworkSimplex`
 that finds the optimal flow, a negative value leaving them to the data;
-`flowTolerance()` and `costTolerance()` return those in use, as a `Tolerance<
-Value >` and a `Tolerance< Cost >`.
+`flowTolerance()` and `costTolerance()` return those in use, as a
+`Tolerance< Value >` and a `Tolerance< Cost >`.
 
-Then `run(k)` finds the flows and returns their number, which is less than $k$
-if the problem has fewer integer flows, and zero if $k\leq 0$ or the problem
-has no optimal flow (it is infeasible or unbounded). Its queries are
-`flowNum()`, the number of flows of the last run, `totalCost(i)`, `flow(i,
-arc)` and `flowMap(i, map)`, for the $i$-th flow, where the first one is the
-flow 0. Both the bounds and the supplies must be integer, also with a
-floating-point `V` (whose values are then integer ones), since the flows
-differ from each other by whole units. Also, an infinite upper bound is
+Then `run( k )` finds the flows and returns their number, which is less than
+$k$ if the problem has fewer integer flows, and zero if $k\leq 0$ or the
+problem has no optimal flow (it is infeasible or unbounded). Its queries are
+`flowNum()`, the number of flows of the last run, `totalCost( i )`,
+`flow( i , arc )` and `flowMap( i , map )`, for the $i$-th flow, where the
+first one is the flow 0. Both the bounds and the supplies must be integer,
+also with a floating-point `V` (whose values are then integer ones), since the
+flows differ from each other by whole units. Also, an infinite upper bound is
 allowed only if no cycle of negative cost is made of arcs of infinite upper
 bound, or the problem has no optimal flow. We remark that the comparisons of
 the search for the second best flows are exact on such data.
@@ -596,11 +598,12 @@ spanning trees containing the path, and the ranking expands all those it
 meets. Two limits bound this work, and `exact()` returns whether a run stayed
 within them.
 
--   `basisLimit(limit)` sets the largest number of bases a run expands, by
+-    `basisLimit( limit )` sets the largest number of bases a run expands, by
 default 1000. When it is reached the run stops; the flows given are still
 distinct vertices in the order of their costs, but they may not be the $k$
 best ones.
--   `vertexBasisLimit(limit)` sets the largest number of bases of one vertex
+-    `vertexBasisLimit( limit )` sets the largest number of bases of one
+    vertex
 that a run expands, by default no limit (a value of 0). A basis counts only if
 one of its pivots leads to another vertex, so that the bases whose pivots are
 all degenerate do not take the place of one that is not. With a positive
@@ -617,7 +620,7 @@ stopped at `basisLimit()`, or left out a basis or a pivot for
 
 ### 14.4.3 The cycles of least reduced cost {#sec-14-4-3}
 
-With `method(CYCLES)` the class enumerates no basis, and thus avoids the
+With `method( CYCLES )` the class enumerates no basis, and thus avoids the
 expansion of the many bases of a degenerate vertex. Starting from the optimal
 vertex and from potentials optimal for it, it first finds the other optimal
 vertices. A residual arc of zero reduced cost closes a cycle of zero reduced
@@ -684,22 +687,23 @@ $O(km+pn)$ memory for the $p$ trees of shortest paths made.
 
 ### 14.4.4 The interface {#sec-14-4-4}
 
-`KBestExtremeFlows<GR, V, C>` has the template parameters and typedefs, the
-constructor, the setters `lowerMap()`, `upperMap()`, `costMap()`,
+`KBestExtremeFlows< GR , V , C >` has the template parameters and typedefs,
+the constructor, the setters `lowerMap()`, `upperMap()`, `costMap()`,
 `supplyMap()` and `tolerances()`, and the queries `flowTolerance()`,
-`costTolerance()`, `flowNum()`, `totalCost(i)`, `flow(i, arc)` and `flowMap(i,
-map)` of `KBestFlows`. Its `initFlow(map)` takes a flow that must be optimal
-for the data given but need not be a vertex. Its tolerances are given to the
-`NetworkSimplex` that finds the optimal flow, and they are also used in its
-own comparisons: a flow within the tolerance on the flows of a bound is at the
-bound, and a reduced cost within the tolerance on the costs of zero is zero.
-The method is set by `method(m)`, with the constants `RANKING` (the default)
-and `CYCLES` of the nested enum `Method`, and the limits by `basisLimit()` and
-`vertexBasisLimit()`. Then `run(k, gap)` finds at most $k$ vertices, a
-negative `gap`, the default, setting no limit on the excess of their cost over
-the optimum. It returns the number of vertices found, which is less than $k$
-if the problem has fewer vertices within the gap, and zero if $k\leq 0$ or the
-problem has no optimal flow; `exact()` returns whether the run was exact.
+`costTolerance()`, `flowNum()`, `totalCost( i )`, `flow( i , arc )` and
+`flowMap( i , map )` of `KBestFlows`. Its `initFlow( map )` takes a flow that
+must be optimal for the data given but need not be a vertex. Its tolerances
+are given to the `NetworkSimplex` that finds the optimal flow, and they are
+also used in its own comparisons: a flow within the tolerance on the flows of
+a bound is at the bound, and a reduced cost within the tolerance on the costs
+of zero is zero. The method is set by `method( m )`, with the constants
+`RANKING` (the default) and `CYCLES` of the nested enum `Method`, and the
+limits by `basisLimit()` and `vertexBasisLimit()`. Then `run( k , gap )` finds
+at most $k$ vertices, a negative `gap`, the default, setting no limit on the
+excess of their cost over the optimum. It returns the number of vertices
+found, which is less than $k$ if the problem has fewer vertices within the
+gap, and zero if $k\leq 0$ or the problem has no optimal flow; `exact()`
+returns whether the run was exact.
 
 The program `manual/examples/14-k-best.cc` (the test `manual_14_k_best`)
 solves a problem of four nodes and five arcs, small enough to enumerate all
@@ -738,13 +742,13 @@ equations $cost^\pi=0$ on the tree, with the root fixed, have a unique
 solution. Hence, $\pi$ is the only point of the set at which those
 inequalities are tight. $\square$
 
-`runPotentials(k)` finds at most $k$ distinct optimal potentials, and returns
-their number (zero if $k\leq 0$ or the problem has no optimal flow);
-`potentialNum()` and `potential(i, node)` read them, and the first ones are
+`runPotentials( k )` finds at most $k$ distinct optimal potentials, and
+returns their number (zero if $k\leq 0$ or the problem has no optimal flow);
+`potentialNum()` and `potential( i , node )` read them, and the first ones are
 the potentials 0. Two potentials that differ by a constant are the same, and
 two within the tolerance on the costs of each other are the same too. One sets
-the method by `potentialMethod(m)`, with the constants `PATHS` and `PIVOTS` of
-the nested enum `PotentialMethod`.
+the method by `potentialMethod( m )`, with the constants `PATHS` and `PIVOTS`
+of the nested enum `PotentialMethod`.
 
 With `PATHS`, the default, the potentials are computed from potentials $\pi$
 optimal for the optimal vertex of section 14.4, found by the algorithm of
@@ -813,7 +817,7 @@ its arcs, each of $O(n+m)$ time.
 
 !!! note "abLEMON"
     `runPotentials()` appeared in version 1.8.0 with the method `PATHS`, and
-    `potentialMethod(PIVOTS)` in version 1.9.0.
+    `potentialMethod( PIVOTS )` in version 1.9.0.
 
 ## 14.6 Exercises {#sec-14-6}
 
@@ -825,9 +829,10 @@ it receives.)
 
 <span id="ex-14-2"></span>**Exercise 14.2.** Enumerate all the subsets of the
 nodes of a random infeasible problem with eight nodes, compute their
-violations by (14.1), and compare the $k$ largest with `infeasibleCuts(k)` of
-the four classes. (Solved by the battery `test/min_cost_flow_battery_test.cc`,
-which checks the $k$ best sets against the enumeration of all the subsets.)
+violations by (14.1), and compare the $k$ largest with `infeasibleCuts( k )`
+of the four classes. (Solved by the battery
+`test/min_cost_flow_battery_test.cc`, which checks the $k$ best sets against
+the enumeration of all the subsets.)
 
 <span id="ex-14-3"></span>**Exercise 14.3.** Show that the cycle of least
 total cost among the cycles of negative cost decides whether a digraph has a
@@ -843,9 +848,9 @@ example of section 14.4.4 and check, by the enumeration of the program, that
 
 <span id="ex-14-5"></span>**Exercise 14.5.** Build a shortest path problem on
 a complete digraph of six nodes, as a minimum cost flow problem with one unit
-of supply, and run `KBestExtremeFlows` with `basisLimit(10)`; observe
-`exact()`, and then raise the limit or set `vertexBasisLimit(1)`. (The extreme
-flows are checked against an enumeration by
+of supply, and run `KBestExtremeFlows` with `basisLimit( 10 )`; observe
+`exact()`, and then raise the limit or set `vertexBasisLimit( 1 )`. (The
+extreme flows are checked against an enumeration by
 `checkExtremeAgainstEnumeration()`, and the limit cases by
 `checkLimitCases()`, in `test/k_best_flows_test.cc`.)
 

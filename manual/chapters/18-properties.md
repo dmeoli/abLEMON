@@ -30,8 +30,8 @@ an equivalence relation, whose classes are the *connected components*, and a
 graph is connected if it has one component (by convention, the graph without
 nodes is connected and has zero components, as the documentation of each
 function states). Three functions compute the components, i.e.,
-`bool connected(g)`, `int countConnectedComponents(g)` and
-`int connectedComponents(g, compMap)`. Of these, `connected()` runs one
+`bool connected( g )`, `int countConnectedComponents( g )` and
+`int connectedComponents( g , compMap )`. Of these, `connected()` runs one
 depth-first search from the first node and checks that it has reached all the
 nodes, while `countConnectedComponents()` starts a breadth-first search from
 each node not yet reached and counts the searches. In the same way,
@@ -59,13 +59,13 @@ each end) and each node once, and the initialization of the maps of the search
 costs $O(n)$. Hence, the total is $O(n+m)$. $\square$
 
 A graph is *acyclic* (a forest) if it contains no cycle, and it is a *tree*
-if, furthermore, it is connected. The function `acyclic(g)` runs a depth-first
-search from each unreached node. It returns `false` at the first arc that
-leads to a reached node without being the opposite of the arc by which the
-search entered the current node; similarly, `tree(g)` makes the same test from
-the first node only and then checks that all the nodes have been reached
-(thus, the empty graph is a tree). The proof rests on a property of the
-depth-first search of an undirected graph, which we use throughout the
+if, furthermore, it is connected. The function `acyclic( g )` runs a
+depth-first search from each unreached node. It returns `false` at the first
+arc that leads to a reached node without being the opposite of the arc by
+which the search entered the current node; similarly, `tree( g )` makes the
+same test from the first node only and then checks that all the nodes have
+been reached (thus, the empty graph is a tree). The proof rests on a property
+of the depth-first search of an undirected graph, which we use throughout the
 chapter. We call *tree edges* the edges by which the search discovers a node,
 *non-tree edges* the others, and we say that $u$ is an *ancestor* of $v$ (and
 $v$ a *descendant* of $u$) if $u$ lies on the path of tree edges from the root
@@ -98,8 +98,8 @@ opposite of the arc that entered its source. Each arc is examined at most
 once. $\square$
 
 A graph is *bipartite* if its nodes can be split into two sets with no edge
-inside either of them. One decides it with `bipartite(g)`, while
-`bool bipartitePartitions(g, partMap)` also writes the two sides into the
+inside either of them. One decides it with `bipartite( g )`, while
+`bool bipartitePartitions( g , partMap )` also writes the two sides into the
 writable `bool` node map `partMap` (`true` on the side of the first node of
 each component). Both run a breadth-first search that puts each discovered
 node on the side opposite to that of its parent. They stop with `false` after
@@ -125,19 +125,19 @@ and the graph is not bipartite. Indeed, the cost is that of the searches of
 Theorem 18.1. $\square$
 
 Finally, three functions test whether a graph is simple, and they apply to
-digraphs and to undirected graphs alike. Here `loopFree(g)` returns `true` if
-no arc has the same source and target, `parallelFree(g)` if no two arcs or
-edges are parallel, and `simpleGraph(g)` if there are neither loops nor
+digraphs and to undirected graphs alike. Here `loopFree( g )` returns `true`
+if no arc has the same source and target, `parallelFree( g )` if no two arcs
+or edges are parallel, and `simpleGraph( g )` if there are neither loops nor
 parallel arcs or edges. The latter two stamp, in a node map, the targets of
 the arcs leaving a node with the index of that node, and they report a target
 found already stamped; hence, each of the three costs $O(n+m)$ and needs no
 sorting. We remark that on an undirected graph the two arcs of a loop leave
 its node and enter it, and therefore `parallelFree()` counts the arcs that
 leave a node and enter it: two loops at a node are parallel, but one loop is
-not (on a digraph a loop is one arc). Several algorithms of this chapter (cf.
-[§18.5](#sec-18-5), [§18.6](#sec-18-6) and [§18.7](#sec-18-7)) assume a simple
-graph, which `simpleGraph()` checks (a graph read from a file, e.g., may well
-have parallel edges).
+not (on a digraph a loop is one arc). Several algorithms of this chapter
+(cf. [§18.5](#sec-18-5), [§18.6](#sec-18-6) and [§18.7](#sec-18-7)) assume a
+simple graph, which `simpleGraph()` checks (a graph read from a file, e.g.,
+may well have parallel edges).
 
 ## 18.2 Biconnectivity {#sec-18-2}
 
@@ -159,16 +159,17 @@ D), three cut nodes and two bi-edge-connected components.
 
 The header provides, for the nodes and for the edges, the same kinds of
 function as for the connected components. For the blocks they are
-`bool biNodeConnected(g)`, `int countBiNodeConnectedComponents(g)`,
-`int biNodeConnectedComponents(g, compMap)` and
-`int biNodeConnectedCutNodes(g, cutMap)`. For the bi-edge-connected components
-they are `bool biEdgeConnected(g)`, `int countBiEdgeConnectedComponents(g)`,
-`int biEdgeConnectedComponents(g, compMap)` and
-`int biEdgeConnectedCutEdges(g, cutMap)`. Note that the map of the blocks is
-an edge map, since a block is a set of edges and a cut node belongs to several
-blocks, whereas the map of the bi-edge-connected components is a node map;
-both are numbered from $0$ as in [§18.1](#sec-18-1), consecutively within a
-component. Those that find the cut nodes and the cut edges set `cutMap` to
+`bool biNodeConnected( g )`, `int countBiNodeConnectedComponents( g )`,
+`int biNodeConnectedComponents( g , compMap )` and
+`int biNodeConnectedCutNodes( g , cutMap )`. For the bi-edge-connected
+components they are `bool biEdgeConnected( g )`,
+`int countBiEdgeConnectedComponents( g )`,
+`int biEdgeConnectedComponents( g , compMap )` and
+`int biEdgeConnectedCutEdges( g , cutMap )`. Note that the map of the blocks
+is an edge map, since a block is a set of edges and a cut node belongs to
+several blocks, whereas the map of the bi-edge-connected components is a node
+map; both are numbered from $0$ as in [§18.1](#sec-18-1), consecutively within
+a component. Those that find the cut nodes and the cut edges set `cutMap` to
 `true` on them (once each) and return their number. They leave the other items
 untouched, and the caller must therefore initialize the map to `false` when it
 reads the other items too.
@@ -324,9 +325,9 @@ both directions. This is an equivalence relation, whose classes are the
 *strongly connected components*, and the digraph that has one node per
 component, and an arc from one component to another whenever some arc of $D$
 goes so, is acyclic (we call it the *condensation* of $D$). The library offers
-`bool stronglyConnected(d)`, `int countStronglyConnectedComponents(d)`,
-`int stronglyConnectedComponents(d, compMap)` and
-`int stronglyConnectedCutArcs(d, cutMap)`, with the conventions of
+`bool stronglyConnected( d )`, `int countStronglyConnectedComponents( d )`,
+`int stronglyConnectedComponents( d , compMap )` and
+`int stronglyConnectedCutArcs( d , cutMap )`, with the conventions of
 [§18.1](#sec-18-1), i.e., the empty digraph is strongly connected and has zero
 components. Of these, `stronglyConnected()` runs a depth-first search from the
 first node on $D$ and another on its reverse (the adaptor `ReverseDigraph` of
@@ -395,18 +396,18 @@ their number. The proof is the one of [Cormen et al. 2001,
 
 A digraph without directed cycles is a *DAG*, and a *topological order* of a
 DAG is a numbering of its nodes in which each arc goes from a lower to a
-higher number. Three functions deal with them, i.e., `bool dag(d)`,
-`void topologicalSort(d, order)` and `bool checkedTopologicalSort(d, order)`.
-The first one runs a depth-first search from each unreached node and returns
-`false` at the first arc whose target has been reached but not yet left (a
-*back arc*; a loop is one). Next, `topologicalSort()` writes in the writable
-node map `order` the values from $n-1$ down to $0$, in the order in which a
-depth-first search leaves the nodes, each value once. It does not check that
-the digraph is a DAG, which is its precondition. By contrast,
-`checkedTopologicalSort()` does check it, and it needs a map that can also be
-read: it first sets all the values to $-1$, and it returns `false` at the
-first arc that leads to a node reached and still at $-1$ (i.e., not yet left),
-leaving the map partly written.
+higher number. Three functions deal with them, i.e., `bool dag( d )`,
+`void topologicalSort( d , order )` and
+`bool checkedTopologicalSort( d , order )`. The first one runs a depth-first
+search from each unreached node and returns `false` at the first arc whose
+target has been reached but not yet left (a *back arc*; a loop is one). Next,
+`topologicalSort()` writes in the writable node map `order` the values from
+$n-1$ down to $0$, in the order in which a depth-first search leaves the
+nodes, each value once. It does not check that the digraph is a DAG, which is
+its precondition. By contrast, `checkedTopologicalSort()` does check it, and
+it needs a map that can also be read: it first sets all the values to $-1$,
+and it returns `false` at the first arc that leads to a node reached and still
+at $-1$ (i.e., not yet left), leaving the map partly written.
 
 <span id="thm-18-7"></span>**Theorem 18.7.** *A digraph has a directed cycle
 if and only if a depth-first search of it meets a back arc. Hence, `dag()` and
@@ -531,7 +532,7 @@ is necessary. Theorem 18.9 shows that it suffices. $\square$
 If the graph has no Euler tour, the iterators still give a walk (possibly a
 rather short one), which is not closed or does not contain all the edges, and
 from which one can usually tell little. One should therefore check the
-property first, with `bool eulerian(g)`, which works on digraphs and on
+property first, with `bool eulerian( g )`, which works on digraphs and on
 undirected graphs (the two versions are selected through the undirected tag of
 the graph type). On an undirected graph it returns `true` if each node has
 even degree (`countIncEdges()`, which counts a loop twice) and the graph is
@@ -598,16 +599,16 @@ certifies that it is. We now describe the implementation of the algorithm of
 [Boyer and Myrvold 2004](Z-bibliography.md#ref-boyer2004cutting), which
 computes either an embedding or a Kuratowski subdivision, and which is usually
 regarded as one of the simplest linear planarity tests. The function
-`bool checkPlanarity(g)` runs a simplified version of it that builds neither
+`bool checkPlanarity( g )` runs a simplified version of it that builds neither
 certificate, and the class `PlanarEmbedding< Graph >` runs the full one. Both
 expect an undirected simple graph (a precondition of the constructor), which
 `simpleGraph()` of [§18.1](#sec-18-1) checks. Once the class is constructed
-from the graph, `run(bool kuratowski = true)` returns whether the graph is
-planar. If it is, `next(a)` gives the arc that follows the arc `a` in the
+from the graph, `run( bool kuratowski = true )` returns whether the graph is
+planar. If it is, `next( a )` gives the arc that follows the arc `a` in the
 cyclic order of the arcs leaving its source, and `embeddingMap()` returns the
 whole order as a `const` reference to an arc map of arcs (the type
 `EmbeddingMap`, i.e., `Graph::ArcMap< Arc >`). If it is not, and `run()` was
-called with `true`, `kuratowski(e)` returns whether the edge `e` belongs to
+called with `true`, `kuratowski( e )` returns whether the edge `e` belongs to
 the subdivision found, whose nodes of degree three or four are those of a
 $K_{3,3}$ or of a $K_5$ (with `false`, or before `run()`, it returns `false`
 on every edge).
@@ -636,7 +637,7 @@ outline of `PlanarEmbedding::run()`).
 <span id="thm-18-11"></span>**Theorem 18.11.** *`PlanarEmbedding::run()` and
 `checkPlanarity()` return `true` if and only if the simple graph is planar; in
 that case `embeddingMap()` is a combinatorial embedding of a plane drawing,
-and otherwise, after `run(true)`, the edges marked by `kuratowski()` form a
+and otherwise, after `run( true )`, the edges marked by `kuratowski()` form a
 Kuratowski subdivision. The sort of step 1 costs $O(n\log n)$ in all, and the
 rest of the method $O(n+m)$, which is $O(n)$ on a planar simple graph.*
 
@@ -664,21 +665,22 @@ integer grid by the method of [Schnyder
 1990](Z-bibliography.md#ref-schnyder1990embedding). Its coordinates have the
 type `dim2::Point< int >` (the type `Point`, stored in the node map type
 `PointMap`), and its interface is the constructor from a simple graph and the
-two functions `run()` and `run(embedding)`. Of these, the former computes an
+two functions `run()` and `run( embedding )`. Of these, the former computes an
 embedding with `PlanarEmbedding` and returns `false` if the graph is not
 planar; the latter, a template on the type of the map, draws according to a
 given combinatorial embedding (e.g., `embeddingMap()` of a `PlanarEmbedding`)
-and has no return value. Then the coordinates are read with `operator[](node)`
-or, as a node map, with `coords()`. On a graph with $m=3n-6$, `run(embedding)`
-draws the graph itself; on any other graph it copies the graph into an edge
-set and adds edges, consistently with the embedding, to make it connected,
-then bi-node-connected and then maximal planar, draws the triangulation and
-keeps the coordinates of the nodes. A graph with fewer than three nodes is
-drawn on a vertical line, with $x=0$ and $y=0,1$.
+and has no return value. Then the coordinates are read with
+`operator[]( node )` or, as a node map, with `coords()`. On a graph with
+$m=3n-6$, `run( embedding )` draws the graph itself; on any other graph it
+copies the graph into an edge set and adds edges, consistently with the
+embedding, to make it connected, then bi-node-connected and then maximal
+planar, draws the triangulation and keeps the coordinates of the nodes. A
+graph with fewer than three nodes is drawn on a vertical line, with $x=0$ and
+$y=0,1$.
 
 <span id="thm-18-12"></span>**Theorem 18.12.** *For a planar simple graph with
 $n\ge3$ nodes and a combinatorial embedding of a plane drawing,
-`PlanarDrawing::run(embedding)` places the nodes at distinct points of the
+`PlanarDrawing::run( embedding )` places the nodes at distinct points of the
 grid $[0,n-2]\times[0,n-2]$ so that the straight segments of the edges do not
 cross.*
 
@@ -704,10 +706,10 @@ section computes.
 !!! note "abLEMON"
     In LEMON 1.3.1, `PlanarDrawing::run()` without arguments passed the
     `PlanarEmbedding` object, instead of its embedding map, to
-    `run(embedding)`, and therefore did not compile once instantiated. abLEMON
-    has the correction made in the repository of LEMON after that release
-    (trac #610), as well as the drawing of the graphs with fewer than three
-    nodes (trac #611), on which the algorithm failed.
+    `run( embedding )`, and therefore did not compile once instantiated.
+    abLEMON has the correction made in the repository of LEMON after that
+    release (trac #610), as well as the drawing of the graphs with fewer than
+    three nodes (trac #611), on which the algorithm failed.
 
 ## 18.6 Coloring planar graphs {#sec-18-6}
 
@@ -773,7 +775,7 @@ which gives $O(n+m)$ with the $O(n+m)$ of step 2. $\square$
 
 <span id="thm-18-14"></span>**Theorem 18.14.** *Given a planar simple graph
 and a combinatorial embedding of a plane drawing of it,
-`runFiveColoring(embedding)` computes a coloring with at most five colors in
+`runFiveColoring( embedding )` computes a coloring with at most five colors in
 $O(n(n+m))=O(n^2)$ time.*
 
 *Proof.* Step 3 fails only when the colored neighbors of $v$, at most five by
@@ -800,18 +802,18 @@ $O(n+m)$, and it happens at most once per node; the rest is as in Theorem
 
 As for its interface, `PlanarColoring` has the constructor from a simple graph
 and three functions to compute a coloring. Of these, `runSixColoring()` is the
-one of Theorem 18.13; `runFiveColoring(embedding)`, a template on the type of
-the map, needs a combinatorial embedding and has no return value; and
+one of Theorem 18.13; `runFiveColoring( embedding )`, a template on the type
+of the map, needs a combinatorial embedding and has no return value; and
 `runFiveColoring()` computes the embedding with `PlanarEmbedding`, returns
 `false` on a nonplanar graph, and costs in addition the time of Theorem 18.11.
-One reads the results with `colorIndex(node)`, between $0$ and $4$ or $5$, and
-with `color(node)`, a `Color` of a palette of six (red, green, blue, yellow,
-magenta and cyan, in the order of the indices). As maps, `colorIndexMap()`
-returns a const reference to the node map of the indices (the type
-`IndexMap`), and `colorMap()` the map of the colors (the type `ColorMap`, a
-`ComposeMap` of the palette and of the indices). Both `PlanarDrawing` and
-`PlanarColoring` also export the item and iterator types of the graph (`Node`,
-`Arc`, `NodeIt`, and so on).
+One reads the results with `colorIndex( node )`, between $0$ and $4$ or $5$,
+and with `color( node )`, a `Color` of a palette of six (red, green, blue,
+yellow, magenta and cyan, in the order of the indices). As maps,
+`colorIndexMap()` returns a const reference to the node map of the indices
+(the type `IndexMap`), and `colorMap()` the map of the colors (the type
+`ColorMap`, a `ComposeMap` of the palette and of the indices). Both
+`PlanarDrawing` and `PlanarColoring` also export the item and iterator types
+of the graph (`Node`, `Arc`, `NodeIt`, and so on).
 
 !!! note "abLEMON"
     `PlanarColoring::colorIndexMap()` returns a const reference to the map of
@@ -876,8 +878,8 @@ of its neighbors that are such images.
 8  return false
 ```
 
-The test `feasible(u, w)` checks the label (or the equivalence of the nodes),
-and it checks that each mapped neighbor of $u$ has its image among the
+The test `feasible( u , w )` checks the label (or the equivalence of the
+nodes), and it checks that each mapped neighbor of $u$ has its image among the
 neighbors of $w$ and, for `INDUCED` and `ISOMORPH`, that each mapped neighbor
 of $w$ is such an image. It then looks ahead. With the numbers
 $r^{\mathrm{io}}(u)$ of the unmapped neighbors of $u$ adjacent to the mapped
@@ -933,52 +935,52 @@ root of each tree by a scan of the nodes and sorts each level of the tree by
 selection, which costs $O(n_1^2)$ in all, while its counts of the labels are
 vectors indexed by the label. $\square$
 
-The class `Vf2< G1, G2, M, NEQ >` implements the algorithm of [Cordella et al.
-2004](Z-bibliography.md#ref-cordella2004sub). Its first two template
+The class `Vf2< G1 , G2 , M , NEQ >` implements the algorithm of [Cordella et
+al. 2004](Z-bibliography.md#ref-cordella2004sub). Its first two template
 parameters are the type of the graph to be embedded (`G1`, by default
 `ListGraph`) and that of the graph it is embedded into (`G2`, by default
 `ListGraph`). The other two are the type of the read-write node map of $G_1$
 that stores the mapping (`M`, by default `G1::NodeMap< G2::Node >`) and a
 binary functor on a node of $G_1$ and one of $G_2$ that decides whether the
 first may be mapped to the second (`NEQ`, by default a functor that always
-returns `true`). Its constructor `Vf2(g1, g2, m, neq = NEQ())` computes the
-order of step 1 and the numbers of the look-ahead, and sets all the values of
-`m` to `INVALID`. Then `mappingType()` returns the type and `mappingType(t)`
-sets it, and `find()` searches for the next mapping, writes it into `m` and
-returns `true`, or returns `false` when none is left (and then `m` is
-`INVALID` again everywhere). The destructor deletes the map only when a wizard
-allocated it (see below).
+returns `true`). Its constructor `Vf2( g1 , g2 , m , neq = NEQ() )` computes
+the order of step 1 and the numbers of the look-ahead, and sets all the values
+of `m` to `INVALID`. Then `mappingType()` returns the type and
+`mappingType( t )` sets it, and `find()` searches for the next mapping, writes
+it into `m` and returns `true`, or returns `false` when none is left (and then
+`m` is `INVALID` again everywhere). The destructor deletes the map only when a
+wizard allocated it (see below).
 
-The class `Vf2pp< G1, G2, M, M1, M2 >` implements the algorithm of [Jüttner
-and Madarasi 2018](Z-bibliography.md#ref-VF2PP), which differs from VF2 in two
-respects. First, its labels are integer node maps (`M1` and `M2`, by default
-`G1::NodeMap< int >` and `G2::NodeMap< int >`), and there is no functor of
-node equivalence. The header asks the labels to be $0,1,\ldots,K-1$ for $K$
-distinct labels, since the algorithm keeps vectors indexed by the label, of
-length the largest label plus one (any nonnegative values work, at the price
-of longer vectors). Second, the order of step 1 is chosen to "fail early".
-Each breadth-first tree starts from an unordered node whose label is the
-"rarest" among the nodes of $G_2$ (among those, one of largest degree). Within
-each level of the tree the nodes are taken by most neighbors already ordered,
-then by largest degree, then by rarest label; the look-ahead of `feasible()`
-compares the numbers $r^{\mathrm{io}}$ and $r^{\mathrm{new}}$ label by label.
-According to the experiments of [Jüttner and Madarasi
+The class `Vf2pp< G1 , G2 , M , M1 , M2 >` implements the algorithm of
+[Jüttner and Madarasi 2018](Z-bibliography.md#ref-VF2PP), which differs from
+VF2 in two respects. First, its labels are integer node maps (`M1` and `M2`,
+by default `G1::NodeMap< int >` and `G2::NodeMap< int >`), and there is no
+functor of node equivalence. The header asks the labels to be $0,1,\ldots,K-1$
+for $K$ distinct labels, since the algorithm keeps vectors indexed by the
+label, of length the largest label plus one (any nonnegative values work, at
+the price of longer vectors). Second, the order of step 1 is chosen to "fail
+early". Each breadth-first tree starts from an unordered node whose label is
+the "rarest" among the nodes of $G_2$ (among those, one of largest degree).
+Within each level of the tree the nodes are taken by most neighbors already
+ordered, then by largest degree, then by rarest label; the look-ahead of
+`feasible()` compares the numbers $r^{\mathrm{io}}$ and $r^{\mathrm{new}}$
+label by label. According to the experiments of [Jüttner and Madarasi
 2018](Z-bibliography.md#ref-VF2PP), these two changes typically reduce the
 search considerably, especially on labeled graphs; we have not measured the
 two classes against each other, and on "easy" instances the difference may
-well be small. Its constructor is `Vf2pp(g1, g2, m, labels1, labels2)`, and
-`mappingType()`, `find()` and the destructor are as for `Vf2`.
+well be small. Its constructor is `Vf2pp( g1 , g2 , m , labels1 , labels2 )`,
+and `mappingType()`, `find()` and the destructor are as for `Vf2`.
 
-Both algorithms also have a function-type interface, `vf2(g1, g2)` and
-`vf2pp(g1, g2)`, which return objects of the classes `Vf2Wizard` and
+Both algorithms also have a function-type interface, `vf2( g1 , g2 )` and
+`vf2pp( g1 , g2 )`, which return objects of the classes `Vf2Wizard` and
 `Vf2ppWizard` (built on the base classes `Vf2WizardBase` and
 `Vf2ppWizardBase`, which hold the graphs and the parameters). Their named
-parameters are `mapping(m)`, the map that receives the result (by default, a
-map is allocated and deleted inside), and `nodeLabels(l1, l2)`. The latter
+parameters are `mapping( m )`, the map that receives the result (by default, a
+map is allocated and deleted inside), and `nodeLabels( l1 , l2 )`. The latter
 takes two node maps whose values `vf2()` compares with `==` and which
 `vf2pp()` takes as integer labels as above (without them, `vf2()` may map any
 node to any node, and `vf2pp()` gives all the nodes the label $0$). The others
-are `nodeEq(f)`, the functor (for `vf2()` only), and `mappingType(t)`,
+are `nodeEq( f )`, the functor (for `vf2()` only), and `mappingType( t )`,
 `induced()` and `iso()`. Such an expression ends with `run()`, which returns
 whether a mapping exists and leaves it in the map given by `mapping()`, with
 `count()`, which returns the number of mappings, or with `getPtrToVf2Object()`
@@ -1004,9 +1006,9 @@ labels.
     (trac #682); and `lemon/vf2pp.h` includes `lemon/list_graph.h`, whose
     `ListGraph` its default arguments name, so that each of the two headers is
     self-contained. In the code of the repository, `ISOMORPH` did not compare
-    $n_1$ with $n_2$, so that, e.g., `vf2(g1, g2).iso().count()` was 4 for
-    one edge and two disjoint edges; `vf2_test` checks that it is 0, with
-    both classes.
+    $n_1$ with $n_2$, so that, e.g., `vf2( g1 , g2 ).iso().count()` was 4 for
+    one edge and two disjoint edges; `vf2_test` checks that it is 0, with both
+    classes.
 
 The program `manual/examples/18-isomorphism.cc` (the test
 `manual_18_isomorphism`) counts the automorphisms of the cycle on five nodes
@@ -1053,7 +1055,7 @@ nodes of degree three), the other nodes having degree zero or two in it; the
 test `test/planarity_test.cc` makes this check in `checkKuratowski()`.
 
 <span id="ex-18-6"></span>**Exercise 18.6.** Count with
-`vf2(g, g).iso().count()` and with `vf2pp(g, g).iso().count()` the
+`vf2( g , g ).iso().count()` and with `vf2pp( g , g ).iso().count()` the
 automorphisms of the cube and of the Petersen graph (48 and 120), and compare
 the number of calls of `find()` with and without labels that distinguish one
 node. The program `manual/examples/18-isomorphism.cc` does the same on the
@@ -1067,7 +1069,8 @@ mappings into any $G_2$ coincide, and that, for a pattern without edges, the
 size. Check both claims on small graphs, starting from the program
 `manual/examples/18-isomorphism.cc`.
 
-<span id="ex-18-8"></span>**Exercise 18.8.** Run `vf2(g1, g2).iso().count()`
-with $G_1$ a single edge and $G_2$ two disjoint edges, and explain the result
-4 by the remark of [§18.7](#sec-18-7) on the type `ISOMORPH`; then show that,
-when $n_1=n_2$, the admissible mappings of `ISOMORPH` are the isomorphisms.
+<span id="ex-18-8"></span>**Exercise 18.8.** Run
+`vf2( g1 , g2 ).iso().count()` with $G_1$ a single edge and $G_2$ two disjoint
+edges, and explain the result 4 by the remark of [§18.7](#sec-18-7) on the
+type `ISOMORPH`; then show that, when $n_1=n_2$, the admissible mappings of
+`ISOMORPH` are the isomorphisms.

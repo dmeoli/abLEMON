@@ -14,13 +14,13 @@ heaps and the heaps of integer priorities, each with its algorithms, its
 invariants and its costs. Section 7.5 compares them and shows how an algorithm
 is given a heap, and section 7.6 collects the exercises. Throughout the
 chapter, $n$ is the number of items in the heap, "$p<q$" between priorities
-means `comp(p, q)` for the comparison functor of the heap, and an amortized
+means `comp( p , q )` for the comparison functor of the heap, and an amortized
 cost is a bound on the total cost of any sequence of operations from the empty
 heap, divided among its operations.
 
 ## 7.1 The heap concept {#sec-7-1}
 
-The concept `concepts::Heap< PR, IM, CMP >` of `lemon/concepts/heap.h`
+The concept `concepts::Heap< PR , IM , CMP >` of `lemon/concepts/heap.h`
 describes the interface. `PR` is the type of the priorities (named `Prio`),
 `IM` a reference map from the items to `int`, called the cross-reference map
 (named `ItemIntMap`), and `CMP` a functor that compares two priorities, by
@@ -33,32 +33,32 @@ never been in the heap, `IN_HEAP` ($0$), if it is in the heap, and `POST_HEAP`
 ($-2$), if it has been in the heap and has left it. The map must hold
 `PRE_HEAP` for each item before the first insertion, which is the precondition
 of the constructors `explicit Heap( IM & map )` and
-`Heap( IM & map, const CMP & comp )`. The concept also requires the heap to be
-copy-constructible.
+`Heap( IM & map , const CMP & comp )`. The concept also requires the heap to
+be copy-constructible.
 
 The operations are the following; Table 7.1 gives their costs.
 
 -   `size()` returns the number of items, and `empty()` returns whether it is
     zero.
--   `push(i, p)` inserts the item `i`, which must not be in the heap, with
+-    `push( i , p )` inserts the item `i`, which must not be in the heap, with
     priority `p`.
 -   `top()` and `prio()` return the item of least priority and its priority
     (the heap must not be empty). With `std::greater` as `CMP`, they return
     the item of largest priority.
--   `pop()` removes the item of least priority (the heap must not be empty),
-    whose state becomes `POST_HEAP`, and `erase(i)` removes the item `i`,
+-    `pop()` removes the item of least priority (the heap must not be empty),
+    whose state becomes `POST_HEAP`, and `erase( i )` removes the item `i`,
     which must be in the heap.
--   `operator[](i)` returns the priority of the item `i`, which must be in
+-    `operator[]( i )` returns the priority of the item `i`, which must be in
     the heap.
--   `decrease(i, p)` and `increase(i, p)` change the priority of an item in
-    the heap to `p`, which must not be larger (respectively, smaller) than the
-    current one under `CMP`. The heaps do not check it.
+-    `decrease( i , p )` and `increase( i , p )` change the priority of an
+    item in the heap to `p`, which must not be larger (respectively, smaller)
+    than the current one under `CMP`. The heaps do not check it.
 -   `set(i, p)` changes the priority of `i` if it is in the heap, by
     `decrease()` or `increase()` as the case may be, and it inserts `i`
     otherwise (also when it is `POST_HEAP`).
--   `state(i)` returns the state of an item. `state(i, st)`, with `st` equal
-    to `PRE_HEAP` or `POST_HEAP`, erases the item if it is in the heap and
-    then writes `st` into the map (`IN_HEAP` is ignored).
+-    `state( i )` returns the state of an item. `state( i , st )`, with `st`
+    equal to `PRE_HEAP` or `POST_HEAP`, erases the item if it is in the heap
+    and then writes `st` into the map (`IN_HEAP` is ignored).
 -   `clear()` empties the heap without touching the map. To reuse the heap on
     the same items, the caller must also reset the map to `PRE_HEAP`.
 
@@ -66,26 +66,28 @@ What the map holds for an item depends on the family. In the implicit heaps of
 section 7.2 and in the heaps of section 7.4 it holds the position of the item
 in the storage while the item is in the heap, and `POST_HEAP` after the item
 has left it. In the linked heaps of section 7.3 it holds the index of the
-record of the item from its first insertion until `clear()` or `state(i, st)`,
-and `state(i)` reads, in the record, whether the item is in the heap. In both
-cases `state(i)` costs $O(1)$, and it lets an algorithm such as `Dijkstra`
-distinguish a scanned node from an unreached one without a further map.
-Furthermore, the heaps write the map through `operator[]` (e.g.,
-`state(i, st)` in all of them, `decrease()` and `erase()` of `BinomialHeap`,
-and `push()`, `pop()` and `erase()` of `RadixHeap` and `BucketHeap`), and
-therefore need a reference map, as their documentation says; the maps used in
-practice (a graph map of `int` or a `RangeMap< int >`) are reference maps.
+record of the item from its first insertion until `clear()` or
+`state( i , st )`, and `state( i )` reads, in the record, whether the item is
+in the heap. In both cases `state( i )` costs $O(1)$, and it lets an algorithm
+such as `Dijkstra` distinguish a scanned node from an unreached one without a
+further map. Furthermore, the heaps write the map through `operator[]` (e.g.,
+`state( i , st )` in all of them, `decrease()` and `erase()` of
+`BinomialHeap`, and `push()`, `pop()` and `erase()` of `RadixHeap` and
+`BucketHeap`), and therefore need a reference map, as their documentation
+says; the maps used in practice (a graph map of `int` or a `RangeMap< int >`)
+are reference maps.
 
 Besides the concept, `BinHeap`, `QuadHeap`, `DHeap`, `BucketHeap` and
-`SimpleBucketHeap` have `push(pair)`, which takes a `std::pair< Item, Prio >`
-(the type `Pair`, which `FibHeap` also names), and the comparison heaps name
-their functor by `Compare`. Also, `BinHeap`, `QuadHeap` and `DHeap` have
-`replace(i, j)`, which gives the place and the priority of the item `i` (in
-the heap) to the item `j` (not in the heap), in $O(1)$; after it, the map
-holds for `i` the state that it held for `j`. The test `test/heap_test.cc`
-checks each heap against the concept, by `checkConcept()`, and then by
-sorting, by increasing priorities, by priorities with many ties, by erasures
-under `std::less` and `std::greater`, and inside `Dijkstra`.
+`SimpleBucketHeap` have `push( pair )`, which takes a
+`std::pair< Item , Prio >` (the type `Pair`, which `FibHeap` also names), and
+the comparison heaps name their functor by `Compare`. Also, `BinHeap`,
+`QuadHeap` and `DHeap` have `replace( i , j )`, which gives the place and the
+priority of the item `i` (in the heap) to the item `j` (not in the heap), in
+$O(1)$; after it, the map holds for `i` the state that it held for `j`. The
+test `test/heap_test.cc` checks each heap against the concept, by
+`checkConcept()`, and then by sorting, by increasing priorities, by priorities
+with many ties, by erasures under `std::less` and `std::greater`, and inside
+`Dijkstra`.
 
 ## 7.2 Implicit d-ary heaps {#sec-7-2}
 
@@ -191,16 +193,16 @@ The library has three classes of this family, all with the template parameters
 `PR`, `IM` and `CMP` (by default `std::less< PR >`) and with both constructors
 of the concept.
 
--   `BinHeap< PR, IM, CMP >`, in `lemon/bin_heap.h`, is the binary heap. It
+-    `BinHeap< PR , IM , CMP >`, in `lemon/bin_heap.h`, is the binary heap. It
     is the default heap of `Dijkstra`, `BidirDijkstra`, `AStar`, `Suurballe`
     and `MinCostArborescence`, and the heap (with `std::greater`) of
     `NagamochiIbaraki` and of `MaxCardinalitySearch` on general capacities;
     the matching algorithms also use it.
--   `QuadHeap< PR, IM, CMP >`, in `lemon/quad_heap.h`, is the 4-ary heap (the
-    header calls it "fourary"), whose four children are compared by unrolled
-    code.
--   `DHeap< PR, IM, D, CMP >`, in `lemon/dheap.h`, is the $d$-ary heap, with
-    the degree as the template parameter `D`, by default $16$. The header
+-    `QuadHeap< PR , IM , CMP >`, in `lemon/quad_heap.h`, is the 4-ary heap
+    (the header calls it "fourary"), whose four children are compared by
+    unrolled code.
+-    `DHeap< PR , IM , D , CMP >`, in `lemon/dheap.h`, is the $d$-ary heap,
+    with the degree as the template parameter `D`, by default $16$. The header
     suggests a power of two, which lets the compiler turn the divisions and
     multiplications of the positions into shifts.
 
@@ -222,7 +224,7 @@ classes have the template parameters `PR`, `IM` and `CMP` and both
 constructors of the concept, and in all three `increase()` is `erase()`
 followed by `push()`.
 
-*Fibonacci heaps.* `FibHeap< PR, IM, CMP >`, in `lemon/fib_heap.h`, is the
+*Fibonacci heaps.* `FibHeap< PR , IM , CMP >`, in `lemon/fib_heap.h`, is the
 heap of [Fredman and Tarjan 1987](Z-bibliography.md#ref-fredman1987fibonacci).
 The roots of its trees form a circular list, with a pointer to a root of least
 priority, and the children of a node form a circular list as well; a node may
@@ -231,7 +233,7 @@ parent when the heap order breaks; the parent, if it was marked, is cut in
 turn (the cascading cut), and so on upwards, while an unmarked parent that is
 not a root is marked. `pop()` removes the minimum, moves its children to the
 list of the roots, and then consolidates the roots, linking two roots of equal
-degree until all the degrees differ. Furthermore, `erase(i)` cuts the item
+degree until all the degrees differ. Furthermore, `erase( i )` cuts the item
 (with the cascading cut), makes it the minimum (in the words of a comment of
 the code, "as if its prio would be -infinity"), and pops it.
 
@@ -306,7 +308,7 @@ root and finds the new minimum by the scan. $\square$
 Accordingly, the header warns that a heap with many increases and erasures is
 better a binary one.
 
-*Pairing heaps.* `PairingHeap< PR, IM, CMP >`, in `lemon/pairing_heap.h`, is
+*Pairing heaps.* `PairingHeap< PR , IM , CMP >`, in `lemon/pairing_heap.h`, is
 the self-adjusting heap of [Fredman, Sedgewick, Sleator and Tarjan
 1986](Z-bibliography.md#ref-fredman1986pairing), i.e., a single heap-ordered
 tree in which each node keeps its children in a list (stored in the records as
@@ -315,8 +317,9 @@ item with the root, and `decrease()` cuts the subtree of the item, when the
 heap order with its parent breaks, and links it with the root. `pop()` removes
 the root and joins its subtrees in two passes: it first links them in pairs
 from left to right, and then it links the results from right to left into one
-tree (the two-pass pairing). `erase(i)` cuts the subtree of the item and makes
-the item the root over the rest, whatever the priorities, and then pops it.
+tree (the two-pass pairing). `erase( i )` cuts the subtree of the item and
+makes the item the root over the rest, whatever the priorities, and then pops
+it.
 
 <span id="alg-7-3"></span>**Algorithm 7.3** (Pairing heap).
 ```
@@ -343,7 +346,7 @@ erase(i):
 
 <span id="thm-7-4"></span>**Theorem 7.4.** *Every operation of a `PairingHeap`
 keeps a single heap-ordered tree whose root is an item of least priority, and
-`erase(i)` removes exactly $i$, whatever the type of the priorities and the
+`erase( i )` removes exactly $i$, whatever the type of the priorities and the
 comparison. `push()`, `decrease()`, `top()` and `prio()` cost $O(1)$ actual
 time, and `pop()` costs $O(1+k)$, with $k$ the number of children of the root.
 In amortized terms, every operation costs $O(\log n)$ ([Fredman et
@@ -354,12 +357,12 @@ al. 1986](Z-bibliography.md#ref-fredman1986pairing)), and `push()` and
 *Proof.* A link of two heap-ordered trees, with the root of larger priority
 under the other, is heap-ordered; a cut subtree is heap-ordered, and so is the
 rest. Hence, `push()`, `decrease()` and `pop()` keep the order, and the root
-of an ordered tree has least priority. In `erase(i)`, the tree made by linking
-the rest under $i$ may violate the order only at its root $i$; `pop()` removes
-that root and joins its subtrees, which are heap-ordered, by links that
-compare only their roots, so that the priority of $i$ is never compared and
-the result is an ordered tree of the other items. The actual costs follow from
-the algorithm: one link, one cut, or one pass over the $k$ subtrees. The
+of an ordered tree has least priority. In `erase( i )`, the tree made by
+linking the rest under $i$ may violate the order only at its root $i$; `pop()`
+removes that root and joins its subtrees, which are heap-ordered, by links
+that compare only their roots, so that the priority of $i$ is never compared
+and the result is an ordered tree of the other items. The actual costs follow
+from the algorithm: one link, one cut, or one pass over the $k$ subtrees. The
 amortized bounds are the analyses cited, which are proved there for the
 two-pass pairing heap that cuts at each decrease (the class cuts only when the
 heap order breaks), and whose proofs take several pages. $\square$
@@ -370,7 +373,7 @@ $O(1)$ for this kind of structure ([Fredman
 often reported to be as fast as a binary heap (or faster) on the decreases of
 the shortest path algorithms.
 
-*Binomial heaps.* `BinomialHeap< PR, IM, CMP >`, in `lemon/binomial_heap.h`,
+*Binomial heaps.* `BinomialHeap< PR , IM , CMP >`, in `lemon/binomial_heap.h`,
 is the heap of [Vuillemin 1978](Z-bibliography.md#ref-vuillemin1978data). A
 binomial tree of degree $0$ is a single node, and one of degree $k$ is the
 link of two binomial trees of degree $k-1$; the heap is a list of heap-ordered
@@ -418,7 +421,7 @@ above $\log_2 n$. $\square$
 `BinomialHeap` keeps a list of heap-ordered binomial trees of distinct degrees
 and keeps `min` on a root of least priority. `push()`, `pop()`, `decrease()`,
 `erase()` and `increase()` cost $O(\log n)$, and `top()`, `prio()`,
-`operator[]` and `state()` cost $O(1)$. `erase(i)` removes exactly $i$,
+`operator[]` and `state()` cost $O(1)$. `erase( i )` removes exactly $i$,
 whatever the type of the priorities and the comparison.*
 
 *Proof.* A merge of two lists of binomial trees of distinct degrees links only
@@ -528,11 +531,10 @@ in the heap at that moment. A `push()`, `set()` or `decrease()` below it
 throws the exception `RadixHeap< IM >::PriorityUnderflowError`, even if no
 item has been removed yet, and the search that throws comes before any change,
 so that the heap, the item and the cross-reference map stay as they were. The
-constructor
-`RadixHeap( IM & map, int minimum = 0, int capacity = 0 )` creates the boxes
-for the priorities from `minimum` to `minimum + capacity - 1`, the heap adds
-boxes when a larger priority arrives, and `clear(minimum, capacity)` empties
-it and creates the boxes again.
+constructor `RadixHeap( IM & map , int minimum = 0 , int capacity = 0 )`
+creates the boxes for the priorities from `minimum` to
+`minimum + capacity - 1`, the heap adds boxes when a larger priority arrives,
+and `clear( minimum , capacity )` empties it and creates the boxes again.
 
 <span id="thm-7-6"></span>**Theorem 7.6.** *Let $K$ be the number of boxes,
 i.e., $O(\log U)$ with $U$ the largest priority pushed minus the initial
@@ -569,7 +571,7 @@ and nodes, which follows from Theorem 7.6 with $U\le nC$.
     threw had already stored the item, or unlinked it from its box, and left
     the heap corrupted; `radixHeapTest()` checks the three cases.
 
-*Bucket heaps.* `BucketHeap< IM, MIN >`, in `lemon/bucket_heap.h`, keeps a
+*Bucket heaps.* `BucketHeap< IM , MIN >`, in `lemon/bucket_heap.h`, keeps a
 doubly linked list of the items of each priority, with the heads in a vector
 indexed by the priority (the buckets of [Dial
 1969](Z-bibliography.md#ref-dial1969algorithm)), together with a pointer $\mu$
@@ -611,19 +613,19 @@ $\square$
 
 With `MIN = false` the heap gives the item of largest priority, and the
 pointer moves downwards (Theorem 7.7 holds with the order reversed); e.g.,
-`MaxCardinalitySearch` uses `BucketHeap< IM, false >` when its capacity map is
-the constant map `ConstMap< Arc, Const< int, 1 > >`. The header states that
-the class "is not intended to use as a Dijkstra heap". It works there (the
-test runs `Dijkstra` with it), but its time and memory grow with the largest
-distance, rather than with the number of nodes.
+`MaxCardinalitySearch` uses `BucketHeap< IM , false >` when its capacity map
+is the constant map `ConstMap< Arc , Const< int , 1 > >`. The header states
+that the class "is not intended to use as a Dijkstra heap". It works there
+(the test runs `Dijkstra` with it), but its time and memory grow with the
+largest distance, rather than with the number of nodes.
 
-`SimpleBucketHeap< IM, MIN >` is a reduced bucket heap, with singly linked
+`SimpleBucketHeap< IM , MIN >` is a reduced bucket heap, with singly linked
 lists and a free list of records. It supports only `push()`, `top()`,
-`prio()`, `pop()`, `size()`, `empty()`, `clear()` and `state(i)`, with the
+`prio()`, `pop()`, `size()`, `empty()`, `clear()` and `state( i )`, with the
 costs of Theorem 7.7; it has no `erase()`, `decrease()`, `increase()`, `set()`
-or `state(i, st)`, and it does not conform to the concept. Its `operator[](i)`
-scans all the buckets, i.e., it costs $O(n+C)$, and it returns $-1$ for an
-item that is not in the heap.
+or `state( i , st )`, and it does not conform to the concept. Its
+`operator[]( i )` scans all the buckets, i.e., it costs $O(n+C)$, and it
+returns $-1$ for an item that is not in the heap.
 
 ## 7.5 Choosing a heap {#sec-7-5}
 
@@ -665,11 +667,11 @@ priorities.
 The algorithms of the library take the type of their heap from their traits
 class, and they accept another one through a named template parameter
 (cf. [chapter 3](03-mental-model.md#ch-3) and [chapter
-10](10-shortest-paths.md#ch-10)). `SetStandardHeap< H, CR >` gives the heap
+10](10-shortest-paths.md#ch-10)). `SetStandardHeap< H , CR >` gives the heap
 type `H` and the cross-reference type `CR` (by default
 `Digraph::NodeMap< int >`), and the algorithm then creates both objects, as
-`CR( digraph )` and `H( cr )`. `SetHeap< H, CR >` gives only the types, and
-the objects are passed by the function `heap(h, cr)` before `run()` or
+`CR( digraph )` and `H( cr )`. `SetHeap< H , CR >` gives only the types, and
+the objects are passed by the function `heap( h , cr )` before `run()` or
 `init()`. For instance, the following declaration runs `Dijkstra` on a radix
 heap.
 ```
@@ -724,5 +726,5 @@ minimum after a call of `top()` with no removal (Lemma 7.4), and explain why
 <span id="ex-7-5"></span>**Exercise 7.5.** Write the cross-reference map of a
 heap whose items are the integers $0,\dots,k-1$ as a `RangeMap< int >`, and
 reuse one heap for several sorts, resetting the map between them with
-`state(i, PRE_HEAP)` instead of a new map. The function `heapSortTest()` of
+`state( i , PRE_HEAP )` instead of a new map. The function `heapSortTest()` of
 `test/heap_test.cc` sorts with a `RangeMap`.

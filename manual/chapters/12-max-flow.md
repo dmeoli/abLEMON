@@ -251,7 +251,7 @@ with no active node, i.e., with a flow, whose value is the flow entering
 $V\setminus S$, i.e., $cap(S)=e_f(t)$ by Lemma 12.3. By Theorem 12.1 this flow
 is maximum and $S$ is a minimum cut, closed in its residual digraph, and Lemma
 12.1 gives $S_{\min}\subseteq S\subseteq S_{\max}$. After the first phase
-`minCut(u)` tests $d(u)=n$, and after the second phase $d(u)<n$, which holds
+`minCut( u )` tests $d(u)=n$, and after the second phase $d(u)<n$, which holds
 again for the nodes of $S$ and for no other. $\square$
 
 We remark that $S$ need be neither the smallest nor the largest minimum cut:
@@ -298,14 +298,14 @@ in the value type.
 
 ### 12.2.2 The interface {#sec-12-2-2}
 
-`Preflow<GR, CAP, TR>` takes the type `GR` of the digraph, the type `CAP` of
-the capacity map (by default `GR::ArcMap< int >`), and a traits class `TR`, by
-default `PreflowDefaultTraits< GR , CAP >`. These traits define the types
+`Preflow< GR , CAP , TR >` takes the type `GR` of the digraph, the type `CAP`
+of the capacity map (by default `GR::ArcMap< int >`), and a traits class `TR`,
+by default `PreflowDefaultTraits< GR , CAP >`. These traits define the types
 `Digraph` and `CapacityMap`, the value type `Value` (that of `CAP`), the type
 `FlowMap` of the flow map (`GR::ArcMap< Value >`), and the type `Elevator` of
 the labels (`Elevator< GR , GR::Node >`, whose alternative is
 `LinkedElevator`). They also define the static functions
-`createFlowMap(digraph)` and `createElevator(digraph, max_level)` that
+`createFlowMap( digraph )` and `createElevator( digraph , max_level )` that
 allocate the last two, and the type `Tolerance` (`Tolerance< Value >`) of the
 comparisons. The class repeats these types as its own typedefs, together with
 `Traits`, and its typedef `Create` is the class itself. One rarely sets the
@@ -317,19 +317,21 @@ that they make cannot create it (they assert); `SetStandardElevator`, instead,
 makes a type that the class still allocates, from the digraph and the largest
 level.
 
-The constructor `Preflow(digraph, capacity, source, target)` stores the data
-by reference; it does not check that the source differs from the target, as
-the algorithm requires. The setters `capacityMap()`, `flowMap()`, `source()`,
-`target()`, `elevator()` and `tolerance()` change the data, each returning the
-object, and `elevator()` and `tolerance()` without arguments return a const
-reference to the elevator and to the tolerance. A flow map or an elevator that
-is not given is allocated by `init()` and released by the destructor. The
-execution follows the pattern of [chapter 3](03-mental-model.md#ch-3).
+The constructor `Preflow( digraph , capacity , source , target )` stores the
+data by reference; it does not check that the source differs from the target,
+as the algorithm requires. The setters `capacityMap()`, `flowMap()`,
+`source()`, `target()`, `elevator()` and `tolerance()` change the data, each
+returning the object, and `elevator()` and `tolerance()` without arguments
+return a const reference to the elevator and to the tolerance. A flow map or
+an elevator that is not given is allocated by `init()` and released by the
+destructor. The execution follows the pattern of [chapter
+3](03-mental-model.md#ch-3).
 
 -   `run()` is `init()`, `startFirstPhase()` and `startSecondPhase()`, and
 `runMinCut()` is `init()` and `startFirstPhase()`, which suffice for the value
 and for the minimum cut (Theorem 12.2).
--   `init()` starts from the zero flow, and `init(flowMap)` from a given map,
+-    `init()` starts from the zero flow, and `init( flowMap )` from a given
+    map,
 which must be at least a preflow: after copying the map, it returns `false` if
 the excess of a node other than $s$ is negative beyond the tolerance;
 otherwise it computes the labels by a breadth first search from $t$ over the
@@ -337,10 +339,10 @@ residual arcs, saturates the residual arcs out of $s$ (and empties the arcs
 into it) towards the nodes that reach $t$, and returns `true`. It does not
 check the bounds $0\leq f\leq cap$, which the caller must ensure.
 -   `flowValue()` returns the excess of $t$, i.e., the maximum value already
-after the first phase, while `flow(arc)` and `flowMap()` give a maximum flow
+after the first phase, while `flow( arc )` and `flowMap()` give a maximum flow
 only after the second phase.
--   `minCut(node)` returns `true` if a node is on the source side of the
-minimum cut found, and `minCutMap(map)` writes that side into a writable
+-    `minCut( node )` returns `true` if a node is on the source side of the
+minimum cut found, and `minCutMap( map )` writes that side into a writable
 `bool` node map, in $O(n)$ time; both are meaningful after the first or the
 second phase (Theorem 12.2), and the header remarks that the two answers may
 differ slightly with inexact computation.
@@ -361,15 +363,15 @@ second `Preflow`, after the capacity of the arc $(d,t)$ has grown from 6 to
 10, whose first phase reaches the value 15.
 
 !!! note "abLEMON"
-    With a floating-point `Value`, `init(flowMap)` judges the excess of a node
-    relative to the flow through the node, rather than against the absolute
-    epsilon of the tolerance. Hence, the maximum flow of another `Preflow` on
-    large capacities (e.g., of the order of $10^9$) is taken as a preflow,
-    while LEMON 1.3.1 refused it because the rounding errors of the sums
-    exceed that epsilon (trac #625). A program may then start from the maximum
-    flow of a previous run after a change of the capacities, provided that the
-    old flow is still a preflow for the new ones (e.g., after some capacities
-    have grown). The header of LEMON 1.3.1 stated the running time
+    With a floating-point `Value`, `init( flowMap )` judges the excess of a
+    node relative to the flow through the node, rather than against the
+    absolute epsilon of the tolerance. Hence, the maximum flow of another
+    `Preflow` on large capacities (e.g., of the order of $10^9$) is taken as a
+    preflow, while LEMON 1.3.1 refused it because the rounding errors of the
+    sums exceed that epsilon (trac #625). A program may then start from the
+    maximum flow of a previous run after a change of the capacities, provided
+    that the old flow is still a preflow for the new ones (e.g., after some
+    capacities have grown). The header of LEMON 1.3.1 stated the running time
     $O(n^2\sqrt{m})$, which this code does not attain; it states the bound of
     Theorem 12.3.
 
@@ -430,22 +432,23 @@ The template parameters are those of `Preflow`, with the traits
 `EdmondsKarpDefaultTraits< GR , CAP >` (the types `Digraph`, `CapacityMap`,
 `Value`, `FlowMap` with its creator `createFlowMap()`, and `Tolerance`) and
 the single named parameter `SetFlowMap< T >`; the class has the same typedefs
-and `Create`. The constructor `EdmondsKarp(digraph, capacity, source, target)`
-asserts that $s\neq t$ (the setters `source()` and `target()` do not); the
-setters `capacityMap()`, `flowMap()`, `source()`, `target()` and `tolerance()`
-return the object, `tolerance()` without arguments returns the tolerance, and
-the queries `flowValue()`, `flow(arc)`, `flowMap()`, `minCut(node)` and
-`minCutMap(map)` are as in `Preflow`. The cut is that of the last search,
+and `Create`. The constructor
+`EdmondsKarp( digraph , capacity , source , target )` asserts that $s\neq t$
+(the setters `source()` and `target()` do not); the setters `capacityMap()`,
+`flowMap()`, `source()`, `target()` and `tolerance()` return the object,
+`tolerance()` without arguments returns the tolerance, and the queries
+`flowValue()`, `flow( arc )`, `flowMap()`, `minCut( node )` and
+`minCutMap( map )` are as in `Preflow`. The cut is that of the last search,
 i.e., the set of the nodes reached from $s$ when `augment()` returned `false`,
 which by Theorem 12.4 is $S_{\min}$. It is meaningful only after such a call:
 after `init()` only, or after a call that returned `true`, the predecessors of
 the search describe no cut. In the example of Figure 12.1 the minimum cut is
 unique, and the program of section 12.2.2 finds it with both classes. Finally,
-`init(flowMap)` starts from a given flow, and `checkedInit(flowMap)` is kept
-as another name of the same function.
+`init( flowMap )` starts from a given flow, and `checkedInit( flowMap )` is
+kept as another name of the same function.
 
 !!! note "abLEMON"
-    `init(flowMap)` returns whether the map is a feasible flow, with the
+    `init( flowMap )` returns whether the map is a feasible flow, with the
     tolerance of the algorithm (conservation at the nodes other than $s$ and
     $t$, and $0\leq f\leq cap$ on the arcs), as `Preflow::init()` does; the
     flow is set in any case. In LEMON 1.3.1 it returned nothing, and only
@@ -594,20 +597,21 @@ whose value type is the `Value` of the algorithm, and the traits
 `CirculationDefaultTraits< GR , LM , UM , SM >`. These define the types
 `Digraph`, `LowerMap`, `UpperMap`, `SupplyMap`, `Value`, `FlowMap`, `Elevator`
 and `Tolerance` and the creators `createFlowMap()` and `createElevator()`, as
-those of `Preflow` do. Its named parameters `SetFlowMap< T >`, `SetElevator< T
->` and `SetStandardElevator< T >` are those of `Preflow`, and its constructor
-`Circulation(graph, lower, upper, supply)` takes the three maps by reference,
-which `lowerMap()`, `upperMap()` and `supplyMap()` change, while `flowMap()`,
-`elevator()` and `tolerance()` are as in `Preflow`. In a debug build, `init()`
-and `greedyInit()` check that no upper bound is below its lower bound. `run()`
-is `greedyInit()` followed by `start()`, and it returns whether a feasible
-circulation was found; in that case `flow(arc)` and `flowMap()` give it, and
-otherwise `barrier(node)` and `barrierMap(map)` give the barrier (which is
-empty after a feasible run). Two checkers verify an answer on the data:
-`checkFlow()` tests the bounds exactly and the inequalities of (12.5) up to
-the tolerance, and `checkBarrier()` tests (12.6) on the barrier found, with
-the tolerance. In the latter, an upper bound out of the set that is infinite
-(or so large that the sum would overflow) makes the test fail. The program
+those of `Preflow` do. Its named parameters `SetFlowMap< T >`,
+`SetElevator< T >` and `SetStandardElevator< T >` are those of `Preflow`, and
+its constructor `Circulation( graph , lower , upper , supply )` takes the
+three maps by reference, which `lowerMap()`, `upperMap()` and `supplyMap()`
+change, while `flowMap()`, `elevator()` and `tolerance()` are as in `Preflow`.
+In a debug build, `init()` and `greedyInit()` check that no upper bound is
+below its lower bound. `run()` is `greedyInit()` followed by `start()`, and it
+returns whether a feasible circulation was found; in that case `flow( arc )`
+and `flowMap()` give it, and otherwise `barrier( node )` and
+`barrierMap( map )` give the barrier (which is empty after a feasible run).
+Two checkers verify an answer on the data: `checkFlow()` tests the bounds
+exactly and the inequalities of (12.5) up to the tolerance, and
+`checkBarrier()` tests (12.6) on the barrier found, with the tolerance. In the
+latter, an upper bound out of the set that is infinite (or so large that the
+sum would overflow) makes the test fail. The program
 `manual/examples/12-circulation.cc` (the test `manual_12_circulation`) solves
 a network of four nodes and then lowers the capacity of the arc $(b,d)$ from 4
 to 1, after which the node $d$, which demands 3 units, can receive at most 2;
@@ -620,19 +624,19 @@ to 1, after which the node $d$, which demands 3 units, can receive at most 2;
 
 ## 12.5 Tolerances and the common interface {#sec-12-5}
 
-All three classes compare the values of the flows through a `Tolerance< Value
->` (see [chapter 3](03-mental-model.md#ch-3)), which is set and read by
-`tolerance()`. A residual capacity counts as positive only beyond the epsilon
-of the tolerance, and so does an excess; also, a push empties the node unless
-the residual capacity is less than the excess by more than the epsilon. For an
-integer `Value` the comparisons are exact, and the theorems of this chapter
-apply as stated. For a floating-point one the default epsilon of `Tolerance`
-($10^{-10}$ for `double`) is absolute, which usually suits capacities of
-moderate size, and a program with data of a rather different scale should set
-another one. The theorems then hold only up to the rounding errors; this is
-why the second phase of `Preflow` handles the cases that exact arithmetic
-excludes. Indeed, the only comparison that is relative to the data is the one
-of `Preflow::init(flowMap)` (cf. section 12.2.2).
+All three classes compare the values of the flows through a
+`Tolerance< Value >` (see [chapter 3](03-mental-model.md#ch-3)), which is set
+and read by `tolerance()`. A residual capacity counts as positive only beyond
+the epsilon of the tolerance, and so does an excess; also, a push empties the
+node unless the residual capacity is less than the excess by more than the
+epsilon. For an integer `Value` the comparisons are exact, and the theorems of
+this chapter apply as stated. For a floating-point one the default epsilon of
+`Tolerance` ($10^{-10}$ for `double`) is absolute, which usually suits
+capacities of moderate size, and a program with data of a rather different
+scale should set another one. The theorems then hold only up to the rounding
+errors; this is why the second phase of `Preflow` handles the cases that exact
+arithmetic excludes. Indeed, the only comparison that is relative to the data
+is the one of `Preflow::init( flowMap )` (cf. section 12.2.2).
 
 `Preflow` and `EdmondsKarp` meet the concept `concepts::MaxFlow< GR , CAP >`
 of `lemon/concepts/max_flow.h`, against which a class is checked by
@@ -665,7 +669,7 @@ and compare `minCutMap()` of `Preflow` after `runMinCut()` with that of
 `EdmondsKarp`; by Theorems 12.2 and 12.4, the first lies between the two sets
 and the second is $S_{\min}$.
 
-<span id="ex-12-3"></span>**Exercise 12.3.** Give `Preflow::init(flowMap)` a
+<span id="ex-12-3"></span>**Exercise 12.3.** Give `Preflow::init( flowMap )` a
 map that is not a preflow (e.g., one unit more out of a node than into it),
 and check that it returns `false`. Then repeat with capacities of the order of
 $10^9$ in `double`, where the absolute epsilon of the tolerance would refuse a

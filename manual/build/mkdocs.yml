@@ -21,6 +21,7 @@ exclude_docs: |
   build/*.lua
   build/*.tex
   build/*.py
+  build/fonts/README.md
   examples/
   figures/*.tex
   figures/*.pdf
@@ -37,8 +38,10 @@ theme:
     - content.code.copy
   palette:
     - scheme: default
-      primary: deep purple
+      primary: white
       accent: deep purple
+  # the fonts of the PDF, served with the site [see extra.css]
+  font: false
 
 markdown_extensions:
   - admonition
@@ -63,6 +66,7 @@ extra_javascript:
 
 extra_css:
   - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css
+  - build/extra.css
 
 nav:
   - Front matter: index.md

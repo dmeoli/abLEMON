@@ -22,22 +22,22 @@ kind plus one.
 The header `lemon/concepts/maps.h` defines four concepts, as archetype classes
 with a nested `Constraints` template that `checkConcept()` instantiates on a
 candidate type (cf. [chapter 3](03-mental-model.md#ch-3)).
-`concepts::ReadMap< K, T >` requires the types `Key` and `Value` and the
-member `Value operator[]( const Key & ) const`. `concepts::WriteMap< K, T >`
-requires the same types and `void set( const Key &, const Value & )`, and
-`concepts::ReadWriteMap< K, T >` is both. Finally,
-`concepts::ReferenceMap< K, T, R, CR >` is a read-write map whose `operator[]`
-returns a `Reference` (`R`), and a `ConstReference` (`CR`) on a constant map,
-through which values can be read and assigned. It declares the tag
-`typedef True ReferenceMapTag`, by which the library recognizes it, and its
-constraints are enabled only for a type that declares the tag. Note that an
-algorithm reads a map only through `operator[]` and `set()`, and the result of
-`operator[]` need not be a reference (in fact, the adaptors of section 6.4
+`concepts::ReadMap< K , T >` requires the types `Key` and `Value` and the
+member `Value operator[]( const Key & ) const`. `concepts::WriteMap< K , T >`
+requires the same types and `void set( const Key & , const Value & )`, and
+`concepts::ReadWriteMap< K , T >` is both. Finally,
+`concepts::ReferenceMap< K , T , R , CR >` is a read-write map whose
+`operator[]` returns a `Reference` (`R`), and a `ConstReference` (`CR`) on a
+constant map, through which values can be read and assigned. It declares the
+tag `typedef True ReferenceMapTag`, by which the library recognizes it, and
+its constraints are enabled only for a type that declares the tag. Note that
+an algorithm reads a map only through `operator[]` and `set()`, and the result
+of `operator[]` need not be a reference (in fact, the adaptors of section 6.4
 return their values by copy).
 
-Two helpers make writing a map short: `MapBase< K, V >` is an empty base class
-that only defines `Key` and `Value`, and the classes of `lemon/maps.h` derive
-from it. `MapTraits< M >`, in `lemon/bits/traits.h`, gives the
+Two helpers make writing a map short: `MapBase< K , V >` is an empty base
+class that only defines `Key` and `Value`, and the classes of `lemon/maps.h`
+derive from it. `MapTraits< M >`, in `lemon/bits/traits.h`, gives the
 `ReferenceMapTag` of any map type and the types `ReturnValue` and
 `ConstReturnValue` that the map returns. These are references for a reference
 map and values otherwise, and the adaptors use them to forward the reference
@@ -46,9 +46,9 @@ of the map they wrap.
 !!! note "abLEMON"
     The archetypes of `lemon/concepts/maps.h` return a static buffer of the
     size and alignment of the value, instead of dereferencing the address
-    `sizeof(Value)` as LEMON 1.3.1 did (which is undefined behavior, and which
-    the optimizer flagged as an access out of bounds), while the concepts are
-    unchanged.
+    `sizeof( Value )` as LEMON 1.3.1 did (which is undefined behavior, and
+    which the optimizer flagged as an access out of bounds), while the
+    concepts are unchanged.
 
 ## 6.2 Graph maps {#sec-6-2}
 
@@ -57,7 +57,7 @@ templates `NodeMap< V >`, `ArcMap< V >` and, if it is undirected,
 `EdgeMap< V >` (a bipartite graph also has `RedNodeMap< V >` and
 `BlueNodeMap< V >`). They are reference maps, built by
 `NodeMap( const Graph & g )`, which value-initializes the values, or by
-`NodeMap( const Graph & g, const V & value )`. The graph keeps them up to
+`NodeMap( const Graph & g , const V & value )`. The graph keeps them up to
 date, since each map registers itself as an observer of the alteration
 notifier of the graph (cf. [appendix A](A-writing-graph-map.md#app-a)), and it
 is told of each item added or erased. A key added after the construction of
@@ -103,45 +103,45 @@ reference, and `ItemIt` only iterates on the items. The test
 
 ## 6.3 Basic maps {#sec-6-3}
 
-The basic maps of `lemon/maps.h` need no graph; `NullMap< K, V >` reads `V()`
+The basic maps of `lemon/maps.h` need no graph; `NullMap< K , V >` reads `V()`
 at each key and absorbs whatever is written to it. It is the map to pass (in
 place of a real one) when an algorithm requires a map whose content is not
 wanted (e.g., a predecessor map that the caller does not read).
-`ConstMap< K, V >` reads one value at each key, given to the constructor
+`ConstMap< K , V >` reads one value at each key, given to the constructor
 (`ConstMap( const V & v )`) or default-constructed, and it also absorbs the
-writes. Its `setAll(v)` changes the value, and a further constructor
-`ConstMap( const ConstMap< K, V1 > &, const V & v )` builds the map of value
+writes. Its `setAll( v )` changes the value, and a further constructor
+`ConstMap( const ConstMap< K , V1 > & , const V & v )` builds the map of value
 `v` from one of another value type. Its specialization
-`ConstMap< K, Const< V, v > >` carries the value in its type, as the template
-argument of the empty tag `Const< T, v >`, so that the compiler may fold the
-read. The filtering adaptors of [chapter 5](05-adaptors.md#ch-5), e.g., use
-`ConstMap< Node, Const< bool, true > >` in place of the filter they lack.
-`TrueMap< K >` and `FalseMap< K >` are the read-only constant maps of `true`
-and `false`, and `IdentityMap< T >` reads the key (its key and value types are
-both `T`).
+`ConstMap< K , Const< V , v > >` carries the value in its type, as the
+template argument of the empty tag `Const< T , v >`, so that the compiler may
+fold the read. The filtering adaptors of [chapter 5](05-adaptors.md#ch-5),
+e.g., use `ConstMap< Node , Const< bool , true > >` in place of the filter
+they lack. `TrueMap< K >` and `FalseMap< K >` are the read-only constant maps
+of `true` and `false`, and `IdentityMap< T >` reads the key (its key and value
+types are both `T`).
 
 `RangeMap< V >` is a `std::vector< V >` with integer keys in
 $[0,\mathrm{size})$. It is built from a size and a value
-(`RangeMap( int size = 0, const V & value = V() )`), from a `std::vector`, or
+(`RangeMap( int size = 0 , const V & value = V() )`), from a `std::vector`, or
 from another `RangeMap` whose value type converts to `V`; `size()` returns the
-size, and `resize(size, value)` changes the key set, giving `value` to the new
-keys. It is a reference map, whose types `Reference` and `ConstReference` are
-those of the vector, and, unlike the graph maps, it can be copied and
+size, and `resize( size , value )` changes the key set, giving `value` to the
+new keys. It is a reference map, whose types `Reference` and `ConstReference`
+are those of the vector, and, unlike the graph maps, it can be copied and
 assigned; it is typically used as the cross-reference map of a heap whose
 items are small integers (cf. [chapter 7](07-heaps.md#ch-7)).
 
 !!! note "abLEMON"
-    In LEMON 1.3.1, `size()` of `RangeMap` and `operator()(id)` of `IdMap`
-    were not constant members, and they could not be called on a constant
-    map; `maps_test` calls both through constant references.
+    In LEMON 1.3.1, `size()` of `RangeMap` and `operator()( id )` of `IdMap`
+    were not constant members, and they could not be called on a constant map;
+    `maps_test` calls both through constant references.
 
-`SparseMap< K, V, Comp >` is a `std::map< K, V, Comp >`, with
+`SparseMap< K , V , Comp >` is a `std::map< K , V , Comp >`, with
 `Comp = std::less< K >` by default, together with a default value for the keys
 that are not stored. It is built from the default value (by default `V()`),
 from a `std::map` and a default value, or from another `SparseMap` with the
 same key type. One remark is in order here: the non-constant `operator[]`,
 which returns a reference, inserts an absent key with the default value, while
-the constant one does not. `setAll(v)` changes the default value and erases
+the constant one does not. `setAll( v )` changes the default value and erases
 the stored keys, and the class can be copied but not assigned (its copy
 assignment is private).
 
@@ -158,13 +158,13 @@ with the position found as a hint; `setAll()` calls `clear()` of the tree.
 $\square$
 
 Each of these classes has a creator function with the name of the class in
-lower case: `nullMap< K, V >()`, `constMap< K >( v )` (and
-`constMap< K, V, v >()` for the inlined value), `identityMap< T >()`,
-`rangeMap( size, value )` and `rangeMap( vector )`, `sparseMap< K >( value )`
-(and `sparseMap( map, value )` from a `std::map`), `trueMap< K >()` and
+lower case: `nullMap< K , V >()`, `constMap< K >( v )` (and
+`constMap< K , V , v >()` for the inlined value), `identityMap< T >()`,
+`rangeMap( size , value )` and `rangeMap( vector )`, `sparseMap< K >( value )`
+(and `sparseMap( map , value )` from a `std::map`), `trueMap< K >()` and
 `falseMap< K >()`.
 
-`LoggerBoolMap< IT, KEY >` is a write-only `bool` map, which copies each key
+`LoggerBoolMap< IT , KEY >` is a write-only `bool` map, which copies each key
 set to `true` to the output iterator `IT` (named by the type `Iterator`), in
 the order of the writes, and it ignores the keys set to `false`. Its `begin()`
 and `end()` return the first iterator and the one after the last key written.
@@ -195,7 +195,7 @@ values of the adapted maps at the key, as the table gives them. $\square$
 
 Two remarks apply to all the adaptors: first, they keep the maps by reference,
 and the maps must therefore outlive them. For instance, a temporary map passed
-to a creator function (e.g., `addMap( m, constMap< Node >( 1 ) )`) is
+to a creator function (e.g., `addMap( m , constMap< Node >( 1 ) )`) is
 destroyed at the end of the full expression, and an adaptor that refers to it
 cannot be stored. Second, most adaptors are read-only, since a write to a
 computed value has, in general, no meaning; the exceptions are said
@@ -234,18 +234,18 @@ of the shift and scale adaptors defaults to the value type of `M`.
 defined between the value and `C`. `ComposeMap` returns its value with the
 `ConstReturnValue` of `M1` (by reference, when `M1` is a reference map), while
 the others return by value. Each class has a creator function with the name of
-the class in lower case, e.g., `composeMap( m1, m2 )`, `addMap( m1, m2 )`,
-`shiftMap( m, v )` and `notWriteMap( m )`. The creators of the writable
+the class in lower case, e.g., `composeMap( m1 , m2 )`, `addMap( m1 , m2 )`,
+`shiftMap( m , v )` and `notWriteMap( m )`. The creators of the writable
 adaptors take the adapted maps by non-constant reference, and
 `convertMap< V >( m )` takes the value type as its explicit template argument.
 
 `FunctorToMap` takes its key and value types from the members `argument_type`
 and `result_type` of the functor when they are not given. Since lambdas (and
 most modern functors) lack these members, `K` and `V` must then be given
-explicitly, as in `functorToMap< int, double >( f )`; for a plain function
+explicitly, as in `functorToMap< int , double >( f )`; for a plain function
 pointer `V (*)(K)`, an overload of `functorToMap()` deduces them. Conversely,
 `MapToFunctor` defines `argument_type` and `result_type`, for the code that
-still uses them. Likewise, `combineMap( m1, m2, f )` deduces the value type
+still uses them. Likewise, `combineMap( m1 , m2 , f )` deduces the value type
 from the functor, and an overload takes a function pointer `V (*)(K1, K2)`.
 
 One passes the adaptors to the algorithms like any other map, but when the
@@ -263,7 +263,7 @@ results of five utilities of section 6.7.
     `CombineValue` of the namespace `_maps_bits`). LEMON 1.3.1 read the member
     `result_type` of the functor instead, which C++20 removed from the
     function objects of `<functional>` and which lambdas never had; thus,
-    `combineMap( m1, m2, f )` now accepts a lambda.
+    `combineMap( m1 , m2 , f )` now accepts a lambda.
 
 ## 6.5 Maps of the items of a graph {#sec-6-5}
 
@@ -275,21 +275,21 @@ look-up maps store a value per item together with an inverse structure that
 finds the items by their value. All of them name the graph by the type
 `Graph`, and the classes with an item type also name it by `Item`.
 
-*Views.* `IdMap< GR, K >` reads the identifier `id()` of an item, which is
+*Views.* `IdMap< GR , K >` reads the identifier `id()` of an item, which is
 unique among the items of its kind, and it does not change while the item
-exists (even if other items are erased). Its `operator()(id)`, and its nested
-`InverseMap` (returned by `inverse()`, or built from the graph or from the
-`IdMap`), give the item with a given identifier, through `fromId()` of the
+exists (even if other items are erased). Its `operator()( id )`, and its
+nested `InverseMap` (returned by `inverse()`, or built from the graph or from
+the `IdMap`), give the item with a given identifier, through `fromId()` of the
 graph. `SourceMap< GR >` and `TargetMap< GR >` read the source and the target
 of an arc, while `ForwardMap< GR >` and `BackwardMap< GR >` read the arcs
-`direct(e, true)` and `direct(e, false)` of an edge of an undirected graph.
-`PotentialDifferenceMap< GR, POT >` reads, at an arc $(i,j)$, the difference
-$\pi_j-\pi_i$ of a node map of potentials $\pi$; for a zero cost, it is the
-reduced cost of the arc up to the sign convention (cf. [chapter
+`direct( e , true )` and `direct( e , false )` of an edge of an undirected
+graph. `PotentialDifferenceMap< GR , POT >` reads, at an arc $(i,j)$, the
+difference $\pi_j-\pi_i$ of a node map of potentials $\pi$; for a zero cost,
+it is the reduced cost of the arc up to the sign convention (cf. [chapter
 13](13-min-cost-flow.md#ch-13)). Each view reads in $O(1)$ calls of the graph
 and of the potential map, and each has a creator function, i.e.,
 `idMap< K >( g )`, `sourceMap( g )`, `targetMap( g )`, `forwardMap( g )`,
-`backwardMap( g )` and `potentialDifferenceMap( g, pot )`.
+`backwardMap( g )` and `potentialDifferenceMap( g , pot )`.
 
 *Degree maps.* `InDegMap< GR >` and `OutDegMap< GR >` read the in-degree and
 the out-degree of a node of a digraph. They keep the degrees in a private node
@@ -315,17 +315,17 @@ As the header warns, the functions that change an arc without adding or
 erasing it (e.g., `changeSource()`, `changeTarget()` and `reverseArc()` of
 `ListDigraph`) leave the degrees wrong.
 
-*Look-up maps.* `RangeIdMap< GR, K >` gives each item of its kind an
+*Look-up maps.* `RangeIdMap< GR , K >` gives each item of its kind an
 identifier in $[0,n_K)$, called its range identifier, and it keeps the inverse
-in a `std::vector`. Hence, `operator()(id)` (and `InverseMap::operator[]`, of
-the constant map returned by `inverse()`) return the item with a given range
-identifier, and `size()` (also a member of the `InverseMap`) returns $n_K$ as
-an `unsigned int`. The identifiers follow the order of the items at
+in a `std::vector`. Hence, `operator()( id )` (and `InverseMap::operator[]`,
+of the constant map returned by `inverse()`) return the item with a given
+range identifier, and `size()` (also a member of the `InverseMap`) returns
+$n_K$ as an `unsigned int`. The identifiers follow the order of the items at
 construction, and a new item takes the next one. When an item is erased, the
 item with the largest identifier takes its identifier; the range thus stays
 contiguous, but the identifiers may change (and they are usually not those of
-`IdMap`). Furthermore, `swap(p, q)` exchanges the identifiers of two items, by
-which one can impose any order; the creator function is
+`IdMap`). Furthermore, `swap( p , q )` exchanges the identifiers of two items,
+by which one can impose any order; the creator function is
 `rangeIdMap< K >( g )`.
 
 <span id="lem-6-5"></span>**Lemma 6.5.** *At any time the range identifiers of
@@ -343,9 +343,9 @@ consistent. Finally, `swap()` exchanges two identifiers and the two entries of
 the vector. Each of these steps is a constant number of map and vector
 operations. $\square$
 
-`CrossRefMap< GR, K, V >` stores a value for each item, and it keeps a
-`std::multimap` from the values to the items. Its `operator()(val)`, or the
-`InverseMap`, returns one item with the value (or `INVALID`), `count(val)`
+`CrossRefMap< GR , K , V >` stores a value for each item, and it keeps a
+`std::multimap` from the values to the items. Its `operator()( val )`, or the
+`InverseMap`, returns one item with the value (or `INVALID`), `count( val )`
 returns the number of items with a value, and `beginValue()` and `endValue()`
 delimit a forward iterator, `ValueIt` (also named `ValueIterator`), on the
 values, with multiplicity and in increasing order. We remark that the inverse
@@ -358,10 +358,10 @@ are written only by `set()`.
 
 <span id="lem-6-6"></span>**Lemma 6.6.** *Let $c$ be the number of items whose
 value equals the old value of the key. In a `CrossRefMap`, `set(key, val)`
-costs $O(\log n_K + c)$ time, `operator()(val)` costs $O(\log n_K)$,
-`count(val)` costs $O(\log n_K + c')$ with $c'$ the result, and the erasure of
-an item from the graph costs $O(\log n_K + c)$, with $c$ the number of items
-of its value.*
+costs $O(\log n_K + c)$ time, `operator()( val )` costs $O(\log n_K)$,
+`count( val )` costs $O(\log n_K + c')$ with $c'$ the result, and the erasure
+of an item from the graph costs $O(\log n_K + c)$, with $c$ the number of
+items of its value.*
 
 *Proof.* The multimap holds at most $n_K$ pairs, and `set()` computes the
 range of the old value by one `equal_range()`, scans its at most $c$ pairs for
@@ -389,16 +389,16 @@ reference maps, whose `operator[]` returns a proxy object (the nested class
 `IterableValueMap` is a read-write map, and the three classes are kept up to
 date when items are added to or erased from the graph.
 
-`IterableBoolMap< GR, K >` keeps the items in one vector, together with the
+`IterableBoolMap< GR , K >` keeps the items in one vector, together with the
 position of each item, and the items mapped to `true` are in the positions
 before a separator, and those mapped to `false` after it (Figure 6.1).
 `set(key, value)` moves the item across the separator by swapping it with the
-item next to the separator on the other side, `setAll(value)` moves only the
+item next to the separator on the other side, `setAll( value )` moves only the
 separator, and `trueNum()` and `falseNum()` count the two sides. The iterators
-`TrueIt`, `FalseIt` and `ItemIt(map, value)` list the items of one side, from
-the separator outwards, and so do the ranges `trueKeys()`, `falseKeys()` and
-`items(value)` of the range-based `for` loops. The constructor
-`IterableBoolMap( const GR & g, bool def = false )` maps all the items to
+`TrueIt`, `FalseIt` and `ItemIt( map , value )` list the items of one side,
+from the separator outwards, and so do the ranges `trueKeys()`, `falseKeys()`
+and `items( value )` of the range-based `for` loops. The constructor
+`IterableBoolMap( const GR & g , bool def = false )` maps all the items to
 `def`, and an item added later is mapped to `false`; the proxy also offers
 `&=`, `|=` and `^=`.
 
@@ -424,27 +424,27 @@ item. `trueNum()` is $\sigma$, `falseNum()` is $n_K-\sigma$, and an iterator
 steps from a position to the previous one until it crosses $\sigma$ (or $0$).
 $\square$
 
-`IterableIntMap< GR, K >` stores an integer per item, and it keeps a doubly
+`IterableIntMap< GR , K >` stores an integer per item, and it keeps a doubly
 linked list of the items for each non-negative value, with the heads in a
 vector indexed by the value. Thus, `set(key, value)` unlinks the item from the
 list of its old value and links it at the head of the list of the new one.
 `size()` returns the largest value with a non-empty list plus one, and
-`ItemIt(map, value)` and `items(value)` list the items with a value, while an
-item with a negative value is in no list and cannot be listed. The constructor
-without a value sets all the values to $-1$, the one with a value sets them to
-it, and an item added later reads $-1$. The proxy returned by `operator[]`
-offers the integer operators (`++`, `--`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`,
-`|=`, `^=`, `<<=`, `>>=`), each of which goes through `set()`.
+`ItemIt( map , value )` and `items( value )` list the items with a value,
+while an item with a negative value is in no list and cannot be listed. The
+constructor without a value sets all the values to $-1$, the one with a value
+sets them to it, and an item added later reads $-1$. The proxy returned by
+`operator[]` offers the integer operators (`++`, `--`, `+=`, `-=`, `*=`, `/=`,
+`%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`), each of which goes through `set()`.
 
-`IterableValueMap< GR, K, V >` does the same for any value type with an
+`IterableValueMap< GR , K , V >` does the same for any value type with an
 `operator<`, and it keeps a linked list per value, with the heads in a
-`std::map< V, K >` that holds only the values in use. Its `ItemIt(map, value)`
-and `items(value)` list the items with a value, and `beginValue()` and
-`endValue()` delimit a forward iterator, `ValueIt`, on the distinct values, in
-increasing order. The constructor maps all the items to a value (by default
-`V()`), and an item added later reads `V()`. The records of the lists are the
-structures `IterableIntMapNode` and `IterableValueMapNode` of the namespace
-`_maps_bits`, which are not meant to be used directly.
+`std::map< V , K >` that holds only the values in use. Its
+`ItemIt( map , value )` and `items( value )` list the items with a value, and
+`beginValue()` and `endValue()` delimit a forward iterator, `ValueIt`, on the
+distinct values, in increasing order. The constructor maps all the items to a
+value (by default `V()`), and an item added later reads `V()`. The records of
+the lists are the structures `IterableIntMapNode` and `IterableValueMapNode`
+of the namespace `_maps_bits`, which are not meant to be used directly.
 
 <span id="lem-6-8"></span>**Lemma 6.8.** *Let $w$ be the largest value of an
 `IterableIntMap`, and $d$ the number of distinct values of an
@@ -550,24 +550,24 @@ core in an `IterableBoolMap`, whose `trueNum()` gives their number and whose
 The functions at the end of `lemon/maps.h` scan the items of one kind of a
 graph, the kind given by the key type of the map, and use the values of a map.
 
--   `mapCopy(g, from, to)` writes `from[x]` into `to` for each item `x` of
-    the kind of `to`. An edge map can thus be copied to an arc map of the same
-    graph, since an arc converts to its edge, but not vice versa.
-    `mapFill(g, map, val)` writes `val` at each item.
--   `mapCompare(g, m1, m2)` returns `true` if the two maps agree, by
+-    `mapCopy( g , from , to )` writes `from[x]` into `to` for each item `x`
+    of the kind of `to`. An edge map can thus be copied to an arc map of the
+    same graph, since an arc converts to its edge, but not vice versa.
+    `mapFill( g , map , val )` writes `val` at each item.
+-    `mapCompare( g , m1 , m2 )` returns `true` if the two maps agree, by
     `operator==`, at each item of the kind of `m2`.
--   `mapMin(g, map)` and `mapMax(g, map)` return an item of least and of
-    largest value, or `INVALID` on an empty item set. When there are ties
+-    `mapMin( g , map )` and `mapMax( g , map )` return an item of least and
+    of largest value, or `INVALID` on an empty item set. When there are ties
     (which may well happen on integer data), they return the first one met in
     the order of the item iterator. The variants with a third argument take a
     comparison functor in place of `std::less< V >`. `mapMinValue()` and
     `mapMaxValue()` (with or without the functor) return the value, and they
     require a non-empty item set, since they read the map at the item that
     `mapMin()` or `mapMax()` returns.
--   `mapFind(g, map, val)` and `mapFindIf(g, map, pred)` return the first
-    item whose value equals `val` (or satisfies `pred`), and `INVALID` if
-    there is none, while `mapCount(g, map, val)` and
-    `mapCountIf(g, map, pred)` return the number of such items.
+-    `mapFind( g , map , val )` and `mapFindIf( g , map , pred )` return the
+    first item whose value equals `val` (or satisfies `pred`), and `INVALID`
+    if there is none, while `mapCount( g , map , val )` and
+    `mapCountIf( g , map , pred )` return the number of such items.
 
 <span id="lem-6-9"></span>**Lemma 6.9.** *Each utility makes one pass over the
 items of its kind, with $O(n_K)$ reads or writes of the maps and $O(n_K)$

@@ -295,30 +295,29 @@ implemented.
 ### 15.2.2 The class HaoOrlin {#sec-15-2-2}
 
 The class is declared as
-`template< typename GR , typename CAP = typename GR::template ArcMap< int > ,
-typename TOL = Tolerance< typename CAP::Value > > class HaoOrlin`,
+`template< typename GR , typename CAP = typename GR::template ArcMap< int > , typename TOL = Tolerance< typename CAP::Value > > class HaoOrlin`,
 where `GR` is the digraph type, `CAP` a readable arc map of capacities of any
 numeric type, and `TOL` the tolerance of the comparisons; there are no named
 template parameters, and no traits class. Its public types are `Digraph`,
 `CapacityMap` and `Tolerance` (the value type `CAP::Value`, which
 `minCutValue()` returns, has no public name in the class). Its constructor
-`HaoOrlin(graph, capacity, tolerance = Tolerance())` stores references to the
-digraph and to the capacities, and `tolerance(tol)` and `tolerance()` set and
-read the tolerance afterwards. An execution starts with `init()`, which takes
-the first node of the node iterator of the digraph as $r$, or with
-`init(source)`, which takes the given one; both allocate the structures of the
-algorithm and set the stored value to the largest value of the capacity type.
-Then `calculateOut()` runs the phase of Algorithm 15.1 (the cuts with $r$
-inside) and `calculateIn()` the other one (the cuts with $r$ outside), in
+`HaoOrlin( graph , capacity , tolerance = Tolerance() )` stores references to
+the digraph and to the capacities, and `tolerance( tol )` and `tolerance()`
+set and read the tolerance afterwards. An execution starts with `init()`,
+which takes the first node of the node iterator of the digraph as $r$, or with
+`init( source )`, which takes the given one; both allocate the structures of
+the algorithm and set the stored value to the largest value of the capacity
+type. Then `calculateOut()` runs the phase of Algorithm 15.1 (the cuts with
+$r$ inside) and `calculateIn()` the other one (the cuts with $r$ outside), in
 either order, and one may also call only one of them. Also, `run()` and
-`run(s)` call `init()` (respectively `init(s)`), `calculateOut()` and
+`run( s )` call `init()` (respectively `init( s )`), `calculateOut()` and
 `calculateIn()`.
 
 Each phase replaces the stored cut only if it finds one of strictly smaller
 value. Hence, by Theorem 15.3, after `calculateOut()` the stored cut is a
 minimum one among the sets that contain $r$, and after both phases it is a
 minimum cut of the digraph (Theorem 15.1). The results are read by
-`minCutValue()`, which returns the value, and by `minCutMap(cutMap)`, which
+`minCutValue()`, which returns the value, and by `minCutMap( cutMap )`, which
 also returns it after writing into a writable `bool` node map the
 characteristic vector of the set $X$ of (15.1), i.e., of the side whose
 leaving arcs have the least capacity. The digraph must have at least two
@@ -345,17 +344,17 @@ up to the excesses that are left on the nodes as zero.
     node active. Furthermore, `init()` states and asserts the precondition of
     at least two nodes, on fewer of which LEMON 1.3.1 read an empty list.
 
-On an undirected graph one may run `HaoOrlin` on the digraph `Undirector<GR>`
-of [chapter 5](05-adaptors.md#ch-5), with the capacities of the original
-edges. By Theorem 15.1 and the symmetry of the cut function, `init()`
-followed by `calculateOut()` is then enough (the test `test/hao_orlin_test.cc`
-runs both phases on an `Undirector`). The digraph of Figure 15.1 has, as its
-minimum cut with node 0 inside, the set $\{0,1,2\}$, of value 5, whereas its
-minimum cut is $X=\{3,4,5\}$, of value 4, which only the second phase finds.
-The program `manual/examples/15-hao-orlin.cc` (the test
-`manual_15_hao_orlin`) runs the two phases one at a time from node 0 on this
-digraph, and then `run()`. It checks each value against the enumeration of
-the $2^6-2$ cuts.
+On an undirected graph one may run `HaoOrlin` on the digraph
+`Undirector< GR >` of [chapter 5](05-adaptors.md#ch-5), with the capacities of
+the original edges. By Theorem 15.1 and the symmetry of the cut function,
+`init()` followed by `calculateOut()` is then enough (the test
+`test/hao_orlin_test.cc` runs both phases on an `Undirector`). The digraph of
+Figure 15.1 has, as its minimum cut with node 0 inside, the set $\{0,1,2\}$,
+of value 5, whereas its minimum cut is $X=\{3,4,5\}$, of value 4, which only
+the second phase finds. The program `manual/examples/15-hao-orlin.cc` (the
+test `manual_15_hao_orlin`) runs the two phases one at a time from node 0 on
+this digraph, and then `run()`. It checks each value against the enumeration
+of the $2^6-2$ cuts.
 
 ![Figure 15.1. A digraph with the capacity of each arc on its plate; its minimum cut is $X=\{3,4,5\}$, whose two leaving arcs carry 4 units in all.](../figures/15-digraph-cut.svg){#fig-15-1}
 
@@ -512,9 +511,7 @@ the test of the library runs only the binary heap and the Fibonacci heap.
 ### 15.3.2 The class NagamochiIbaraki {#sec-15-3-2}
 
 The class is declared as
-`template< typename GR , typename CM = typename GR::template EdgeMap< int > ,
-typename TR = NagamochiIbarakiDefaultTraits< GR , CM > >
-class NagamochiIbaraki`,
+`template< typename GR , typename CM = typename GR::template EdgeMap< int > , typename TR = NagamochiIbarakiDefaultTraits< GR , CM > > class NagamochiIbaraki`,
 where `GR` is an undirected graph type, `CM` a readable edge map of
 capacities, and `TR` the traits class. Its public types are `Traits`, `Graph`,
 `CapacityMap`, `Value` (the value type of the capacities), `Heap` and
@@ -525,26 +522,26 @@ template parameters ([chapter 3](03-mental-model.md#ch-3)). The default traits
 `GR::NodeMap< int >`), the heap
 `BinHeap< Value , HeapCrossRef , std::greater< Value > >`, a binary heap that
 maximizes the keys, and the functions that allocate them:
-`createCapacityMap(graph)`, which fails with an assertion (the capacities must
-be given to the constructor), `createHeapCrossRef(graph)` and
-`createHeap(crossref)`.
+`createCapacityMap( graph )`, which fails with an assertion (the capacities
+must be given to the constructor), `createHeapCrossRef( graph )` and
+`createHeap( crossref )`.
 
-There are two constructors: `NagamochiIbaraki(graph, capacity)` takes the
-graph and the capacities, while `NagamochiIbaraki(graph)` is meant for the
+There are two constructors: `NagamochiIbaraki( graph , capacity )` takes the
+graph and the capacities, while `NagamochiIbaraki( graph )` is meant for the
 named template parameter `SetUnitCapacity`, whose traits allocate a constant
-map of value 1 on the edges; e.g., `NagamochiIbaraki< G
->::SetUnitCapacity::Create ni(g)` computes the edge connectivity of `g`.
-Furthermore, the class declares the named parameters `SetHeap< H , CR >` and
-`SetStandardHeap< H , CR >`, where `H` is a heap that maximizes the keys and
-`CR` its cross reference, a node map of `int` by default. With
-`SetStandardHeap` the algorithm constructs the cross reference on the graph
-and the heap on the cross reference, while with `SetHeap` they must be handed
-to the algorithm by `heap(hp, cr)` before `init()` (otherwise `init()` fails
-with an assertion). The function `heap(hp, cr)` takes objects of the types
-`Heap` and `HeapCrossRef` of the class, and it may also be used with the other
-traits, in which case the class uses the given objects instead of allocating
-its own. For instance, a Fibonacci heap of `std::greater< Value >` gives the
-bounds of the second case of Theorem 15.6.
+map of value 1 on the edges; e.g.,
+`NagamochiIbaraki< G >::SetUnitCapacity::Create ni( g )` computes the edge
+connectivity of `g`. Furthermore, the class declares the named parameters
+`SetHeap< H , CR >` and `SetStandardHeap< H , CR >`, where `H` is a heap that
+maximizes the keys and `CR` its cross reference, a node map of `int` by
+default. With `SetStandardHeap` the algorithm constructs the cross reference
+on the graph and the heap on the cross reference, while with `SetHeap` they
+must be handed to the algorithm by `heap( hp , cr )` before `init()`
+(otherwise `init()` fails with an assertion). The function `heap( hp , cr )`
+takes objects of the types `Heap` and `HeapCrossRef` of the class, and it may
+also be used with the other traits, in which case the class uses the given
+objects instead of allocating its own. For instance, a Fibonacci heap of
+`std::greater< Value >` gives the bounds of the second case of Theorem 15.6.
 
 !!! note "abLEMON"
     In LEMON 1.3.1 the two named parameters did not compile, since the
@@ -564,12 +561,12 @@ In the execution, `init()` builds the internal copy of the graph and makes
 steps 1 and 2. Then `processNextPhase()` makes one phase and returns `true`
 when the algorithm has finished (and again at every later call), `start()`
 calls it until then, and `run()` is `init()` followed by `start()`;
-`tolerance(tol)` and `tolerance()` set and read the `Tolerance< Value >` of
+`tolerance( tol )` and `tolerance()` set and read the `Tolerance< Value >` of
 the comparisons. As for the results, `minCutValue()` returns the value of the
 best cut found so far, which after `init()` is already the capacity of a cut
 (the lightest star of a node) and at the end is $\lambda(G)$ by Theorem 15.5.
-Similarly, `minCutMap(cutMap)` writes the characteristic vector of one side of
-that cut into a writable `bool` node map, and returns its value. The graph
+Similarly, `minCutMap( cutMap )` writes the characteristic vector of one side
+of that cut into a writable `bool` node map, and returns its value. The graph
 must have at least one node, which `init()` asserts; a graph of one node has
 no cut, and the class then gives the value 0 and the set of that node. Also,
 the header warns that the value type must hold the cut values of the graph,
@@ -679,10 +676,10 @@ change when $y$ is replaced by its parent. Each step decreases $h(x)+h(y)$ by
 one, and the procedure stops when $x=y$, i.e., at the common ancestor; the
 edges climbed are those from $s$ and from $t$ up to it. $\square$
 
-<span id="thm-15-8"></span>**Theorem 15.8.** *`run()` takes the time of
-$n-1$ calls of `Preflow::runMinCut()` plus $O(n^2)$, i.e., $O(n^3m\Delta)$.
-Let $h$ be the height of the tree. Then `minCutValue(s, t)` takes $O(h)$ time,
-and `minCutMap(s, t, cutMap)` and the constructors of the two iterators take
+<span id="thm-15-8"></span>**Theorem 15.8.** *`run()` takes the time of $n-1$
+calls of `Preflow::runMinCut()` plus $O(n^2)$, i.e., $O(n^3m\Delta)$. Let $h$
+be the height of the tree. Then `minCutValue( s , t )` takes $O(h)$ time, and
+`minCutMap( s , t , cutMap )` and the constructors of the two iterators take
 $O(n)$ time.*
 
 *Proof.* Steps 5 to 7 scan the nodes once per iteration, in $O(n)$, and step 8
@@ -703,43 +700,43 @@ marks; since $h<n$, the bound is $O(n)$. $\square$
 ### 15.4.2 The class GomoryHu {#sec-15-4-2}
 
 The class is declared as
-`template< typename GR ,
-typename CAP = typename GR::template EdgeMap< int > > class GomoryHu`,
+`template< typename GR , typename CAP = typename GR::template EdgeMap< int > > class GomoryHu`,
 where `GR` is an undirected graph type and `CAP` a readable edge map of
 capacities (the constructor checks the `ReadMap` concept on it). Its public
 types are `Graph`, `Capacity` and `Value`, and it has no traits class. Its
-constructor `GomoryHu(graph, capacity)` stores the references,
-`tolerance(tol)` and `tolerance()` set and read the `Tolerance< Value >` given
-to the maximum flows, and `run()` executes Algorithm 15.3 (there is no public
-`init()`). One reads the tree by `predNode(v)`, the parent of $v$ (`INVALID`
-for the root), and by `predValue(v)`, the weight of the edge between $v$ and
-its parent (undefined for the root, where it is in fact the largest value of
-`Value`). Also, `rootDist(v)` returns the number $o(v)$ of step 8: $0$ for the
-root, and for any other node a number larger than that of its parent,
-distinct for distinct nodes, i.e., an order of the tree from the root, not the
-distance from it.
+constructor `GomoryHu( graph , capacity )` stores the references,
+`tolerance( tol )` and `tolerance()` set and read the `Tolerance< Value >`
+given to the maximum flows, and `run()` executes Algorithm 15.3 (there is no
+public `init()`). One reads the tree by `predNode( v )`, the parent of $v$
+(`INVALID` for the root), and by `predValue( v )`, the weight of the edge
+between $v$ and its parent (undefined for the root, where it is in fact the
+largest value of `Value`). Also, `rootDist( v )` returns the number $o(v)$ of
+step 8: $0$ for the root, and for any other node a number larger than that of
+its parent, distinct for distinct nodes, i.e., an order of the tree from the
+root, not the distance from it.
 
-A minimum cut between two nodes is read by `minCutValue(s, t)`, which climbs
-the two paths of the tree to their common ancestor and returns the least
-weight met (Lemma 15.7 and Theorem 15.2). In the same way `minCutMap(s, t,
-cutMap)` finds the lightest edge of the path, writes `true` on the side of $s$
-and `false` on the other side into a readable and writable `bool` node map,
-and returns the value. For $s=t$, which no cut separates, both return the
-largest value of `Value`, and `minCutMap()` writes `true` at every node, so
-that the iterators below list every node on the side of $s$ and no edge. A
-cut can also be
-listed by two iterators. `MinCutNodeIt(gomory, s, t, side = true)` lists the
-nodes of the side of $s$ (or those of the other side if `side` is `false`).
-Similarly, `MinCutEdgeIt(gomory, s, t, side = true)` lists the edges of the
-cut, each once, as the arc that leaves the side of $s$ (or enters it if `side`
-is `false`); the latter converts to both `Arc` and `Edge`. Each constructor
-calls `minCutMap()` on a node map that the iterator holds, at the cost of
-Theorem 15.8, and the postfix increments return a `Node` (respectively an
-`Arc`) instead of an iterator. Since a minimum cut need not be unique,
-`MinCutNodeIt(gomory, s, t, true)` and `MinCutNodeIt(gomory, t, s, false)` may
-list different nodes, whereas `MinCutNodeIt(gomory, s, t, true)` and
-`MinCutNodeIt(gomory, s, t, false)` together list each node once. On an empty
-graph `run()` builds an empty tree.
+A minimum cut between two nodes is read by `minCutValue( s , t )`, which
+climbs the two paths of the tree to their common ancestor and returns the
+least weight met (Lemma 15.7 and Theorem 15.2). In the same way
+`minCutMap( s , t , cutMap )` finds the lightest edge of the path, writes
+`true` on the side of $s$ and `false` on the other side into a readable and
+writable `bool` node map, and returns the value. For $s=t$, which no cut
+separates, both return the largest value of `Value`, and `minCutMap()` writes
+`true` at every node, so that the iterators below list every node on the side
+of $s$ and no edge. A cut can also be listed by two iterators.
+`MinCutNodeIt( gomory , s , t , side = true )` lists the nodes of the side of
+$s$ (or those of the other side if `side` is `false`). Similarly,
+`MinCutEdgeIt( gomory , s , t , side = true )` lists the edges of the cut,
+each once, as the arc that leaves the side of $s$ (or enters it if `side` is
+`false`); the latter converts to both `Arc` and `Edge`. Each constructor calls
+`minCutMap()` on a node map that the iterator holds, at the cost of Theorem
+15.8, and the postfix increments return a `Node` (respectively an `Arc`)
+instead of an iterator. Since a minimum cut need not be unique,
+`MinCutNodeIt( gomory , s , t , true )` and
+`MinCutNodeIt( gomory , t , s , false )` may list different nodes, whereas
+`MinCutNodeIt( gomory , s , t , true )` and
+`MinCutNodeIt( gomory , s , t , false )` together list each node once. On an
+empty graph `run()` builds an empty tree.
 
 !!! note "abLEMON"
     `tolerance()` is new in abLEMON. LEMON 1.3.1 gave its maximum flows the
@@ -787,7 +784,7 @@ digraph of Figure 15.1 by computing $\lambda(0,t)$ and $\lambda(t,0)$ with
 the value 4).
 
 <span id="ex-15-2"></span>**Exercise 15.2.** Show that, on the digraph
-`Undirector<GR>` of an undirected graph, the value stored after
+`Undirector< GR >` of an undirected graph, the value stored after
 `calculateOut()` is already $\lambda(G)$, and verify it on the graph of
 `test/hao_orlin_test.cc`, whose test runs both phases.
 
@@ -805,11 +802,12 @@ and why its first value is the lightest star of a node (5, at node 0).
 <span id="ex-15-5"></span>**Exercise 15.5.** Using only `predNode()` and
 `predValue()` of `GomoryHu`, count the distinct values among the
 $\lambda(s,t)$ of a graph, and deduce from Theorem 15.2 that there are at most
-$n-1$ of them; check the values against `minCutValue(s, t)` for each pair, as
-`test/gomory_hu_test.cc` does against `Preflow`.
+$n-1$ of them; check the values against `minCutValue( s , t )` for each pair,
+as `test/gomory_hu_test.cc` does against `Preflow`.
 
 <span id="ex-15-6"></span>**Exercise 15.6.** Show that the sum of the
-capacities listed by `MinCutEdgeIt(gomory, s, t)` equals `minCutValue(s, t)`,
-and that the nodes listed by `MinCutNodeIt` with `side` true and false
-partition $V$ (both facts are checked by `test/gomory_hu_test.cc`, the first
-also by `manual/examples/15-undirected-cuts.cc`).
+capacities listed by `MinCutEdgeIt( gomory , s , t )` equals
+`minCutValue( s , t )`, and that the nodes listed by `MinCutNodeIt` with
+`side` true and false partition $V$ (both facts are checked by
+`test/gomory_hu_test.cc`, the first also by
+`manual/examples/15-undirected-cuts.cc`).

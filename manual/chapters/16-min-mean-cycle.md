@@ -444,28 +444,28 @@ with the experiments of [Dasdan
     `HowardMmc` are unchanged.
 
 One can also limit the iterations, and then the algorithm returns a cycle that
-is usually good, but not necessarily optimal. Indeed, `findCycleMean(limit)`
+is usually good, but not necessarily optimal. Indeed, `findCycleMean( limit )`
 takes the largest number of iterations (by default the largest `int`, i.e., no
 limit), counted over all the components together, and it checks the limit
 before each iteration. It returns a value of the enumeration
 `TerminationCause`: `NO_CYCLE` (0) if the digraph has no directed cycle,
 `OPTIMAL` (1) if the minimum mean was found, and `ITERATION_LIMIT` (2) if the
-limit was reached first. In the last case the cycle kept is the best among
-the policy cycles of the components processed until then, whose mean is an
-upper bound on $\mu^*(D)$. The components after the one where the limit
-was reached are not processed at all. If the limit stops the first component
-that has a cycle before its first iteration (e.g., with a limit of 0), no
-cycle is kept, and `findCycle()` returns `false`. Since `NO_CYCLE` is 0, the
-result converts to `false` only when there is no cycle, and `run()` keeps the
-meaning of a `bool`.
+limit was reached first. In the last case the cycle kept is the best among the
+policy cycles of the components processed until then, whose mean is an upper
+bound on $\mu^*(D)$. The components after the one where the limit was reached
+are not processed at all. If the limit stops the first component that has a
+cycle before its first iteration (e.g., with a limit of 0), no cycle is kept,
+and `findCycle()` returns `false`. Since `NO_CYCLE` is 0, the result converts
+to `false` only when there is no cycle, and `run()` keeps the meaning of a
+`bool`.
 
 Howard's algorithm ends on each component with a policy whose cycle is a
 minimum mean cycle of that component, and `HowardMmc` keeps these cycles, one
 for each component that has a cycle. The number of such components is
 `componentCycleNum()`, and for $0\leq i<$ `componentCycleNum()`, in the order
-of the components, `componentCycleCost(i)` and `componentCycleSize(i)` give
-the cost and the number of arcs of the $i$-th cycle, while
-`componentCycle(i, path)`, a template on the path type, appends it to any
+of the components, `componentCycleCost( i )` and `componentCycleSize( i )`
+give the cost and the number of arcs of the $i$-th cycle, while
+`componentCycle( i , path )`, a template on the path type, appends it to any
 path with `addBack()`. These cycles are pairwise node-disjoint, since the
 components are. They are of minimum mean in their components only if
 `findCycleMean()` was not stopped by its limit; otherwise they are those of
@@ -473,16 +473,16 @@ the components processed until then, the last one possibly not optimal (a
 component where the limit stopped the search before its first policy cycle
 keeps none). The min-cost flow algorithms of [chapter
 13](13-min-cost-flow.md#ch-13) take from one run of `HowardMmc` the disjoint
-negative cycles that their function `unboundedCycles(k)` returns (see
+negative cycles that their function `unboundedCycles( k )` returns (see
 [chapter 14](14-k-best-flows.md#ch-14)).
 
 !!! note "abLEMON"
     `componentCycleNum()`, `componentCycleCost()`, `componentCycleSize()` and
     `componentCycle()` are new in abLEMON (version 1.9.0), and
-    `unboundedCycles(k)` of the four minimum cost flow algorithms reads them;
-    a run stopped by the limit before the first policy cycle of a component
-    no longer keeps the cycle of the previous component a second time. The
-    iteration limit of `findCycleMean()` was already in LEMON 1.3.
+    `unboundedCycles( k )` of the four minimum cost flow algorithms reads
+    them; a run stopped by the limit before the first policy cycle of a
+    component no longer keeps the cycle of the previous component a second
+    time. The iteration limit of `findCycleMean()` was already in LEMON 1.3.
 
 ![Figure 16.1. A digraph with two strongly connected components (the tinted regions) and the cost of each arc on its plate: the cycle 0, 1, 2 of mean 2 is the best of the first component, and the cycle 4, 5, 6 of mean 4/3 the minimum mean cycle of the digraph.](../figures/16-mmc.svg){#fig-16-1}
 
@@ -508,20 +508,21 @@ template parameters change the traits. `SetLargeCost< T >` sets `LargeCost` to
 `Path`; e.g., `HowardMmc< G , CM >::SetPath< ListPath< G > >::Create` stores
 the cycle in a `ListPath`.
 
-Each class is constructed from the digraph and the costs, and `cycle(path)`
+Each class is constructed from the digraph and the costs, and `cycle( path )`
 makes the algorithm store the cycle in an external path (otherwise the first
-run allocates one, which the destructor deletes). Then `tolerance(tol)` and
+run allocates one, which the destructor deletes). Then `tolerance( tol )` and
 `tolerance()` set and read the tolerance; the first two functions return the
-object, and hence calls may be chained, as in `mmc.cycle(p).run()`. To execute
-the algorithm one calls `run()`, which is `findCycleMean() && findCycle()` and
-returns `true` if the digraph has a directed cycle (for `HowardMmc`, with no
-limit on the iterations); it may be called again after the digraph or the
-costs have changed. In more detail, `findCycleMean()` computes the minimum
-mean (it returns a `bool` in `KarpMmc` and `HartmannOrlinMmc`, a
-`TerminationCause` in `HowardMmc`), and `findCycle()` builds the cycle from
-its data, appending the arcs to the path, and returns `false` if no cycle was
-found. Note that `findCycleMean()` clears the path, and `findCycle()` does
-not; hence, `findCycle()` should be called once after each `findCycleMean()`.
+object, and hence calls may be chained, as in `mmc.cycle( p ).run()`. To
+execute the algorithm one calls `run()`, which is
+`findCycleMean() && findCycle()` and returns `true` if the digraph has a
+directed cycle (for `HowardMmc`, with no limit on the iterations); it may be
+called again after the digraph or the costs have changed. In more detail,
+`findCycleMean()` computes the minimum mean (it returns a `bool` in `KarpMmc`
+and `HartmannOrlinMmc`, a `TerminationCause` in `HowardMmc`), and
+`findCycle()` builds the cycle from its data, appending the arcs to the path,
+and returns `false` if no cycle was found. Note that `findCycleMean()` clears
+the path, and `findCycle()` does not; hence, `findCycle()` should be called
+once after each `findCycleMean()`.
 
 We read the results by `cycleCost()`, a `Cost` converted from the `LargeCost`
 value kept by the algorithm, and `cycleSize()`, an `int` (before a cycle is
@@ -584,14 +585,14 @@ cycles that the test expects (the test does it with `checkMmcAlg()`).
 
 <span id="ex-16-4"></span>**Exercise 16.4.** For the cost function `len1` of
 `test/min_mean_cycle_test.cc`, find the least limit for which
-`HowardMmc::findCycleMean(limit)` returns `OPTIMAL` (the test checks that 2
+`HowardMmc::findCycleMean( limit )` returns `OPTIMAL` (the test checks that 2
 iterations are not enough and 4 are).
 
 <span id="ex-16-5"></span>**Exercise 16.5.** Use `componentCycleNum()` and
 `componentCycle()` of `HowardMmc` to list, for a digraph with several strongly
 connected components, the node-disjoint cycles of minimum mean of the
-components, and keep those of negative mean, as `unboundedCycles(k)` does (the
-program of section 16.5 lists the two cycles of Figure 16.1).
+components, and keep those of negative mean, as `unboundedCycles( k )` does
+(the program of section 16.5 lists the two cycles of Figure 16.1).
 
 <span id="ex-16-6"></span>**Exercise 16.6.** Check Lemma 16.1 (ii) with any of
 the three classes on the digraph of Figure 16.1, by adding the same constant

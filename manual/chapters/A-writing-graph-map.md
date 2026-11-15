@@ -36,14 +36,15 @@ algorithms rely on them as well.
 -   Each iterator visits each item exactly once and then becomes `INVALID`. In
     an undirected graph `ArcIt` visits each of the two arcs of an edge once,
     and `InArcIt` and `OutArcIt` visit the arcs of the incident edges.
--   The ends `u(e)` and `v(e)` do not change while the edge exists, and
-    `direct(e, true)` goes from `u(e)` to `v(e)`.
+-    The ends `u( e )` and `v( e )` do not change while the edge exists, and
+    `direct( e , true )` goes from `u( e )` to `v( e )`.
 
-For a map the contracts are `concepts::ReadMap< K , V >`, `concepts::WriteMap<
-K , V >`, `concepts::ReadWriteMap< K , V >` and `concepts::ReferenceMap< K , V
-, R , CR >` of `lemon/concepts/maps.h` ([chapter 6](06-maps.md#ch-6)), and for
-a heap `concepts::Heap< PR , IM , CMP >` of `lemon/concepts/heap.h` (section
-A.5). Each concept class has a nested template `Constraints`, whose function
+For a map the contracts are `concepts::ReadMap< K , V >`,
+`concepts::WriteMap< K , V >`, `concepts::ReadWriteMap< K , V >` and
+`concepts::ReferenceMap< K , V , R , CR >` of `lemon/concepts/maps.h`
+([chapter 6](06-maps.md#ch-6)), and for a heap
+`concepts::Heap< PR , IM , CMP >` of `lemon/concepts/heap.h` (section A.5).
+Each concept class has a nested template `Constraints`, whose function
 `constraints()` is the executable form of the contract that `checkConcept`
 instantiates (section A.6).
 
@@ -51,18 +52,19 @@ instantiates (section A.6).
 
 Most of the interface of a graph does not depend on how the graph is stored,
 or depends on it only somewhat. Indeed, the iterators can be written once from
-functions such as `first(Node &)` and `next(Node &)`, the standard maps need
-only the identifiers and a notifier, and the ranges, `oppositeNode()`,
+functions such as `first( Node & )` and `next( Node & )`, the standard maps
+need only the identifiers and a notifier, and the ranges, `oppositeNode()`,
 `baseNode()` and `runningNode()` follow from the iterators. Hence, the header
-`lemon/bits/graph_extender.h` defines three class templates, `DigraphExtender<
-Base >`, `GraphExtender< Base >` and `BpGraphExtender< Base >`, which derive
-from a base class written by the user and add this common part. All the
-structures of [chapter 4](04-graphs.md#ch-4) are made in this way (e.g.,
-`ListDigraph` derives from `DigraphExtender< ListDigraphBase >`). So are the
-arc and edge sets, by `ArcSetExtender` and `EdgeSetExtender` of
-`lemon/bits/edge_set_extender.h`, and the adaptors of [chapter
-5](05-adaptors.md#ch-5), by `DigraphAdaptorExtender` and
-`GraphAdaptorExtender` of `lemon/bits/graph_adaptor_extender.h`.
+`lemon/bits/graph_extender.h` defines three class templates,
+`DigraphExtender< Base >`, `GraphExtender< Base >` and
+`BpGraphExtender< Base >`, which derive from a base class written by the user
+and add this common part. All the structures of [chapter 4](04-graphs.md#ch-4)
+are made in this way (e.g., `ListDigraph` derives from
+`DigraphExtender< ListDigraphBase >`). So are the arc and edge sets, by
+`ArcSetExtender` and `EdgeSetExtender` of `lemon/bits/edge_set_extender.h`,
+and the adaptors of [chapter 5](05-adaptors.md#ch-5), by
+`DigraphAdaptorExtender` and `GraphAdaptorExtender` of
+`lemon/bits/graph_adaptor_extender.h`.
 
 *The base of a digraph.* A base class for `DigraphExtender` defines the
 following members, which are those of `BaseDigraphComponent`,
@@ -70,47 +72,49 @@ following members, which are those of `BaseDigraphComponent`,
 
 -   The handle types `Node` and `Arc`, with default and `Invalid`
     constructors, `==`, `!=` and `<`.
--   The functions `source(a)` and `target(a)`.
--   The functions `first(Node &)`, `next(Node &)`, `first(Arc &)` and
-    `next(Arc &)`, which enumerate the items and set the handle to the invalid
-    value after the last one. Also, `firstOut(Arc &, Node)`, `nextOut(Arc &)`,
-    `firstIn(Arc &, Node)` and `nextIn(Arc &)` enumerate the arcs at a node.
--   The functions `id(Node)`, `id(Arc)`, `nodeFromId(int)`, `arcFromId(int)`,
-    `maxNodeId()` and `maxArcId()`.
+-    The functions `source( a )` and `target( a )`.
+-    The functions `first( Node & )`, `next( Node & )`, `first( Arc & )` and
+    `next( Arc & )`, which enumerate the items and set the handle to the
+    invalid value after the last one. Also, `firstOut( Arc & , Node )`,
+    `nextOut( Arc & )`, `firstIn( Arc & , Node )` and `nextIn( Arc & )`
+    enumerate the arcs at a node.
+-    The functions `id( Node )`, `id( Arc )`, `nodeFromId( int )`,
+    `arcFromId( int )`, `maxNodeId()` and `maxArcId()`.
 
-If the structure can change, the base also has `addNode()`, `addArc(s, t)`,
-`erase(Node)`, `erase(Arc)` and `clear()`, which modify the storage only,
+If the structure can change, the base also has `addNode()`, `addArc( s , t )`,
+`erase( Node )`, `erase( Arc )` and `clear()`, which modify the storage only,
 since the extender adds the notifications. A static structure has instead
-`build(g, nodeRef, arcRef)` and the tag `BuildTag`. Optionally, the tags
+`build( g , nodeRef , arcRef )` and the tag `BuildTag`. Optionally, the tags
 `NodeNumTag` and `ArcNumTag`, with `nodeNum()` and `arcNum()`, make the
 counting of [chapter 4](04-graphs.md#ch-4) take $O(1)$ time, and `FindArcTag`,
-with `findArc(s, t, prev)`, replaces the scan of `findArc()`.
+with `findArc( s , t , prev )`, replaces the scan of `findArc()`.
 
 *The extender.* On top of the functions above, `DigraphExtender< Base >`
 defines `NodeIt`, `ArcIt`, `OutArcIt` and `InArcIt` (Algorithm A.1), with the
-ranges `nodes()`, `arcs()`, `outArcs(v)` and `inArcs(v)`. It also defines
+ranges `nodes()`, `arcs()`, `outArcs( v )` and `inArcs( v )`. It also defines
 `baseNode()`, `runningNode()`, `oppositeNode()`, `maxId()` and `fromId()`, and
 one `AlterationNotifier` for the nodes and one for the arcs, returned by
-`notifier(Node())` and `notifier(Arc())`. Its map templates `NodeMap< V >` and
-`ArcMap< V >` are `DefaultMap`s with the iterators of `MapExtender` (cf.
-[chapter 6](06-maps.md#ch-6)). Finally, its functions `addNode()`, `addArc()`,
-`erase()`, `clear()` and `build()` call those of the base and notify the
-observers in the order of section A.3; in particular, `erase(Node)` erases the
-arcs at the node first, one by one, and the base need not do it, while its
-destructor notifies the observers of a `clear()`. A base whose items are
-added through the extender also provides the protected functions
-`undoAdd(Node)` and `undoAdd(Arc)`, which remove the item just added by its
-`addNode()` or `addArc()` (section A.3).
+`notifier( Node() )` and `notifier( Arc() )`. Its map templates `NodeMap< V >`
+and `ArcMap< V >` are `DefaultMap`s with the iterators of `MapExtender`
+(cf. [chapter 6](06-maps.md#ch-6)). Finally, its functions `addNode()`,
+`addArc()`, `erase()`, `clear()` and `build()` call those of the base and
+notify the observers in the order of section A.3; in particular,
+`erase( Node )` erases the arcs at the node first, one by one, and the base
+need not do it, while its destructor notifies the observers of a `clear()`. A
+base whose items are added through the extender also provides the protected
+functions `undoAdd( Node )` and `undoAdd( Arc )`, which remove the item just
+added by its `addNode()` or `addArc()` (section A.3).
 
 For an undirected graph, `GraphExtender< Base >` requires from the base the
-type `Edge` as well, with `u(e)`, `v(e)`, `direction(a)`, `direct(e, bool)`,
-`first(Edge &)`, `next(Edge &)`, `firstInc(Edge &, bool &, Node)`,
-`nextInc(Edge &, bool &)`, `id(Edge)`, `edgeFromId()` and `maxEdgeId()`. In
-return it defines the tag `UndirectedTag`, `EdgeIt`, `IncEdgeIt`, `edges()`,
-`incEdges(v)`, `oppositeArc()`, `direct(e, node)`, a third notifier for the
-edges and `EdgeMap< V >`, and its `addEdge()` notifies the new edge and then
-its two arcs (an extendable base provides `undoAdd(Edge)` in place of
-`undoAdd(Arc)`). In the same way, `BpGraphExtender< Base >` adds the red and
+type `Edge` as well, with `u( e )`, `v( e )`, `direction( a )`,
+`direct( e , bool )`, `first( Edge & )`, `next( Edge & )`,
+`firstInc( Edge & , bool & , Node )`, `nextInc( Edge & , bool & )`,
+`id( Edge )`, `edgeFromId()` and `maxEdgeId()`. In return it defines the tag
+`UndirectedTag`, `EdgeIt`, `IncEdgeIt`, `edges()`, `incEdges( v )`,
+`oppositeArc()`, `direct( e , node )`, a third notifier for the edges and
+`EdgeMap< V >`, and its `addEdge()` notifies the new edge and then its two
+arcs (an extendable base provides `undoAdd( Edge )` in place of
+`undoAdd( Arc )`). In the same way, `BpGraphExtender< Base >` adds the red and
 the blue nodes, with their iterators, notifiers and maps.
 
 <span id="alg-a-1"></span>**Algorithm A.1** (The arc iterators that
@@ -129,7 +133,7 @@ a != INVALID:      Arc::operator!= of the base, against Arc(INVALID)
 <span id="lem-a-1"></span>**Lemma A.1.** *If the enumerations `first()` and
 `next()` (and `firstOut()`, `nextOut()`, `firstIn()`, `nextIn()` at a node
 $v$) of the base visit each item of their set once and then set the handle to
-the value of `Arc(INVALID)` (or `Node(INVALID)`), then the iterators of
+the value of `Arc( INVALID )` (or `Node( INVALID )`), then the iterators of
 Algorithm A.1 satisfy the contract of section A.1 on the same sets, and each
 step of an iterator costs one step of the base.*
 
@@ -144,7 +148,7 @@ The digraph of the program of this appendix, the directed cycle on $n$ nodes,
 is made in this way ([Figure A.1](A-writing-graph-map.md#fig-a-1)): its base
 class `CycleDigraphBase` stores only $n$ and computes the arc $i$ as going
 from node $i$ to node $(i+1)\bmod n$, `CycleDigraph` derives from
-`DigraphExtender< CycleDigraphBase >`, and its `resize(n)` notifies the maps
+`DigraphExtender< CycleDigraphBase >`, and its `resize( n )` notifies the maps
 that all the items were erased and that the new ones were built, as
 `FullDigraph::resize()` does. The program checks the digraph against
 `concepts::Digraph` and runs `Dijkstra` on it, with no change to the
@@ -159,17 +163,17 @@ one notifier for each kind of item. This is an object of the class
 `AlterationNotifier< Container , Item >` of
 `lemon/bits/alteration_notifier.h`, which keeps a list of observers, i.e., of
 objects of classes derived from its nested class `ObserverBase`. An observer
-is attached to a notifier by the protected constructor `ObserverBase( notifier
-)` or by `attach( notifier )`, and it is detached by `detach()` or by its
-destructor; `notifier()` and `attached()` give its notifier and its state
-(these functions are protected as well, i.e., for the derived class), and a
-copy of an observer is attached to the same notifier. An observer overrides
-six pure virtual functions, which the notifier calls.
+is attached to a notifier by the protected constructor
+`ObserverBase( notifier )` or by `attach( notifier )`, and it is detached by
+`detach()` or by its destructor; `notifier()` and `attached()` give its
+notifier and its state (these functions are protected as well, i.e., for the
+derived class), and a copy of an observer is attached to the same notifier. An
+observer overrides six pure virtual functions, which the notifier calls.
 
--   `add(item)` and `add(items)`, after one item or a `std::vector` of items
-    has been added to the container.
--   `erase(item)` and `erase(items)`, before one item or several items are
-    erased from it.
+-    `add( item )` and `add( items )`, after one item or a `std::vector` of
+    items has been added to the container.
+-    `erase( item )` and `erase( items )`, before one item or several items
+    are erased from it.
 -   `build()`, after the container has been built from empty, and `clear()`,
     before all its items are erased.
 
@@ -178,10 +182,10 @@ notifier in a fixed order with respect to its storage. An item is added to the
 storage first and notified afterwards, so that the observer can read it (e.g.,
 its identifier), while an item to be erased is notified first and removed
 afterwards. The notifier also lets an observer enumerate the current items by
-`first(item)` and `next(item)`, and read their identifiers by `id(item)` and
-the bound on them by `maxId()`. We remark that an observer must not trigger
-another alteration of the same notifier, nor detach another observer, from
-within these functions.
+`first( item )` and `next( item )`, and read their identifiers by `id( item )`
+and the bound on them by `maxId()`. We remark that an observer must not
+trigger another alteration of the same notifier, nor detach another observer,
+from within these functions.
 
 *Exceptions.* The calls of `add()` and `build()` go from the observer attached
 first to the one attached last. If an observer throws, those already notified
@@ -212,22 +216,23 @@ erase(x):
 ```
 
 <span id="lem-a-2"></span>**Lemma A.2.** *Let the notifier have $k$ observers,
-and let the `erase(x)` of each observer undo its `add(x)`. If `add(x)` of
-Algorithm A.2 throws, then every observer has either received nothing or
-received `add(x)` followed by `erase(x)`, and the exception reaches the
-caller; `add(x)` and `erase(x)` make at most $2k$ and $k$ calls of the
-observers, and after `erase(x)` exactly the observers that threw
+and let the `erase( x )` of each observer undo its `add( x )`. If `add( x )`
+of Algorithm A.2 throws, then every observer has either received nothing or
+received `add( x )` followed by `erase( x )`, and the exception reaches the
+caller; `add( x )` and `erase( x )` make at most $2k$ and $k$ calls of the
+observers, and after `erase( x )` exactly the observers that threw
 `ImmediateDetach` are detached.*
 
 *Proof.* The observers are kept in a list in which each new one is put at the
-front, and `add(x)` visits it from the back, i.e., in the order of attachment.
-When the observer $o$ throws, those visited before it are those that received
-`add(x)`, and lines 3 and 4 send each of them `erase(x)`, which by hypothesis
-undoes its `add(x)`; $o$ itself and the later ones received nothing. Each
-observer is called at most once on line 2 and at most once on line 4. The loop
-of `erase(x)` visits each observer once from the front; one that throws
-`ImmediateDetach` is unlinked from the list and marked as not attached before
-the loop goes on to its successor, and the others stay. $\square$
+front, and `add( x )` visits it from the back, i.e., in the order of
+attachment. When the observer $o$ throws, those visited before it are those
+that received `add( x )`, and lines 3 and 4 send each of them `erase( x )`,
+which by hypothesis undoes its `add( x )`; $o$ itself and the later ones
+received nothing. Each observer is called at most once on line 2 and at most
+once on line 4. The loop of `erase( x )` visits each observer once from the
+front; one that throws `ImmediateDetach` is unlinked from the list and marked
+as not attached before the loop goes on to its successor, and the others stay.
+$\square$
 
 Lemma A.2 concerns the observers only. The extender of section A.2 adds the
 item to the storage of the base before it notifies it, and when the
@@ -304,15 +309,15 @@ The algorithms that keep a priority queue of nodes (`Dijkstra`,
 `BidirDijkstra`, `AStar`, `MinCostArborescence` and several others of Part
 III) take the type of their heap from their traits. A user may replace it by
 the named template parameter `SetHeap< H , CR >` (cf. [chapter
-3](03-mental-model.md#ch-3)), with a heap that conforms to `concepts::Heap< PR
-, IM , CMP >`. The parameters of the concept are the type `PR` of the
-priorities, the type `IM` of a reference map from the items to `int` (i.e.,
-one whose `operator[]` gives a reference, through which the heap writes), and
-the comparison functor `CMP`, by default `std::less< PR >`. Through the map
-`IM`, called the cross reference map, the heap finds the place of an item in
-$O(1)$ time, and its key type `IM::Key` is the type of the items. The concept
-requires the following members, which one can compare with those of the heaps
-of the library.
+3](03-mental-model.md#ch-3)), with a heap that conforms to
+`concepts::Heap< PR , IM , CMP >`. The parameters of the concept are the type
+`PR` of the priorities, the type `IM` of a reference map from the items to
+`int` (i.e., one whose `operator[]` gives a reference, through which the heap
+writes), and the comparison functor `CMP`, by default `std::less< PR >`.
+Through the map `IM`, called the cross reference map, the heap finds the place
+of an item in $O(1)$ time, and its key type `IM::Key` is the type of the
+items. The concept requires the following members, which one can compare with
+those of the heaps of the library.
 
 -   The types `Item`, `Prio`, `ItemIntMap` and `State`, the last one an
     enumeration with `IN_HEAP` $=0$, `PRE_HEAP` $=-1$ and `POST_HEAP` $=-2$.
@@ -321,17 +326,17 @@ of the library.
     copy a heap).
 -   The functions `size()`, `empty()` and `clear()`, the last of which empties
     the heap without touching the cross reference map.
--   The functions `push(i, p)` for an item not in the heap, `top()` and
+-    The functions `push( i , p )` for an item not in the heap, `top()` and
     `prio()` for the item of least priority and its priority, `pop()`, which
-    removes that item, and `erase(i)` for an item in the heap.
--   The query `heap[i]`, the priority of an item in the heap, and the
+    removes that item, and `erase( i )` for an item in the heap.
+-    The query `heap[i]`, the priority of an item in the heap, and the
     functions `set(i, p)`, which inserts the item or changes its priority, and
-    `decrease(i, p)` and `increase(i, p)`, whose precondition is that the new
-    priority is not larger (resp. smaller) than the old one.
--   The functions `state(i)`, which returns `PRE_HEAP` for an item that has
+    `decrease( i , p )` and `increase( i , p )`, whose precondition is that
+    the new priority is not larger (resp. smaller) than the old one.
+-    The functions `state( i )`, which returns `PRE_HEAP` for an item that has
     never been in the heap, `IN_HEAP` for one in it and `POST_HEAP` for one
-    removed, and `state(i, st)`, which sets the state of an item that is not
-    in the heap.
+    removed, and `state( i , st )`, which sets the state of an item that is
+    not in the heap.
 
 The cross reference map is owned by the caller and shared with the heap. It
 must give `PRE_HEAP` for each item that may be pushed, and the heap typically
@@ -360,16 +365,16 @@ for the structures of the library.
 Since the concepts check the syntax only, the semantic requirements of section
 A.1 are checked by running the class. In the tests, the header
 `test/graph_test.h` has function templates that do it for any graph type, and
-a test of a new structure may call them. Thus, `checkGraphNodeList(g, n)` and
-`checkGraphArcList(g, m)` count the items visited by the iterators,
-`checkGraphOutArcList(g, v, d)` and `checkGraphInArcList(g, v, d)` the arcs at
-a node, and `checkGraphIncEdgeArcLists(g, v, d)` the incidences of an
-undirected graph. Also, `checkNodeIds(g)` and `checkArcIds(g)` verify that the
-identifiers are distinct and that `nodeFromId()` inverts them,
-`checkArcDirections(g)` that the arcs of each edge are directed consistently,
-and `checkGraphNodeMap(g)` and `checkGraphArcMap(g)` that a map has a value
-for each item. Finally, an algorithm run on the new structure should give the
-results known in closed form or computed on a copy of it into a `ListDigraph`
-(by `digraphCopy()` of [chapter 4](04-graphs.md#ch-4)); the program of this
-appendix, e.g., checks the distances of `Dijkstra` against their closed form,
-and a node map against a `resize()`.
+a test of a new structure may call them. Thus, `checkGraphNodeList( g , n )`
+and `checkGraphArcList( g , m )` count the items visited by the iterators,
+`checkGraphOutArcList( g , v , d )` and `checkGraphInArcList( g , v , d )` the
+arcs at a node, and `checkGraphIncEdgeArcLists( g , v , d )` the incidences of
+an undirected graph. Also, `checkNodeIds( g )` and `checkArcIds( g )` verify
+that the identifiers are distinct and that `nodeFromId()` inverts them,
+`checkArcDirections( g )` that the arcs of each edge are directed
+consistently, and `checkGraphNodeMap( g )` and `checkGraphArcMap( g )` that a
+map has a value for each item. Finally, an algorithm run on the new structure
+should give the results known in closed form or computed on a copy of it into
+a `ListDigraph` (by `digraphCopy()` of [chapter 4](04-graphs.md#ch-4)); the
+program of this appendix, e.g., checks the distances of `Dijkstra` against
+their closed form, and a node map against a `resize()`.
