@@ -21,6 +21,7 @@
 #include <fstream>
 #include <limits>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <lemon/concepts/min_cost_flow.h>
@@ -205,7 +206,10 @@ bool checkPotential( const GR & gr , const LM & lower , const UM & upper ,
  return( opt );
  }
 
-// Check whether the dual cost is equal to the primal cost
+// Check whether the dual cost is equal to the primal cost: on an integer
+// type the sum is taken in the unsigned type of the same width, modulo
+// 2^n, since the potentials that the artificial arcs of NetworkSimplex give
+// under GEQ and LEQ (about -2^62) make terms that overflow and cancel
 template< typename GR , typename LM , typename UM , typename CM , typename SM ,
 	  typename PM >
 bool checkDualCost( const GR & gr , const LM & lower , const UM & upper ,
@@ -213,33 +217,36 @@ bool checkDualCost( const GR & gr , const LM & lower , const UM & upper ,
 		    typename CM::Value total )
 {
  TEMPLATE_DIGRAPH_TYPEDEFS( GR );
+ typedef typename CM::Value V;
+ typedef typename std::conditional< std::is_integral< V >::value ,
+				    std::make_unsigned< V > ,
+				    std::common_type< V > >::type::type Acc;
 
- typename CM::Value dual_cost = 0;
+ Acc dual_cost = 0;
  SM red_supply( gr );
  for( NodeIt n( gr ) ; n != INVALID ; ++n ) {
   red_supply[ n ] = supply[ n ];
   }
  for( ArcIt a( gr ) ; a != INVALID ; ++a ) {
   if( lower[ a ] != 0 ) {
-   dual_cost += lower[ a ] * cost[ a ];
+   dual_cost += Acc( lower[ a ] ) * Acc( cost[ a ] );
    red_supply[ gr.source( a ) ] -= lower[ a ];
    red_supply[ gr.target( a ) ] += lower[ a ];
    }
   }
 
  for( NodeIt n( gr ) ; n != INVALID ; ++n ) {
-  dual_cost -= red_supply[ n ] * pi[ n ];
+  dual_cost -= Acc( red_supply[ n ] ) * Acc( pi[ n ] );
   }
  for( ArcIt a( gr ) ; a != INVALID ; ++a ) {
-  typename CM::Value red_cost =
-    cost[ a ] + pi[ gr.source( a ) ] - pi[ gr.target( a ) ];
+  V red_cost = cost[ a ] + ( pi[ gr.source( a ) ] - pi[ gr.target( a ) ] );
   // only where the reduced cost is negative, which an arc whose width
   // overflows (an infinite bound) never has at the optimum
   if( red_cost < 0 )
-   dual_cost += ( upper[ a ] - lower[ a ] ) * red_cost;
+   dual_cost += Acc( upper[ a ] - lower[ a ] ) * Acc( red_cost );
   }
 
- return( dual_cost == total );
+ return( dual_cost == Acc( total ) );
  }
 
 // Run a minimum cost flow algorithm and check the results
