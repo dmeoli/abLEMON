@@ -27,8 +27,7 @@
 
 LEMONOBJ = $(LEMONSDR)/obj/arg_parser.o $(LEMONSDR)/obj/base.o \
 	$(LEMONSDR)/obj/color.o $(LEMONSDR)/obj/lp_base.o \
-	$(LEMONSDR)/obj/lp_skeleton.o $(LEMONSDR)/obj/random.o \
-	$(LEMONSDR)/obj/bits/windows.o
+	$(LEMONSDR)/obj/lp_skeleton.o $(LEMONSDR)/obj/random.o
 
 LEMONINC = -I$(LEMONSDR) -I$(LEMONSDR)/obj
 
@@ -40,28 +39,19 @@ LEMONH = $(wildcard $(LEMONSDR)/lemon/*.h $(LEMONSDR)/lemon/bits/*.h \
 LEMON_VERSION ?= $(shell git -C $(LEMONSDR) describe --tags --always \
 	2> /dev/null || echo unknown)
 
-# the threads of the system: Win32 on Windows, POSIX elsewhere
-ifeq ($(OS),Windows_NT)
-LEMON_SYS_SED = -e 's/^\#cmakedefine LEMON_WIN32 1/\#define LEMON_WIN32 1/' \
-	-e 's/^\#cmakedefine \(LEMON_USE_WIN32_THREADS\) 1/\#define \1 1/'
-else
-LEMON_SYS_SED = -e 's/^\#cmakedefine \(LEMON_USE_PTHREAD\) 1/\#define \1 1/'
-endif
-
 # clean - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 clean::
 	rm -rf $(LEMONSDR)/obj $(LEMONSDR)/*~
 
 # lemon/config.h, as CMake writes it for GCC and Clang with no LP or MIP
-# solver: the version, long long, the threads, and every other #cmakedefine
-# left undefined - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# solver: the version, long long, and every other #cmakedefine left
+# undefined - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $(LEMONSDR)/obj/lemon/config.h: $(LEMONSDR)/lemon/config.h.in
 	mkdir -p $(dir $@)
 	sed -e 's/@PROJECT_VERSION@/$(LEMON_VERSION)/' \
 	  -e 's/^#cmakedefine \(LEMON_HAVE_LONG_LONG\) 1/#define \1 1/' \
-	  $(LEMON_SYS_SED) \
 	  -e 's/^#cmakedefine \([A-Za-z0-9_]*\).*/\/* #undef \1 *\//' $< > $@
 
 # dependencies: every .o from its .cc + every recursively included .h - - - -

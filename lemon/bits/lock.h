@@ -19,43 +19,23 @@
 #ifndef LEMON_BITS_LOCK_H
  #define LEMON_BITS_LOCK_H
 
-#include <lemon/config.h>
-#if defined( LEMON_USE_PTHREAD )
-#include <pthread.h>
-#elif defined( LEMON_USE_WIN32_THREADS )
-#include <lemon/bits/windows.h>
-#endif
+#include <mutex>
 
 namespace lemon
 {
 namespace bits
 {
-
-#if defined( LEMON_USE_PTHREAD )
+// The lock of the environment shared by the copies of a CPLEX solver: a
+// std::mutex, with the names that the solver calls
 class Lock
 {
  public:
- Lock() { pthread_mutex_init( &_lock , 0 ); }
- ~Lock() { pthread_mutex_destroy( &_lock ); }
- void lock() { pthread_mutex_lock( &_lock ); }
- void unlock() { pthread_mutex_unlock( &_lock ); }
+ void lock() { _lock.lock(); }
+ void unlock() { _lock.unlock(); }
 
  private:
- pthread_mutex_t _lock;
+ std::mutex _lock;
  };
-#elif defined( LEMON_USE_WIN32_THREADS )
-class Lock : public WinLock
-{ };
-#else
-class Lock
-{
- public:
- Lock() { }
- ~Lock() { }
- void lock() { }
- void unlock() { }
- };
-#endif
 }
 }
 

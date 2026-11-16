@@ -7,8 +7,6 @@
 
 #cmakedefine LEMON_CXX11 1
 
-#cmakedefine LEMON_WIN32 1
-
 #cmakedefine LEMON_HAVE_LP 1
 #cmakedefine LEMON_HAVE_MIP 1
 #cmakedefine LEMON_HAVE_GLPK 1
@@ -25,9 +23,6 @@
 
 #cmakedefine LEMON_DEFAULT_LP LEMON_@LEMON_DEFAULT_LP@_
 #cmakedefine LEMON_DEFAULT_MIP LEMON_@LEMON_DEFAULT_MIP@_
-
-#cmakedefine LEMON_USE_PTHREAD 1
-#cmakedefine LEMON_USE_WIN32_THREADS 1
 
 #cmakedefine LEMON_SHARED_LIBRARY 1
 

@@ -26,12 +26,8 @@
 #include <memory>
 #include <vector>
 
-#ifndef LEMON_WIN32
-#include <sys/time.h>
+#include <chrono>
 #include <ctime>
-#else
-#include <lemon/bits/windows.h>
-#endif
 
 #include <lemon/math.h>
 #include <lemon/core.h>
@@ -770,17 +766,14 @@ class GraphToEps : public T
 
   {
    os << "%%CreationDate: ";
-#ifndef LEMON_WIN32
-   timeval tv;
-   gettimeofday( &tv , 0 );
-
-   char cbuf[ 26 ];
-   ctime_r( &tv.tv_sec , cbuf );
-   os << cbuf;
-#else
-   os << bits::getWinFormattedDate();
-   os << std::endl;
-#endif
+   std::time_t t = std::chrono::system_clock::to_time_t(
+				       std::chrono::system_clock::now() );
+   char cbuf[ 32 ];
+   if( std::strftime( cbuf , sizeof( cbuf ) , "%a %b %d %H:%M:%S %Y" ,
+		      std::localtime( &t ) ) )
+    os << cbuf << '\n';
+   else
+    os << "unknown\n";
    }
 
   if( _autoArcWidthScale ) {

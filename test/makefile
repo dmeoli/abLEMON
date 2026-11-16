@@ -92,6 +92,10 @@ $(TESTS): %: $(DIR)/%.o $(LEMONOBJ)
 $(DIR)/%.o: $(DIR)/%.cc $(DIR)/test_tools.h $(LEMONH)
 	$(CC) -c $< -o $@ $(LEMONINC) $(SW)
 
+# the elevators with the checks of the standard library on their vectors,
+# where the library has them (a macro that no other library reads)
+$(DIR)/elevator_test.o: SW += -D_GLIBCXX_ASSERTIONS
+
 # phony targets - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 .PHONY: default debug release check clean

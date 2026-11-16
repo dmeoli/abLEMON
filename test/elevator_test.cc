@@ -20,10 +20,6 @@
 // LinkedElevator from the end or the start of its level, the active item of
 // a level, and the lift of the levels to the top
 
-#ifndef _GLIBCXX_ASSERTIONS
- #define _GLIBCXX_ASSERTIONS
-#endif
-
 #include <lemon/elevator.h>
 #include <lemon/smart_graph.h>
 

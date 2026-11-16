@@ -33,18 +33,19 @@ installs the headers, the library and the CMake configuration of
 
 ## 2.2 Building from the sources {#sec-2-2}
 
-Building needs CMake 3.19 or later and a compiler that supports C++11. In
-fact, the library compiles without warnings with GCC, Clang, AppleClang and
-MSVC, from C++11 to C++23 (the continuous integration builds each change on
-Linux, macOS and Windows with these compilers, and also under the address and
-undefined behavior sanitizers). The usual sequence configures the build
-directory by `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`, compiles by
-`cmake --build build`, runs the tests by `ctest --test-dir build`, and
-installs by `cmake --install build --prefix /usr/local`; the tests are those
-of `test/` and the programs of this manual (the files of `manual/examples/`,
-which ctest names `manual_*`), and the installation follows `GNUInstallDirs`
-under the given prefix (e.g., the library goes to `lib64` or to
-`lib/x86_64-linux-gnu` when the system wants it there).
+Building needs CMake 3.19 or later and a compiler that supports C++11. In fact,
+the library compiles without warnings with GCC, Clang, AppleClang and MSVC
+(with the flags of the presets below), from C++11 to C++23 (the continuous
+integration builds each change on Linux, macOS and Windows with these
+compilers, and also under the address and undefined behavior sanitizers). The
+usual sequence configures the build directory by
+`cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`, compiles by
+`cmake --build build`, runs the tests by `ctest --test-dir build`, and installs
+by `cmake --install build --prefix /usr/local`; the tests are those of `test/`
+and the programs of this manual (the files of `manual/examples/`, which ctest
+names `manual_*`), and the installation follows `GNUInstallDirs` under the
+given prefix (e.g., the library goes to `lib64` or to `lib/x86_64-linux-gnu`
+when the system wants it there).
 
 Among the options, `CMAKE_CXX_STANDARD` is honored when it is set, and is 11
 otherwise; `BUILD_SHARED_LIBS` builds a shared library (on Windows, a DLL).
@@ -54,18 +55,21 @@ the tree when it is `OFF` (the tests and the programs of the manual, the demos
 and the contributed programs, the tools, and the documentation, respectively).
 `LEMON_BUILD_MODULE` is `OFF` by default (cf. [§2.3](#sec-2-3)), and the four
 options of the LP and MIP backends are described in [§2.4](#sec-2-4). The
-variable `LEMON_THREADING` (one of `Pthread`, `Win32` and `None`) chooses the
-lock that the alteration notifiers of [appendix
-A](A-writing-graph-map.md#app-a) use, and it defaults to the threads that
-CMake finds. The version is the value given by `-DLEMON_VERSION=...`, if any
-(as the packages do), else the one of the environment variable
-`LEMON_VERSION`, else the tag that `git describe` gives for the sources. It is
-`unknown` when none of these exists. The build types `Debug` and `Maintainer`
-define `LEMON_ENABLE_DEBUG`, which turns on the checks of `assert.h` (cf.
-[chapter 8](08-auxiliary.md#ch-8)); furthermore, `Maintainer` runs the tests
-at each build. A project may also take the library in by `add_subdirectory()`
-or by `FetchContent`, in which case only the library is configured, whatever
-the options say.
+warning flags, which depend on the compiler, are not chosen by the build: they
+are those of `LEMON_CXX_WARNING_FLAGS`, empty by default (or the environment
+variable `LEMON_CXX_WARNING`), and the presets of `CMakePresets.json` give
+those of GCC and Clang (`gcc-clang`) and of MSVC (`msvc`, which also adds
+`/bigobj` and turns off C4250, the inheritance via dominance that the adaptors
+and the edge sets have by design, and C4996), each with a variant `maintainer-`
+that turns the warnings into errors. The version is the value given by
+`-DLEMON_VERSION=...`, if any (as the packages do), else the one of the
+environment variable `LEMON_VERSION`, else the tag that `git describe` gives
+for the sources. It is `unknown` when none of these exists. The build types
+`Debug` and `Maintainer` define `LEMON_ENABLE_DEBUG`, which turns on the checks
+of `assert.h` (cf. [chapter 8](08-auxiliary.md#ch-8)); furthermore,
+`Maintainer` runs the tests at each build. A project may also take the library
+in by `add_subdirectory()` or by `FetchContent`, in which case only the library
+is configured, whatever the options say.
 
 For a project built with GNU make, the makefiles of the repository build the
 library and the tests without a configuration step:
@@ -102,14 +106,16 @@ paths relative to it, and other build systems use pkg-config (`pkg-config
 library is in the namespace `lemon`, as in LEMON 1.3.1.
 
 With `-DLEMON_BUILD_MODULE=ON`, the library is also built and installed as the
-C++20 module `lemon`, whose interface is `lemon/lemon.cppm`; a translation
-unit linked to `LEMON::lemon_module` may then write `import lemon;` in place
-of the includes. This needs CMake 3.28 or later, the Ninja generator (or one
-of Visual Studio), and Clang 16 (with its `clang-scan-deps`) or MSVC 19.34 or
-later. When one of these conditions does not hold, the option is turned off
-with a warning that names it. GCC (up to version 15, at least) builds the
-module, but a unit that imports it does not find the operators of the standard
-library that the templates use; hence, GCC is not accepted for it.
+C++20 module `lemon`, whose interface is `lemon/lemon.cppm`; a translation unit
+linked to `LEMON::lemon_module` may then write `import lemon;` in place of the
+includes. This needs CMake 3.28 or later, a generator and a compiler that build
+modules (e.g., Ninja with Clang 16 and its `clang-scan-deps`, or MSVC 19.34),
+and a compiler whose importers find the operators of the standard library that
+the templates of the module use: GCC (up to version 15, at least) builds the
+module, but a unit that imports it does not find them. The configuration builds
+a small module and a unit that imports it to tell (`cmake/module-check`), and
+when they do not build, or CMake is older, the option is turned off with a
+warning that says why.
 
 ## 2.4 Optional backends {#sec-2-4}
 

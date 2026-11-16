@@ -1,0 +1,40 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "gcc-clang",
+      "displayName": "GCC or Clang, with the warnings of LEMON",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LEMON_CXX_WARNING_FLAGS": "-Wall -W -Wunused -Wformat=2 -Wctor-dtor-privacy -Wnon-virtual-dtor -Wno-char-subscripts -Wwrite-strings -Wreturn-type -Wcast-qual -Wcast-align -Wsign-promo -Woverloaded-virtual -fno-strict-aliasing -Wold-style-cast -Wno-unknown-pragmas"
+      }
+    },
+    {
+      "name": "msvc",
+      "displayName": "MSVC, with /bigobj, C4250 (inheritance via dominance, which the adaptors and the edge sets do by design) and C4996 (functions of the C library that MSVC declares deprecated) off",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS_INIT": "/bigobj",
+        "LEMON_CXX_WARNING_FLAGS": "/wd4250 /wd4996"
+      }
+    },
+    {
+      "name": "maintainer-gcc-clang",
+      "inherits": "gcc-clang",
+      "displayName": "GCC or Clang, Maintainer: warnings as errors",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Maintainer",
+        "CMAKE_COMPILE_WARNING_AS_ERROR": "ON"
+      }
+    },
+    {
+      "name": "maintainer-msvc",
+      "inherits": "msvc",
+      "displayName": "MSVC, Maintainer: warnings as errors",
+      "cacheVariables": {
+        "CMAKE_COMPILE_WARNING_AS_ERROR": "ON"
+      }
+    }
+  ]
+}

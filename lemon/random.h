@@ -73,14 +73,8 @@
 #include <lemon/math.h>
 #include <lemon/dim2.h>
 
-#ifndef LEMON_WIN32
-#include <sys/time.h>
-#include <ctime>
-#include <sys/types.h>
-#include <unistd.h>
-#else
-#include <lemon/bits/windows.h>
-#endif
+#include <chrono>
+#include <random>
 
 ///\ingroup misc
 ///\file
@@ -629,17 +623,23 @@ class Random
   _random_bits::Initializer< Number , Word >::init( core , begin , end );
   }
 
- /// \brief Seeding from file or from process id and time
+ /// \brief Seeding from the random device or from the time
  ///
- /// By default, this function calls the \c seedFromFile() member
- /// function with the <tt>/dev/urandom</tt> file. If it does not success,
+ /// By default, this function seeds the generator with words of
+ /// \c std::random_device. If it does not succeed (e.g., the device throws),
  /// it uses the \c seedFromTime().
  /// \return Currently always \c true.
  bool seed() {
-#ifndef LEMON_WIN32
-  if( seedFromFile( "/dev/urandom" , 0 ) )
+  try {
+   std::random_device rd;
+   const int size = 4;
+   Word buf[ size ];
+   for( int i = 0 ; i < size ; ++i )
+    buf[ i ] = ( Word( rd() ) << 16 << 16 ) ^ Word( rd() );
+   seed( buf , buf + size );
    return( true );
-#endif
+   }
+  catch( ... ) { }
   if( seedFromTime() )
    return( true );
   return( false );
@@ -658,12 +658,8 @@ class Random
  /// \param file The source file
  /// \param offset The offset, from the file read.
  /// \return \c true when the seeding successes.
-#ifndef LEMON_WIN32
  bool seedFromFile( const std::string & file = "/dev/urandom" ,
 		    int offset = 0 )
-#else
- bool seedFromFile( const std::string & file = "" , int offset = 0 )
-#endif
  {
   std::ifstream rs( file.c_str() );
   const int size = 4;
@@ -676,20 +672,15 @@ class Random
   return( true );
   }
 
- /// \brief Seeding from process id and time
+ /// \brief Seeding from the time
  ///
- /// Seeding from process id and time. This function uses the
- /// current process id and the current time for initialize the
- /// random sequence.
+ /// Seeding from the time. This function uses the current time of
+ /// \c std::chrono::system_clock and of \c std::chrono::steady_clock for
+ /// initialize the random sequence.
  /// \return Currently always \c true.
  bool seedFromTime() {
-#ifndef LEMON_WIN32
-  timeval tv;
-  gettimeofday( &tv , 0 );
-  seed( getpid() + tv.tv_sec + tv.tv_usec );
-#else
-  seed( bits::getWinRndSeed() );
-#endif
+  seed( Word( std::chrono::system_clock::now().time_since_epoch().count() ) ^
+	Word( std::chrono::steady_clock::now().time_since_epoch().count() ) );
   return( true );
   }
 

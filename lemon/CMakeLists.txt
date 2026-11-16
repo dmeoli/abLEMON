@@ -11,11 +11,7 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/config.h
 )
 
-IF(UNIX)
-  SET(LEMON_PC_LIB emon)
-ELSE()
-  SET(LEMON_PC_LIB lemon)
-ENDIF()
+SET(LEMON_PC_LIB emon)
 
 # the files and the names of the libraries that an imported target links,
 # with those of the targets it links in turn; generator expressions are
@@ -85,20 +81,18 @@ SET(LEMON_SOURCES
   lp_base.cc
   lp_skeleton.cc
   random.cc
-  bits/windows.cc
 )
 
 IF(LEMON_HAVE_GLPK)
   SET(LEMON_SOURCES ${LEMON_SOURCES} glpk.cc)
   INCLUDE_DIRECTORIES(${GLPK_INCLUDE_DIRS})
-  IF(WIN32)
-    INSTALL(FILES ${GLPK_BIN_DIR}/glpk.dll
-      DESTINATION ${CMAKE_INSTALL_BINDIR})
-    INSTALL(FILES ${GLPK_BIN_DIR}/libltdl3.dll
-      DESTINATION ${CMAKE_INSTALL_BINDIR})
-    INSTALL(FILES ${GLPK_BIN_DIR}/zlib1.dll
-      DESTINATION ${CMAKE_INSTALL_BINDIR})
-  ENDIF()
+  # the DLLs of GLPK, where its directory of programs has them
+  FOREACH(_lemon_dll glpk.dll libltdl3.dll zlib1.dll)
+    IF(EXISTS ${GLPK_BIN_DIR}/${_lemon_dll})
+      INSTALL(FILES ${GLPK_BIN_DIR}/${_lemon_dll}
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
+    ENDIF()
+  ENDFOREACH()
 ENDIF()
 
 IF(LEMON_HAVE_CPLEX)
@@ -124,11 +118,10 @@ ENDIF()
 ADD_LIBRARY(lemon ${LEMON_SOURCES})
 
 # a DLL exports its functions and its classes without a mark, and the data
-# marked LEMON_DATA, which its users import
+# marked LEMON_DATA, which its users import; the property means nothing to
+# the other libraries
 TARGET_COMPILE_DEFINITIONS(lemon PRIVATE LEMON_BUILDING_LIBRARY)
-IF(WIN32 AND BUILD_SHARED_LIBS)
-  SET_TARGET_PROPERTIES(lemon PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-ENDIF()
+SET_TARGET_PROPERTIES(lemon PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # the libraries of the LP and MIP solvers are linked by their paths on the
 # machine that builds LEMON, which the installed configuration does not
@@ -166,12 +159,10 @@ SET(LEMON_SOLVER_TARGETS "${LEMON_SOLVER_TARGETS}" PARENT_SCOPE)
 # interface, its first two numbers; the static one is position-independent
 # code unless the project says otherwise, so that it can be linked into a
 # shared library
-IF(UNIX)
-  SET_TARGET_PROPERTIES(lemon PROPERTIES OUTPUT_NAME emon)
-  IF(LEMON_NUMERIC_VERSION)
-    SET_TARGET_PROPERTIES(lemon PROPERTIES
-      VERSION ${LEMON_NUMERIC_VERSION} SOVERSION ${LEMON_SOVERSION})
-  ENDIF()
+SET_TARGET_PROPERTIES(lemon PROPERTIES OUTPUT_NAME emon)
+IF(LEMON_NUMERIC_VERSION)
+  SET_TARGET_PROPERTIES(lemon PROPERTIES
+    VERSION ${LEMON_NUMERIC_VERSION} SOVERSION ${LEMON_SOVERSION})
 ENDIF()
 IF(NOT DEFINED CMAKE_POSITION_INDEPENDENT_CODE)
   SET_TARGET_PROPERTIES(lemon PROPERTIES POSITION_INDEPENDENT_CODE ON)

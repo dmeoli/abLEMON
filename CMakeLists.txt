@@ -100,10 +100,6 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 FIND_PACKAGE(Doxygen)
 FIND_PACKAGE(Ghostscript)
 
-IF(WIN32)
-  SET(LEMON_WIN32 TRUE)
-ENDIF(WIN32)
-
 SET(LEMON_ENABLE_GLPK YES CACHE STRING "Enable GLPK solver backend.")
 SET(LEMON_ENABLE_ILOG YES CACHE STRING "Enable ILOG (CPLEX) solver backend.")
 SET(LEMON_ENABLE_COIN YES CACHE STRING "Enable COIN solver backend.")
@@ -177,73 +173,31 @@ ELSE()
     "Default MIP solver backend (GLPK, CPLEX or CBC)")
 ENDIF()
 
-IF(DEFINED ENV{LEMON_CXX_WARNING})
-  SET(CXX_WARNING $ENV{LEMON_CXX_WARNING})
-ELSE()
-  IF( ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-      OR ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-      )
-    SET(CXX_WARNING "-Wall -W -Wunused -Wformat=2 -Wctor-dtor-privacy -Wnon-virtual-dtor -Wno-char-subscripts -Wwrite-strings -Wno-char-subscripts -Wreturn-type -Wcast-qual -Wcast-align -Wsign-promo -Woverloaded-virtual -fno-strict-aliasing -Wold-style-cast -Wno-unknown-pragmas")
-    SET(CMAKE_CXX_FLAGS_DEBUG CACHE STRING "-ggdb")
-    SET(CMAKE_C_FLAGS_DEBUG CACHE STRING "-ggdb")
-  ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-    SET(CXX_WARNING "-Wall -W -Wunused -Wformat=2 -Wnon-virtual-dtor -Wno-char-subscripts -Wwrite-strings -Wno-char-subscripts -Wreturn-type -Wcast-qual -Wsign-promo -Woverloaded-virtual -fno-strict-aliasing -Wno-unknown-pragmas")
-    SET(CMAKE_CXX_FLAGS_DEBUG CACHE STRING "-ggdb")
-    SET(CMAKE_C_FLAGS_DEBUG CACHE STRING "-ggdb")
-  ELSEIF(MSVC)
-    # This part is unnecessary 'casue the same is set by the lemon/core.h.
-    # Still kept as an example.
-
-    # SET(CXX_WARNING "/wd4250 /wd4267 /wd4355 /wd4503 /wd4800 /wd4996")
-
-    # Suppressed warnings:
-    # C4250: 'class1' : inherits 'class2::member' via dominance
-    # C4267: conversion from 'size_t' to 'type', possible loss of data
-    # C4355: 'this' : used in base member initializer list
-    # C4503: 'function' : decorated name length exceeded, name was truncated
-    # C4800: 'type' : forcing value to bool 'true' or 'false'
-    #        (performance warning)
-    # C4996: 'function': was declared deprecated
-  ELSE()
-    SET(CXX_WARNING "-Wall")
-  ENDIF()
-ENDIF()
-SET(LEMON_CXX_WARNING_FLAGS ${CXX_WARNING} CACHE STRING "LEMON warning flags.")
+# The warning flags, which depend on the compiler, are not chosen here: they
+# are those of LEMON_CXX_WARNING_FLAGS, by default the environment variable
+# LEMON_CXX_WARNING, and the presets give those of GCC and Clang and those
+# of MSVC [see CMakePresets.json]
+SET(LEMON_CXX_WARNING_FLAGS "$ENV{LEMON_CXX_WARNING}" CACHE STRING
+  "LEMON warning flags.")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LEMON_CXX_WARNING_FLAGS}")
 
-IF(MSVC)
-  SET( CMAKE_CXX_FLAGS "/bigobj ${CMAKE_CXX_FLAGS}")
-  SET( CMAKE_CXX_FLAGS_MAINTAINER "/WX ${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING
-    "Flags used by the C++ compiler during maintainer builds." FORCE
-    )
-  SET( CMAKE_C_FLAGS_MAINTAINER "/WX ${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING
-    "Flags used by the C compiler during maintainer builds." FORCE
-    )
-  SET( CMAKE_EXE_LINKER_FLAGS_MAINTAINER
-    "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" CACHE STRING
-    "Flags used for linking binaries during maintainer builds." FORCE
-    )
-  SET( CMAKE_SHARED_LINKER_FLAGS_MAINTAINER
-    "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" CACHE STRING
-    "Flags used by the shared libraries linker during maintainer builds."
-     FORCE
-    )
-ELSE()
-  SET( CMAKE_CXX_FLAGS_MAINTAINER "-Werror -ggdb -O0" CACHE STRING
-    "Flags used by the C++ compiler during maintainer builds." FORCE
-    )
-  SET( CMAKE_C_FLAGS_MAINTAINER "-Werror -O0" CACHE STRING
-    "Flags used by the C compiler during maintainer builds." FORCE
-    )
-  SET( CMAKE_EXE_LINKER_FLAGS_MAINTAINER
-    "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" CACHE STRING
-    "Flags used for linking binaries during maintainer builds." FORCE
-    )
-  SET( CMAKE_SHARED_LINKER_FLAGS_MAINTAINER
-    "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" CACHE STRING
-    "Flags used by the shared libraries linker during maintainer builds." FORCE)
-ENDIF()
+# The build type Maintainer compiles as Debug; its presets also turn the
+# warnings into errors [see CMakePresets.json]
+SET( CMAKE_CXX_FLAGS_MAINTAINER "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING
+  "Flags used by the C++ compiler during maintainer builds." FORCE
+  )
+SET( CMAKE_C_FLAGS_MAINTAINER "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING
+  "Flags used by the C compiler during maintainer builds." FORCE
+  )
+SET( CMAKE_EXE_LINKER_FLAGS_MAINTAINER
+  "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" CACHE STRING
+  "Flags used for linking binaries during maintainer builds." FORCE
+  )
+SET( CMAKE_SHARED_LINKER_FLAGS_MAINTAINER
+  "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" CACHE STRING
+  "Flags used by the shared libraries linker during maintainer builds." FORCE
+  )
 
 MARK_AS_ADVANCED(
     CMAKE_CXX_FLAGS_MAINTAINER
@@ -278,28 +232,6 @@ INCLUDE(CheckTypeSize)
 CHECK_TYPE_SIZE("long long" LONG_LONG)
 SET(LEMON_HAVE_LONG_LONG ${HAVE_LONG_LONG})
 
-INCLUDE(FindThreads)
-
-IF(NOT LEMON_THREADING)
-  IF(CMAKE_USE_PTHREADS_INIT)
-    SET(LEMON_THREADING "Pthread")
-  ELSEIF(CMAKE_USE_WIN32_THREADS_INIT)
-    SET(LEMON_THREADING "Win32")
-  ELSE()
-    SET(LEMON_THREADING "None")
-  ENDIF()
-ENDIF()
-
-SET( LEMON_THREADING "${LEMON_THREADING}" CACHE STRING
-  "Choose the threading library, options are: Pthread Win32 None."
-  FORCE )
-
-IF(LEMON_THREADING STREQUAL "Pthread")
-  SET(LEMON_USE_PTHREAD TRUE)
-ELSEIF(LEMON_THREADING STREQUAL "Win32")
-  SET(LEMON_USE_WIN32_THREADS TRUE)
-ENDIF()
-
 ENABLE_TESTING()
 
 
@@ -323,27 +255,29 @@ OPTION(LEMON_BUILD_TOOLS "Build and install the tools." ON)
 OPTION(LEMON_BUILD_DOC "Build the documentation." ON)
 
 # the C++20 module lemon [see lemon/lemon.cppm], which needs CMake 3.28 or
-# later, the Ninja or a Visual Studio generator and Clang 16 (with
-# clang-scan-deps) or MSVC 19.34 or later: GCC, up to 15 at least, builds
-# it, but a unit that imports it does not find the operators of the
-# standard library that its templates use; asked for where these are
-# missing, it is turned off with a warning
+# later, a generator and a compiler that build modules, and a compiler whose
+# importers find the operators of the standard library that the templates of
+# the module use (GCC, up to 15 at least, builds the module, but a unit that
+# imports it does not find them): a small module and a unit that imports it
+# are built to tell [see cmake/module-check], and where they are not, the
+# option is turned off with a warning
 OPTION(LEMON_BUILD_MODULE "Build the C++20 module lemon." OFF)
 IF(LEMON_BUILD_MODULE)
-  SET(_lemon_id ${CMAKE_CXX_COMPILER_ID})
-  SET(_lemon_ver ${CMAKE_CXX_COMPILER_VERSION})
   IF(CMAKE_VERSION VERSION_LESS 3.28)
     SET(_lemon_why "CMake ${CMAKE_VERSION} is older than 3.28")
-  ELSEIF(NOT CMAKE_GENERATOR MATCHES "^(Ninja|Visual Studio)")
-    SET(_lemon_why "the generator ${CMAKE_GENERATOR} does not build modules")
-  ELSEIF(NOT ((_lemon_id STREQUAL "Clang"
-                AND _lemon_ver VERSION_GREATER_EQUAL 16)
-              OR (_lemon_id STREQUAL "MSVC"
-                  AND _lemon_ver VERSION_GREATER_EQUAL 19.34)))
-    SET(_lemon_why "the compiler is ${_lemon_id} ${_lemon_ver}, and Clang 16 \
-or MSVC 19.34 is needed")
-  ELSEIF(_lemon_id STREQUAL "Clang" AND NOT CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS)
-    SET(_lemon_why "clang-scan-deps is not there")
+  ELSE()
+    SET(_lemon_scan "${CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS}")
+    TRY_COMPILE(_lemon_module_ok PROJECT lemon_module_check
+      SOURCE_DIR ${PROJECT_SOURCE_DIR}/cmake/module-check
+      BINARY_DIR ${PROJECT_BINARY_DIR}/module-check
+      CMAKE_FLAGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS=${_lemon_scan}
+      OUTPUT_VARIABLE _lemon_module_out)
+    IF(NOT _lemon_module_ok)
+      SET(_lemon_why "the generator ${CMAKE_GENERATOR} and the compiler \
+${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} do not build a module \
+whose templates a unit that imports it can use [see cmake/module-check]")
+    ENDIF()
   ENDIF()
   IF(_lemon_why)
     MESSAGE(WARNING "LEMON_BUILD_MODULE is turned OFF: ${_lemon_why}")

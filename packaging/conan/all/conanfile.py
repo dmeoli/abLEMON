@@ -63,7 +63,6 @@ class AblemonConan(ConanFile):
         self.cpp_info.set_property("cmake_file_name", "LEMON")
         self.cpp_info.set_property("cmake_target_name", "LEMON::lemon")
         self.cpp_info.set_property("pkg_config_name", "lemon")
-        self.cpp_info.libs = ["lemon" if self.settings.os == "Windows"
-                              else "emon"]
+        self.cpp_info.libs = ["emon"]
         if self.settings.os in ("Linux", "FreeBSD"):
-            self.cpp_info.system_libs = ["pthread", "m"]
+            self.cpp_info.system_libs = ["m"]

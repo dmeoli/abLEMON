@@ -638,15 +638,16 @@ into numbers of a given type.
 
 A generator is seeded by its constructor or by `seed()`, from one number or
 from a range of numbers, each converted to the word of the generator. Without
-arguments, `seed()` reads four words from `/dev/urandom` by `seedFromFile()`
-(except on Windows) and, if that fails, calls `seedFromTime()`, which seeds
-from the process id and the time of day; both return `true` on success. A
-copy, by construction or by assignment, copies the state, and the copy then
-gives the same sequence from that point on. However, the constructor from a
-number is a template on the type of the number, which also matches a generator
-of the other word size: `Random64 r( r32 )` does not copy `r32` but fails to
-compile, since the state can only be copied between generators of the same
-type.
+arguments, `seed()` takes four words of `std::random_device` and, if that
+fails, calls `seedFromTime()`, which seeds from the times of
+`std::chrono::system_clock` and of `std::chrono::steady_clock`; both return
+`true` on success, and `seedFromFile()` seeds from four words of a file (e.g.,
+`/dev/urandom`). A copy, by construction or by assignment, copies the state,
+and the copy then gives the same sequence from that point on. However, the
+constructor from a number is a template on the type of the number, which also
+matches a generator of the other word size: `Random64 r( r32 )` does not copy
+`r32` but fails to compile, since the state can only be copied between
+generators of the same type.
 
 Uniform numbers are given by several members. The call `real< T >()` returns a
 number of type `T` (`double` by default) in $[0,1)$, and `operator()()`,
@@ -742,16 +743,17 @@ changing one type.
 
 Time is measured by `lemon/time_measure.h`. A `TimeStamp` holds five times,
 i.e., the real time, the user and system times of the process and those of its
-children, which `stamp()` reads from the operating system. Its constructor
-`TimeStamp( NULL )` makes a stamp of the present moment, and the default
-constructor one of zeros. Stamps can be added, subtracted and scaled,
-`ellapsed()` gives the time passed since the stamp, and `realTime()`,
-`userTime()`, `systemTime()`, `cUserTime()` and `cSystemTime()` read the five
-values (the last two are not computed on Windows). Its stream operator prints
+children; `stamp()` reads the first of `std::chrono::steady_clock` and the
+second of `std::clock()`, the processor time of the process (which also counts
+the time spent in the system on its behalf), while the other three are zero, as
+no standard facility gives them. Its constructor `TimeStamp( NULL )` makes a
+stamp of the present moment, and the default constructor one of zeros. Stamps
+can be added, subtracted and scaled, `ellapsed()` gives the time passed since
+the stamp, and `realTime()`, `userTime()`, `systemTime()`, `cUserTime()` and
+`cSystemTime()` read the five values. Its stream operator prints
 `u: ...s , s: ...s , cu: ...s , cs: ...s , real: ...s`; after
 `TimeStamp::format( TimeStamp::SHORT )`, a setting global to all stamps, it
-prints the real time and its relative difference from the total processor
-time.
+prints the real time and its relative difference from the total processor time.
 
 A `Timer` starts at its construction (unless it is constructed with `false`),
 and is controlled by `start()`, `stop()`, `halt()`, `reset()` and `restart()`.

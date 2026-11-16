@@ -77,6 +77,27 @@ IF(LEMON_BUILD_MODULE)
   ADD_DEPENDENCIES(check module_test)
 ENDIF()
 
+# the DLLs of GLPK and of CPLEX, where the solvers have them, copied next to
+# a test that links them
+FUNCTION(LEMON_COPY_SOLVER_DLLS _lemon_test)
+  SET(_lemon_dlls "")
+  IF(LEMON_HAVE_GLPK)
+    FOREACH(_lemon_dll glpk.dll libltdl3.dll zlib1.dll)
+      IF(EXISTS ${GLPK_BIN_DIR}/${_lemon_dll})
+        LIST(APPEND _lemon_dlls ${GLPK_BIN_DIR}/${_lemon_dll})
+      ENDIF()
+    ENDFOREACH()
+  ENDIF()
+  IF(LEMON_HAVE_CPLEX AND ILOG_CPLEX_DLL)
+    LIST(APPEND _lemon_dlls ${ILOG_CPLEX_DLL})
+  ENDIF()
+  IF(_lemon_dlls)
+    ADD_CUSTOM_COMMAND(TARGET ${_lemon_test} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${_lemon_dlls}
+        $<TARGET_FILE_DIR:${_lemon_test}>)
+  ENDIF()
+ENDFUNCTION()
+
 IF(LEMON_HAVE_LP)
   IF(${CMAKE_BUILD_TYPE} STREQUAL "Maintainer")
     ADD_EXECUTABLE(lp_test lp_test.cc)
@@ -103,21 +124,7 @@ IF(LEMON_HAVE_LP)
   ADD_TEST(NAME lp_test COMMAND lp_test)
   ADD_DEPENDENCIES(check lp_test)
 
-  IF(WIN32 AND LEMON_HAVE_GLPK)
-    ADD_CUSTOM_COMMAND(TARGET lp_test POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${GLPK_BIN_DIR}/glpk.dll $<TARGET_FILE_DIR:lp_test>
-      COMMAND ${CMAKE_COMMAND} -E copy ${GLPK_BIN_DIR}/libltdl3.dll $<TARGET_FILE_DIR:lp_test>
-      COMMAND ${CMAKE_COMMAND} -E copy ${GLPK_BIN_DIR}/zlib1.dll $<TARGET_FILE_DIR:lp_test>
-    )
-  ENDIF()
-
-  IF(WIN32 AND LEMON_HAVE_CPLEX)
-    GET_TARGET_PROPERTY(TARGET_LOC lp_test LOCATION)
-    GET_FILENAME_COMPONENT(TARGET_PATH ${TARGET_LOC} PATH)
-    ADD_CUSTOM_COMMAND(TARGET lp_test POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${ILOG_CPLEX_DLL} ${TARGET_PATH}
-    )
-  ENDIF()
+  LEMON_COPY_SOLVER_DLLS(lp_test)
 ENDIF()
 
 IF(LEMON_HAVE_MIP)
@@ -143,23 +150,7 @@ IF(LEMON_HAVE_MIP)
   ADD_TEST(NAME mip_test COMMAND mip_test)
   ADD_DEPENDENCIES(check mip_test)
 
-  IF(WIN32 AND LEMON_HAVE_GLPK)
-    GET_TARGET_PROPERTY(TARGET_LOC mip_test LOCATION)
-    GET_FILENAME_COMPONENT(TARGET_PATH ${TARGET_LOC} PATH)
-    ADD_CUSTOM_COMMAND(TARGET mip_test POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${GLPK_BIN_DIR}/glpk.dll ${TARGET_PATH}
-      COMMAND ${CMAKE_COMMAND} -E copy ${GLPK_BIN_DIR}/libltdl3.dll ${TARGET_PATH}
-      COMMAND ${CMAKE_COMMAND} -E copy ${GLPK_BIN_DIR}/zlib1.dll ${TARGET_PATH}
-    )
-  ENDIF()
-
-  IF(WIN32 AND LEMON_HAVE_CPLEX)
-    GET_TARGET_PROPERTY(TARGET_LOC mip_test LOCATION)
-    GET_FILENAME_COMPONENT(TARGET_PATH ${TARGET_LOC} PATH)
-    ADD_CUSTOM_COMMAND(TARGET mip_test POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${ILOG_CPLEX_DLL} ${TARGET_PATH}
-    )
-  ENDIF()
+  LEMON_COPY_SOLVER_DLLS(mip_test)
 ENDIF()
 
 FOREACH(TEST_NAME ${TESTS})
@@ -178,6 +169,10 @@ FOREACH(TEST_NAME ${TESTS})
     ENDIF()
   ADD_DEPENDENCIES(check ${TEST_NAME})
 ENDFOREACH()
+
+# the elevators with the checks of the standard library on their vectors,
+# where the library has them (a macro that no other library reads)
+TARGET_COMPILE_DEFINITIONS(elevator_test PRIVATE _GLIBCXX_ASSERTIONS)
 
 # the battery of the minimum cost flow algorithms, once for each value type
 ADD_EXECUTABLE(min_cost_flow_battery_test min_cost_flow_battery_test.cc)
@@ -220,10 +215,11 @@ IF(LEMON_BUILD_TOOLS)
   ADD_DEPENDENCIES(check lgf-gen)
 ENDIF()
 
-# with LEMON as a DLL, the tests find it in the directory where it is built;
-# the generator expression is expanded in the property of a test created by
-# ADD_TEST(NAME ...) only, which all of them are
-IF(WIN32 AND BUILD_SHARED_LIBS)
+# with LEMON as a DLL, the tests find it in the directory where it is built,
+# which the PATH of any other system does not need; the generator expression
+# is expanded in the property of a test created by ADD_TEST(NAME ...) only,
+# which all of them are
+IF(BUILD_SHARED_LIBS)
   GET_DIRECTORY_PROPERTY(_lemon_tests TESTS)
   SET_TESTS_PROPERTIES(${_lemon_tests} PROPERTIES ENVIRONMENT_MODIFICATION
     "PATH=path_list_prepend:$<TARGET_FILE_DIR:lemon>")

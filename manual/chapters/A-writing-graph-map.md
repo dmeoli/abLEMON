@@ -256,19 +256,16 @@ the call.
     the four arc and edge sets.
 
 *Thread safety and limits.* Attaching and detaching go through a lock, the
-class `bits::Lock` of `lemon/bits/lock.h`. It is a mutex of POSIX threads or
-of Windows when the library is configured with `LEMON_THREADING` set to
-`Pthread` or `Win32` (cf. [chapter 2](02-installation.md#ch-2)), which defines
-`LEMON_USE_PTHREAD` or `LEMON_USE_WIN32_THREADS` in `lemon/config.h`, and an
-empty class otherwise; thus, maps may be created and destroyed on one graph
-from several threads, while the notifications are not locked. The header also
-remarks that the notifications are not always complete. A reversal of an arc
-by `reverseArc()` is not notified (the observers see neither an erasure nor an
-addition), nor are the other changes of the ends of an arc or the splitting of
-a node of [chapter 4](04-graphs.md#ch-4); therefore, the degree maps
-`InDegMap` and `OutDegMap` of [chapter 6](06-maps.md#ch-6), which observe the
-arcs, may become wrong after them. Also, a filter adaptor of [chapter
-5](05-adaptors.md#ch-5) cannot notify the change of its filter map at all.
+class `bits::Lock` of `lemon/bits/lock.h`. It is a `std::mutex`; thus, maps may
+be created and destroyed on one graph from several threads, while the
+notifications are not locked. The header also remarks that the notifications
+are not always complete. A reversal of an arc by `reverseArc()` is not notified
+(the observers see neither an erasure nor an addition), nor are the other
+changes of the ends of an arc or the splitting of a node of [chapter
+4](04-graphs.md#ch-4); therefore, the degree maps `InDegMap` and `OutDegMap` of
+[chapter 6](06-maps.md#ch-6), which observe the arcs, may become wrong after
+them. Also, a filter adaptor of [chapter 5](05-adaptors.md#ch-5) cannot notify
+the change of its filter map at all.
 
 The program of this appendix includes `NodeCounter`, an observer of the nodes
 of a `ListDigraph` that keeps their number by `build()`, `add()` and

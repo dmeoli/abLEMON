@@ -10,24 +10,16 @@ FIND_PATH(ILOG_ROOT_DIR
   NO_DEFAULT_PATH
 )
 
-IF(WIN32)
-  IF(MSVC_VERSION STREQUAL "1400")
-    SET(ILOG_WIN_COMPILER "windows_vs2005")
-  ELSEIF(MSVC_VERSION STREQUAL "1500")
-    SET(ILOG_WIN_COMPILER "windows_vs2008")
-  ELSEIF(MSVC_VERSION STREQUAL "1600")
-    SET(ILOG_WIN_COMPILER "windows_vs2010")
-  ELSE()
-    SET(ILOG_WIN_COMPILER "windows_vs2008")
-  ENDIF()
-  IF(CMAKE_CL_64)
-    SET(ILOG_WIN_COMPILER "x64_${ILOG_WIN_COMPILER}")
-    SET(ILOG_WIN_PLATFORM "x64_win32")
-  ELSE()
-    SET(ILOG_WIN_COMPILER "x86_${ILOG_WIN_COMPILER}")
-    SET(ILOG_WIN_PLATFORM "x86_win32")
-  ENDIF()
-ENDIF()
+# the directories of the libraries and of the DLLs of every platform that
+# CPLEX Studio ships, each looked for in turn
+SET(ILOG_LIB_SUFFIXES
+  x86_sles10_4.1/static_pic x86-64_sles10_4.1/static_pic
+  x86_debian4.0_4.1/static_pic x86-64_debian4.0_4.1/static_pic
+  x86_linux/static_pic x86-64_linux/static_pic
+  x64_windows_vs2010/stat_mda x64_windows_vs2008/stat_mda
+  x64_windows_vs2005/stat_mda x86_windows_vs2010/stat_mda
+  x86_windows_vs2008/stat_mda x86_windows_vs2005/stat_mda)
+SET(ILOG_BIN_SUFFIXES x64_win32 x86_win32)
 
 FIND_PATH(ILOG_CPLEX_ROOT_DIR
   NAMES include/ilcplex
@@ -58,31 +50,22 @@ FIND_PATH(ILOG_CONCERT_INCLUDE_DIR
 
 FIND_LIBRARY(ILOG_CPLEX_LIBRARY
   cplex cplex121 cplex122 cplex123 cplex124
-  HINTS ${ILOG_CPLEX_ROOT_DIR}/lib/x86_sles10_4.1/static_pic
-  ${ILOG_CPLEX_ROOT_DIR}/lib/x86-64_sles10_4.1/static_pic
-  ${ILOG_CPLEX_ROOT_DIR}/lib/x86_debian4.0_4.1/static_pic
-  ${ILOG_CPLEX_ROOT_DIR}/lib/x86-64_debian4.0_4.1/static_pic
-  ${ILOG_CPLEX_ROOT_DIR}/lib/x86_linux/static_pic
-  ${ILOG_CPLEX_ROOT_DIR}/lib/x86-64_linux/static_pic
-  ${ILOG_CPLEX_ROOT_DIR}/lib/${ILOG_WIN_COMPILER}/stat_mda
+  HINTS ${ILOG_CPLEX_ROOT_DIR}/lib
+  PATH_SUFFIXES ${ILOG_LIB_SUFFIXES}
   NO_DEFAULT_PATH
   )
 
 FIND_LIBRARY(ILOG_CONCERT_LIBRARY
   concert
-  HINTS ${ILOG_CONCERT_ROOT_DIR}/lib/x86_sles10_4.1/static_pic
-  ${ILOG_CONCERT_ROOT_DIR}/lib/x86-64_sles10_4.1/static_pic
-  ${ILOG_CONCERT_ROOT_DIR}/lib/x86_debian4.0_4.1/static_pic
-  ${ILOG_CONCERT_ROOT_DIR}/lib/x86-64_debian4.0_4.1/static_pic
-  ${ILOG_CONCERT_ROOT_DIR}/lib/x86_linux/static_pic
-  ${ILOG_CONCERT_ROOT_DIR}/lib/x86-64_linux/static_pic
-  ${ILOG_CONCERT_ROOT_DIR}/lib/${ILOG_WIN_COMPILER}/stat_mda
+  HINTS ${ILOG_CONCERT_ROOT_DIR}/lib
+  PATH_SUFFIXES ${ILOG_LIB_SUFFIXES}
   NO_DEFAULT_PATH
   )
 
 FIND_FILE(ILOG_CPLEX_DLL
   cplex121.dll cplex122.dll cplex123.dll cplex124.dll
-  HINTS ${ILOG_CPLEX_ROOT_DIR}/bin/${ILOG_WIN_PLATFORM}
+  HINTS ${ILOG_CPLEX_ROOT_DIR}/bin
+  PATH_SUFFIXES ${ILOG_BIN_SUFFIXES}
   NO_DEFAULT_PATH
   )
 
@@ -94,13 +77,18 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(ILOG
 IF(ILOG_FOUND)
   SET(ILOG_INCLUDE_DIRS ${ILOG_CPLEX_INCLUDE_DIR} ${ILOG_CONCERT_INCLUDE_DIR})
   SET(ILOG_LIBRARIES ${ILOG_CPLEX_LIBRARY} ${ILOG_CONCERT_LIBRARY})
-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # SET(CPLEX_LIBRARIES "${CPLEX_LIBRARIES};m;pthread")
-    SET(ILOG_LIBRARIES ${ILOG_LIBRARIES} "m" "pthread" "dl")
-  ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # the libraries of the system that the static CPLEX calls, where the
+  # system has them apart: the mathematical one, the threads and dl
+  FIND_LIBRARY(ILOG_M_LIBRARY m)
+  IF(ILOG_M_LIBRARY)
+    LIST(APPEND ILOG_LIBRARIES ${ILOG_M_LIBRARY})
+  ENDIF()
+  FIND_PACKAGE(Threads)
+  LIST(APPEND ILOG_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+  LIST(APPEND ILOG_LIBRARIES ${CMAKE_DL_LIBS})
 ENDIF(ILOG_FOUND)
 
 MARK_AS_ADVANCED(
-  ILOG_CPLEX_LIBRARY ILOG_CPLEX_INCLUDE_DIR ILOG_CPLEX_DLL
+  ILOG_M_LIBRARY ILOG_CPLEX_LIBRARY ILOG_CPLEX_INCLUDE_DIR ILOG_CPLEX_DLL
   ILOG_CONCERT_LIBRARY ILOG_CONCERT_INCLUDE_DIR ILOG_CONCERT_DLL
   )

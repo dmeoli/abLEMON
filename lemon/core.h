@@ -26,27 +26,14 @@
 ///It is automatically included by all graph types, therefore it usually
 ///do not have to be included directly.
 
-// The warning of MSVC that the headers of LEMON give, turned off:
-// C4250: 'class1' : inherits 'class2::member' via dominance, which the
-// graph adaptors and the edge sets do by design (the others that LEMON
-// turned off, among them C4996 on what is declared deprecated and C4267 on
-// a size_t narrowed, it does not give, and they are left to the user)
-
 #include <lemon/config.h>
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4250 )
-#endif
 
 // The types that the [DI]GRAPH_TYPEDEFS macros define in the scope of the
 // user, who may not use them all: marked as possibly unused, so that GCC and
 // Clang do not warn of them, rather than turning the warning off for the
-// whole of the compilation of the user
-#if defined( __GNUC__ )
-#define LEMON_UNUSED_TYPEDEF __attribute__( ( __unused__ ) )
-#else
-#define LEMON_UNUSED_TYPEDEF
-#endif
+// whole of the compilation of the user; a compiler that does not know the
+// attribute ignores it, as the standard prescribes
+#define LEMON_UNUSED_TYPEDEF [[gnu::unused]]
 
 #include <vector>
 #include <utility>
