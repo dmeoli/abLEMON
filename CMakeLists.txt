@@ -288,6 +288,19 @@ whose templates a unit that imports it can use [see cmake/module-check]")
   ENDIF()
 ENDIF()
 
+# with LEMON as a DLL, the tests and the programs of the manual find it in
+# the directory where it is built, which the PATH of any other system does
+# not need: each directory of tests calls this at its end; the generator
+# expression is expanded in the property of a test created by ADD_TEST(NAME
+# ...) only, which all of them are
+FUNCTION(LEMON_TESTS_FIND_LIBRARY)
+  IF(BUILD_SHARED_LIBS)
+    GET_DIRECTORY_PROPERTY(_lemon_tests TESTS)
+    SET_TESTS_PROPERTIES(${_lemon_tests} PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:$<TARGET_FILE_DIR:lemon>")
+  ENDIF()
+ENDFUNCTION()
+
 ADD_SUBDIRECTORY(lemon)
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   IF(LEMON_BUILD_DEMOS)
@@ -304,6 +317,7 @@ IF(${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
     ADD_SUBDIRECTORY(test)
     ADD_SUBDIRECTORY(manual/examples)
   ENDIF()
+
 ENDIF()
 
 # the CMake configuration, as lemon-config.cmake, which find_package() finds

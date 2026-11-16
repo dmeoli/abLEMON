@@ -215,13 +215,4 @@ IF(LEMON_BUILD_TOOLS)
   ADD_DEPENDENCIES(check lgf-gen)
 ENDIF()
 
-# with LEMON as a DLL, the tests find it in the directory where it is built,
-# which the PATH of any other system does not need; the generator expression
-# is expanded in the property of a test created by ADD_TEST(NAME ...) only,
-# which all of them are
-IF(BUILD_SHARED_LIBS)
-  GET_DIRECTORY_PROPERTY(_lemon_tests TESTS)
-  SET_TESTS_PROPERTIES(${_lemon_tests} PROPERTIES ENVIRONMENT_MODIFICATION
-    "PATH=path_list_prepend:$<TARGET_FILE_DIR:lemon>")
-ENDIF()
-
+LEMON_TESTS_FIND_LIBRARY()
