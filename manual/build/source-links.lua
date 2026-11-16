@@ -33,7 +33,8 @@ local function code(el)
     return nil
   end
   local path = el.text:gsub('/$', '')
-  return pandoc.Link({ el }, REPO .. '/' .. k .. '/master/' .. path)
+  -- false: the code span within the new link is not visited again
+  return pandoc.Link({ el }, REPO .. '/' .. k .. '/master/' .. path), false
 end
 
 -- top-down, so that a code span already within a link stays as it is
