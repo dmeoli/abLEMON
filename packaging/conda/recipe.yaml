@@ -28,6 +28,7 @@ tests:
         - lemon/list_graph.h
         - lemon/network_simplex.h
         - lemon/config.h
+        - lemon/export.h
   - files:
       source:
         - test/install/

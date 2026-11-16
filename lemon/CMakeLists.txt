@@ -3,9 +3,11 @@ INCLUDE_DIRECTORIES(
   ${PROJECT_BINARY_DIR}
 )
 
-# config.h says whether the library is shared, for the data that a DLL
+# config.h says whether the library is static, for the data that a DLL
 # exports and its users import [see LEMON_DATA in config.h.in]
-SET(LEMON_SHARED_LIBRARY ${BUILD_SHARED_LIBS})
+IF(NOT BUILD_SHARED_LIBS)
+  SET(LEMON_STATIC_DEFINE TRUE)
+ENDIF()
 CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/config.h
@@ -119,9 +121,15 @@ ADD_LIBRARY(lemon ${LEMON_SOURCES})
 
 # a DLL exports its functions and its classes without a mark, and the data
 # marked LEMON_DATA, which its users import; the property means nothing to
-# the other libraries
-TARGET_COMPILE_DEFINITIONS(lemon PRIVATE LEMON_BUILDING_LIBRARY)
+# the other libraries, and lemon/export.h, which defines LEMON_DATA, is
+# written by CMake for each of them
 SET_TARGET_PROPERTIES(lemon PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+INCLUDE(GenerateExportHeader)
+GENERATE_EXPORT_HEADER(lemon
+  BASE_NAME LEMON
+  EXPORT_MACRO_NAME LEMON_DATA
+  STATIC_DEFINE LEMON_STATIC_DEFINE
+  EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/export.h)
 
 # the libraries of the LP and MIP solvers are linked by their paths on the
 # machine that builds LEMON, which the installed configuration does not
@@ -222,6 +230,7 @@ INSTALL(
 
 INSTALL(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h
+    ${CMAKE_CURRENT_BINARY_DIR}/export.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lemon
   COMPONENT headers
 )

@@ -32,7 +32,8 @@ LEMONOBJ = $(LEMONSDR)/obj/arg_parser.o $(LEMONSDR)/obj/base.o \
 LEMONINC = -I$(LEMONSDR) -I$(LEMONSDR)/obj
 
 LEMONH = $(wildcard $(LEMONSDR)/lemon/*.h $(LEMONSDR)/lemon/bits/*.h \
-	$(LEMONSDR)/lemon/concepts/*.h) $(LEMONSDR)/obj/lemon/config.h
+	$(LEMONSDR)/lemon/concepts/*.h) $(LEMONSDR)/obj/lemon/config.h \
+	$(LEMONSDR)/obj/lemon/export.h
 
 # internal macros - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -52,7 +53,16 @@ $(LEMONSDR)/obj/lemon/config.h: $(LEMONSDR)/lemon/config.h.in
 	mkdir -p $(dir $@)
 	sed -e 's/@PROJECT_VERSION@/$(LEMON_VERSION)/' \
 	  -e 's/^#cmakedefine \(LEMON_HAVE_LONG_LONG\) 1/#define \1 1/' \
+	  -e 's/^#cmakedefine \(LEMON_STATIC_DEFINE\) 1/#define \1 1/' \
 	  -e 's/^#cmakedefine \([A-Za-z0-9_]*\).*/\/* #undef \1 *\//' $< > $@
+
+# lemon/export.h, which CMake writes for each library and which for the
+# static one defines LEMON_DATA empty - - - - - - - - - - - - - - - - - - - -
+
+$(LEMONSDR)/obj/lemon/export.h:
+	mkdir -p $(dir $@)
+	printf '#ifndef LEMON_EXPORT_H\n#define LEMON_EXPORT_H\n' > $@
+	printf '#define LEMON_DATA\n#endif\n' >> $@
 
 # dependencies: every .o from its .cc + every recursively included .h - - - -
 

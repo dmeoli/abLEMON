@@ -98,9 +98,11 @@ flows of [chapter 12](12-max-flow.md#ch-12). Table 1.1 gives the chapter where
 each header of `lemon/` is described (the internal headers of `lemon/bits/`
 only where a user meets them). In it, `core.h` holds the items of the graphs,
 the basic utilities and the common definitions, and is included by all the
-other headers; `config.h`, instead, is written by CMake when the library is
-configured (cf. [§2.4](02-installation.md#sec-2-4)), and `lemon.cppm` is the
-interface of the C++20 module (cf. [§2.3](02-installation.md#sec-2-3)).
+other headers; `config.h` and `export.h`, instead, are written by CMake when
+the library is configured (cf. [§2.4](02-installation.md#sec-2-4)), the
+latter by its module `GenerateExportHeader`, with the macro `LEMON_DATA` that
+marks the data a DLL exports, and `lemon.cppm` is the interface of the C++20
+module (cf. [§2.3](02-installation.md#sec-2-3)).
 
 <span id="tab-1-1"></span>**Table 1.1.** The headers of `lemon/` by chapter.
 
