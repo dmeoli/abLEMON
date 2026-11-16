@@ -200,7 +200,7 @@ IF(LEMON_BUILD_TOOLS)
     ADD_TEST(NAME ${NAME}
       COMMAND dimacs-to-lgf ${CMAKE_CURRENT_BINARY_DIR}/${INPUT})
     SET_TESTS_PROPERTIES(${NAME} PROPERTIES
-      PASS_REGULAR_EXPRESSION "dimacs-to-lgf: ")
+      PASS_REGULAR_EXPRESSION "dimacs-to-lgf[^:]*: ")
   ENDFOREACH()
   ADD_DEPENDENCIES(check dimacs-to-lgf)
   ADD_TEST(NAME lgf_gen_tsp2_one

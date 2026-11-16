@@ -432,6 +432,7 @@ export namespace lemon {
  using ::lemon::_NoSubCounter;
  using ::lemon::_SubCounter;
  using ::lemon::_addArcEdge;
+ using ::lemon::_dimacsNode;
  using ::lemon::_readDimacs;
  using ::lemon::absMap;
  using ::lemon::acyclic;

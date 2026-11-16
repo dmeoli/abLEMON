@@ -121,8 +121,9 @@ class LpBase
   /// Default constructor
 
   /// \warning The default constructor sets the Col to an
-  /// undefined value.
-  Col() { }
+  /// undefined value (to the first one when it is value-initialized, e.g., by
+  /// \c Col()).
+  Col() = default;
   /// Invalid constructor \& conversion.
 
   /// This constructor initializes the Col to be invalid.
@@ -236,8 +237,9 @@ class LpBase
   /// Default constructor
 
   /// \warning The default constructor sets the Row to an
-  /// undefined value.
-  Row() { }
+  /// undefined value (to the first one when it is value-initialized, e.g., by
+  /// \c Row()).
+  Row() = default;
   /// Invalid constructor \& conversion.
 
   /// This constructor initializes the Row to be invalid.

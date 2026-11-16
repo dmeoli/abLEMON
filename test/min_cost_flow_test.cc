@@ -233,8 +233,10 @@ bool checkDualCost( const GR & gr , const LM & lower , const UM & upper ,
  for( ArcIt a( gr ) ; a != INVALID ; ++a ) {
   typename CM::Value red_cost =
     cost[ a ] + pi[ gr.source( a ) ] - pi[ gr.target( a ) ];
-  dual_cost -= ( upper[ a ] - lower[ a ] ) *
-	       std::max( -red_cost , typename CM::Value( 0 ) );
+  // only where the reduced cost is negative, which an arc whose width
+  // overflows (an infinite bound) never has at the optimum
+  if( red_cost < 0 )
+   dual_cost += ( upper[ a ] - lower[ a ] ) * red_cost;
   }
 
  return( dual_cost == total );
