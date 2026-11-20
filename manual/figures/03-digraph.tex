@@ -1,0 +1,24 @@
+% The digraph of the first program (sec. 3.1): four nodes, five arcs, the
+% cost of each arc on its plate, and the shortest path from s to t that
+% Dijkstra finds (s, a, b, t, of length 5). Build: make figures (in
+% ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex-touched] (s) at (0,0) {s};
+  \node[vertex] (a) at (22mm,12mm) {a};
+  \node[vertex] (b) at (22mm,-12mm) {b};
+  \node[vertex-added] (t) at (44mm,0) {t};
+  \draw[arc-touched] (s) -- node[label] {2} (a);
+  \draw[arc] (s) -- node[label] {5} (b);
+  \draw[arc-touched] (a) -- node[label] {1} (b);
+  \draw[arc] (a) -- node[label] {4} (t);
+  \draw[arc-touched] (b) -- node[label] {2} (t);
+\end{tikzpicture}
+\end{document}

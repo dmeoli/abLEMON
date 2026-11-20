@@ -111,7 +111,7 @@ struct HartmannOrlinMmcDefaultTraits< GR , CM , true >
 /// map type is \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref HartmannOrlinMmcDefaultTraits
-/// "HartmannOrlinMmcDefaultTraits<GR, CM>".
+/// "HartmannOrlinMmcDefaultTraits< GR , CM >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -422,11 +422,11 @@ class HartmannOrlinMmc
  ///
  /// This function returns the mean cost of the found cycle.
  ///
- /// \note <tt>alg.cycleMean()</tt> is just a shortcut of the
- /// following code.
- /// \code
- /// return( static_cast< double >( alg.cycleCost() ) / alg.cycleSize() );
- /// \endcode
+ /// \note <tt>alg.cycleMean()</tt> divides the cost of the cycle, kept as
+ /// a \c LargeCost, by cycleSize(); hence it is the same as
+ /// <tt>static_cast< double >( alg.cycleCost() ) / alg.cycleSize()</tt>
+ /// only when that cost fits in \c Cost, to which cycleCost() converts
+ /// it.
  ///
  /// \pre \ref run() or \ref findCycleMean() must be called before
  /// using this function.
@@ -624,13 +624,26 @@ class HartmannOrlinMmc
      }
     }
 
-   // Check the optimality condition for all arcs
+   // A node not reached yet has no potential, and an arc of the
+   // component enters it from a node that has one and violates the
+   // condition
+   for( int i = 0 ; i < n ; ++i ) {
+    if( pi[ ( *_nodes )[ i ] ] == INF )
+     return( false );
+    }
+
+   // Check the optimality condition for the arcs of the component, the
+   // only ones whose ends have potentials
    bool done = true;
-   for( ArcIt a( _gr ) ; a != INVALID ; ++a ) {
-    if( _tolerance.less( _cost[ a ] * _curr_size - _curr_cost ,
-			 pi[ _gr.target( a ) ] - pi[ _gr.source( a ) ] ) ) {
-     done = false;
-     break;
+   for( int i = 0 ; i < n && done ; ++i ) {
+    const std::vector< Arc > & out = _out_arcs[ ( *_nodes )[ i ] ];
+    for( std::size_t j = 0 ; j < out.size() ; ++j ) {
+     const Arc a = out[ j ];
+     if( _tolerance.less( _cost[ a ] * _curr_size - _curr_cost ,
+			  pi[ _gr.target( a ) ] - pi[ _gr.source( a ) ] ) ) {
+      done = false;
+      break;
+      }
      }
     }
    return( done );

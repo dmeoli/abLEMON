@@ -43,7 +43,8 @@ namespace lemon
 /// better to use other heap structure, e.g. \ref BinHeap "binary heap".
 ///
 /// \tparam PR Type of the priorities of the items.
-/// \tparam IM A read-writable item map with \c int values, used
+/// \tparam IM A reference item map with \c int values (one whose
+/// \c operator[] gives a reference, which the heap writes through), used
 /// internally to handle the cross references.
 /// \tparam CMP A functor class for comparing the priorities.
 /// The default is \c std::less< PR >.

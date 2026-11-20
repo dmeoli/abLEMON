@@ -36,9 +36,15 @@ namespace lemon
 
 ///%VF2 Plus Plus algorithm class \cite VF2PP.
 
-///\ingroup graph_isomorphism This class provides an efficient
+///\ingroup graph_isomorphism
+///This class provides an efficient
 ///implementation of the %VF2 Plus Plus algorithm \cite VF2PP
 ///for variants of the (Sub)graph Isomorphism problem.
+///
+///Both graphs must be simple, i.e., without loops and parallel edges:
+///the algorithm takes the neighbours of a node from its incident edges,
+///and on a graph with parallel edges it may report a mapping more than
+///once.
 ///
 ///There is also a \ref vf2pp() "function-type interface" called
 ///\ref vf2pp() for the %VF2 Plus Plus algorithm, which is probably
@@ -49,13 +55,13 @@ namespace lemon
 ///\tparam G2 The type of the graph g1 will be embedded into.
 ///The default type is \ref ListGraph.
 ///\tparam M The type of the NodeMap storing the mapping.
-///By default, it is G1::NodeMap<typename G2::Node>
+///By default, it is G1::NodeMap< typename G2::Node >
 ///\tparam M1 The type of the NodeMap storing the integer node labels of G1.
 ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
-///different labels. By default, it is G1::NodeMap<int>.
+///different labels. By default, it is G1::NodeMap< int >.
 ///\tparam M2 The type of the NodeMap storing the integer node labels of G2.
 ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
-///different labels. By default, it is G2::NodeMap<int>.
+///different labels. By default, it is G2::NodeMap< int >.
 ///
 ///\sa vf2pp()
 #ifdef DOXYGEN
@@ -502,12 +508,12 @@ class Vf2pp
  ///Constructor.
  ///\param g1 The graph to be embedded.
  ///\param g2 The graph \e g1 will be embedded into.
- ///\param m The type of the NodeMap storing the mapping.
- ///By default, it is G1::NodeMap<typename G2::Node>
- ///\param intLabel1 The NodeMap storing the integer node labels of G1.
+ ///\param m The NodeMap storing the mapping, by default of the type
+ ///G1::NodeMap< typename G2::Node >.
+ ///\param intLabels1 The NodeMap storing the integer node labels of G1.
  ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
  ///different labels.
- ///\param intLabel1 The NodeMap storing the integer node labels of G2.
+ ///\param intLabels2 The NodeMap storing the integer node labels of G2.
  ///The labels must be the numbers {0,1,2,..,K-1}, where K is the number of
  ///different labels.
  Vf2pp( const G1 & g1 , const G2 & g2 , M & m , M1 & intLabels1 ,
@@ -572,6 +578,9 @@ class Vf2pp
    case INDUCED:
     return( extMatch< INDUCED >() );
    case ISOMORPH:
+    // an isomorphism needs as many nodes in the two graphs
+    if( _depth == 0 && countNodes( _g1 ) != countNodes( _g2 ) )
+     return( false );
     return( extMatch< ISOMORPH >() );
    default:
     return( false );
@@ -834,7 +843,7 @@ class Vf2ppWizard : public TR
 ///declared as the members of class \ref Vf2ppWizard.
 ///The following examples show how to use these parameters.
 ///\code
-/// ListGraph::NodeMap< ListGraph::Node > m( g );
+/// ListGraph::NodeMap< ListGraph::Node > m( g1 );
 /// // Find an embedding of graph g1 into graph g2
 /// vf2pp( g1 , g2 ).mapping( m ).run();
 ///
@@ -850,11 +859,11 @@ class Vf2ppWizard : public TR
 ///                    .mapping( m )
 ///                    .nodeLabels( c1 , c2 )
 ///                    .induced()
-///                    .getPtrToVf2Object();
+///                    .getPtrToVf2ppObject();
 /// while( myVf2pp->find() ) {
 ///  //process the current mapping m
 ///  }
-/// delete myVf22pp;
+/// delete myVf2pp;
 ///\endcode
 ///\warning Don't forget to put the \ref Vf2ppWizard::run() "run()",
 ///\ref Vf2ppWizard::count() "count()" or

@@ -83,7 +83,8 @@ class Path
  /// \brief Copy assignment
  ///
  Path & operator=( const Path & cpath ) {
-  pathCopy( cpath , *this );
+  if( &cpath != this )
+   pathCopy( cpath , *this );
   return( *this );
   }
 
@@ -303,7 +304,8 @@ class SimplePath
  /// \brief Copy assignment
  ///
  SimplePath & operator=( const SimplePath & cpath ) {
-  pathCopy( cpath , *this );
+  if( &cpath != this )
+   pathCopy( cpath , *this );
   return( *this );
   }
 
@@ -513,7 +515,8 @@ class ListPath
  /// \brief Copy assignment
  ///
  ListPath & operator=( const ListPath & cpath ) {
-  pathCopy( cpath , *this );
+  if( &cpath != this )
+   pathCopy( cpath , *this );
   return( *this );
   }
 
@@ -878,7 +881,8 @@ class StaticPath
  /// \brief Copy assignment
  ///
  StaticPath & operator=( const StaticPath & cpath ) {
-  pathCopy( cpath , *this );
+  if( &cpath != this )
+   pathCopy( cpath , *this );
   return( *this );
   }
 

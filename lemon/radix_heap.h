@@ -38,10 +38,13 @@ namespace lemon
 /// This class implements the \e radix \e heap data structure.
 /// It practically conforms to the \ref concepts::Heap "heap concept",
 /// but it has some limitations due its special implementation.
-/// The type of the priorities must be \c int and the priority of an
-/// item cannot be decreased under the priority of the last removed item.
+/// The type of the priorities must be \c int and no priority can go
+/// below the lower end of the first box, which is the minimum given to
+/// the constructor or to clear() and which pop(), top() and prio() move
+/// up to the minimum priority in the heap.
 ///
-/// \tparam IM A read-writable item map with \c int values, used
+/// \tparam IM A reference item map with \c int values (one whose
+/// \c operator[] gives a reference, which the heap writes through), used
 /// internally to handle the cross references.
 template< typename IM >
 class RadixHeap
@@ -57,8 +60,9 @@ class RadixHeap
 
  /// \brief Exception thrown by RadixHeap.
  ///
- /// This exception is thrown when an item is inserted into a
- /// RadixHeap with a priority smaller than the last erased one.
+ /// This exception is thrown when an item is given a priority below
+ /// the lower end of the first box of a RadixHeap, which is then left
+ /// unchanged.
  /// \see RadixHeap
  class PriorityUnderflowError : public Exception
  {
@@ -218,12 +222,14 @@ class RadixHeap
   return( start );
   }
 
- // Move an item down into the proper box
- void bubbleDown( int index ) {
-  if( ! upper( _data[ index ].box , _data[ index ].prio ) )
+ // Give an item a priority not larger than its own and move it down into
+ // the proper box; an underflow throws before the heap changes
+ void bubbleDown( int index , Prio pr ) {
+  int box = findDown( _data[ index ].box , pr );
+  _data[ index ].prio = pr;
+  if( box == _data[ index ].box )
    return;
   remove( index );
-  int box = findDown( _data[ index ].box , _data[ index ].prio );
   insert( box , index );
   }
 
@@ -273,7 +279,7 @@ class RadixHeap
   int curr = _boxes[ box ].first , next;
   while( curr != -1 ) {
    next = _data[ curr ].next;
-   bubbleDown( curr );
+   bubbleDown( curr , _data[ curr ].prio );
    curr = next;
    }
   }
@@ -303,15 +309,17 @@ class RadixHeap
  /// \param i The item to insert.
  /// \param p The priority of the item.
  /// \pre \e i must not be stored in the heap.
- /// \warning This method may throw an \c UnderFlowPriorityException.
+ /// \warning This method throws a \c PriorityUnderflowError if \e p is
+ /// below the first box of the heap, whose lower end pop(), top() and
+ /// prio() move up to the minimum, and leaves the heap unchanged.
  void push( const Item & i , const Prio & p ) {
-  int n = static_cast< int >( _data.size() );
-  _iim.set( i , n );
-  _data.push_back( RadixItem( i , p ) );
   while( lower( static_cast< int >( _boxes.size() - 1 ) , p ) ) {
    extend();
    }
   int box = findDown( static_cast< int >( _boxes.size() - 1 ) , p );
+  int n = static_cast< int >( _data.size() );
+  _iim.set( i , n );
+  _data.push_back( RadixItem( i , p ) );
   insert( box , n );
   }
 
@@ -377,7 +385,9 @@ class RadixHeap
  /// \param i The item.
  /// \param p The priority.
  /// \pre \e i must be in the heap.
- /// \warning This method may throw an \c UnderFlowPriorityException.
+ /// \warning This method throws a \c PriorityUnderflowError if \e p is
+ /// below the first box of the heap, whose lower end pop(), top() and
+ /// prio() move up to the minimum, and leaves the heap unchanged.
  void set( const Item & i , const Prio & p ) {
   int idx = _iim[ i ];
   if( idx < 0 ) {
@@ -388,8 +398,7 @@ class RadixHeap
    bubbleUp( idx );
    }
   else {
-   _data[ idx ].prio = p;
-   bubbleDown( idx );
+   bubbleDown( idx , p );
    }
   }
 
@@ -399,11 +408,11 @@ class RadixHeap
  /// \param i The item.
  /// \param p The priority.
  /// \pre \e i must be stored in the heap with priority at least \e p.
- /// \warning This method may throw an \c UnderFlowPriorityException.
+ /// \warning This method throws a \c PriorityUnderflowError if \e p is
+ /// below the first box of the heap, whose lower end pop(), top() and
+ /// prio() move up to the minimum, and leaves the heap unchanged.
  void decrease( const Item & i , const Prio & p ) {
-  int idx = _iim[ i ];
-  _data[ idx ].prio = p;
-  bubbleDown( idx );
+  bubbleDown( _iim[ i ] , p );
   }
 
  /// \brief Increase the priority of an item to the given value.

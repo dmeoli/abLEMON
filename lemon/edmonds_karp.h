@@ -33,8 +33,8 @@ namespace lemon
 /// \brief Default traits class of EdmondsKarp class.
 ///
 /// Default traits class of EdmondsKarp class.
-/// \param GR Digraph type.
-/// \param CAP Type of capacity map.
+/// \tparam GR Digraph type.
+/// \tparam CAP Type of capacity map.
 template< typename GR , typename CAP >
 struct EdmondsKarpDefaultTraits
 {
@@ -87,9 +87,9 @@ struct EdmondsKarpDefaultTraits
 /// The Edmonds-Karp algorithm is slower than the Preflow
 /// algorithm, but it has an advantage of the step-by-step execution
 /// control with feasible flow solutions. The \e source node, the \e
-/// target node, the \e capacity of the arcs and the \e starting \e
-/// flow value of the arcs should be passed to the algorithm
-/// through the constructor.
+/// target node and the \e capacity of the arcs are passed to the
+/// constructor, and a \e starting \e flow, if any, to \ref init(const
+/// FlowMap&) "init()".
 ///
 /// The time complexity of the algorithm is \f$ O(nm^2) \f$ in
 /// worst case. Always try the Preflow algorithm instead of this if
@@ -100,7 +100,7 @@ struct EdmondsKarpDefaultTraits
 /// type is \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref EdmondsKarpDefaultTraits
-/// "EdmondsKarpDefaultTraits<GR, CAP>".
+/// "EdmondsKarpDefaultTraits< GR , CAP >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 
@@ -511,8 +511,9 @@ class EdmondsKarp
  /// Returns true when the node is on the source side of the found
  /// minimum cut.
  ///
- /// \pre Either \ref run() or \ref init() must be called before
- /// using this function.
+ /// \pre The last call of \ref augment() must have returned \c false,
+ /// as at the end of \ref run() and \ref start(): the cut is the set of
+ /// the nodes that its search reached.
  bool minCut( const Node & node ) const {
   return( ( ( *_pred )[ node ] != INVALID ) || node == _source );
   }
@@ -526,8 +527,7 @@ class EdmondsKarp
  /// \note This function calls \ref minCut() for each node, so it runs in
  /// O(n) time.
  ///
- /// \pre Either \ref run() or \ref init() must be called before
- /// using this function.
+ /// \pre As for \ref minCut().
  template< typename CutMap >
  void minCutMap( CutMap & cutMap ) const {
   for( NodeIt n( _graph ) ; n != INVALID ; ++n ) {

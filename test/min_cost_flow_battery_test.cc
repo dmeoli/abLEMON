@@ -52,9 +52,6 @@ int failures = 0;
 
 // Whether each run is printed before it starts, as the environment
 // variable LEMON_BATTERY_VERBOSE asks
-#ifdef _MSC_VER
- #pragma warning( disable : 4996 )  // getenv(), which is only read here
-#endif
 const bool verbose = std::getenv( "LEMON_BATTERY_VERBOSE" ) != nullptr;
 
 void expect( bool ok , const std::string & what )
@@ -74,7 +71,8 @@ enum Result { INFEASIBLE , OPTIMAL , UNBOUNDED };
 const char * resultName( int r )
 {
  return( r == INFEASIBLE ? "INFEASIBLE"
-			 : r == OPTIMAL ? "OPTIMAL" : "UNBOUNDED" );
+	  : r == OPTIMAL  ? "OPTIMAL"
+			  : "UNBOUNDED" );
  }
 
 // An instance: a digraph with lower and upper bounds (the latter possibly
@@ -93,7 +91,7 @@ struct Instance
        supply( g , 0 ) ,
        inf( std::numeric_limits< V >::has_infinity
 	      ? std::numeric_limits< V >::infinity()
-	      : ( std::numeric_limits< V >::max )() ) {}
+	      : ( std::numeric_limits< V >::max )() ) { }
 
  Node node( V s = 0 ) {
   const Node n = g.addNode();
@@ -136,7 +134,8 @@ Answer< V > answerOf( const MCF & mcf , PT pt , const Instance< V > & p )
 {
  Answer< V > a;
  a.result = pt == MCF::INFEASIBLE ? INFEASIBLE
-	    : pt == MCF::OPTIMAL ? OPTIMAL : UNBOUNDED;
+	    : pt == MCF::OPTIMAL  ? OPTIMAL
+				  : UNBOUNDED;
  a.cost = 0;
  if( a.result == OPTIMAL ) {
   a.cost = mcf.template totalCost< double >();
@@ -167,57 +166,62 @@ std::vector< Solver< V > > solvers()
  const char * nsn[] = { "FIRST_ELIGIBLE" , "BEST_ELIGIBLE" , "BLOCK_SEARCH" ,
 			"CANDIDATE_LIST" , "ALTERING_LIST" };
  const typename NS::PivotRule nsr[] = { NS::FIRST_ELIGIBLE ,
-					NS::BEST_ELIGIBLE , NS::BLOCK_SEARCH ,
-					NS::CANDIDATE_LIST ,
+					NS::BEST_ELIGIBLE ,
+					NS::BLOCK_SEARCH , NS::CANDIDATE_LIST ,
 					NS::ALTERING_LIST };
  for( int k = 0 ; k != 5 ; ++k ) {
   const typename NS::PivotRule r = nsr[ k ];
-  s.push_back( { std::string( "NetworkSimplex " ) + nsn[ k ] ,
-		 [ r ]( const Instance< V > & p ) {
-		  NS mcf( p.g );
-		  mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap(
-		    p.cost ).supplyMap( p.supply );
-		  return( answerOf( mcf , mcf.run( r ) , p ) );
-		  } } );
+  s.push_back(
+    { std::string( "NetworkSimplex " ) + nsn[ k ] ,
+      [ r ]( const Instance< V > & p ) {
+       NS mcf( p.g );
+       mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+	 p.supply );
+       return( answerOf( mcf , mcf.run( r ) , p ) );
+       } } );
   }
  const char * csn[] = { "PUSH" , "AUGMENT" , "PARTIAL_AUGMENT" };
  const typename COS::Method csm[] = { COS::PUSH , COS::AUGMENT ,
 				      COS::PARTIAL_AUGMENT };
  for( int k = 0 ; k != 3 ; ++k ) {
   const typename COS::Method m = csm[ k ];
-  s.push_back( { std::string( "CostScaling " ) + csn[ k ] ,
-		 [ m ]( const Instance< V > & p ) {
-		  COS mcf( p.g );
-		  mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap(
-		    p.cost ).supplyMap( p.supply );
-		  return( answerOf( mcf , mcf.run( m ) , p ) );
-		  } } );
+  s.push_back(
+    { std::string( "CostScaling " ) + csn[ k ] ,
+      [ m ]( const Instance< V > & p ) {
+       COS mcf( p.g );
+       mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+	 p.supply );
+       return( answerOf( mcf , mcf.run( m ) , p ) );
+       } } );
   }
  const char * ccn[] = { "SIMPLE_CYCLE_CANCELING" ,
-			"MINIMUM_MEAN_CYCLE_CANCELING" , "CANCEL_AND_TIGHTEN" };
+			"MINIMUM_MEAN_CYCLE_CANCELING" ,
+			"CANCEL_AND_TIGHTEN" };
  const typename CC::Method ccm[] = { CC::SIMPLE_CYCLE_CANCELING ,
 				     CC::MINIMUM_MEAN_CYCLE_CANCELING ,
 				     CC::CANCEL_AND_TIGHTEN };
  for( int k = 0 ; k != 3 ; ++k ) {
   const typename CC::Method m = ccm[ k ];
-  s.push_back( { std::string( "CycleCanceling " ) + ccn[ k ] ,
-		 [ m ]( const Instance< V > & p ) {
-		  CC mcf( p.g );
-		  mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap(
-		    p.cost ).supplyMap( p.supply );
-		  return( answerOf( mcf , mcf.run( m ) , p ) );
-		  } } );
+  s.push_back(
+    { std::string( "CycleCanceling " ) + ccn[ k ] ,
+      [ m ]( const Instance< V > & p ) {
+       CC mcf( p.g );
+       mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+	 p.supply );
+       return( answerOf( mcf , mcf.run( m ) , p ) );
+       } } );
   }
  const int factors[] = { 1 , 4 };
  for( int k = 0 ; k != 2 ; ++k ) {
   const int f = factors[ k ];
-  s.push_back( { "CapacityScaling factor " + std::to_string( f ) ,
-		 [ f ]( const Instance< V > & p ) {
-		  CAS mcf( p.g );
-		  mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap(
-		    p.cost ).supplyMap( p.supply );
-		  return( answerOf( mcf , mcf.run( f ) , p ) );
-		  } } );
+  s.push_back(
+    { "CapacityScaling factor " + std::to_string( f ) ,
+      [ f ]( const Instance< V > & p ) {
+       CAS mcf( p.g );
+       mcf.lowerMap( p.lower ).upperMap( p.upper ).costMap( p.cost ).supplyMap(
+	 p.supply );
+       return( answerOf( mcf , mcf.run( f ) , p ) );
+       } } );
   }
  return( s );
  }
@@ -256,27 +260,25 @@ void checkOptimal( const Instance< V > & p , const Answer< V > & a ,
 {
  const double s = scaleOf( p );
  const int n = countNodes( p.g );
- const double tf = tolerance< V >( s * n ) ,
-	      tc = tolerance< V >( s * n * n );
+ const double tf = tolerance< V >( s * n ) , tc = tolerance< V >( s * n * n );
  std::vector< double > net( n , 0 );
  double primal = 0 , dual = 0;
  for( Digraph::ArcIt e( p.g ) ; e != INVALID ; ++e ) {
   const double f = a.flow[ p.g.id( e ) ];
-  expect( f >= p.lower[ e ] - tf && ( p.upper[ e ] == p.inf ||
-				     f <= p.upper[ e ] + tf ) ,
-	 "Flow out of its bounds: " + id );
+  expect( f >= p.lower[ e ] - tf &&
+	    ( p.upper[ e ] == p.inf || f <= p.upper[ e ] + tf ) ,
+	  "Flow out of its bounds: " + id );
   net[ p.g.id( p.g.source( e ) ) ] += f;
   net[ p.g.id( p.g.target( e ) ) ] -= f;
   primal += double( p.cost[ e ] ) * f;
-  const double rc = double( p.cost[ e ] ) +
-		    a.pi[ p.g.id( p.g.source( e ) ) ] -
+  const double rc = double( p.cost[ e ] ) + a.pi[ p.g.id( p.g.source( e ) ) ] -
 		    a.pi[ p.g.id( p.g.target( e ) ) ];
   if( rc > tc )
-   expect( f <= p.lower[ e ] + tf , "Slackness at a positive reduced cost: " +
-				     id );
+   expect( f <= p.lower[ e ] + tf ,
+	   "Slackness at a positive reduced cost: " + id );
   if( rc < -tc ) {
    expect( p.upper[ e ] != p.inf && f >= p.upper[ e ] - tf ,
-	  "Slackness at a negative reduced cost: " + id );
+	   "Slackness at a negative reduced cost: " + id );
    dual += double( p.upper[ e ] ) * rc;
    }
   dual += double( p.lower[ e ] ) * std::max( rc , 0.0 );
@@ -294,7 +296,7 @@ void checkOptimal( const Instance< V > & p , const Answer< V > & a ,
  const double t = tolerance< V >( s * s * n * n );
  expect( std::abs( primal - a.cost ) <= t , "Wrong total cost: " + id );
  expect( std::abs( primal - dual ) <= t ,
-	"Dual cost not equal to the primal one: " + id );
+	 "Dual cost not equal to the primal one: " + id );
  }
 
 // The violation of a set of nodes, its supply less what can leave it;
@@ -357,8 +359,8 @@ void checkCut( const Instance< V > & p , const Answer< V > & a ,
    all.push_back( g );
   }
  std::sort( all.rbegin() , all.rend() );
- expect( ! a.cuts.empty() && a.cuts.size() == std::min< std::size_t >(
-					      5 , all.size() ) ,
+ expect( ! a.cuts.empty() &&
+	   a.cuts.size() == std::min< std::size_t >( 5 , all.size() ) ,
 	 "Wrong number of best infeasibility cuts: " + id );
  std::set< std::vector< char > > seen;
  for( std::size_t j = 0 ; j != a.cuts.size() && j != all.size() ; ++j ) {
@@ -451,14 +453,15 @@ void runBattery( const Instance< V > & p ,
    continue;
    }
   expect( a.result == first.result ,
-	 id + " answers " + resultName( a.result ) + ", " + s[ 0 ].name +
-	   " " + resultName( first.result ) );
+	  id + " answers " + resultName( a.result ) +
+				      ", " + s[ 0 ].name + " " +
+				      resultName( first.result ) );
   if( a.result == OPTIMAL && first.result == OPTIMAL )
    expect( std::abs( a.cost - first.cost ) <=
-	    tolerance< V >( scaleOf( p ) * scaleOf( p ) *
-			    countNodes( p.g ) * countNodes( p.g ) ) ,
-	  id + " has the cost " + std::to_string( a.cost ) + ", " +
-	    s[ 0 ].name + " " + std::to_string( first.cost ) );
+	     tolerance< V >( scaleOf( p ) * scaleOf( p ) * countNodes( p.g ) *
+			     countNodes( p.g ) ) ,
+	   id + " has the cost " + std::to_string( a.cost ) + ", " +
+	     s[ 0 ].name + " " + std::to_string( first.cost ) );
   }
  }
 
@@ -487,8 +490,8 @@ std::vector< Instance< V > * > limitCases( V unit )
   p->arc( u , u , -unit , 3 * unit );
   }
  {
-  c.push_back( p = new Instance< V >(
-    "a loop of negative cost and infinite capacity" ) );
+  c.push_back(
+    p = new Instance< V >( "a loop of negative cost and infinite capacity" ) );
   const Node u = p->node();
   p->arc( u , u , -unit , p->inf );
   }
@@ -516,8 +519,8 @@ std::vector< Instance< V > * > limitCases( V unit )
   }
  {
   c.push_back( p = new Instance< V >( "a cut too small" ) );
-  const Node u = p->node( 3 * unit ) , v = p->node() , w = p->node(
-    -3 * unit );
+  const Node u = p->node( 3 * unit ) , v = p->node() ,
+    w = p->node( -3 * unit );
   p->arc( u , v , unit , p->inf );
   p->arc( v , w , unit , 2 * unit );
   }
@@ -535,31 +538,32 @@ std::vector< Instance< V > * > limitCases( V unit )
   }
  {
   c.push_back( p = new Instance< V >( "demands that exceed the supplies" ) );
-  const Node u = p->node( unit ) , v = p->node( -2 * unit ) , w = p->node(
-    -unit );
+  const Node u = p->node( unit ) , v = p->node( -2 * unit ) ,
+	     w = p->node( -unit );
   p->arc( u , v , unit , p->inf );
   p->arc( u , w , 2 * unit , p->inf );
   }
  {
-  c.push_back( p = new Instance< V >(
-    "a negative cycle of infinite capacity" ) );
+  c.push_back(
+    p = new Instance< V >( "a negative cycle of infinite capacity" ) );
   const Node u = p->node( unit ) , v = p->node() , w = p->node( -unit );
   p->arc( u , v , unit , p->inf );
   p->arc( v , w , unit , p->inf );
   p->arc( w , v , -2 * unit , p->inf );
   }
  {
-  c.push_back( p = new Instance< V >(
-    "a negative cycle of infinite capacity on an infeasible problem" ) );
-  const Node u = p->node( 2 * unit ) , v = p->node() , w = p->node( -2 *
-								  unit );
+  c.push_back(
+    p = new Instance< V >(
+      "a negative cycle of infinite capacity on an infeasible problem" ) );
+  const Node u = p->node( 2 * unit ) , v = p->node() ,
+    w = p->node( -2 * unit );
   p->arc( u , v , unit , unit );
   p->arc( v , w , unit , p->inf );
   p->arc( w , v , -2 * unit , p->inf );
   }
  {
   c.push_back( p = new Instance< V >(
-    "a negative cycle with one arc of finite capacity" ) );
+		 "a negative cycle with one arc of finite capacity" ) );
   const Node u = p->node( unit ) , v = p->node() , w = p->node( -unit );
   p->arc( u , v , unit , p->inf );
   p->arc( v , w , unit , p->inf );
@@ -567,8 +571,8 @@ std::vector< Instance< V > * > limitCases( V unit )
   }
  {
   c.push_back( p = new Instance< V >( "two components" ) );
-  const Node u = p->node( unit ) , v = p->node( -unit ) , w = p->node(
-    2 * unit ) , x = p->node( -2 * unit );
+  const Node u = p->node( unit ) , v = p->node( -unit ) ,
+	     w = p->node( 2 * unit ) , x = p->node( -2 * unit );
   p->arc( u , v , 3 * unit , p->inf );
   p->arc( w , x , -unit , 2 * unit );
   p->arc( x , w , unit , p->inf );
@@ -593,8 +597,8 @@ std::vector< Instance< V > * > limitCases( V unit )
 template< typename V >
 Instance< V > * randomInstance( unsigned int & r , int seed , V unit )
 {
- Instance< V > * p = new Instance< V >( "the random instance " +
-					std::to_string( seed ) );
+ Instance< V > * p =
+   new Instance< V >( "the random instance " + std::to_string( seed ) );
  r = r * 1103515245 + 12345;
  const int n = 1 + ( r >> 16 ) % 12;
  std::vector< Node > nodes;
@@ -605,8 +609,8 @@ Instance< V > * randomInstance( unsigned int & r , int seed , V unit )
   const Node u = nodes[ ( r >> 8 ) % n ] , v = nodes[ ( r >> 20 ) % n ];
   r = r * 1103515245 + 12345;
   const V low = ( r >> 4 ) % 10 < 3 ? V( ( r >> 8 ) % 4 ) * unit : V( 0 );
-  const V up = ( r >> 12 ) % 20 < 3 ? p->inf
-				    : low + V( ( r >> 16 ) % 10 ) * unit;
+  const V up =
+    ( r >> 12 ) % 20 < 3 ? p->inf : low + V( ( r >> 16 ) % 10 ) * unit;
   p->arc( u , v , V( long( ( r >> 20 ) % 31 ) - 10 ) * unit , up , low );
   }
  V total = 0;
@@ -620,6 +624,49 @@ Instance< V > * randomInstance( unsigned int & r , int seed , V unit )
  return( p );
  }
 
+// Two instances that the general checks do not tell apart from others:
+// in the first, eight sets tie for the largest violation, the two nodes of
+// supply unit, whose arcs to the two of demand unit are closed, with any
+// subset of three nodes of no supply and no arc, and the best five sets
+// are all of them, which come from the one maximum flow of the root
+// [see infeasibleCuts()]; in the second, three node-disjoint cycles of
+// negative cost and infinite capacity are all given, which come from one
+// run of Howard's algorithm [see unboundedCycles()]
+template< typename V >
+void checkMany( V unit , const std::vector< Solver< V > > & s )
+{
+ Instance< V > ties( "eight sets that tie" );
+ for( int h = 0 ; h != 2 ; ++h )
+  ties.arc( ties.node( unit ) , ties.node( -unit ) , unit , 0 );
+ for( int h = 0 ; h != 3 ; ++h )
+  ties.node();
+ Instance< V > rays( "three disjoint negative cycles" );
+ for( int h = 0 ; h != 3 ; ++h ) {
+  const Node u = rays.node() , v = rays.node();
+  rays.arc( u , v , -V( h + 1 ) * unit , rays.inf );
+  rays.arc( v , u , unit / 2 , rays.inf );
+  }
+ for( std::size_t k = 0 ; k != s.size() ; ++k ) {
+  const Answer< V > a = s[ k ].run( ties );
+  expect( a.result == INFEASIBLE && a.cuts.size() == 5 ,
+	  "Not five best cuts of " + s[ k ].name + " on " + ties.name );
+  if( a.result == INFEASIBLE )
+   checkCut( ties , a , s[ k ].name + " on " + ties.name );
+  for( std::size_t j = 0 ; j != a.cuts.size() ; ++j ) {
+   double gap;
+   expect( violation( ties , charOf( ties , a.cuts[ j ] ) , gap ) &&
+	     std::abs( gap - 2 * double( unit ) ) <=
+	       tolerance< V >( scaleOf( ties ) ) ,
+	   "A best cut that does not tie of " + s[ k ].name );
+   }
+  const Answer< V > b = s[ k ].run( rays );
+  expect( b.result == UNBOUNDED && b.cycles.size() == 3 ,
+	  "Not three cycles of " + s[ k ].name + " on " + rays.name );
+  if( b.result == UNBOUNDED )
+   checkCycle( rays , b , s[ k ].name + " on " + rays.name );
+  }
+ }
+
 // The solvers whose name contains this text, all if it is empty
 std::string only;
 
@@ -631,6 +678,7 @@ void runAll( V unit , int seeds )
  for( std::size_t k = 0 ; k != all.size() ; ++k )
   if( k == 0 || all[ k ].name.find( only ) != std::string::npos )
    s.push_back( all[ k ] );
+ checkMany( unit , s );
  std::vector< Instance< V > * > c = limitCases( unit );
  unsigned int r = 2026;
  for( int seed = 0 ; seed != seeds ; ++seed )

@@ -1,0 +1,40 @@
+% SplitNodes (sec. 5.5): a node u becomes the in-node u_in, which the arcs
+% entering u now enter, and the out-node u_out, which the arcs leaving u
+% now leave, joined by the bind arc (u_in, u_out).
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \begin{scope}
+    \node[vertex] (x) at (0,10mm) {x};
+    \node[vertex] (y) at (0,-10mm) {y};
+    \node[vertex-touched] (u) at (20mm,0) {u};
+    \node[vertex] (z) at (40mm,10mm) {z};
+    \node[vertex] (w) at (40mm,-10mm) {w};
+    \draw[arc] (x) -- (u);
+    \draw[arc] (y) -- (u);
+    \draw[arc] (u) -- (z);
+    \draw[arc] (u) -- (w);
+  \end{scope}
+  \draw[guide,->] (48mm,0) -- (60mm,0);
+  \begin{scope}[xshift=68mm]
+    \node[vertex] (x) at (0,10mm) {x$_o$};
+    \node[vertex] (y) at (0,-10mm) {y$_o$};
+    \node[vertex-touched] (ui) at (20mm,0) {u$_i$};
+    \node[vertex-touched] (uo) at (40mm,0) {u$_o$};
+    \node[vertex] (z) at (60mm,10mm) {z$_i$};
+    \node[vertex] (w) at (60mm,-10mm) {w$_i$};
+    \draw[arc] (x) -- (ui);
+    \draw[arc] (y) -- (ui);
+    \draw[arc-added] (ui) -- node[label,above=1.5mm] {bind arc} (uo);
+    \draw[arc] (uo) -- (z);
+    \draw[arc] (uo) -- (w);
+  \end{scope}
+\end{tikzpicture}
+\end{document}

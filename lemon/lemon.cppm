@@ -92,6 +92,7 @@ export module lemon;
 
 export namespace lemon {
  using ::lemon::AStar;
+ using ::lemon::AStarDefaultTraits;
  using ::lemon::AbsMap;
  using ::lemon::AddMap;
  using ::lemon::AllArcLookUp;
@@ -123,6 +124,7 @@ export namespace lemon {
  using ::lemon::BfsWizardDefaultTraits;
  using ::lemon::BiVariant;
  using ::lemon::BidirDijkstra;
+ using ::lemon::BidirDijkstraDefaultTraits;
  using ::lemon::BinHeap;
  using ::lemon::BinomialHeap;
  using ::lemon::BlueNodeNotifierIndicator;
@@ -430,6 +432,7 @@ export namespace lemon {
  using ::lemon::_NoSubCounter;
  using ::lemon::_SubCounter;
  using ::lemon::_addArcEdge;
+ using ::lemon::_dimacsNode;
  using ::lemon::_readDimacs;
  using ::lemon::absMap;
  using ::lemon::acyclic;

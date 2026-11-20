@@ -47,10 +47,12 @@ namespace lemon
 /// of nodes can easily be obtained.
 ///
 /// The algorithm calculates \e n-1 distinct minimum cuts (currently with
-/// the \ref Preflow algorithm), thus it has \f$O(n^3\sqrt{m})\f$ overall
-/// time complexity. It calculates a rooted Gomory-Hu tree.
+/// the \ref Preflow algorithm), thus it has \f$O(n^3 m \Delta)\f$ overall
+/// time complexity, \f$\Delta\f$ being the largest number of edges
+/// incident to a node. It calculates a rooted Gomory-Hu tree.
 /// The structure of the tree and the edge weights can be
-/// obtained using \c predNode(), \c predValue() and \c rootDist().
+/// obtained using \c predNode(), \c predValue() and \c rootDist(), which
+/// gives an order of the nodes from the root.
 /// The functions \c minCutMap() and \c minCutValue() calculate
 /// the minimum cut and the minimum cut value between any two nodes
 /// in the graph. You can also list (iterate on) the nodes and the
@@ -147,6 +149,8 @@ class GomoryHu
   createStructures();
 
   _root = NodeIt( _graph );
+  if( _root == INVALID )
+   return;
   for( NodeIt n( _graph ) ; n != INVALID ; ++n ) {
    ( *_pred )[ n ] = _root;
    ( *_order )[ n ] = -1;
@@ -158,6 +162,8 @@ class GomoryHu
 
  // Start the algorithm
  void start() {
+  if( _root == INVALID )
+   return;
   Preflow< Graph , Capacity > fa( _graph , _capacity , _root , INVALID );
   fa.tolerance( _tolerance );
 
@@ -247,10 +253,13 @@ class GomoryHu
   return( ( *_weight )[ node ] );
   }
 
- /// \brief Return the distance from the root node in the Gomory-Hu tree.
+ /// \brief Return the position of the node in an order of the tree.
  ///
- /// This function returns the distance of the given node from the root
- /// node in the Gomory-Hu tree.
+ /// This function returns the position of the given node in an order of
+ /// the nodes of the Gomory-Hu tree in which the root is 0 and each node
+ /// comes after its parent; hence, of two nodes on a path to the root, the
+ /// one with the smaller value is the nearer to the root. It is not the
+ /// distance from the root, i.e., the number of edges between them.
  ///
  /// \pre \ref run() must be called before using this function.
  int rootDist( const Node & node ) const { return( ( *_order )[ node ] ); }
@@ -261,7 +270,8 @@ class GomoryHu
  /// \c s and \c t.
  /// It finds the nearest common ancestor of the given nodes in the
  /// Gomory-Hu tree and calculates the minimum weight edge on the
- /// paths to the ancestor.
+ /// paths to the ancestor; if \c s and \c t are the same node, it
+ /// returns the largest \c Value.
  ///
  /// \pre \ref run() must be called before using this function.
  Value minCutValue( const Node & s , const Node & t ) const {
@@ -299,6 +309,10 @@ class GomoryHu
  ///
  /// \return The value of the minimum cut between \c s and \c t.
  ///
+ /// If \c s and \c t are the same node, then no cut separates them: all
+ /// the nodes are set to \c true and the largest \c Value is returned,
+ /// as \ref minCutValue() does.
+ ///
  /// \pre \ref run() must be called before using this function.
  template< typename CutMap >
  Value minCutMap( const Node & s , const Node & t , CutMap & cutMap ) const {
@@ -326,6 +340,12 @@ class GomoryHu
     }
    }
 
+  if( rn == INVALID ) {
+   for( NodeIt n( _graph ) ; n != INVALID ; ++n )
+    cutMap.set( n , true );
+   return( value );
+   }
+
   typename Graph::template NodeMap< bool > reached( _graph , false );
   reached[ _root ] = true;
   cutMap.set( _root , ! s_root );
@@ -342,6 +362,7 @@ class GomoryHu
     }
    while( ! st.empty() ) {
     cutMap.set( st.back() , cutMap[ nn ] );
+    reached[ st.back() ] = true;
     st.pop_back();
     }
    }

@@ -17,6 +17,7 @@
  */
 
 #include <sstream>
+#include <vector>
 
 #include <lemon/smart_graph.h>
 #include <lemon/adaptors.h>
@@ -24,6 +25,7 @@
 #include <lemon/concepts/maps.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/nagamochi_ibaraki.h>
+#include <lemon/fib_heap.h>
 
 #include "test_tools.h"
 
@@ -141,6 +143,50 @@ int main()
   check( ni.minCutValue() == 1 , "Wrong cut value" );
   check( ni.minCutValue() == cutValue( graph , cap4 , cut ) ,
 	 "Wrong cut value" );
+  }
+
+ // the named parameters of the heap, which did not compile: a Fibonacci
+ // heap made by the algorithm, and one given by heap()
+ {
+  typedef SmartGraph::NodeMap< int > CrossRef;
+  typedef FibHeap< int , CrossRef , std::greater< int > > Heap;
+  NagamochiIbaraki< SmartGraph >::SetStandardHeap< Heap >::Create ni( graph ,
+								      cap3 );
+  ni.run();
+  check( ni.minCutValue() == 5 , "Wrong cut value with SetStandardHeap" );
+
+  CrossRef cross( graph );
+  Heap heap( cross );
+  NagamochiIbaraki< SmartGraph >::SetHeap< Heap >::Create nh( graph , cap3 );
+  nh.heap( heap , cross );
+  nh.run();
+  check( nh.minCutValue() == 5 , "Wrong cut value with SetHeap" );
+  }
+
+ // two parallel edges merged at a contraction keep the larger of their
+ // bounds q, by which the first phase contracts the whole graph
+ {
+  SmartGraph g;
+  SmartGraph::EdgeMap< int > cap( g );
+  const int edges[][ 3 ] = { { 2 , 3 , 10 } , { 3 , 1 , 7 } , { 0 , 3 , 10 } ,
+			     { 0 , 3 , 10 } , { 3 , 1 , 6 } , { 1 , 0 , 10 } ,
+			     { 3 , 0 , 5 } ,  { 1 , 0 , 7 } , { 3 , 2 , 3 } ,
+			     { 0 , 1 , 6 } ,  { 0 , 3 , 1 } , { 3 , 0 , 3 } ,
+			     { 2 , 3 , 3 } ,  { 1 , 2 , 7 } , { 0 , 1 , 4 } };
+  std::vector< SmartGraph::Node > nodes;
+  for( int i = 0 ; i < 4 ; ++i )
+   nodes.push_back( g.addNode() );
+  for( int i = 14 ; i >= 0 ; --i )
+   cap[ g.addEdge( nodes[ edges[ i ][ 0 ] ] , nodes[ edges[ i ][ 1 ] ] ) ] =
+     edges[ i ][ 2 ];
+
+  NagamochiIbaraki< SmartGraph > ni( g , cap );
+  ni.init();
+  check( ni.processNextPhase() , "A phase left an edge uncontracted" );
+  check( ni.minCutValue() == 23 , "Wrong cut value" );
+  SmartGraph::NodeMap< bool > cut( g );
+  ni.minCutMap( cut );
+  check( cutValue( g , cap , cut ) == 23 , "Wrong cut" );
   }
 
  return( 0 );

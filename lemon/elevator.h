@@ -47,8 +47,8 @@ namespace lemon
 ///
 ///\sa LinkedElevator
 ///
-///\param GR Type of the underlying graph.
-///\param Item Type of the items the data is assigned to (\c GR::Node,
+///\tparam GR Type of the underlying graph.
+///\tparam Item Type of the items the data is assigned to (\c GR::Node,
 ///\c GR::Arc or \c GR::Edge).
 template< class GR , class Item >
 class Elevator
@@ -99,10 +99,11 @@ class Elevator
  ///\param max_level The maximum allowed level.
  ///Set the range of the possible labels to <tt>[0..max_level]</tt>.
  Elevator( const GR & graph , int max_level )
-     : _g( graph ) , _max_level( max_level ) , _item_num( _max_level ) ,
-       _where( graph ) , _level( graph , 0 ) , _items( _max_level + 1 ) ,
-       _first( _max_level + 2 ) , _last_active( _max_level + 2 ) ,
-       _highest_active( -1 ) { }
+     : _g( graph ) , _max_level( max_level ) ,
+       _item_num( countItems< GR , Item >( graph ) ) , _where( graph ) ,
+       _level( graph , 0 ) , _items( _item_num + 1 ) ,
+       _first( _max_level + 2 ) ,
+       _last_active( _max_level + 2 ) , _highest_active( -1 ) { }
  ///Constructor.
 
  ///Constructor.
@@ -113,7 +114,7 @@ class Elevator
  Elevator( const GR & graph )
      : _g( graph ) , _max_level( countItems< GR , Item >( graph ) ) ,
        _item_num( _max_level ) , _where( graph ) , _level( graph , 0 ) ,
-       _items( _max_level + 1 ) , _first( _max_level + 2 ) ,
+       _items( _item_num + 1 ) , _first( _max_level + 2 ) ,
        _last_active( _max_level + 2 ) , _highest_active( -1 ) { }
 
  ///Activate item \c i.
@@ -259,12 +260,14 @@ class Elevator
 
  ///Lift the active item returned by \ref activeOn() "activeOn(level)"
  ///by one.
+ ///\return The lifted item.
  Item liftActiveOn( int level ) {
   Item it = *_last_active[ level ];
   ++_level[ it ];
   swap( _last_active[ level ]-- , --_first[ level + 1 ] );
   if( level + 1 > _highest_active )
    ++_highest_active;
+  return( it );
   }
 
  ///Lift the active item returned by \c activeOn(level) to the given level.
@@ -438,8 +441,8 @@ class Elevator
 ///
 ///\sa Elevator
 ///
-///\param GR Type of the underlying graph.
-///\param Item Type of the items the data is assigned to (\c GR::Node,
+///\tparam GR Type of the underlying graph.
+///\tparam Item Type of the items the data is assigned to (\c GR::Node,
 ///\c GR::Arc or \c GR::Edge).
 template< class GR , class Item >
 class LinkedElevator
@@ -473,10 +476,11 @@ class LinkedElevator
  ///\param max_level The maximum allowed level.
  ///Set the range of the possible labels to <tt>[0..max_level]</tt>.
  LinkedElevator( const GR & graph , int max_level )
-     : _graph( graph ) , _max_level( max_level ) , _item_num( _max_level ) ,
-       _first( _max_level + 1 ) , _last( _max_level + 1 ) , _prev( graph ) ,
-       _next( graph ) , _highest_active( -1 ) , _level( graph ) ,
-       _active( graph ) { }
+     : _graph( graph ) , _max_level( max_level ) ,
+       _item_num( countItems< GR , Item >( graph ) ) ,
+       _first( _max_level + 1 ) ,
+       _last( _max_level + 1 ) , _prev( graph ) , _next( graph ) ,
+       _highest_active( -1 ) , _level( graph ) , _active( graph ) { }
 
  ///Constructor.
 
@@ -710,13 +714,15 @@ class LinkedElevator
  ///Return an active item on level \c l or \ref INVALID if there is no such
  ///an item. (\c l must be from the range [0...\c max_level].
  Item activeOn( int l ) const {
-  return( _active[ _first[ l ] ] ? _first[ l ] : INVALID );
+  return( _first[ l ] != INVALID && _active[ _first[ l ] ] ? _first[ l ]
+							    : INVALID );
   }
 
  ///Lift the active item returned by \c activeOn(l) by one.
 
  ///Lift the active item returned by \ref activeOn() "activeOn(l)"
  ///by one.
+ ///\return The lifted item.
  Item liftActiveOn( int l ) {
   Item i = _first[ l ];
   if( _next[ i ] != INVALID ) {
@@ -741,6 +747,7 @@ class LinkedElevator
   if( _highest_active < l ) {
    _highest_active = l;
    }
+  return( i );
   }
 
  ///Lift the active item returned by \c activeOn(l) to the given level.
@@ -804,17 +811,19 @@ class LinkedElevator
  /// than the current level.
  ///
  void lift( Item i , int new_level ) {
+  // unlink the item from the list of its old level
+  const int old_level = _level[ i ];
   if( _next[ i ] != INVALID ) {
    _prev[ _next[ i ] ] = _prev[ i ];
    }
   else {
-   _last[ new_level ] = _prev[ i ];
+   _last[ old_level ] = _prev[ i ];
    }
   if( _prev[ i ] != INVALID ) {
    _next[ _prev[ i ] ] = _next[ i ];
    }
   else {
-   _first[ new_level ] = _next[ i ];
+   _first[ old_level ] = _next[ i ];
    }
   _level[ i ] = new_level;
   if( _first[ new_level ] == INVALID ) {
@@ -846,10 +855,11 @@ class LinkedElevator
  ///This function lifts all items on and above level \c l to the top
  ///level and deactivates them.
  void liftToTop( int l ) {
-  for( int i = l + 1 ; _first[ i ] != INVALID ; ++i ) {
+  for( int i = l ; i < _max_level ; ++i ) {
    Item n = _first[ i ];
    while( n != INVALID ) {
     _level[ n ] = _max_level;
+    _active[ n ] = false;
     n = _next[ n ];
     }
    _first[ i ] = INVALID;

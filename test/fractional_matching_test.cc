@@ -212,6 +212,18 @@ void checkMaxWeightedPerfectFractionalMatchingCompile()
  const_mat_test.nodeValue( n );
  }
 
+// The value of an edge in a fractional matching, scaled by 2: the number of
+// its ends whose matching arc it is, a loop counting once
+template< typename MAT >
+int edgeValue( const SmartGraph & graph , const MAT & mat ,
+	       const SmartGraph::Edge & e )
+{
+ if( graph.u( e ) == graph.v( e ) )
+  return( e == mat.matching( graph.u( e ) ) ? 1 : 0 );
+ return( ( e == mat.matching( graph.u( e ) ) ? 1 : 0 ) +
+	  ( e == mat.matching( graph.v( e ) ) ? 1 : 0 ) );
+ }
+
 void checkFractionalMatching( const SmartGraph & graph ,
 			      const MaxFractionalMatching< SmartGraph > & mfm ,
 			      bool allow_loops = true )
@@ -234,12 +246,14 @@ void checkFractionalMatching( const SmartGraph & graph ,
   }
  check( pv == mfm.matchingSize() , "Wrong matching size" );
 
+ int value = 0;
  for( SmartGraph::EdgeIt e( graph ) ; e != INVALID ; ++e ) {
-  check( ( e == mfm.matching( graph.u( e ) ) ? 1 : 0 ) +
-	     ( e == mfm.matching( graph.v( e ) ) ? 1 : 0 ) ==
-	   mfm.matching( e ) ,
+  check( edgeValue( graph , mfm , e ) == mfm.matching( e ) ,
 	 "Invalid matching" );
+  value += mfm.matching( e );
   }
+ // each covered node adds 1 to the value of the edge of its matching arc
+ check( value == mfm.matchingSize() , "Wrong values of the edges" );
 
  SmartGraph::NodeMap< bool > processed( graph , false );
  for( SmartGraph::NodeIt n( graph ) ; n != INVALID ; ++n ) {
@@ -295,9 +309,7 @@ void checkPerfectFractionalMatching(
    check( indeg == 1 , "Invalid matching" );
    }
   for( SmartGraph::EdgeIt e( graph ) ; e != INVALID ; ++e ) {
-   check( ( e == mfm.matching( graph.u( e ) ) ? 1 : 0 ) +
-	      ( e == mfm.matching( graph.v( e ) ) ? 1 : 0 ) ==
-	    mfm.matching( e ) ,
+   check( edgeValue( graph , mfm , e ) == mfm.matching( e ) ,
 	  "Invalid matching" );
    }
   }
@@ -361,9 +373,7 @@ void checkWeightedFractionalMatching(
   }
 
  for( SmartGraph::EdgeIt e( graph ) ; e != INVALID ; ++e ) {
-  check( ( e == mwfm.matching( graph.u( e ) ) ? 1 : 0 ) +
-	     ( e == mwfm.matching( graph.v( e ) ) ? 1 : 0 ) ==
-	   mwfm.matching( e ) ,
+  check( edgeValue( graph , mwfm , e ) == mwfm.matching( e ) ,
 	 "Invalid matching" );
   }
 
@@ -427,9 +437,7 @@ void checkWeightedPerfectFractionalMatching(
   }
 
  for( SmartGraph::EdgeIt e( graph ) ; e != INVALID ; ++e ) {
-  check( ( e == mwpfm.matching( graph.u( e ) ) ? 1 : 0 ) +
-	     ( e == mwpfm.matching( graph.v( e ) ) ? 1 : 0 ) ==
-	   mwpfm.matching( e ) ,
+  check( edgeValue( graph , mwpfm , e ) == mwpfm.matching( e ) ,
 	 "Invalid matching" );
   }
 

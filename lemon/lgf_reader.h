@@ -256,8 +256,8 @@ inline int valueOct( char c )
 
 inline bool isHex( char c )
 {
- return( ( '0' <= c && c <= '9' ) || ( 'a' <= c && c <= 'z' ) ||
-	  ( 'A' <= c && c <= 'Z' ) );
+ return( ( '0' <= c && c <= '9' ) || ( 'a' <= c && c <= 'f' ) ||
+	  ( 'A' <= c && c <= 'F' ) );
  }
 
 inline int valueHex( char c )
@@ -265,7 +265,7 @@ inline int valueHex( char c )
  LEMON_ASSERT( isHex( c ) , "The character is not hexadecimal." );
  if( '0' <= c && c <= '9' )
   return( c - '0' );
- if( 'a' <= c && c <= 'z' )
+ if( 'a' <= c && c <= 'f' )
   return( c - 'a' + 10 );
  return( c - 'A' + 10 );
  }
@@ -975,8 +975,13 @@ class DigraphReader
    Node n;
    if( ! _use_nodes ) {
     n = _digraph.addNode();
-    if( label_index != -1 )
-     _node_index.insert( std::make_pair( tokens[ label_index ] , n ) );
+    if( label_index != -1 &&
+	! _node_index.insert( std::make_pair( tokens[ label_index ] , n ) )
+	    .second ) {
+     std::ostringstream msg;
+     msg << "Multiple occurence of node label: " << tokens[ label_index ];
+     throw( FormatError( msg.str() ) );
+     }
     }
    else {
     if( label_index == -1 )
@@ -1061,6 +1066,7 @@ class DigraphReader
    map_num = static_cast< int >( maps.size() );
    }
 
+  std::set< std::string > repeated;
   while( readLine() && line >> c && c != '@' ) {
    line.putback( c );
 
@@ -1106,8 +1112,10 @@ class DigraphReader
     Node target = it->second;
 
     a = _digraph.addArc( source , target );
-    if( label_index != -1 )
-     _arc_index.insert( std::make_pair( tokens[ label_index ] , a ) );
+    if( label_index != -1 &&
+	! _arc_index.insert( std::make_pair( tokens[ label_index ] , a ) )
+	    .second )
+     repeated.insert( tokens[ label_index ] );
     }
    else {
     if( label_index == -1 )
@@ -1128,6 +1136,12 @@ class DigraphReader
    }
   if( readSuccess() ) {
    line.putback( c );
+   }
+  // a label repeated in the section names no item, and a reference to it
+  // is not found
+  for( std::set< std::string >::const_iterator it = repeated.begin() ;
+       it != repeated.end() ; ++it ) {
+   _arc_index.erase( *it );
    }
   }
 
@@ -1853,8 +1867,13 @@ class GraphReader
    Node n;
    if( ! _use_nodes ) {
     n = _graph.addNode();
-    if( label_index != -1 )
-     _node_index.insert( std::make_pair( tokens[ label_index ] , n ) );
+    if( label_index != -1 &&
+	! _node_index.insert( std::make_pair( tokens[ label_index ] , n ) )
+	    .second ) {
+     std::ostringstream msg;
+     msg << "Multiple occurence of node label: " << tokens[ label_index ];
+     throw( FormatError( msg.str() ) );
+     }
     }
    else {
     if( label_index == -1 )
@@ -1939,6 +1958,7 @@ class GraphReader
    map_num = static_cast< int >( maps.size() );
    }
 
+  std::set< std::string > repeated;
   while( readLine() && line >> c && c != '@' ) {
    line.putback( c );
 
@@ -1984,8 +2004,10 @@ class GraphReader
     Node target = it->second;
 
     e = _graph.addEdge( source , target );
-    if( label_index != -1 )
-     _edge_index.insert( std::make_pair( tokens[ label_index ] , e ) );
+    if( label_index != -1 &&
+	! _edge_index.insert( std::make_pair( tokens[ label_index ] , e ) )
+	    .second )
+     repeated.insert( tokens[ label_index ] );
     }
    else {
     if( label_index == -1 )
@@ -2006,6 +2028,12 @@ class GraphReader
    }
   if( readSuccess() ) {
    line.putback( c );
+   }
+  // a label repeated in the section names no item, and a reference to it
+  // is not found
+  for( std::set< std::string >::const_iterator it = repeated.begin() ;
+       it != repeated.end() ; ++it ) {
+   _edge_index.erase( *it );
    }
   }
 
@@ -2829,8 +2857,13 @@ class BpGraphReader
    RedNode n;
    if( ! _use_nodes ) {
     n = _graph.addRedNode();
-    if( label_index != -1 )
-     _red_node_index.insert( std::make_pair( tokens[ label_index ] , n ) );
+    if( label_index != -1 &&
+	! _red_node_index.insert( std::make_pair( tokens[ label_index ] , n ) )
+	    .second ) {
+     std::ostringstream msg;
+     msg << "Multiple occurence of red node label: " << tokens[ label_index ];
+     throw( FormatError( msg.str() ) );
+     }
     }
    else {
     if( label_index == -1 )
@@ -2924,8 +2957,14 @@ class BpGraphReader
    BlueNode n;
    if( ! _use_nodes ) {
     n = _graph.addBlueNode();
-    if( label_index != -1 )
-     _blue_node_index.insert( std::make_pair( tokens[ label_index ] , n ) );
+    if( label_index != -1 &&
+	! _blue_node_index.insert( std::make_pair( tokens[ label_index ] ,
+						   n ) )
+	    .second ) {
+     std::ostringstream msg;
+     msg << "Multiple occurence of blue node label: " << tokens[ label_index ];
+     throw( FormatError( msg.str() ) );
+     }
     }
    else {
     if( label_index == -1 )
@@ -3002,6 +3041,7 @@ class BpGraphReader
    map_num = static_cast< int >( maps.size() );
    }
 
+  std::set< std::string > repeated;
   while( readLine() && line >> c && c != '@' ) {
    line.putback( c );
 
@@ -3046,8 +3086,10 @@ class BpGraphReader
     // It is checked that source is red and
     // target is blue, so this should be safe:
     e = _graph.addEdge( source , target );
-    if( label_index != -1 )
-     _edge_index.insert( std::make_pair( tokens[ label_index ] , e ) );
+    if( label_index != -1 &&
+	! _edge_index.insert( std::make_pair( tokens[ label_index ] , e ) )
+	    .second )
+     repeated.insert( tokens[ label_index ] );
     }
    else {
     if( label_index == -1 )
@@ -3068,6 +3110,12 @@ class BpGraphReader
    }
   if( readSuccess() ) {
    line.putback( c );
+   }
+  // a label repeated in the section names no item, and a reference to it
+  // is not found
+  for( std::set< std::string >::const_iterator it = repeated.begin() ;
+       it != repeated.end() ; ++it ) {
+   _edge_index.erase( *it );
    }
   }
 
@@ -3565,16 +3613,16 @@ inline SectionReader sectionReader( const char * fn )
 /// contents.run();
 ///
 /// // Does it contain any node section and arc section?
-/// if( contents.nodeSectionNum() == 0 || contents.arcSectionNum() ) {
+/// if( contents.nodeSectionNum() == 0 || contents.arcSectionNum() == 0 ) {
 ///  std::cerr << "Failure, cannot find graph." << std::endl;
 ///  return( -1 );
 ///  }
 /// std::cout << "The name of the default node section: "
 ///           << contents.nodeSection( 0 ) << std::endl;
-/// std::cout << "The number of the arc maps: " << contents.arcMaps( 0 ).size()
-///           << std::endl;
-/// std::cout << "The name of second arc map: " << contents.arcMaps( 0 )[ 1 ]
-///           << std::endl;
+/// std::cout << "The number of the arc maps: "
+///           << contents.arcMapNames( 0 ).size() << std::endl;
+/// std::cout << "The name of second arc map: "
+///           << contents.arcMapNames( 0 )[ 1 ] << std::endl;
 ///\endcode
 class LgfContents
 {

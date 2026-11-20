@@ -132,7 +132,7 @@ int countConnectedComponents( const Graph & graph )
 /// \image latex connected_components.eps "Connected components" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval compMap A writable node map. The values will be set from 0 to
+/// \param[out] compMap A writable node map. The values will be set from 0 to
 /// the number of the connected components minus one. Each value of the map
 /// will be set exactly once, and the values of a certain component will be
 /// set continuously.
@@ -391,7 +391,7 @@ int countStronglyConnectedComponents( const Digraph & digraph )
 /// \image latex strongly_connected_components.eps "Strongly connected components" width=\textwidth
 ///
 /// \param digraph The digraph.
-/// \retval compMap A writable node map. The values will be set from 0 to
+/// \param[out] compMap A writable node map. The values will be set from 0 to
 /// the number of the strongly connected components minus one. Each value
 /// of the map will be set exactly once, and the values of a certain
 /// component will be set continuously.
@@ -463,7 +463,7 @@ int stronglyConnectedComponents( const Digraph & digraph , NodeMap & compMap )
 /// The strongly connected components are separated by the cut arcs.
 ///
 /// \param digraph The digraph.
-/// \retval cutMap A writable arc map. The values will be set to \c true
+/// \param[out] cutMap A writable arc map. The values will be set to \c true
 /// for the cut arcs (exactly once for each cut arc), and will not be
 /// changed for other arcs.
 /// \return The number of cut arcs.
@@ -669,7 +669,8 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
 				 int & cutNum )
      : _graph( graph ) , _cutMap( cutMap ) , _cutNum( cutNum ) ,
        _numMap( graph ) ,
-       _retMap( graph ) , _predMap( graph ) , _num( 0 ) { }
+       _retMap( graph ) , _predMap( graph ) , _counted( graph , false ) ,
+       _num( 0 ) { }
 
  void start( const Node & node ) {
   _predMap.set( node , INVALID );
@@ -687,14 +688,9 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
   }
 
  void examine( const Arc & edge ) {
-  if( _graph.source( edge ) == _graph.target( edge ) &&
-      _graph.direction( edge ) ) {
-   if( ! _cutMap[ _graph.source( edge ) ] ) {
-    _cutMap.set( _graph.source( edge ) , true );
-    ++_cutNum;
-    }
+  // a loop makes no node a cut node
+  if( _graph.source( edge ) == _graph.target( edge ) )
    return;
-   }
   if( _predMap[ _graph.source( edge ) ] == _graph.target( edge ) )
    return;
   if( _retMap[ _graph.source( edge ) ] > _numMap[ _graph.target( edge ) ] ) {
@@ -708,16 +704,10 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
    }
   if( _numMap[ _graph.source( edge ) ] <= _retMap[ _graph.target( edge ) ] ) {
    if( _predMap[ _graph.source( edge ) ] != INVALID ) {
-    if( ! _cutMap[ _graph.source( edge ) ] ) {
-     _cutMap.set( _graph.source( edge ) , true );
-     ++_cutNum;
-     }
+    mark( _graph.source( edge ) );
     }
    else if( rootCut ) {
-    if( ! _cutMap[ _graph.source( edge ) ] ) {
-     _cutMap.set( _graph.source( edge ) , true );
-     ++_cutNum;
-     }
+    mark( _graph.source( edge ) );
     }
    else {
     rootCut = true;
@@ -726,6 +716,16 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
   }
 
  private:
+ // the node as a cut node, once: the map of the user is only written, and
+ // its values on entry do not matter
+ void mark( const Node & node ) {
+  if( ! _counted[ node ] ) {
+   _counted.set( node , true );
+   _cutMap.set( node , true );
+   ++_cutNum;
+   }
+  }
+
  const Digraph & _graph;
  NodeMap & _cutMap;
  int & _cutNum;
@@ -733,6 +733,7 @@ class BiNodeConnectedCutNodesVisitor : public DfsVisitor< Digraph >
  typename Digraph::template NodeMap< int > _numMap;
  typename Digraph::template NodeMap< int > _retMap;
  typename Digraph::template NodeMap< Node > _predMap;
+ typename Digraph::template NodeMap< bool > _counted;
  std::stack< Edge > _edgeStack;
  int _num;
  bool rootCut;
@@ -841,7 +842,7 @@ int countBiNodeConnectedComponents( const Graph & graph )
 /// \image latex node_biconnected_components.eps "bi-node-connected components" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval compMap A writable edge map. The values will be set from 0
+/// \param[out] compMap A writable edge map. The values will be set from 0
 /// to the number of the bi-node-connected components minus one. Each
 /// value of the map will be set exactly once, and the values of a
 /// certain component will be set continuously.
@@ -889,10 +890,11 @@ int biNodeConnectedComponents( const Graph & graph , EdgeMap & compMap )
 /// the components.
 ///
 /// \param graph The undirected graph.
-/// \retval cutMap A writable node map. The values will be set to
-/// \c true for the nodes that separate two or more components
-/// (exactly once for each cut node), and will not be changed for
-/// other nodes.
+/// \param[out] cutMap A writable node map. The values will be set to
+/// \c true for the nodes that separate two or more components, i.e., whose
+/// removal increases the number of the connected components (exactly once
+/// for each cut node), and will not be changed for other nodes. A loop
+/// forms a component of its own, but it makes no node a cut node.
 /// \return The number of the cut nodes.
 ///
 /// \see biNodeConnected(), biNodeConnectedComponents()
@@ -1187,7 +1189,7 @@ int countBiEdgeConnectedComponents( const Graph & graph )
 /// \image latex edge_biconnected_components.eps "bi-edge-connected components" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval compMap A writable node map. The values will be set from 0 to
+/// \param[out] compMap A writable node map. The values will be set from 0 to
 /// the number of the bi-edge-connected components minus one. Each value
 /// of the map will be set exactly once, and the values of a certain
 /// component will be set continuously.
@@ -1236,7 +1238,7 @@ int biEdgeConnectedComponents( const Graph & graph , NodeMap & compMap )
 /// the components.
 ///
 /// \param graph The undirected graph.
-/// \retval cutMap A writable edge map. The values will be set to \c true
+/// \param[out] cutMap A writable edge map. The values will be set to \c true
 /// for the cut edges (exactly once for each cut edge), and will not be
 /// changed for other edges.
 /// \return The number of cut edges.
@@ -1343,7 +1345,7 @@ bool dag( const Digraph & digraph )
 /// into topolgical order.
 ///
 /// \param digraph The digraph, which must be DAG.
-/// \retval order A writable node map. The values will be set from 0 to
+/// \param[out] order A writable node map. The values will be set from 0 to
 /// the number of the nodes in the digraph minus one. Each value of the
 /// map will be set exactly once, and the values will be set descending
 /// order.
@@ -1356,7 +1358,7 @@ void topologicalSort( const Digraph & digraph , NodeMap & order )
 
  checkConcept< concepts::Digraph , Digraph >();
  checkConcept< concepts::WriteMap< typename Digraph::Node , int > ,
-   NodeMap >();
+	       NodeMap >();
 
  typedef typename Digraph::NodeIt NodeIt;
 
@@ -1384,7 +1386,7 @@ void topologicalSort( const Digraph & digraph , NodeMap & order )
 /// is DAG.
 ///
 /// \param digraph The digraph.
-/// \retval order A readable and writable node map. The values will be
+/// \param[out] order A readable and writable node map. The values will be
 /// set from 0 to the number of the nodes in the digraph minus one.
 /// Each value of the map will be set exactly once, and the values will
 /// be set descending order.
@@ -1603,7 +1605,7 @@ bool bipartite( const Graph & graph )
 /// \image latex bipartite_partitions.eps "Bipartite partititions" width=\textwidth
 ///
 /// \param graph The undirected graph.
-/// \retval partMap A writable node map of \c bool (or convertible) value
+/// \param[out] partMap A writable node map of \c bool (or convertible) value
 /// type. The values will be set to \c true for one component and
 /// \c false for the other one.
 /// \return \c true if the graph is bipartite, \c false otherwise.
@@ -1660,14 +1662,24 @@ bool loopFree( const Graph & graph )
 /// \brief Check whether the given graph contains no parallel arcs/edges.
 ///
 /// This function returns \c true if there are no parallel arcs/edges in
-/// the given graph. It works for both directed and undirected graphs.
+/// the given graph. It works for both directed and undirected graphs; in
+/// the latter, a single loop at a node is not parallel to itself, although
+/// both of its arcs leave the node and enter it.
 template< typename Graph >
 bool parallelFree( const Graph & graph )
 {
+ // the arcs that a loop gives to the out-arcs of its node
+ const int loop_arcs = UndirectedTagIndicator< Graph >::value ? 2 : 1;
  typename Graph::template NodeMap< int > reached( graph , 0 );
  int cnt = 1;
  for( typename Graph::NodeIt n( graph ) ; n != INVALID ; ++n ) {
+  int loops = 0;
   for( typename Graph::OutArcIt a( graph , n ) ; a != INVALID ; ++a ) {
+   if( graph.target( a ) == n ) {
+    if( ++loops > loop_arcs )
+     return( false );
+    continue;
+    }
    if( reached[ graph.target( a ) ] == cnt )
     return( false );
    reached[ graph.target( a ) ] = cnt;

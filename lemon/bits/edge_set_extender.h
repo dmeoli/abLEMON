@@ -183,7 +183,7 @@ class ArcSetExtender : public Base
   };
 
  LemonRangeWrapper2< InArcIt , Digraph ,
-   Node > inArcs( const Node & u ) const {
+		     Node > inArcs( const Node & u ) const {
   return( LemonRangeWrapper2< InArcIt , Digraph , Node >( *this , u ) );
   }
 
@@ -244,7 +244,13 @@ class ArcSetExtender : public Base
 
  Arc addArc( const Node & from , const Node & to ) {
   Arc arc = Parent::addArc( from , to );
-  notifier( Arc() ).add( arc );
+  try {
+   notifier( Arc() ).add( arc );
+   }
+  catch( ... ) {
+   Parent::undoAdd( arc );
+   throw;
+   }
   return( arc );
   }
 
@@ -402,7 +408,7 @@ class EdgeSetExtender : public Base
   };
 
  LemonRangeWrapper2< OutArcIt , Graph ,
-   Node > outArcs( const Node & u ) const {
+		     Node > outArcs( const Node & u ) const {
   return( LemonRangeWrapper2< OutArcIt , Graph , Node >( *this , u ) );
   }
 
@@ -578,11 +584,23 @@ class EdgeSetExtender : public Base
 
  Edge addEdge( const Node & from , const Node & to ) {
   Edge edge = Parent::addEdge( from , to );
-  notifier( Edge() ).add( edge );
-  std::vector< Arc > arcs;
-  arcs.push_back( Parent::direct( edge , true ) );
-  arcs.push_back( Parent::direct( edge , false ) );
-  notifier( Arc() ).add( arcs );
+  try {
+   notifier( Edge() ).add( edge );
+   try {
+    std::vector< Arc > arcs;
+    arcs.push_back( Parent::direct( edge , true ) );
+    arcs.push_back( Parent::direct( edge , false ) );
+    notifier( Arc() ).add( arcs );
+    }
+   catch( ... ) {
+    notifier( Edge() ).erase( edge );
+    throw;
+    }
+   }
+  catch( ... ) {
+   Parent::undoAdd( edge );
+   throw;
+   }
   return( edge );
   }
 

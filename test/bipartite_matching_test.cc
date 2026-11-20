@@ -183,10 +183,10 @@ void checkAssignment( const BpGraph & g , const IntEdgeMap & cost )
 int main()
 {
  rnd.seed( 20261103 );
- const int sizes[][ 2 ] = { { 0 , 0 } ,   { 1 , 0 } ,  { 0 , 1 } ,   { 1 ,
-   1 } ,
-			    { 3 , 5 } ,   { 5 , 3 } ,  { 10 , 10 } , { 20 ,
-			    35 } ,
+ const int sizes[][ 2 ] = { { 0 , 0 } ,   { 1 , 0 } ,  { 0 , 1 } ,
+			    { 1 , 1 } ,
+			    { 3 , 5 } ,   { 5 , 3 } ,  { 10 , 10 } ,
+			    { 20 , 35 } ,
 			    { 40 , 25 } , { 60 , 60 } };
  const double densities[] = { .02 , .1 , .3 , .7 };
  for( const auto & size : sizes ) {

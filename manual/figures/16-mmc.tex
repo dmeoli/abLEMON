@@ -1,0 +1,37 @@
+% The digraph of the example of chapter 16: two strongly connected
+% components (the tinted regions), the cycle 0-1-2 of minimum mean 2 of the
+% first one, and the cycle 4-5-6 of mean 4/3, the minimum mean cycle of the
+% digraph. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex-touched] (n0) at (0,0) {0};
+  \node[vertex-touched] (n1) at (20mm,18mm) {1};
+  \node[vertex-touched] (n2) at (20mm,-18mm) {2};
+  \node[vertex] (n3) at (40mm,0) {3};
+  \node[vertex-added] (n4) at (72mm,0) {4};
+  \node[vertex-added] (n5) at (92mm,18mm) {5};
+  \node[vertex-added] (n6) at (92mm,-18mm) {6};
+  \begin{scope}[on background layer]
+    \node[region,fit=(n0)(n1)(n2)(n3),inner sep=2.5mm] {};
+    \node[region,fit=(n4)(n5)(n6),inner sep=2.5mm] {};
+  \end{scope}
+  \draw[arc-touched] (n0) -- node[label] {2} (n1);
+  \draw[arc-touched] (n1) -- node[label,pos=0.3] {3} (n2);
+  \draw[arc-touched] (n2) -- node[label] {1} (n0);
+  \draw[arc] (n1) -- node[label] {1} (n3);
+  \draw[arc] (n3) to[bend left=10] node[label,pos=0.35] {4} (n0);
+  \draw[arc] (n2) -- node[label] {5} (n3);
+  \draw[arc] (n3) -- node[label] {$-6$} (n4);
+  \draw[arc-added] (n4) to[bend left=14] node[label] {2} (n5);
+  \draw[arc] (n5) to[bend left=14] node[label] {3} (n4);
+  \draw[arc-added] (n5) -- node[label] {1} (n6);
+  \draw[arc-added] (n6) -- node[label] {1} (n4);
+\end{tikzpicture}
+\end{document}

@@ -318,5 +318,58 @@ int main()
 	 "Wrong bipartitePartitions()" );
   }
 
+ // biNodeConnectedCutNodes() writes the map and does not read it: on a
+ // path a - b - c, with the map true everywhere on entry, it counts b
+ {
+  ListGraph g;
+  ListGraph::Node a = g.addNode() , b = g.addNode() , c = g.addNode();
+  g.addEdge( a , b );
+  g.addEdge( b , c );
+  ListGraph::NodeMap< bool > cut( g , true );
+  check( biNodeConnectedCutNodes( g , cut ) == 1 && cut[ b ] ,
+	 "Wrong cut nodes with a map true on entry" );
+  }
+
+ // a loop makes no node a cut node: neither a single node, nor an end of
+ // an edge, nor the middle of a path, which is one for the path itself
+ {
+  ListGraph g;
+  ListGraph::Node a = g.addNode();
+  g.addEdge( a , a );
+  ListGraph::NodeMap< bool > cut( g , false );
+  check( biNodeConnectedCutNodes( g , cut ) == 0 && ! cut[ a ] ,
+	 "A loop on a single node makes it a cut node" );
+  ListGraph::Node b = g.addNode();
+  g.addEdge( a , b );
+  check( biNodeConnectedCutNodes( g , cut ) == 0 && ! cut[ a ] ,
+	 "A loop on the end of an edge makes it a cut node" );
+  ListGraph::Node c = g.addNode();
+  g.addEdge( b , c );
+  g.addEdge( b , b );
+  check( biNodeConnectedCutNodes( g , cut ) == 1 && cut[ b ] && ! cut[ a ] &&
+	   ! cut[ c ] ,
+	 "Wrong cut nodes with loops" );
+  }
+
+ // a single loop is not parallel to itself, two loops at a node are
+ {
+  ListGraph g;
+  ListGraph::Node a = g.addNode() , b = g.addNode();
+  g.addEdge( a , b );
+  g.addEdge( a , a );
+  check( parallelFree( g ) , "A loop is parallel to itself" );
+  check( ! simpleGraph( g ) , "A graph with a loop is simple" );
+  g.addEdge( a , a );
+  check( ! parallelFree( g ) , "Two loops at a node are not parallel" );
+
+  ListDigraph d;
+  ListDigraph::Node u = d.addNode() , v = d.addNode();
+  d.addArc( u , v );
+  d.addArc( u , u );
+  check( parallelFree( d ) , "A loop arc is parallel to itself" );
+  d.addArc( u , u );
+  check( ! parallelFree( d ) , "Two loop arcs at a node are not parallel" );
+  }
+
  return( 0 );
  }

@@ -76,9 +76,15 @@ class BfsLeaveOrder : public BfsVisitor< G >
 
 ///%VF2 algorithm class.
 
-///\ingroup graph_isomorphism This class provides an efficient
+///\ingroup graph_isomorphism
+///This class provides an efficient
 ///implementation of the %VF2 algorithm \cite cordella2004sub
 ///for variants of the (Sub)graph Isomorphism problem.
+///
+///Both graphs must be simple, i.e., without loops and parallel edges:
+///the algorithm takes the neighbours of a node from its incident edges,
+///and on a graph with parallel edges it may report a mapping more than
+///once.
 ///
 ///There is also a \ref vf2() "function-type interface" called \ref vf2()
 ///for the %VF2 algorithm, which is probably more convenient in most
@@ -89,7 +95,7 @@ class BfsLeaveOrder : public BfsVisitor< G >
 ///\tparam G2 The type of the graph g1 will be embedded into.
 ///The default type is \ref ListGraph.
 ///\tparam M The type of the NodeMap storing the mapping.
-///By default, it is G1::NodeMap<typename G2::Node>
+///By default, it is G1::NodeMap< typename G2::Node >
 ///\tparam NEQ A bool-valued binary functor determinining whether a node is
 ///mappable to another. By default, it is an always-true operator.
 ///
@@ -400,6 +406,9 @@ class Vf2
    case INDUCED:
     return( extMatch< INDUCED >() );
    case ISOMORPH:
+    // an isomorphism needs as many nodes in the two graphs
+    if( _depth == 0 && countNodes( _g1 ) != countNodes( _g2 ) )
+     return( false );
     return( extMatch< ISOMORPH >() );
    default:
     return( false );
@@ -642,7 +651,7 @@ class Vf2Wizard : public TR
 ///The following examples show how to use these parameters.
 ///\code
 /// // Find an embedding of graph g1 into graph g2
-/// ListGraph::NodeMap< ListGraph::Node > m( g );
+/// ListGraph::NodeMap< ListGraph::Node > m( g1 );
 /// vf2( g1 , g2 ).mapping( m ).run();
 ///
 /// // Check whether graphs g1 and g2 are isomorphic
@@ -660,7 +669,7 @@ class Vf2Wizard : public TR
 /// while( myVf2->find() ) {
 ///  //process the current mapping m
 ///  }
-/// delete myVf22;
+/// delete myVf2;
 ///\endcode
 ///\warning Don't forget to put the \ref Vf2Wizard::run() "run()",
 ///\ref Vf2Wizard::count() "count()" or

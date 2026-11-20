@@ -5,7 +5,7 @@
 #   makefile of the tests of LEMON                                           #
 #                                                                            #
 #   Builds the tests that CMake builds (the ones of the LP and MIP solvers   #
-#   excepted), and runs them with                                            #
+#   and of the tools excepted), and runs them with                           #
 #                                                                            #
 #       make check                                                           #
 #                                                                            #
@@ -18,14 +18,19 @@
 TESTS = adaptors_test arc_look_up_test bellman_ford_test bfs_test \
 	bipartite_matching_test bpgraph_test circulation_test \
 	concept_check_test connectivity_test counter_test dfs_test \
-	digraph_test dijkstra_test dim_test edge_case_test edge_set_test \
-	error_test euler_test fractional_matching_test gomory_hu_test \
-	graph_copy_test graph_test graph_utils_test hao_orlin_test heap_test \
+	digraph_test dijkstra_test dim_test dimacs_test edge_case_test \
+	edge_set_test \
+	elevator_test error_test euler_test fractional_matching_test \
+	gomory_hu_test graph_copy_test graph_test graph_to_eps_test \
+	graph_utils_test \
+	hao_orlin_test heap_test \
 	k_best_flows_test kruskal_test lgf_reader_writer_test lgf_test \
-	macro_test maps_test matching_test max_cardinality_search_test \
+	lp_skeleton_test macro_test maps_test matching_test \
+	max_cardinality_search_test \
 	max_clique_test max_flow_test min_cost_arborescence_test \
 	min_cost_flow_battery_test min_cost_flow_test min_mean_cycle_test \
-	nagamochi_ibaraki_test path_test point_to_point_test planarity_test \
+	nagamochi_ibaraki_test nauty_reader_test path_test \
+	point_to_point_test planarity_test \
 	radix_sort_test random_test suurballe_test time_measure_test \
 	tomita_seki_mc_test tsp_test unionfind_test vf2_test
 
@@ -86,6 +91,10 @@ $(TESTS): %: $(DIR)/%.o $(LEMONOBJ)
 
 $(DIR)/%.o: $(DIR)/%.cc $(DIR)/test_tools.h $(LEMONH)
 	$(CC) -c $< -o $@ $(LEMONINC) $(SW)
+
+# the elevators with the checks of the standard library on their vectors,
+# where the library has them (a macro that no other library reads)
+$(DIR)/elevator_test.o: SW += -D_GLIBCXX_ASSERTIONS
 
 # phony targets - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

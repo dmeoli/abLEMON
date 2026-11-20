@@ -123,6 +123,7 @@ class GrossoLocatelliPullanMc
  // Search options
  bool _delta_based_restart;
  int _restart_delta_limit;
+ int _penalty_delay;
 
  // Search limits
  int _iteration_limit;
@@ -145,8 +146,13 @@ class GrossoLocatelliPullanMc
  // The current tabu set
  BoolVector _tabu;
 
- // Random number generator
- Random _rnd;
+ // Random number generator: _rnd is the global one, or _own_rnd
+ Random _own_rnd;
+ Random & _rnd;
+
+ // not copyable, since _rnd may refer to _own_rnd
+ GrossoLocatelliPullanMc( const GrossoLocatelliPullanMc & );
+ GrossoLocatelliPullanMc & operator=( const GrossoLocatelliPullanMc & );
 
  private:
  // Implementation of the RANDOM node selection rule.
@@ -324,12 +330,14 @@ class GrossoLocatelliPullanMc
   // Pivot rule data
   int _n;
   IntVector _penalty;
+  int _delay , _updates;
 
   public:
   // Constructor
   PenaltyBasedSelectionRule( GrossoLocatelliPullanMc & mc )
       : _clique( mc._clique ) , _delta( mc._delta ) , _tabu( mc._tabu ) ,
-	_rnd( mc._rnd ) , _n( mc._n ) , _penalty( _n , 0 ) { }
+	_rnd( mc._rnd ) , _n( mc._n ) , _penalty( _n , 0 ) ,
+	_delay( mc._penalty_delay ) , _updates( 0 ) { }
 
   // Return a node index for a feasible add move or -1 if no one exists
   int nextFeasibleAddNode() const {
@@ -390,8 +398,21 @@ class GrossoLocatelliPullanMc
    return( node );
    }
 
-  // Update internal data structures between stages (if necessary)
-  void update() { }
+  // Update the penalties between stages, as DLS-MC does (Pullan and Hoos,
+  // 2006): those of the nodes of the current clique increase by one, and
+  // every _delay updates all the positive ones decrease by one
+  void update() {
+   for( int i = 0 ; i != _n ; i++ ) {
+    if( _clique[ i ] )
+     ++_penalty[ i ];
+    }
+   if( ++_updates % _delay == 0 ) {
+    for( int i = 0 ; i != _n ; i++ ) {
+     if( _penalty[ i ] > 0 )
+      --_penalty[ i ];
+     }
+    }
+   }
 
   };  //class PenaltyBasedSelectionRule
 
@@ -416,7 +437,7 @@ class GrossoLocatelliPullanMc
  /// \param seed Seed value for the internal random number generator
  /// that is used during the algorithm.
  GrossoLocatelliPullanMc( const GR & graph , int seed )
-     : _graph( graph ) , _id( _graph ) , _rnd( seed ) {
+     : _graph( graph ) , _id( _graph ) , _own_rnd( seed ) , _rnd( _own_rnd ) {
   initOptions();
   }
 
@@ -425,10 +446,11 @@ class GrossoLocatelliPullanMc
  /// Constructor with random number generator.
  ///
  /// \param graph The undirected graph the algorithm runs on.
- /// \param random A random number generator that is used during the
- /// algorithm.
+ /// \param random A random number generator, a copy of which is used
+ /// during the algorithm.
  GrossoLocatelliPullanMc( const GR & graph , const Random & random )
-     : _graph( graph ) , _id( _graph ) , _rnd( random ) {
+     : _graph( graph ) , _id( _graph ) , _own_rnd( random ) ,
+       _rnd( _own_rnd ) {
   initOptions();
   }
 
@@ -464,6 +486,25 @@ class GrossoLocatelliPullanMc
  /// \sa sizeLimit(int)
  GrossoLocatelliPullanMc & iterationLimit( int limit ) {
   _iteration_limit = limit;
+  return( *this );
+  }
+
+ /// \brief Sets the penalty delay of the PENALTY_BASED rule.
+ ///
+ /// This function sets the penalty delay \e pd of the PENALTY_BASED rule,
+ /// which updates the penalties after each iteration as DLS-MC does
+ /// (Pullan and Hoos, 2006): the penalties of the nodes of the current
+ /// clique increase by one, and every \e pd iterations all the positive
+ /// penalties decrease by one. With \e pd = 1 an increase is undone at once,
+ /// and the rule selects as RANDOM does; larger values keep the nodes of
+ /// the recent cliques out of the next ones for longer. The best value
+ /// depends on the graph (DLS-MC uses values from 1 to about 50).
+ ///
+ /// The default value is \c 2.
+ ///
+ /// \return <tt>(*this)</tt>
+ GrossoLocatelliPullanMc & penaltyDelay( int pd ) {
+  _penalty_delay = pd > 0 ? pd : 1;
   return( *this );
   }
 
@@ -663,6 +704,7 @@ class GrossoLocatelliPullanMc
   // Search options
   _delta_based_restart = true;
   _restart_delta_limit = 4;
+  _penalty_delay = 2;
 
   // Search limits
   _iteration_limit = 1000;

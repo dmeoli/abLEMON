@@ -1,0 +1,29 @@
+% The minimum spanning tree found by Kruskal's algorithm (sec. 11.1) on
+% the graph of the example 11-kruskal.cc: the edges of the tree, of total
+% cost 17, and the cost of each edge. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex] (v0) at (0,0) {0};
+  \node[vertex] (v1) at (22mm,14mm) {1};
+  \node[vertex] (v2) at (22mm,-14mm) {2};
+  \node[vertex] (v3) at (48mm,14mm) {3};
+  \node[vertex] (v4) at (48mm,-14mm) {4};
+  \node[vertex] (v5) at (70mm,0) {5};
+  \draw[edge] (v0) -- node[label] {4} (v1);
+  \draw[edge-added] (v0) -- node[label] {1} (v2);
+  \draw[edge-added] (v1) -- node[label] {2} (v2);
+  \draw[edge-added] (v1) -- node[label] {5} (v3);
+  \draw[edge] (v2) -- node[label,pos=0.3] {8} (v3);
+  \draw[edge] (v2) -- node[label] {9} (v4);
+  \draw[edge-added] (v3) -- node[label] {3} (v4);
+  \draw[edge-added] (v3) -- node[label] {6} (v5);
+  \draw[edge] (v4) -- node[label] {7} (v5);
+\end{tikzpicture}
+\end{document}

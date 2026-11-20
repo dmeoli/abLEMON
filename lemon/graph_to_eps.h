@@ -23,14 +23,11 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <memory>
 #include <vector>
 
-#ifndef LEMON_WIN32
-#include <sys/time.h>
+#include <chrono>
 #include <ctime>
-#else
-#include <lemon/bits/windows.h>
-#endif
 
 #include <lemon/math.h>
 #include <lemon/core.h>
@@ -69,7 +66,7 @@ class _NegY
 
 ///Default traits class of \ref GraphToEps.
 ///
-///\param GR is the type of the underlying graph.
+///\tparam GR is the type of the underlying graph.
 template< class GR >
 struct DefaultGraphToEpsTraits
 {
@@ -88,7 +85,7 @@ struct DefaultGraphToEpsTraits
  std::ostream & os;
 
  typedef ConstMap< typename Graph::Node ,
-   dim2::Point< double > > CoordsMapType;
+		   dim2::Point< double > > CoordsMapType;
  CoordsMapType _coords;
  ConstMap< typename Graph::Node , double > _nodeSizes;
  ConstMap< typename Graph::Node , int > _nodeShapes;
@@ -124,6 +121,10 @@ struct DefaultGraphToEpsTraits
  bool _undirected;
 
  bool _pleaseRemoveOsStream;
+ // the owner of os when _pleaseRemoveOsStream is set, shared by the copies
+ // of the traits that the named parameters make, which deletes os with the
+ // last of them, whether run() is called or not
+ std::shared_ptr< std::ostream > _osOwner;
 
  bool _scaleToA4;
 
@@ -167,11 +168,12 @@ struct DefaultGraphToEpsTraits
        _nodeTexts( false ) , _nodeTextSize( 1 ) , _showNodePsText( false ) ,
        _nodePsTexts( false ) , _nodePsTextsPreamble( 0 ) ,
        _undirected( lemon::UndirectedTagIndicator< GR >::value ) ,
-       _pleaseRemoveOsStream( pros ) , _scaleToA4( false ) ,
-       _nodeTextColorType( SAME_COL ) , _nodeTextColors( BLACK ) ,
-       _autoNodeScale( false ) , _autoArcWidthScale( false ) ,
-       _absoluteNodeSizes( false ) , _absoluteArcWidths( false ) ,
-       _negY( false ) , _preScale( true ) { }
+       _pleaseRemoveOsStream( pros ) ,
+       _osOwner( pros ? &ost : static_cast< std::ostream * >( 0 ) ) ,
+       _scaleToA4( false ) , _nodeTextColorType( SAME_COL ) ,
+       _nodeTextColors( BLACK ) , _autoNodeScale( false ) ,
+       _autoArcWidthScale( false ) , _absoluteNodeSizes( false ) ,
+       _absoluteArcWidths( false ) , _negY( false ) , _preScale( true ) { }
  };
 
 ///Auxiliary class to implement the named parameters of \ref graphToEps()
@@ -764,17 +766,14 @@ class GraphToEps : public T
 
   {
    os << "%%CreationDate: ";
-#ifndef LEMON_WIN32
-   timeval tv;
-   gettimeofday( &tv , 0 );
-
-   char cbuf[ 26 ];
-   ctime_r( &tv.tv_sec , cbuf );
-   os << cbuf;
-#else
-   os << bits::getWinFormattedDate();
-   os << std::endl;
-#endif
+   std::time_t t = std::chrono::system_clock::to_time_t(
+				       std::chrono::system_clock::now() );
+   char cbuf[ 32 ];
+   if( std::strftime( cbuf , sizeof( cbuf ) , "%a %b %d %H:%M:%S %Y" ,
+		      std::localtime( &t ) ) )
+    os << cbuf << '\n';
+   else
+    os << "unknown\n";
    }
 
   if( _autoArcWidthScale ) {
@@ -842,10 +841,12 @@ class GraphToEps : public T
    os << "%%BoundingBox: 0 0 596 842\n%%DocumentPaperSizes: a4\n";
   else {
    if( _preScale ) {
-    //Rescale so that BoundingBox won't be neither to big nor too small.
+    //Rescale so that BoundingBox won't be neither to big nor too small;
+    //a side of length 0 stays 0 at any scale, and is not looked at.
     while( bb.height() * _scale > 1000 || bb.width() * _scale > 1000 )
      _scale /= 10;
-    while( bb.height() * _scale < 100 || bb.width() * _scale < 100 )
+    while( ( bb.height() > 0 && bb.height() * _scale < 100 ) ||
+	   ( bb.width() > 0 && bb.width() * _scale < 100 ) )
      _scale *= 10;
     }
 
@@ -1158,9 +1159,9 @@ class GraphToEps : public T
 
   os << "grestore\nshowpage\n";
 
-  //CleanUp:
+  // the stream is deleted with the last copy of the traits
   if( _pleaseRemoveOsStream ) {
-   delete &os;
+   os.flush();
    }
   }
 

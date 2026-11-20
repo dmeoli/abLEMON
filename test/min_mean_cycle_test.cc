@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include <lemon/concepts/min_mean_cycle.h>
 #include <lemon/smart_graph.h>
@@ -60,7 +61,6 @@ char test_lgf[] = "@nodes\n"
 		  "6 4   -1   -1   -1   -1   0  0  0  0\n"
 		  "6 7    1    1    1    1   0  0  0  0\n"
 		  "7 7    4    4    4   -1   0  0  0  1\n";
-
 
 
 // Perform a test with the given parameters
@@ -119,8 +119,8 @@ int main()
 
   // HartmannOrlinMmc
   checkConcept< concepts::MinMeanCycle< GR , int > ,
-		HartmannOrlinMmc< GR , concepts::ReadMap< GR::Arc ,
-    int > > >();
+		HartmannOrlinMmc< GR ,
+				  concepts::ReadMap< GR::Arc , int > > >();
   checkConcept<
     concepts::MinMeanCycle< GR , float > ,
     HartmannOrlinMmc< GR , concepts::ReadMap< GR::Arc , float > > >();
@@ -136,8 +136,8 @@ int main()
 	     long_int >::result == 1 ) ,
 	 "Wrong LargeCost type" );
   check( ( IsSameType<
-	     HowardMmc< GR , concepts::ReadMap< GR::Arc ,
-	float > >::LargeCost ,
+	     HowardMmc< GR ,
+			concepts::ReadMap< GR::Arc , float > >::LargeCost ,
 	     double >::result == 1 ) ,
 	 "Wrong LargeCost type" );
   }
@@ -185,10 +185,56 @@ int main()
   HowardMmc< GR , IntArcMap > mmc( gr , l1 );
   check(
     ( mmc.findCycleMean( 2 ) == HowardMmc< GR ,
-      IntArcMap >::ITERATION_LIMIT ) ,
+					   IntArcMap >::ITERATION_LIMIT ) ,
     "Wrong termination cause" );
   check( ( mmc.findCycleMean( 4 ) == HowardMmc< GR , IntArcMap >::OPTIMAL ) ,
 	 "Wrong termination cause" );
+  }
+
+ // Howard stopped by its limit at the start of a component keeps no cycle
+ // of it: the cycle of the component before was kept a second time
+ {
+  typedef SmartDigraph GR;
+  DIGRAPH_TYPEDEFS( GR );
+  GR gr;
+  IntArcMap cost( gr );
+  for( int k = 0 ; k < 3 ; ++k ) {  // three loops, one per component
+   Node u = gr.addNode();
+   cost[ gr.addArc( u , u ) ] = k + 1;
+   }
+  HowardMmc< GR , IntArcMap > mmc( gr , cost );
+  mmc.findCycleMean( 1 );
+  for( int i = 0 ; i < mmc.componentCycleNum() ; ++i )
+   for( int j = 0 ; j < i ; ++j )
+    check( mmc.componentCycleCost( i ) != mmc.componentCycleCost( j ) ,
+	   "The same cycle kept for two components" );
+  check( mmc.componentCycleNum() <= 1 , "Cycles kept beyond the limit" );
+  }
+
+ // HartmannOrlin with integer costs checks early termination before all
+ // the nodes are reached: the potentials of the others are the largest
+ // value, and their differences overflowed and passed the test
+ {
+  typedef SmartDigraph GR;
+  DIGRAPH_TYPEDEFS( GR );
+  GR gr;
+  IntArcMap cost( gr ) , cyc( gr , 0 );
+  const int ring[] = { -28 , -42 , -65 , 4 , -1 , 60 , 78 , 39 , 89 , -17 ,
+		       -39 };
+  const int n = 11;
+  std::vector< Node > nodes;
+  for( int i = 0 ; i < n ; ++i )
+   nodes.push_back( gr.addNode() );
+  for( int i = 0 ; i < n ; ++i ) {
+   Arc a = gr.addArc( nodes[ i ] , nodes[ ( i + 1 ) % n ] );
+   cost[ a ] = ring[ i ];
+   cyc[ a ] = 1;
+   }
+  cost[ gr.addArc( nodes[ 6 ] , nodes[ 4 ] ) ] = 30;
+  checkMmcAlg< KarpMmc< GR , IntArcMap > >( gr , cost , cyc , 78 , 11 );
+  checkMmcAlg< HartmannOrlinMmc< GR , IntArcMap > >( gr , cost , cyc , 78 ,
+						     11 );
+  checkMmcAlg< HowardMmc< GR , IntArcMap > >( gr , cost , cyc , 78 , 11 );
   }
 
  return( 0 );

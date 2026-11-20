@@ -18,6 +18,7 @@
 
 #include <lemon/dim2.h>
 #include <iostream>
+#include <sstream>
 #include "test_tools.h"
 
 using namespace std;
@@ -81,6 +82,19 @@ int main()
  check( ! box1.empty() && box1.left() == 1 && box1.bottom() == 0 &&
 	  box1.right() == 5 && box1.top() == 4 ,
 	"Wrong addition of two dim2::Box objects." );
+
+ // a box read from a stream is the box of its two corners, not an empty
+ // one whose corners were set
+ {
+  std::istringstream in( "((1,2),(3,4))" );
+  dim2::Box< int > rb;
+  in >> rb;
+  check( ! rb.empty() && rb.bottomLeft() == dim2::Point< int >( 1 , 2 ) &&
+	   rb.topRight() == dim2::Point< int >( 3 , 4 ) ,
+	 "Wrong box read from a stream." );
+  check( rb.inside( dim2::Point< int >( 2 , 3 ) ) ,
+	 "Wrong inside() of a box read from a stream." );
+  }
 
  return( 0 );
  }

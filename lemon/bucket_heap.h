@@ -62,7 +62,8 @@ struct DirectionTraits< false >
 /// in the range <tt>[0..C)</tt>. So it should only be used when the
 /// priorities are small. It is not intended to use as a Dijkstra heap.
 ///
-/// \tparam IM A read-writable item map with \c int values, used
+/// \tparam IM A reference item map with \c int values (one whose
+/// \c operator[] gives a reference, which the heap writes through), used
 /// internally to handle the cross references.
 /// \tparam MIN Indicate if the heap is a \e min-heap or a \e max-heap.
 /// The default is \e min-heap. If this parameter is set to \c false,
@@ -383,7 +384,8 @@ class BucketHeap
 /// \ref concepts::Heap "heap concept" due to the lack of some
 /// functionality.
 ///
-/// \tparam IM A read-writable item map with \c int values, used
+/// \tparam IM A reference item map with \c int values (one whose
+/// \c operator[] gives a reference, which the heap writes through), used
 /// internally to handle the cross references.
 /// \tparam MIN Indicate if the heap is a \e min-heap or a \e max-heap.
 /// The default is \e min-heap. If this parameter is set to \c false,

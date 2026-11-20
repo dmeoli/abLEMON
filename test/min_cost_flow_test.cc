@@ -21,6 +21,7 @@
 #include <fstream>
 #include <limits>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <lemon/concepts/min_cost_flow.h>
@@ -142,8 +143,6 @@ Digraph::NodeMap< int > neg2_s( neg2_gr );
 enum SupplyType { EQ , GEQ , LEQ };
 
 
-
-
 // Check the feasibility of the given flow (primal soluiton)
 template< typename GR , typename LM , typename UM , typename SM , typename FM >
 bool checkFlow( const GR & gr , const LM & lower , const UM & upper ,
@@ -207,7 +206,10 @@ bool checkPotential( const GR & gr , const LM & lower , const UM & upper ,
  return( opt );
  }
 
-// Check whether the dual cost is equal to the primal cost
+// Check whether the dual cost is equal to the primal cost: on an integer
+// type the sum is taken in the unsigned type of the same width, modulo
+// 2^n, since the potentials that the artificial arcs of NetworkSimplex give
+// under GEQ and LEQ (about -2^62) make terms that overflow and cancel
 template< typename GR , typename LM , typename UM , typename CM , typename SM ,
 	  typename PM >
 bool checkDualCost( const GR & gr , const LM & lower , const UM & upper ,
@@ -215,41 +217,46 @@ bool checkDualCost( const GR & gr , const LM & lower , const UM & upper ,
 		    typename CM::Value total )
 {
  TEMPLATE_DIGRAPH_TYPEDEFS( GR );
+ typedef typename CM::Value V;
+ typedef typename std::conditional< std::is_integral< V >::value ,
+				    std::make_unsigned< V > ,
+				    std::common_type< V > >::type::type Acc;
 
- typename CM::Value dual_cost = 0;
+ Acc dual_cost = 0;
  SM red_supply( gr );
  for( NodeIt n( gr ) ; n != INVALID ; ++n ) {
   red_supply[ n ] = supply[ n ];
   }
  for( ArcIt a( gr ) ; a != INVALID ; ++a ) {
   if( lower[ a ] != 0 ) {
-   dual_cost += lower[ a ] * cost[ a ];
+   dual_cost += Acc( lower[ a ] ) * Acc( cost[ a ] );
    red_supply[ gr.source( a ) ] -= lower[ a ];
    red_supply[ gr.target( a ) ] += lower[ a ];
    }
   }
 
  for( NodeIt n( gr ) ; n != INVALID ; ++n ) {
-  dual_cost -= red_supply[ n ] * pi[ n ];
+  dual_cost -= Acc( red_supply[ n ] ) * Acc( pi[ n ] );
   }
  for( ArcIt a( gr ) ; a != INVALID ; ++a ) {
-  typename CM::Value red_cost =
-    cost[ a ] + pi[ gr.source( a ) ] - pi[ gr.target( a ) ];
-  dual_cost -= ( upper[ a ] - lower[ a ] ) *
-	       std::max( -red_cost , typename CM::Value( 0 ) );
+  V red_cost = cost[ a ] + ( pi[ gr.source( a ) ] - pi[ gr.target( a ) ] );
+  // only where the reduced cost is negative, which an arc whose width
+  // overflows (an infinite bound) never has at the optimum
+  if( red_cost < 0 )
+   dual_cost += Acc( upper[ a ] - lower[ a ] ) * Acc( red_cost );
   }
 
- return( dual_cost == total );
+ return( dual_cost == Acc( total ) );
  }
 
 // Run a minimum cost flow algorithm and check the results
 template< typename MCF , typename GR , typename LM , typename UM ,
-  typename CM ,
+	  typename CM ,
 	  typename SM , typename PT >
 void checkMcf( const MCF & mcf , PT mcf_result , const GR & gr ,
 	       const LM & lower ,
 	       const UM & upper , const CM & cost , const SM & supply ,
-	  PT result ,
+	       PT result ,
 	       bool optimal , typename CM::Value total ,
 	       const std::string & test_id = "" , SupplyType type = EQ )
 {
@@ -505,7 +512,8 @@ void checkAgainstNetworkSimplex( int seeds , const std::string & name )
 
 // The supply type LEQ, which only NetworkSimplex has
 template< typename MCF >
-void setLeq( MCF & , bool ) {}
+void setLeq( MCF & , bool )
+{ }
 template< typename GR , typename V , typename C >
 void setLeq( NetworkSimplex< GR , V , C > & mcf , bool leq )
 {
@@ -818,7 +826,7 @@ void checkTolerances( const std::string & name )
  MCF exact( g ) , loose( g ) , dflt( g );
  exact.costMap( cost ).upperMap( cap ).supplyMap( sup ).tolerances( 0 , 0 );
  loose.costMap( cost ).upperMap( cap ).supplyMap( sup ).tolerances( 1e-12 ,
-								   1e-12 );
+								    1e-12 );
  dflt.costMap( cost ).upperMap( cap ).supplyMap( sup );
  check( exact.run() == MCF::INFEASIBLE ,
 	"Wrong result with a tolerance of zero: " + name );
@@ -830,13 +838,33 @@ void checkTolerances( const std::string & name )
 	"Wrong result with the tolerances of the algorithm: " + name );
  }
 
+// A cycle of arcs of infinite capacity whose costs -0.1, -0.2 and 0.3 sum
+// to zero in decimal and to -5.55e-17 in binary is a cycle of cost zero,
+// and the problem is optimal of cost zero, as for NetworkSimplex, rather
+// than unbounded
+template< typename MCF >
+void checkZeroInfiniteCycle( const std::string & name )
+{
+ SmartDigraph g;
+ SmartDigraph::Node a = g.addNode() , b = g.addNode() , c = g.addNode();
+ SmartDigraph::ArcMap< double > cost( g );
+ cost[ g.addArc( a , b ) ] = -0.1;
+ cost[ g.addArc( b , c ) ] = -0.2;
+ cost[ g.addArc( c , a ) ] = 0.3;
+ SmartDigraph::NodeMap< double > sup( g , 0.0 );
+ MCF mcf( g );
+ mcf.costMap( cost ).supplyMap( sup );
+ check( mcf.run() == MCF::OPTIMAL && std::abs( mcf.totalCost() ) < 1e-12 ,
+	"Wrong result on a cycle of cost zero: " + name );
+ }
+
 // CostScaling with floating-point costs and an integer LargeCost, as an
 // interface that scales its costs to integers sets it: the scaling ends
 // at epsilon one, and the flow is that of NetworkSimplex
 void checkIntegerLargeCost( int seeds )
 {
- typedef CostScaling< SmartDigraph , double , double >::SetLargeCost<
-   long long >::Create CS;
+ typedef CostScaling< SmartDigraph , double ,
+		      double >::SetLargeCost< long long >::Create CS;
  typedef NetworkSimplex< SmartDigraph , double , double > NS;
  unsigned int r = 628;
  for( int seed = 0 ; seed != seeds ; ++seed ) {
@@ -857,8 +885,8 @@ void checkIntegerLargeCost( int seeds )
   ns.lowerMap( low ).upperMap( up ).costMap( cost ).supplyMap( sup );
   const int rc = int( cs.run() ) , rn = int( ns.run() );
   const std::string id = "instance " + std::to_string( seed );
-  check( rc == rn , "Wrong result of CostScaling with integer LargeCost on " +
-		      id );
+  check( rc == rn ,
+	 "Wrong result of CostScaling with integer LargeCost on " + id );
   if( rn == int( NS::OPTIMAL ) )
    check( cs.totalCost() == ns.totalCost() ,
 	  "Wrong cost of CostScaling with integer LargeCost on " + id );
@@ -1063,11 +1091,11 @@ int main()
  // the chain has one feasible flow, of cost -99
  {
   const int sup[] = { 7 , -2 , -3 , 2 , 1 , 1 , -1 , 1 , 2 , 0 , -7 , 6 , 2 ,
-    -9 };
+		      -9 };
   const int cap[] = { 14 , 10 , 4 , 8 , 10 , 12 , 10 , 12 , 16 , 16 , 2 , 14 ,
-    18 };
+		      18 };
   const int cst[] = { -1 , -3 , 0 , 0 , -3 , -2 , -3 , -1 , 0 , 1 , -3 , -1 ,
-    -3 };
+		      -3 };
   SmartDigraph g;
   std::vector< SmartDigraph::Node > v( 14 );
   for( int i = 0 ; i != 14 ; ++i )
@@ -1112,17 +1140,26 @@ int main()
    500 , "CapacityScaling" );
  checkSupplyTypes( 500 );
  checkIntegerLargeCost( 300 );
- checkTolerances< NetworkSimplex< SmartDigraph , double > >(
-   "NetworkSimplex" );
+ checkTolerances< NetworkSimplex< SmartDigraph ,
+				  double > >( "NetworkSimplex" );
  checkTolerances< CostScaling< SmartDigraph , double > >( "CostScaling" );
- checkTolerances< CycleCanceling< SmartDigraph , double > >(
-   "CycleCanceling" );
+ checkTolerances< CycleCanceling< SmartDigraph ,
+				  double > >( "CycleCanceling" );
  checkTolerances< CapacityScaling< SmartDigraph , double > >(
+   "CapacityScaling" );
+ checkZeroInfiniteCycle< NetworkSimplex< SmartDigraph , double > >(
+   "NetworkSimplex" );
+ checkZeroInfiniteCycle< CostScaling< SmartDigraph , double > >(
+   "CostScaling" );
+ checkZeroInfiniteCycle< CycleCanceling< SmartDigraph , double > >(
+   "CycleCanceling" );
+ checkZeroInfiniteCycle< CapacityScaling< SmartDigraph , double > >(
    "CapacityScaling" );
  checkCertificates< NetworkSimplex< SmartDigraph , long , long > >(
    1000 , "NetworkSimplex" , true );
  checkCertificates< CostScaling< SmartDigraph , long > >( 1000 ,
-							"CostScaling" , false );
+							  "CostScaling" ,
+							 false );
  checkCertificates< CycleCanceling< SmartDigraph , long > >(
    1000 , "CycleCanceling" , false );
  checkCertificates< CapacityScaling< SmartDigraph , long > >(

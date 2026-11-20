@@ -1,0 +1,36 @@
+% The array of an Elevator (sec. 8.3): the items in the order of their
+% levels, the active items of each level first; first[l] points to the
+% first item of level l and lastActive[l] to its last active item, so that
+% activating, deactivating and lifting an item are swaps in the array.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \coordinate (o) at (0,0);
+  \cells{c}{o}{a/touched,b/cell,c/cell,d/touched,e/touched,f/cell,g/touched,
+               h/cell}
+  % the levels under the array
+  \foreach \from/\to/\lev in {0/2/0,3/5/1,6/6/2,7/7/3}{
+    \draw[guide] ($(c-\from.south west)+(0.6mm,-2mm)$) --
+                 ($(c-\to.south east)+(-0.6mm,-2mm)$);
+    \node[index] at ($(c-\from.south)!0.5!(c-\to.south)+(0,-4.5mm)$)
+      {\lev};
+  }
+  \node[index,anchor=east] at ($(c-0.south west)+(-1mm,-4.5mm)$) {level};
+  % the pointers of level 1, above the array
+  \node[var] (f1) at ($(c-3)+(-6mm,13mm)$) {first[1]};
+  \draw[ptr] (f1.south) -- (c-3.north);
+  \node[var] (l1) at ($(c-4)+(12mm,13mm)$) {lastActive[1]};
+  \draw[ptr] (l1.south) -- (c-4.north);
+  \node[label,anchor=west] at ($(c-7.east)+(4mm,0)$)
+    {\textcolor{ablPrimary}{$\blacksquare$} active};
+  \node[label,anchor=west] at ($(c-7.east)+(4mm,-5mm)$)
+    {\textcolor{ablTint}{$\blacksquare$} inactive};
+\end{tikzpicture}
+\end{document}

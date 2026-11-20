@@ -1,0 +1,34 @@
+% A pivot of the network simplex method (section 13.4): the spanning tree
+% of the basis hung from the root, the entering arc of negative reduced
+% cost, which closes a cycle with the tree path through the join node, and
+% the leaving arc, the first one of the cycle to reach a bound.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex-touched] (r) at (32mm,26mm) {r};
+  \node[vertex-touched] (u1) at (14mm,11mm) {1};
+  \node[vertex-touched] (u2) at (50mm,11mm) {2};
+  \node[vertex] (u3) at (0mm,-6mm) {3};
+  \node[vertex-touched] (u4) at (24mm,-6mm) {4};
+  \node[vertex-touched] (u5) at (40mm,-6mm) {5};
+  \node[vertex] (u6) at (64mm,-6mm) {6};
+  \node[var,above=1.5mm of r] {join};
+  \draw[arc-faded] (u1) -- node[label,pos=0.45] {leaves} (r);
+  \draw[arc-touched] (r) -- (u2);
+  \draw[arc] (u1) -- (u3);
+  \draw[arc-touched] (u4) -- (u1);
+  \draw[arc-touched] (u2) -- (u5);
+  \draw[arc] (u6) -- (u2);
+  \draw[arc-added] (u4) -- (u5);
+  \node[label,anchor=north] at (32mm,-11.5mm) {enters, $c^\pi<0$};
+  \draw[arc] (u3) -- (u4);
+  \draw[arc] (u5) -- (u6);
+\end{tikzpicture}
+\end{document}

@@ -121,8 +121,9 @@ class LpBase
   /// Default constructor
 
   /// \warning The default constructor sets the Col to an
-  /// undefined value.
-  Col() { }
+  /// undefined value (to the first one when it is value-initialized, e.g., by
+  /// \c Col()).
+  Col() = default;
   /// Invalid constructor \& conversion.
 
   /// This constructor initializes the Col to be invalid.
@@ -236,8 +237,9 @@ class LpBase
   /// Default constructor
 
   /// \warning The default constructor sets the Row to an
-  /// undefined value.
-  Row() { }
+  /// undefined value (to the first one when it is value-initialized, e.g., by
+  /// \c Row()).
+  Row() = default;
   /// Invalid constructor \& conversion.
 
   /// This constructor initializes the Row to be invalid.
@@ -421,8 +423,7 @@ class LpBase
   /// Sets the coefficient of the column
   void set( const Col & c , const Value & v ) {
    if( v != 0.0 ) {
-    typedef std::map< int , Value >::value_type pair_type;
-    comps.insert( pair_type( id( c ) , v ) );
+    comps[ id( c ) ] = v;
     }
    else {
     comps.erase( id( c ) );
@@ -601,8 +602,10 @@ class LpBase
  /// e <= s e <= f e == f s <= e <= t e >= t
  ///\endcode
  ///\warning The validity of a constraint is checked only at run
- ///time, so e.g. \ref addRow(<tt>x[1]\<=x[2]<=5</tt>) will
- ///compile, but will fail an assertion.
+ ///time, so e.g. \ref addRow() "addRow()" of <tt>(x[1]\<=5)\<=6</tt>,
+ ///which sets the upper bound twice, will compile, but will fail an
+ ///assertion, while <tt>x[1]\<=x[2]\<=5</tt> is the valid
+ ///constraint <tt>0\<=x[2]-x[1]\<=5</tt>.
  class Constr
  {
   public:
@@ -735,8 +738,7 @@ class LpBase
   /// Sets the coefficient of the row
   void set( const Row & r , const Value & v ) {
    if( v != 0.0 ) {
-    typedef std::map< int , Value >::value_type pair_type;
-    comps.insert( pair_type( id( r ) , v ) );
+    comps[ id( r ) ] = v;
     }
    else {
     comps.erase( id( r ) );
@@ -1298,10 +1300,10 @@ class LpBase
  Row addRow( Value l , const Expr & e , Value u ) {
   Row r;
   e.simplify();
-  r._id = _addRowId( _addRow( l - *e , ExprIterator( e.comps.begin() ,
-						     _cols ) ,
+  r._id = _addRowId( _addRow( l - *e ,
+			      ExprIterator( e.comps.begin() , _cols ) ,
 			      ExprIterator( e.comps.end() , _cols ) ,
-	   u - *e ) );
+			      u - *e ) );
   return( r );
   }
 
@@ -1648,6 +1650,7 @@ class LpBase
   _clear();
   _rows.clear();
   _cols.clear();
+  obj_const_comp = 0;
   }
 
  /// Set the message level of the solver
@@ -2060,10 +2063,10 @@ class LpSolver : virtual public LpBase
 
  /// Returns a component of the dual ray
 
- /// The dual ray is solution of the modified primal problem, where
- /// we change each finite bound to 0 (i.e. the objective function
- /// coefficients in the primal problem), and we looking for a
- /// ositive objective value. If there is such solution, that
+ /// The dual ray is solution of the modified dual problem, where
+ /// we change its right-hand sides (i.e. the objective function
+ /// coefficients in the primal problem) to 0, and we look for a
+ /// positive objective value. If there is such solution, that
  /// proofs the unsolvability of the primal problem, and if a
  /// feasible dual solution exists, then the unboundness of
  /// dual problem.

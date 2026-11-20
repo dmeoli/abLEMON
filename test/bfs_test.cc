@@ -225,9 +225,47 @@ void checkBfs()
   }
  }
 
+// run() without a source visits every component from distance 0: the
+// levels of a component must not continue those of the previous one.
+template< class Digraph >
+void checkBfsAllComponents()
+{
+ TEMPLATE_DIGRAPH_TYPEDEFS( Digraph );
+
+ // two components, each a path with its arcs in both directions, so that
+ // each search reaches the whole component from any of its nodes
+ Digraph G;
+ Node u[ 7 ];
+ for( int i = 0 ; i < 7 ; ++i )
+  u[ i ] = G.addNode();
+ for( int i = 0 ; i < 6 ; ++i ) {
+  if( i != 3 ) {
+   G.addArc( u[ i ] , u[ i + 1 ] );
+   G.addArc( u[ i + 1 ] , u[ i ] );
+   }
+  }
+
+ Bfs< Digraph > bfs_test( G );
+ bfs_test.run();
+ IntNodeMap dist( G );
+ bfs( G ).distMap( dist ).run();
+
+ for( NodeIt v( G ) ; v != INVALID ; ++v ) {
+  check( bfs_test.reached( v ) , "run() did not reach a node." );
+  int du = 0;
+  if( bfs_test.predArc( v ) != INVALID ) {
+   du = bfs_test.dist( bfs_test.predNode( v ) ) + 1;
+   }
+  check( bfs_test.dist( v ) == du , "run() found a wrong distance." );
+  check( dist[ v ] == du , "BfsWizard::run() found a wrong distance." );
+  }
+ }
+
 int main()
 {
  checkBfs< ListDigraph >();
  checkBfs< SmartDigraph >();
+ checkBfsAllComponents< ListDigraph >();
+ checkBfsAllComponents< SmartDigraph >();
  return( 0 );
  }

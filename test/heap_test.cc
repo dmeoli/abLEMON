@@ -22,6 +22,7 @@
 #include <vector>
 #include <set>
 #include <utility>
+#include <functional>
 
 #include <lemon/concept_check.h>
 #include <lemon/concepts/heap.h>
@@ -41,6 +42,7 @@
 #include <lemon/bucket_heap.h>
 
 #include "test_tools.h"
+#include "heap_test.h"
 
 using namespace lemon;
 using namespace lemon::concepts;
@@ -85,70 +87,10 @@ char test_lgf[] = "@nodes\n"
 		  "@attributes\n"
 		  "source 3\n";
 
-int test_seq[] = { 2 , 28 , 19 , 27 , 33 , 25 , 13 , 41 , 10 , 26 , 1 , 9 , 4 ,
-  34 };
-int test_inc[] = { 20 , 28 , 34 , 16 , 0 , 46 , 44 , 0 , 42 , 32 , 14 , 8 , 6 ,
-  37 };
-
-int test_len = sizeof( test_seq ) / sizeof( test_seq[ 0 ] );
-
-template< typename Heap >
-void heapSortTest()
-{
- RangeMap< int > map( test_len , -1 );
- Heap heap( map );
-
- std::vector< int > v( test_len );
- for( int i = 0 ; i < test_len ; ++i ) {
-  v[ i ] = test_seq[ i ];
-  heap.push( i , v[ i ] );
-  }
- std::sort( v.begin() , v.end() );
- for( int i = 0 ; i < test_len ; ++i ) {
-  check( v[ i ] == heap.prio() , "Wrong order in heap sort." );
-  heap.pop();
-  }
- }
-
-// Priorities of a floating-point type, many of them equal and many below
-// one: the heap has to give them back in order, ties and fractions included
-template< typename Heap >
-void heapTiesTest()
-{
- const int n = 200;
- RangeMap< int > map( n , -1 );
- Heap heap( map );
- std::vector< double > v( n );
- for( int i = 0 ; i < n ; ++i ) {
-  v[ i ] = ( ( i * 37 ) % 11 ) / 4.0;
-  heap.push( i , v[ i ] );
-  }
- std::sort( v.begin() , v.end() );
- for( int i = 0 ; i < n ; ++i ) {
-  check( ! heap.empty() , "Heap emptied too early." );
-  check( v[ i ] == heap.prio() , "Wrong order with ties and fractions." );
-  heap.pop();
-  }
- check( heap.empty() , "Heap not emptied." );
- }
-
-// Two items of equal priority, popped one after the other: a heap that
-// keeps a minimum which is no longer a root loops for ever on the second
-template< typename Heap >
-void heapEqualPairTest()
-{
- RangeMap< int > map( 2 , -1 );
- Heap heap( map );
- heap.push( 0 , 0 );
- heap.push( 1 , 0 );
- heap.pop();
- heap.pop();
- check( heap.empty() , "Heap not emptied after two equal priorities." );
- }
-
 // RadixHeap after the increase of trac #681, and against a sorted set on a
 // pseudo-random monotone sequence of push, pop, increase, decrease, set and
-// erase: the boxes that pop() rearranges must not overlap the next ones
+// erase: the boxes that pop() rearranges must not overlap the next ones;
+// an underflow must leave the heap as it was
 void radixHeapTest()
 {
  {
@@ -161,6 +103,45 @@ void radixHeapTest()
   heap.increase( 1 , 5 );
   check( heap.top() == 2 && heap.prio() == 4 ,
 	 "Wrong minimum after increase." );
+  }
+ {
+  // a priority below the first box throws and leaves the heap unchanged
+  typedef RadixHeap< RangeMap< int > > Heap;
+  RangeMap< int > map( 3 , -1 );
+  Heap heap( map );
+  heap.push( 0 , 5 );
+  heap.push( 1 , 7 );
+  heap.push( 2 , 9 );
+  heap.pop();
+  int thrown = 0;
+  try {
+   heap.push( 0 , 3 );
+   }
+  catch( const Heap::PriorityUnderflowError & ) {
+   ++thrown;
+   }
+  try {
+   heap.decrease( 1 , 2 );
+   }
+  catch( const Heap::PriorityUnderflowError & ) {
+   ++thrown;
+   }
+  try {
+   heap.set( 2 , 1 );
+   }
+  catch( const Heap::PriorityUnderflowError & ) {
+   ++thrown;
+   }
+  check( thrown == 3 , "No underflow in RadixHeap." );
+  check( heap.size() == 2 && heap.state( 0 ) == Heap::POST_HEAP ,
+	 "Wrong size after an underflow." );
+  check( heap[ 1 ] == 7 && heap[ 2 ] == 9 ,
+	 "Wrong priority after an underflow." );
+  check( heap.top() == 1 , "Wrong top after an underflow." );
+  heap.pop();
+  check( heap.top() == 2 , "Wrong top after an underflow." );
+  heap.pop();
+  check( heap.empty() , "Heap not emptied after an underflow." );
   }
  const int n = 40;
  RangeMap< int > map( n , -1 );
@@ -213,58 +194,6 @@ void radixHeapTest()
   }
  }
 
-template< typename Heap >
-void heapIncreaseTest()
-{
- RangeMap< int > map( test_len , -1 );
-
- Heap heap( map );
-
- std::vector< int > v( test_len );
- for( int i = 0 ; i < test_len ; ++i ) {
-  v[ i ] = test_seq[ i ];
-  heap.push( i , v[ i ] );
-  }
- for( int i = 0 ; i < test_len ; ++i ) {
-  v[ i ] += test_inc[ i ];
-  heap.increase( i , v[ i ] );
-  }
- std::sort( v.begin() , v.end() );
- for( int i = 0 ; i < test_len ; ++i ) {
-  check( v[ i ] == heap.prio() , "Wrong order in heap increase test." );
-  heap.pop();
-  }
- }
-
-template< typename Heap >
-void dijkstraHeapTest( const Digraph & digraph , const IntArcMap & length ,
-		       Node source )
-{
-
- typename Dijkstra< Digraph , IntArcMap >::template SetStandardHeap<
-   Heap >::Create dijkstra( digraph , length );
-
- dijkstra.run( source );
-
- for( ArcIt a( digraph ) ; a != INVALID ; ++a ) {
-  Node s = digraph.source( a );
-  Node t = digraph.target( a );
-  if( dijkstra.reached( s ) ) {
-   check( dijkstra.dist( t ) - dijkstra.dist( s ) <= length[ a ] ,
-	  "Error in shortest path tree." );
-   }
-  }
-
- for( NodeIt n( digraph ) ; n != INVALID ; ++n ) {
-  if( dijkstra.reached( n ) && dijkstra.predArc( n ) != INVALID ) {
-   Arc a = dijkstra.predArc( n );
-   Node s = digraph.source( a );
-   check( dijkstra.dist( n ) - dijkstra.dist( s ) == length[ a ] ,
-	  "Error in shortest path tree." );
-   }
-  }
- }
-
 int main()
 {
 
@@ -284,6 +213,7 @@ int main()
  // BinHeap
  {
   heapTiesTest< BinHeap< double , RangeMap< int > > >();
+  heapEraseTest< BinHeap >();
   typedef BinHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -297,6 +227,7 @@ int main()
  // QuadHeap
  {
   heapTiesTest< QuadHeap< double , RangeMap< int > > >();
+  heapEraseTest< QuadHeap >();
   typedef QuadHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -323,6 +254,7 @@ int main()
  // FibHeap
  {
   heapTiesTest< FibHeap< double , RangeMap< int > > >();
+  heapEraseTest< FibHeap >();
   typedef FibHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -336,6 +268,7 @@ int main()
  // PairingHeap
  {
   heapTiesTest< PairingHeap< double , RangeMap< int > > >();
+  heapEraseTest< PairingHeap >();
   typedef PairingHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();
   heapSortTest< IntHeap >();
@@ -362,6 +295,7 @@ int main()
  // BinomialHeap
  {
   heapTiesTest< BinomialHeap< double , RangeMap< int > > >();
+  heapEraseTest< BinomialHeap >();
   heapEqualPairTest< BinomialHeap< int , RangeMap< int > > >();
   typedef BinomialHeap< Prio , ItemIntMap > IntHeap;
   checkConcept< Heap< Prio , ItemIntMap > , IntHeap >();

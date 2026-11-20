@@ -126,7 +126,7 @@ struct MaxCardinalitySearchDefaultTraits
  /// The heap type used by MaxCardinalitySearch algorithm. It should
  /// maximalize the priorities. The default heap type is
  /// the \ref BinHeap, but it is specialized when the
- /// CapacityMap is ConstMap<Digraph::Node, Const<int, 1> >
+ /// CapacityMap is ConstMap< Digraph::Node , Const< int , 1 > >
  /// to BucketHeap.
  ///
  /// \sa MaxCardinalitySearch
@@ -201,20 +201,20 @@ struct MaxCardinalitySearchDefaultTraits
 /// It is also possible to change the underlying priority heap.
 ///
 ///
-/// \param GR The digraph type the algorithm runs on. The value of
+/// \tparam GR The digraph type the algorithm runs on. The value of
 /// Digraph is not used directly by the search algorithm, it
 /// is only passed to \ref MaxCardinalitySearchDefaultTraits.
-/// \param CAP This read-only ArcMap determines the capacities of
+/// \tparam CAP This read-only ArcMap determines the capacities of
 /// the arcs. It is read once for each arc, so the map may involve in
 /// relatively time consuming process to compute the arc capacity if
 /// it is necessary. The default map type is \ref
-/// ConstMap "ConstMap<concepts::Digraph::Arc, Const<int,1> >". The value
+/// ConstMap "ConstMap< concepts::Digraph::Arc , Const< int , 1 > >". The value
 /// of CapacityMap is not used directly by search algorithm, it is only
 /// passed to \ref MaxCardinalitySearchDefaultTraits.
-/// \param TR Traits class to set various data types used by the
+/// \tparam TR Traits class to set various data types used by the
 /// algorithm.  The default traits class is
 /// \ref MaxCardinalitySearchDefaultTraits
-/// "MaxCardinalitySearchDefaultTraits<GR, CAP>".
+/// "MaxCardinalitySearchDefaultTraits< GR , CAP >".
 /// See \ref MaxCardinalitySearchDefaultTraits
 /// for the documentation of a MaxCardinalitySearch traits class.
 
@@ -371,8 +371,8 @@ class MaxCardinalitySearch
  struct SetHeap : public MaxCardinalitySearch< Digraph , CapacityMap ,
 					       DefHeapTraits< H , CR > >
  {
-  typedef MaxCardinalitySearch< Digraph , CapacityMap , DefHeapTraits< H ,
-    CR > >
+  typedef MaxCardinalitySearch< Digraph , CapacityMap ,
+				DefHeapTraits< H , CR > >
     Create;
   };
 
@@ -500,9 +500,9 @@ class MaxCardinalitySearch
   return( *this );
   }
 
- /// \brief Returns a const reference to the cardinality map.
+ /// \brief Returns a const reference to the processed map.
  ///
- /// Returns a const reference to the cardinality map used by
+ /// Returns a const reference to the processed map used by
  /// the algorithm.
  const ProcessedMap & processedMap() const { return( *_processed ); }
 

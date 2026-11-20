@@ -72,8 +72,9 @@ namespace lemon
 /// values, and costs) must be integer. With floating-point types they
 /// need not be: the reduced costs and the flow left on the artificial
 /// arcs are compared against a tolerance of 10^6 units in the last place
-/// of the largest cost and of the largest supply, respectively, so that
-/// rounding errors make neither a degenerate pivot for ever nor a
+/// of the largest absolute value of the costs and of the supplies and the
+/// finite bounds, respectively, unless \ref tolerances() sets them, so
+/// that rounding errors make neither a degenerate pivot for ever nor a
 /// feasible problem infeasible.
 ///
 /// \note %NetworkSimplex provides five different pivot rule
@@ -321,8 +322,8 @@ class NetworkSimplex
   FirstEligiblePivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) { }
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) { }
 
   // Find next entering arc
   bool findEnteringArc() {
@@ -370,8 +371,7 @@ class NetworkSimplex
   BestEligiblePivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) { }
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) { }
 
   // Find next entering arc
   bool findEnteringArc() {
@@ -413,8 +413,8 @@ class NetworkSimplex
   BlockSearchPivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) {
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) {
    // The main parameters of the pivot rule
    const double BLOCK_SIZE_FACTOR = 1.0;
    const int MIN_BLOCK_SIZE = 10;
@@ -491,8 +491,8 @@ class NetworkSimplex
   CandidateListPivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) {
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) {
    // The main parameters of the pivot rule
    const double LIST_LENGTH_FACTOR = 0.25;
    const int MIN_LIST_LENGTH = 10;
@@ -615,9 +615,9 @@ class NetworkSimplex
   AlteringListPivotRule( NetworkSimplex & ns )
       : _source( ns._source ) , _target( ns._target ) , _cost( ns._cost ) ,
 	_state( ns._state ) , _pi( ns._pi ) , _in_arc( ns.in_arc ) ,
-	_search_arc_num( ns._search_arc_num ) ,
-	_eps( ns.costTol() ) , _next_arc( 0 ) ,
-	_cand_cost( ns._search_arc_num ) , _sort_func( _cand_cost ) {
+	_search_arc_num( ns._search_arc_num ) , _eps( ns.costTol() ) ,
+	_next_arc( 0 ) , _cand_cost( ns._search_arc_num ) ,
+	_sort_func( _cand_cost ) {
    // The main parameters of the pivot rule
    const double BLOCK_SIZE_FACTOR = 1.0;
    const int MIN_BLOCK_SIZE = 10;
@@ -975,6 +975,9 @@ class NetworkSimplex
  /// The set is empty if the last \ref run() did not return
  /// \ref INFEASIBLE, or if, in floating point, the inequality does
  /// not hold beyond the round-off.
+ /// \pre The data and the supply type must be those of the last
+ /// \ref run(): the set is computed and checked on them as they are
+ /// when this function is called.
  std::vector< Node > infeasibleCut() const {
   std::vector< Node > cut;
   if( _result != INFEASIBLE )
@@ -998,11 +1001,14 @@ class NetworkSimplex
  /// not, with a maximum flow for each part (Hamacher, Picard and
  /// Queyranne, 1984), i.e., at most n maximum flows for each set. They
  /// are empty if the last \ref run() did not return \ref INFEASIBLE.
+ /// \pre The data and the supply type must be those of the last
+ /// \ref run(): the sets are computed and checked on them as they are
+ /// when this function is called.
  std::vector< std::vector< Node > > infeasibleCuts( int k ) const {
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );
-  return( nodeSets( _mcf_bits::infeasibleCuts( certData() , _stype == LEQ ,
-					       k ) ) );
+  return(
+    nodeSets( _mcf_bits::infeasibleCuts( certData() , _stype == LEQ , k ) ) );
   }
 
  /// \brief Disjoint sets of nodes that prove the problem infeasible.
@@ -1014,6 +1020,9 @@ class NetworkSimplex
  /// their violations, which sum to at least the violation of that set.
  /// They are empty if the last \ref run() did not return
  /// \ref INFEASIBLE.
+ /// \pre The data and the supply type must be those of the last
+ /// \ref run(): the sets are computed and checked on them as they are
+ /// when this function is called.
  std::vector< std::vector< Node > > disjointInfeasibleCuts() const {
   if( _result != INFEASIBLE )
    return( std::vector< std::vector< Node > >() );
@@ -1025,9 +1034,12 @@ class NetworkSimplex
  ///
  /// This function gives at most k directed cycles of negative cost whose
  /// arcs have infinite upper bounds, pairwise arc-disjoint, in the order
- /// of their mean costs: the cycle of minimum mean cost (Howard's
- /// algorithm) among those arcs, then that among the arcs not yet taken,
- /// and so on. The cycle of minimum total cost would be NP-hard to find.
+ /// of their mean costs: the cycles of minimum mean cost of the strongly
+ /// connected components of those arcs, which one run of Howard's algorithm
+ /// gives together and are pairwise node-disjoint, the first being of
+ /// minimum mean of all, then those of the arcs not yet taken, and so on
+ /// while fewer than k are found. The cycle of minimum total cost would be
+ /// NP-hard to find.
  /// They are empty if the last \ref run() did not return \ref UNBOUNDED.
  std::vector< std::vector< Arc > > unboundedCycles( int k ) const {
   std::vector< std::vector< Arc > > cycles;
@@ -1443,7 +1455,9 @@ class NetworkSimplex
    _all_arc_num = f;
    }
   else {
-   // GEQ supply constraints
+   // GEQ supply constraints: a node of supply zero hangs on an artificial
+   // arc towards the root, since an arc from the root at flow zero would
+   // make the tree not strongly feasible
    _search_arc_num = _arc_num + _node_num;
    int f = _arc_num + _node_num;
    for( int u = 0 , e = _arc_num ; u != _node_num ; ++u , ++e ) {
@@ -1452,7 +1466,7 @@ class NetworkSimplex
     _rev_thread[ u + 1 ] = u;
     _succ_num[ u ] = 1;
     _last_succ[ u ] = u;
-    if( _supply[ u ] <= 0 ) {
+    if( _supply[ u ] < 0 ) {
      _pred_dir[ u ] = DIR_DOWN;
      _pi[ u ] = 0;
      _pred[ u ] = e;
@@ -1798,8 +1812,8 @@ class NetworkSimplex
   }
 
  // Sets of nodes, by their indices, as nodes of the digraph
- std::vector< std::vector< Node > > nodeSets(
-   const std::vector< std::vector< int > > & ids ) const {
+ std::vector< std::vector< Node > >
+ nodeSets( const std::vector< std::vector< int > > & ids ) const {
   std::vector< Node > node_of( _node_num , INVALID );
   for( NodeIt n( _graph ) ; n != INVALID ; ++n )
    node_of[ _node_id[ n ] ] = n;

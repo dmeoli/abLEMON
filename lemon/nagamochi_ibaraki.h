@@ -40,8 +40,8 @@ namespace lemon
 /// \brief Default traits class for NagamochiIbaraki class.
 ///
 /// Default traits class for NagamochiIbaraki class.
-/// \param GR The undirected graph type.
-/// \param CM Type of capacity map.
+/// \tparam GR The undirected graph type.
+/// \tparam CM Type of capacity map.
 template< typename GR , typename CM >
 struct NagamochiIbarakiDefaultTraits
 {
@@ -159,15 +159,15 @@ class NagamochiIbaraki
   };
 
  /// \brief \ref named-templ-param "Named parameter" for setting
- /// the capacity map to a constMap<Edge, int, 1>() instance
+ /// the capacity map to a constMap< Edge , int , 1 >() instance
  ///
  /// \ref named-templ-param "Named parameter" for setting
- /// the capacity map to a constMap<Edge, int, 1>() instance
+ /// the capacity map to a constMap< Edge , int , 1 >() instance
  struct SetUnitCapacity
      : public NagamochiIbaraki< Graph , CapacityMap , SetUnitCapacityTraits >
  {
   typedef NagamochiIbaraki< Graph , CapacityMap ,
-    SetUnitCapacityTraits > Create;
+			    SetUnitCapacityTraits > Create;
   };
 
 
@@ -176,7 +176,7 @@ class NagamochiIbaraki
  {
   typedef CR HeapCrossRef;
   typedef H Heap;
-  static HeapCrossRef * createHeapCrossRef( int ) {
+  static HeapCrossRef * createHeapCrossRef( const Graph & ) {
    LEMON_ASSERT( false , "HeapCrossRef is not initialized" );
    return( 0 );  // ignore warnings
    }
@@ -191,7 +191,7 @@ class NagamochiIbaraki
  ///
  /// \ref named-templ-param "Named parameter" for setting heap and
  /// cross reference type. The heap has to maximize the priorities.
- template< class H , class CR = RangeMap< int > >
+ template< class H , class CR = typename Graph::template NodeMap< int > >
  struct SetHeap
      : public NagamochiIbaraki< Graph , CapacityMap , SetHeapTraits< H , CR > >
  {
@@ -204,8 +204,8 @@ class NagamochiIbaraki
  {
   typedef CR HeapCrossRef;
   typedef H Heap;
-  static HeapCrossRef * createHeapCrossRef( int size ) {
-   return( new HeapCrossRef( size ) );
+  static HeapCrossRef * createHeapCrossRef( const Graph & graph ) {
+   return( new HeapCrossRef( graph ) );
    }
   static Heap * createHeap( HeapCrossRef & crossref ) {
    return( new Heap( crossref ) );
@@ -226,7 +226,7 @@ class NagamochiIbaraki
  /// function before calling \ref run() or \ref init(). The heap
  /// has to maximize the priorities.
  /// \sa SetHeap
- template< class H , class CR = RangeMap< int > >
+ template< class H , class CR = typename Graph::template NodeMap< int > >
  struct SetStandardHeap
      : public NagamochiIbaraki< Graph , CapacityMap ,
 				SetStandardHeapTraits< H , CR > >
@@ -408,6 +408,8 @@ class NagamochiIbaraki
  /// \brief Initializes the internal data structures.
  ///
  /// Initializes the internal data structures.
+ /// \pre The graph has at least one node. A graph of one node has no
+ /// cut, and the algorithm then gives the value 0 and that node.
  void init() {
   createStructures();
 
@@ -434,6 +436,8 @@ class NagamochiIbaraki
    }
 
   _first_node = typename Graph::NodeIt( _graph );
+  LEMON_ASSERT( _first_node != INVALID , "NagamochiIbaraki: the graph is "
+					"empty" );
 
   int index = 0;
   for( typename Graph::NodeIt n( _graph ) ; n != INVALID ; ++n ) {
@@ -604,8 +608,8 @@ class NagamochiIbaraki
       if( c != -1 && _arcs[ c ^ 1 ].target == n ) {
        _edges[ c >> 1 ].capacity += _edges[ b >> 1 ].capacity;
        ( *_nodes )[ n ].sum += _edges[ b >> 1 ].capacity;
-       if( _edges[ b >> 1 ].cut < _edges[ c >> 1 ].cut ) {
-	_edges[ b >> 1 ].cut = _edges[ c >> 1 ].cut;
+       if( _edges[ c >> 1 ].cut < _edges[ b >> 1 ].cut ) {
+	_edges[ c >> 1 ].cut = _edges[ b >> 1 ].cut;
         }
        if( _arcs[ b ^ 1 ].prev != -1 ) {
 	_arcs[ _arcs[ b ^ 1 ].prev ].next = _arcs[ b ^ 1 ].next;
@@ -687,6 +691,7 @@ class NagamochiIbaraki
  /// mc.init();
  /// mc.start();
  ///\endcode
+ /// \pre The graph has at least one node.
  void run() {
   init();
   start();

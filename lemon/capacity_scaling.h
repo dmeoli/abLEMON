@@ -95,7 +95,7 @@ struct CapacityScalingDefaultTraits
 /// algorithm. By default, it is the same as \c V.
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref CapacityScalingDefaultTraits
-/// "CapacityScalingDefaultTraits<GR, V, C>".
+/// "CapacityScalingDefaultTraits< GR , V , C >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 ///
@@ -138,6 +138,7 @@ class CapacityScaling
  _mcf_bits::residualArcSets( const MCF & ,
 			     const _mcf_bits::McfData< typename MCF::Value > & ,
 			     const std::vector< std::vector< int > > & );
+
  public:
  /// The type of the digraph
  typedef typename TR::Digraph Digraph;
@@ -273,7 +274,7 @@ class CapacityScaling
   ResidualDijkstra( CapacityScaling & cs )
       : _node_num( cs._node_num ) , _geq( cs._sum_supply < 0 ) ,
 	_first_out( cs._first_out ) , _target( cs._target ) ,
-   _cost( cs._cost ) ,
+	_cost( cs._cost ) ,
 	_res_cap( cs._res_cap ) , _excess( cs._excess ) , _pi( cs._pi ) ,
 	_pred( cs._pred ) , _dist( cs._node_num ) { }
 
@@ -636,9 +637,12 @@ class CapacityScaling
  ///
  /// This function gives at most k directed cycles of negative cost whose
  /// arcs have infinite upper bounds, pairwise arc-disjoint, in the order
- /// of their mean costs: the cycle of minimum mean cost (Howard's
- /// algorithm) among those arcs, then that among the arcs not yet taken,
- /// and so on. The cycle of minimum total cost would be NP-hard to find.
+ /// of their mean costs: the cycles of minimum mean cost of the strongly
+ /// connected components of those arcs, which one run of Howard's algorithm
+ /// gives together and are pairwise node-disjoint, the first being of
+ /// minimum mean of all, then those of the arcs not yet taken, and so on
+ /// while fewer than k are found. The cycle of minimum total cost would be
+ /// NP-hard to find.
  /// They are empty if the last \ref run() did not return \ref UNBOUNDED.
  std::vector< std::vector< Arc > > unboundedCycles( int k ) const {
   if( _result != UNBOUNDED )
@@ -646,8 +650,9 @@ class CapacityScaling
   const _mcf_bits::McfData< Value > d =
     _mcf_bits::residualData( *this , std::vector< int >() );
   return( _mcf_bits::residualArcSets(
-    *this , d , _mcf_bits::negativeCycles(
-		  d , _mcf_bits::residualCosts( d , _cost ) , k ) ) );
+    *this , d ,
+    _mcf_bits::negativeCycles( d , _mcf_bits::residualCosts( d , _cost ) ,
+			       k ) ) );
   }
 
  /// \brief Sets the tolerances on the flows and on the reduced costs.
@@ -937,7 +942,8 @@ class CapacityScaling
     _flow_tol >= 0
       ? _flow_tol
       : _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
-				  _lower , _upper , _supply , _has_lower );
+				  _lower ,
+				  _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   _cut_hint.clear();
@@ -992,9 +998,13 @@ class CapacityScaling
   // Handle negative costs: an arc of infinite upper bound is saturated at
   // a bound that some optimal flow does not reach, unless a cycle of
   // negative cost is made of such arcs, when a feasible problem is
-  // unbounded [see bits/mcf_feasible_flow.h]
-  _unbounded = _mcf_bits::negativeInfiniteCycle( _root , _first_out , _target ,
-						 _forward , _upper , _cost );
+  // unbounded [see bits/mcf_feasible_flow.h], beyond the tolerance on
+  // the reduced costs
+  _ceps = _cost_tol >= 0 ? _cost_tol
+			 : _mcf_bits::costTolerance(
+			     _root , _first_out , _target , _forward , _cost );
+  _unbounded = _mcf_bits::negativeInfiniteCycle(
+    _root , _first_out , _target , _forward , _upper , _cost , _ceps );
   const Value bound =
     _mcf_bits::infiniteBound( _root , _first_out , _target , _forward ,
 			      _lower ,
@@ -1038,14 +1048,10 @@ class CapacityScaling
     }
    }
 
-  // The smallest delta, and the tolerance on the reduced costs
+  // The smallest delta
   _unit = std::numeric_limits< Value >::is_exact
 	    ? Value( 1 )
 	    : ( feps > 0 ? feps : ( std::numeric_limits< Value >::min )() );
-  _ceps = _cost_tol >= 0
-	    ? _cost_tol
-	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
-					_forward , _cost );
 
   // Initialize delta value
   if( _factor > 1 ) {

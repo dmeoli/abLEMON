@@ -109,6 +109,20 @@ class Sum
  void operator()( const T & t ) { _sum += t; }
  };
 
+// A value whose comparisons are counted
+struct Counted
+{
+ static long comparisons;
+ int value;
+ Counted( int v = 0 ) : value( v ) { }
+ bool operator<( const Counted & c ) const {
+  ++comparisons;
+  return( value < c.value );
+  }
+ };
+
+long Counted::comparisons = 0;
+
 typedef ReadMap< A , double > DoubleMap;
 typedef ReadWriteMap< A , double > DoubleWriteMap;
 typedef ReferenceMap< A , double , double & , const double & > DoubleRefMap;
@@ -163,8 +177,8 @@ int main()
   check( constMap< A >( 10 )[ A() ] == 10 ,
 	 "Something is wrong with ConstMap" );
 
-  checkConcept< ReadWriteMap< A , int > , ConstMap< A , Const< int ,
-    10 > > >();
+  checkConcept< ReadWriteMap< A , int > ,
+		ConstMap< A , Const< int , 10 > > >();
   ConstMap< A , Const< int , 10 > > map6;
   ConstMap< A , Const< int , 10 > > map7 = map6;
   map6 = constMap< A , int , 10 >();
@@ -207,12 +221,14 @@ int main()
   RangeMap< double > map9 = rangeMap( v );
   check( map9.size() == 10 && map9[ 2 ] == 0 && map9[ 5 ] == 100 ,
 	 "Something is wrong with RangeMap" );
+  const RangeMap< double > & cmap9 = map9;
+  check( cmap9.size() == 10 , "Wrong size of a const RangeMap" );
   }
 
  // SparseMap
  {
-  checkConcept< ReferenceMap< A , B , B & , const B & > , SparseMap< A ,
-    B > >();
+  checkConcept< ReferenceMap< A , B , B & , const B & > ,
+		SparseMap< A , B > >();
   SparseMap< A , B > map1;
   SparseMap< A , B > map2 = B();
   SparseMap< A , B > map3 = sparseMap< A , B >();
@@ -308,8 +324,8 @@ int main()
 
  // ForkMap
  {
-  checkConcept< DoubleWriteMap , ForkMap< DoubleWriteMap ,
-    DoubleWriteMap > >();
+  checkConcept< DoubleWriteMap ,
+		ForkMap< DoubleWriteMap , DoubleWriteMap > >();
 
   typedef RangeMap< double > RM;
   typedef SparseMap< int , double > SM;
@@ -521,6 +537,9 @@ int main()
   check( amap[ a3 ] == gr.id( a3 ) && amap( gr.id( a3 ) ) == a3 ,
 	 "Wrong IdMap" );
 
+  const IdMap< Graph , Node > & cnmap = nmap;
+  check( cnmap( gr.id( n1 ) ) == n1 , "Wrong const IdMap" );
+
   check( nmap.inverse()[ gr.id( n0 ) ] == n0 , "Wrong IdMap::InverseMap" );
   check( amap.inverse()[ gr.id( a0 ) ] == a0 , "Wrong IdMap::InverseMap" );
 
@@ -619,8 +638,8 @@ int main()
   typedef ListDigraph Graph;
   DIGRAPH_TYPEDEFS( Graph );
 
-  checkConcept< ReadWriteMap< Node , int > , CrossRefMap< Graph , Node ,
-    int > >();
+  checkConcept< ReadWriteMap< Node , int > ,
+		CrossRefMap< Graph , Node , int > >();
   checkConcept< ReadWriteMap< Node , bool > ,
 		CrossRefMap< Graph , Node , bool > >();
   checkConcept< ReadWriteMap< Node , double > ,
@@ -687,6 +706,20 @@ int main()
   it = map.beginValue();
   check( *it++ == 'A' && *it++ == 'B' && *it++ == 'C' && it == map.endValue() ,
 	 "Wrong value iterator" );
+
+  // the erasure of an item searches the range of its value once: the last
+  // of 1000 items of the same value costs O(log n) comparisons, not O(n log n)
+  Graph big;
+  CrossRefMap< Graph , Node , Counted > cmap( big );
+  Node last;
+  for( int i = 0 ; i != 1000 ; ++i ) {
+   last = big.addNode();
+   cmap.set( last , Counted( 7 ) );
+   }
+  Counted::comparisons = 0;
+  big.erase( last );
+  check( Counted::comparisons < 100 && cmap.count( Counted( 7 ) ) == 999 ,
+	 "Wrong CrossRefMap::erase()" );
   }
 
  // CrossRefMap
@@ -694,8 +727,8 @@ int main()
   typedef SmartDigraph Graph;
   DIGRAPH_TYPEDEFS( Graph );
 
-  checkConcept< ReadWriteMap< Node , int > , CrossRefMap< Graph , Node ,
-    int > >();
+  checkConcept< ReadWriteMap< Node , int > ,
+		CrossRefMap< Graph , Node , int > >();
 
   Graph gr;
   typedef CrossRefMap< Graph , Node , char > CRMap;

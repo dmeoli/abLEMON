@@ -581,6 +581,40 @@ void checkBpGraphReaderWriter()
  }
 
 
+// the tokens that the writer quotes, here for a blank or for a # that would
+// make their line a comment, are read back unchanged: with a control
+// character followed by a digit, with the bytes above 127 of a character of
+// UTF-8, and with a # at the start of the line
+void checkTokenReaderWriter()
+{
+ const std::string values[] = { std::string( "a \x01" ) + "7" ,
+				std::string( "b \x1f" ) + "1x" ,
+				"caf\xc3\xa9 x" , "#x" };
+ const int n = sizeof( values ) / sizeof( values[ 0 ] );
+
+ typedef lemon::ListDigraph Digraph;
+ Digraph digraph;
+ Digraph::NodeMap< std::string > label( digraph );
+ for( int i = 0 ; i < n ; ++i ) {
+  label[ digraph.addNode() ] = values[ i ];
+  }
+ std::ostringstream os;
+ lemon::digraphWriter( digraph , os ).nodeMap( "label" , label ).run();
+
+ Digraph exp_digraph;
+ Digraph::NodeMap< std::string > exp_label( exp_digraph );
+ std::istringstream is( os.str() );
+ lemon::digraphReader( exp_digraph , is ).nodeMap( "label" , exp_label ).run();
+ check( lemon::countNodes( exp_digraph ) == n , "Wrong number of nodes" );
+ for( Digraph::NodeIt v( exp_digraph ) ; v != lemon::INVALID ; ++v ) {
+  bool found = false;
+  for( int j = 0 ; j < n ; ++j ) {
+   found = found || exp_label[ v ] == values[ j ];
+   }
+  check( found , "Wrong token" );
+  }
+ }
+
 int main()
 {
  {  // Check digrpah
@@ -592,5 +626,6 @@ int main()
  {  // Check bipartite graph
   checkBpGraphReaderWriter();
   }
+ checkTokenReaderWriter();
  return( 0 );
  }

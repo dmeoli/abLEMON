@@ -40,7 +40,7 @@ namespace lemon
 /// \brief A \e Union-Find data structure implementation
 ///
 /// The class implements the \e Union-Find data structure.
-/// The union operation uses rank heuristic, while
+/// The union operation joins the smaller class to the larger one, while
 /// the find operation uses path compression.
 /// This is a very simple but efficient implementation, providing
 /// only four methods: join (union), find, insert and size.
@@ -160,7 +160,7 @@ class UnionFind
 /// a component. If you don't need this feature then perhaps it's
 /// better to use the \ref UnionFind class which is more efficient.
 ///
-/// The union operation uses rank heuristic, while
+/// The union operation joins the smaller class to the larger one, while
 /// the find operation uses path compression.
 ///
 /// \pre You need to add all the elements by the \ref insert()
@@ -357,8 +357,8 @@ class UnionFindEnum
  /// Erase each item from the data structure.
  void clear() {
   items.clear();
-  firstClass = -1;
-  firstFreeItem = -1;
+  classes.clear();
+  firstClass = firstFreeClass = firstFreeItem = -1;
   }
 
  /// \brief Finds the component of the given element.
@@ -1612,7 +1612,7 @@ class HeapUnionFind
   if( comp( prio , nodes[ index[ item ] ].prio ) ) {
    decrease( item , prio );
    }
-  else if( ! comp( prio , nodes[ index[ item ] ].prio ) ) {
+  else {
    increase( item , prio );
    }
   }
@@ -1630,9 +1630,9 @@ class HeapUnionFind
    }
   }
 
- /// \brief Increase the priority of the current item.
+ /// \brief Decrease the priority of the current item.
  ///
- /// Increase the priority of the current item.
+ /// Decrease the priority of the current item.
  void decrease( const Item & item , const Value & prio ) {
   int id = index[ item ];
   int kd = nodes[ id ].parent;
@@ -1783,8 +1783,6 @@ class HeapUnionFind
   operator int() const { return( _id ); }
   };
  };
-
-//! @}
 
 }  //namespace lemon
 

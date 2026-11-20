@@ -170,6 +170,15 @@ class SmartDigraphBase
   }
 
  void nextIn( Arc & arc ) const { arc._id = _arcs[ arc._id ].next_in; }
+
+ protected:
+ // removes the last item added, whose addition an observer refused
+ void undoAdd( const Node & ) { _nodes.pop_back(); }
+ void undoAdd( const Arc & ) {
+  _nodes[ _arcs.back().source ].first_out = _arcs.back().next_out;
+  _nodes[ _arcs.back().target ].first_in = _arcs.back().next_in;
+  _arcs.pop_back();
+  }
  };
 
 typedef DigraphExtender< SmartDigraphBase > ExtendedSmartDigraphBase;
@@ -584,6 +593,17 @@ class SmartGraphBase
  void clear() {
   _arcs.clear();
   _nodes.clear();
+  }
+
+ protected:
+ // removes the last item added, whose addition an observer refused
+ void undoAdd( const Node & ) { _nodes.pop_back(); }
+ void undoAdd( const Edge & ) {
+  int n = static_cast< int >( _arcs.size() - 1 );
+  _nodes[ _arcs[ n - 1 ].target ].first_out = _arcs[ n ].next_out;
+  _nodes[ _arcs[ n ].target ].first_out = _arcs[ n - 1 ].next_out;
+  _arcs.pop_back();
+  _arcs.pop_back();
   }
  };
 
@@ -1077,6 +1097,27 @@ class SmartBpGraphBase
   first_blue = -1;
   max_blue = -1;
   max_red = -1;
+  }
+
+ protected:
+ // removes the last item added, whose addition an observer refused
+ void undoAdd( const Node & ) {
+  if( _nodes.back().red ) {
+   first_red = _nodes.back().partition_next;
+   --max_red;
+   }
+  else {
+   first_blue = _nodes.back().partition_next;
+   --max_blue;
+   }
+  _nodes.pop_back();
+  }
+ void undoAdd( const Edge & ) {
+  int n = static_cast< int >( _arcs.size() - 1 );
+  _nodes[ _arcs[ n - 1 ].target ].first_out = _arcs[ n ].next_out;
+  _nodes[ _arcs[ n ].target ].first_out = _arcs[ n - 1 ].next_out;
+  _arcs.pop_back();
+  _arcs.pop_back();
   }
  };
 

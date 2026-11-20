@@ -81,7 +81,7 @@ jobs:
         run: >
           cmake -S . -B build
           -DCMAKE_CXX_STANDARD=${{ matrix.std }}
-          -DCMAKE_CXX_FLAGS="/W3 /EHsc"
+          -DCMAKE_CXX_FLAGS="/W3 /EHsc /bigobj"
           -DLEMON_VERSION=ci ${{ matrix.cmake }}
 
       - name: Build

@@ -54,42 +54,38 @@ namespace lemon
 /// since each gives a different (sub)gradient, while a flow inside a face
 /// gives a convex combination of those of its vertices.
 ///
-/// On integer data, i.e., if the bounds, the supplies and the flow given
-/// [see \ref initFlow()] are integer, or integer within the tolerance of
-/// the flows if their type is not (the costs may be any), the algorithm
-/// is the partition of Lawler \cite lawler72kbest on the states
-/// of the arcs (at the lower bound, at the upper one, strictly within
-/// them), which a vertex is the only flow of: the arcs are taken in a
-/// fixed order, that of their reduced costs at the optimal vertex, a node
-/// of the partition fixes the states of a prefix of the order, its best
-/// flow within the bounds that the states set (a state strictly within the
-/// bounds \f$l\f$ and \f$u\f$ being \f$[l+1,u-1]\f$) is given if it is
-/// a vertex, and the node is split into one child for each later arc and
-/// each other state of it. A child waits in a queue with a bound of its
-/// cost: that of the flow of its parent plus the least change of the flow
-/// of its arc times the least reduced cost of a cycle through the arc in
-/// the residual graph of that flow within the bounds of the child, which
-/// is a lower bound since the reduced costs are nonnegative there, and is
-/// computed only when the child first leaves the queue. A child is solved
-/// only when it leaves the queue again, from the flow and the potentials
-/// of its parent, by successive shortest paths on the reduced costs, and
-/// made a vertex within its bounds (\ref NetworkSimplex solving it if the
-/// shortest paths are too many), as in the enumeration of
-/// VerySimple01Problem
-/// (https://github.com/frangio68/Very-Simple-01-Problem); the k best
-/// vertices are given exactly, and no basis of a degenerate vertex is
-/// visited. On other data it is the
-/// ranking of the vertices of Murty \cite murty68ranking: the next vertex
-/// is adjacent to one of those already given, i.e., one pivot of the
-/// network simplex away from one of their bases, along the cycle that a
-/// nonbasic arc closes with the tree of the basis, saturated; the
-/// candidates are kept in a queue by their costs, and the bases of a
-/// degenerate vertex, which the pivots along a cycle of zero amount reach,
-/// are all expanded. The first vertex is the
-/// optimal flow that \ref NetworkSimplex finds, or one given by
-/// \ref initFlow(), brought to a vertex first, if it is not one, by
-/// saturating the cycles of the arcs strictly within their bounds, whose
-/// costs are zero at an optimal flow.
+/// On integer data, i.e., if the bounds, the supplies and the flow given [see
+/// \ref initFlow()] are integer, or integer within the tolerance of the flows
+/// if their type is not (the costs may be any), the algorithm is the
+/// partition of Lawler \cite lawler72kbest on the states of the arcs (at the
+/// lower bound, at the upper one, strictly within them), which a vertex is
+/// the only flow of: the arcs are taken in a fixed order, that of their
+/// reduced costs at the optimal vertex, a node of the partition fixes the
+/// states of a prefix of the order, its best flow within the bounds that the
+/// states set (a state strictly within the bounds \f$l\f$ and \f$u\f$ being
+/// \f$[l+1,u-1]\f$) is given if it is a vertex, and the node is split into
+/// one child for each later arc and each other state of it. A child waits in
+/// a queue with a bound of its cost: that of the flow of its parent plus the
+/// least change of the flow of its arc times the least reduced cost of a
+/// cycle through the arc in the residual graph of that flow within the bounds
+/// of the child, which is a lower bound since the reduced costs are
+/// nonnegative there, and is computed only when the child first leaves the
+/// queue. A child is solved only when it leaves the queue again, from the
+/// flow and the potentials of its parent, by successive shortest paths on the
+/// reduced costs, and made a vertex within its bounds (\ref NetworkSimplex
+/// solving it if the shortest paths are too many), as in the enumeration of
+/// VerySimple01Problem (https://github.com/frangio68/Very-Simple-01-Problem);
+/// the k best vertices are given exactly, and no basis of a degenerate vertex
+/// is visited. On other data it is the ranking of the vertices of Murty \cite
+/// murty68ranking: the next vertex is adjacent to one of those already given,
+/// i.e., one pivot of the network simplex away from one of their bases, along
+/// the cycle that a nonbasic arc closes with the tree of the basis,
+/// saturated; the candidates are kept in a queue by their costs, and the
+/// bases of a degenerate vertex, which the pivots along a cycle of zero
+/// amount reach, are all expanded. The first vertex is the optimal flow that
+/// \ref NetworkSimplex finds, or one given by \ref initFlow(), brought to a
+/// vertex first, if it is not one, by saturating the cycles of the arcs
+/// strictly within their bounds, whose costs are zero at an optimal flow.
 ///
 /// On the dual side, \ref runPotentials() gives distinct optimal
 /// potentials, the vertices of the dual polyhedron of the trees of the
@@ -304,8 +300,9 @@ class KBestExtremeFlows
  /// flows are distinct vertices in the order of their costs, the optimal
  /// ones first, but those of larger cost are only some of the vertices one
  /// cycle away from an optimal one [see \ref exact()]; each optimal vertex
- /// costs at most \f$O(nm\log n)\f$ time, and \f$O(km + pn)\f$ memory for
- /// the p trees of the shortest paths made.
+ /// costs at most \f$O(m^2\log n)\f$ time, one search of
+ /// \f$O(m\log n)\f$ for each arc at a bound, and \f$O(km + pn)\f$ memory
+ /// for the p trees of the shortest paths made.
  KBestExtremeFlows & method( Method m ) {
   _method = m;
   return( *this );
@@ -361,8 +358,8 @@ class KBestExtremeFlows
   // for the first basis, kept by its cost alone: the basis it leads to is
   // made when it leaves the queue
   typedef std::pair< Cost , std::pair< int , int > > Item;
-  std::priority_queue< Item , std::vector< Item > , std::greater< Item > >
-    queue;
+  std::priority_queue< Item , std::vector< Item > ,
+		       std::greater< Item > > queue;
   struct Expanded
   {
    State state;
@@ -448,9 +445,9 @@ class KBestExtremeFlows
    std::vector< int > order( _flows.size() );
    for( std::size_t i = 0 ; i != order.size() ; ++i )
     order[ i ] = int( i );
-   std::stable_sort( order.begin() , order.end() ,
-		     [ this ]( int x , int y ) {
-		      return( _costs[ x ] < _costs[ y ] ); } );
+   std::stable_sort( order.begin() , order.end() , [ this ]( int x , int y ) {
+    return( _costs[ x ] < _costs[ y ] );
+    } );
    std::vector< std::vector< Value > > flows;
    std::vector< Cost > costs;
    for( std::size_t i = 0 ; i != order.size() ; ++i ) {
@@ -571,9 +568,10 @@ class KBestExtremeFlows
  /// each node \f$s\f$ in turn, where \f$d_s\f$ are the distances from
  /// \f$s\f$ and \f$d'_s\f$ those to \f$s\f$ in the residual graph of the
  /// flow on the reduced costs (one Dijkstra's algorithm each), the nodes
- /// that are not reached taking the largest distance. Each is the vertex of
- /// the dual polyhedron given by the tree of the shortest paths, of zero
- /// reduced costs; potentials that differ by a constant are the same.
+ /// that are not reached taking the largest distance. Each is optimal, and
+ /// it is the vertex of the dual polyhedron given by the tree of the
+ /// shortest paths, of zero reduced costs, when that tree reaches every
+ /// node; potentials that differ by a constant are the same.
  ///
  /// With \ref PIVOTS [see \ref potentialMethod()] they are instead the
  /// vertices reached by the pivots of the dual simplex.
@@ -600,13 +598,14 @@ class KBestExtremeFlows
 
   add( pi );
   const std::vector< std::vector< int > > out = openArcs( s , false ) ,
-					   in = openArcs( s , true );
+					  in = openArcs( s , true );
   std::vector< Cost > dist;
   std::vector< int > pred;
   for( int v = 0 ; v != _n && int( _pots.size() ) < k ; ++v )
    for( int dir = 0 ; dir != 2 && int( _pots.size() ) < k ; ++dir ) {
     shortestPaths( dir == 0 ? out : in , v , dir == 1 , rc , false , ceps ,
-		   dist , pred );
+		   dist ,
+		   pred );
     Cost far = 0;
     for( int u = 0 ; u != nn ; ++u )
      far = ( std::max )( far , dist[ u ] );
@@ -1379,7 +1378,8 @@ class KBestExtremeFlows
   // the cycle of the residual arc r closed by the path from head( r ) to
   // tail( r ) of the tree pred, saturated and made a vertex
   auto step = [ & ]( const State & x , int r ,
-		     const std::vector< int > & pred , State & y ) -> bool {
+		     const std::vector< int > & pred ,
+		     State & y ) -> bool {
    std::vector< int > cycle( 1 , r );
    for( int w = tail( r ) ; w != head( r ) ; w = tail( pred[ w ] ) )
     cycle.push_back( pred[ w ] );
@@ -1424,21 +1424,22 @@ class KBestExtremeFlows
   // the path is then found from its head along those arcs
   std::vector< State > optimal( 1 , s );
   give( s );
-  for( std::size_t i = 0 ; i != optimal.size() &&
-		           int( _flows.size() ) < k ; ++i ) {
+  for( std::size_t i = 0 ; i != optimal.size() && int( _flows.size() ) < k ;
+       ++i ) {
    const State x = optimal[ i ];
    const auto out = openArcs( x , false );
    const auto arcs = bounds( x );
    std::vector< int > comp;
    zeroComponents( out , rc , ceps , comp );
-   for( std::size_t h = 0 ; h != arcs.size() &&
-		            int( _flows.size() ) < k ; ++h ) {
+   for( std::size_t h = 0 ; h != arcs.size() && int( _flows.size() ) < k ;
+	++h ) {
     const int r = arcs[ h ];
     if( rc[ r ] > ceps || comp[ tail( r ) ] != comp[ head( r ) ] )
      continue;
     if( tail( r ) != head( r ) &&
 	! shortestPaths( out , head( r ) , false , rc , true , ceps , dist ,
-			 pred , tail( r ) ) )
+			 pred ,
+			 tail( r ) ) )
      continue;
     State y;
     if( step( x , r , pred , y ) && y.cost <= s.cost + ceps && give( y ) )
@@ -1459,8 +1460,8 @@ class KBestExtremeFlows
    auto arcs = bounds( x );
    std::stable_sort( arcs.begin() , arcs.end() ,
 		     [ & ]( int p , int q ) -> bool {
-		      return( rc[ p ] < rc[ q ] );
-		      } );
+    return( rc[ p ] < rc[ q ] );
+    } );
    for( std::size_t h = 0 ; h != arcs.size() ; ++h ) {
     const int r = arcs[ h ];
     const bool full = kept.size() >= 2 * want;
@@ -1470,7 +1471,8 @@ class KBestExtremeFlows
     Cost c = rc[ r ];
     if( tail( r ) != head( r ) ) {
      if( ! shortestPaths( out , head( r ) , false , rc , false , ceps , dist ,
-			  pred , tail( r ) , full , worst - rc[ r ] ) )
+			  pred ,
+			  tail( r ) , full , worst - rc[ r ] ) )
       continue;
      c += dist[ tail( r ) ];
      }
@@ -1491,8 +1493,8 @@ class KBestExtremeFlows
   std::multimap< Cost , std::vector< Value > > cand;
   for( auto it = kept.begin() ; it != kept.end() ; ++it )
    cand.insert( it->second );
-  for( auto it = cand.begin() ; it != cand.end() &&
-	                         int( _flows.size() ) < k ; ++it )
+  for( auto it = cand.begin() ; it != cand.end() && int( _flows.size() ) < k ;
+       ++it )
    if( seen.insert( it->second ).second ) {
     _flows.push_back( it->second );
     _costs.push_back( it->first );
@@ -1533,8 +1535,8 @@ class KBestExtremeFlows
   for( int pass = 0 ; pass != nn ; ++pass ) {
    bool changed = false;
    for( int r = 0 ; r != rr ; ++r )
-    if( open( s , r ) && pi[ tail( r ) ] + resCost( r ) <
-	                 pi[ head( r ) ] - ceps ) {
+    if( open( s , r ) &&
+	pi[ tail( r ) ] + resCost( r ) < pi[ head( r ) ] - ceps ) {
      pi[ head( r ) ] = pi[ tail( r ) ] + resCost( r );
      changed = true;
      }
@@ -1638,9 +1640,8 @@ class KBestExtremeFlows
       stack.push_back( z );
       call.push_back( std::make_pair( z , std::size_t( 0 ) ) );
       }
-     else
-      if( comp[ z ] < 0 )
-       low[ w ] = ( std::min )( low[ w ] , index[ z ] );
+     else if( comp[ z ] < 0 )
+      low[ w ] = ( std::min )( low[ w ] , index[ z ] );
      continue;
      }
     if( low[ w ] == index[ w ] ) {
@@ -1654,8 +1655,8 @@ class KBestExtremeFlows
      }
     call.pop_back();
     if( ! call.empty() )
-     low[ call.back().first ] = ( std::min )( low[ call.back().first ] ,
-					    low[ w ] );
+     low[ call.back().first ] =
+       ( std::min )( low[ call.back().first ] , low[ w ] );
     }
    }
   }
@@ -1663,7 +1664,7 @@ class KBestExtremeFlows
  // Whether the arc i is strictly within its bounds
  bool isFree( const State & s , int i ) const {
   return( s.flow[ i ] > _lower[ i ] + _feps &&
-	  ( _inf[ i ] || s.flow[ i ] < _upper[ i ] - _feps ) );
+	   ( _inf[ i ] || s.flow[ i ] < _upper[ i ] - _feps ) );
   }
 
  // Whether flow may go along the residual arc r (2 i forward, 2 i + 1

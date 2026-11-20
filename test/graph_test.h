@@ -20,6 +20,7 @@
  #define LEMON_TEST_GRAPH_TEST_H
 
 #include <set>
+#include <vector>
 
 #include <lemon/core.h>
 #include <lemon/maps.h>
@@ -569,6 +570,45 @@ void checkGraphEdgeMap( const Graph & G )
  // for (EdgeIt it(G); it != INVALID; ++it) {
  //   check(map[it] == 12, "Wrong operator[].");
  // }
+ }
+
+
+// An observer that refuses every addition by throwing; the graph must then
+// stay as it was before the addition.
+template< class Notifier >
+class RefusingObserver : public Notifier::ObserverBase
+{
+ typedef typename Notifier::Item Item;
+
+ public:
+ struct Refused
+ { };
+
+ explicit RefusingObserver( Notifier & nf ) { this->attach( nf ); }
+
+ protected:
+ void add( const Item & ) override { throw( Refused() ); }
+ void add( const std::vector< Item > & ) override { throw( Refused() ); }
+ void erase( const Item & ) override { }
+ void erase( const std::vector< Item > & ) override { }
+ void build() override { }
+ void clear() override { }
+ };
+
+// Calls f, an addition to a graph, with a RefusingObserver attached to the
+// notifier nf of that graph, and checks that f throws.
+template< class Notifier , class F >
+void checkRefusedAdd( Notifier & nf , F f )
+{
+ RefusingObserver< Notifier > obs( nf );
+ bool refused = false;
+ try {
+  f();
+  }
+ catch( const typename RefusingObserver< Notifier >::Refused & ) {
+  refused = true;
+  }
+ check( refused , "The observer did not refuse the addition." );
  }
 
 

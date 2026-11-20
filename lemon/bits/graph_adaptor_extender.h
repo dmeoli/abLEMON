@@ -163,7 +163,7 @@ class DigraphAdaptorExtender : public _Digraph
   };
 
  LemonRangeWrapper2< InArcIt , Adaptor ,
-   Node > inArcs( const Node & u ) const {
+		     Node > inArcs( const Node & u ) const {
   return( LemonRangeWrapper2< InArcIt , Adaptor , Node >( *this , u ) );
   }
 
@@ -333,7 +333,7 @@ class GraphAdaptorExtender : public _Graph
   };
 
  LemonRangeWrapper2< InArcIt , Adaptor ,
-   Node > inArcs( const Node & u ) const {
+		     Node > inArcs( const Node & u ) const {
   return( LemonRangeWrapper2< InArcIt , Adaptor , Node >( *this , u ) );
   }
 

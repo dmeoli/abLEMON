@@ -550,9 +550,12 @@ class CycleCanceling
  ///
  /// This function gives at most k directed cycles of negative cost whose
  /// arcs have infinite upper bounds, pairwise arc-disjoint, in the order
- /// of their mean costs: the cycle of minimum mean cost (Howard's
- /// algorithm) among those arcs, then that among the arcs not yet taken,
- /// and so on. The cycle of minimum total cost would be NP-hard to find.
+ /// of their mean costs: the cycles of minimum mean cost of the strongly
+ /// connected components of those arcs, which one run of Howard's algorithm
+ /// gives together and are pairwise node-disjoint, the first being of
+ /// minimum mean of all, then those of the arcs not yet taken, and so on
+ /// while fewer than k are found. The cycle of minimum total cost would be
+ /// NP-hard to find.
  /// They are empty if the last \ref run() did not return \ref UNBOUNDED.
  std::vector< std::vector< Arc > > unboundedCycles( int k ) const {
   if( _result != UNBOUNDED )
@@ -560,8 +563,9 @@ class CycleCanceling
   const _mcf_bits::McfData< Value > d =
     _mcf_bits::residualData( *this , _inf_upper );
   return( _mcf_bits::residualArcSets(
-    *this , d , _mcf_bits::negativeCycles(
-		  d , _mcf_bits::residualCosts( d , _cost ) , k ) ) );
+    *this , d ,
+    _mcf_bits::negativeCycles( d , _mcf_bits::residualCosts( d , _cost ) ,
+			       k ) ) );
   }
 
  /// \brief Sets the tolerances on the flows and on the reduced costs.
@@ -869,14 +873,14 @@ class CycleCanceling
     _flow_tol >= 0
       ? _flow_tol
       : _mcf_bits::flowTolerance( _root , _first_out , _target , _forward ,
-				  _lower , _upper , _supply , _has_lower );
+				  _lower ,
+				  _upper , _supply , _has_lower );
   if( _sum_supply <= feps && _sum_supply >= -feps )
    _sum_supply = 0;
   _feps = feps;
-  _ceps = _cost_tol >= 0
-	    ? _cost_tol
-	    : _mcf_bits::costTolerance( _root , _first_out , _target ,
-					_forward , _cost );
+  _ceps = _cost_tol >= 0 ? _cost_tol
+			 : _mcf_bits::costTolerance(
+			     _root , _first_out , _target , _forward , _cost );
   _cut_hint.clear();
   if( _sum_supply > 0 ) {
    // all the nodes, whose supplies exceed what can leave them, nothing
@@ -900,7 +904,7 @@ class CycleCanceling
   // a feasible problem is unbounded [see bits/mcf_feasible_flow.h]
   const Value MAX = ( std::numeric_limits< Value >::max )();
   const bool unbounded = _mcf_bits::negativeInfiniteCycle(
-    _root , _first_out , _target , _forward , _upper , _cost );
+    _root , _first_out , _target , _forward , _upper , _cost , _ceps );
   const Value bound =
     _mcf_bits::infiniteBound( _root , _first_out , _target , _forward ,
 			      _lower ,
@@ -916,7 +920,7 @@ class CycleCanceling
   // Find a feasible flow on the residual network
   int sup_num;
   if( ! _mcf_bits::feasibleFlow( *this , Value( 1 ) , sup_num , _feps ,
-				  _cut_hint ) ) {
+				 _cut_hint ) ) {
    return( INFEASIBLE );
    }
   if( unbounded )
@@ -986,8 +990,8 @@ class CycleCanceling
   if( method != SIMPLE_CYCLE_CANCELING ) {
    buildResidualNetwork();
    typename BellmanFord< StaticDigraph , CostArcMap >::template SetDistMap<
-     CostNodeMap >::template SetOperationTraits< BfOps >::Create bf(
-     _sgr , _cost_map );
+     CostNodeMap >::template SetOperationTraits< BfOps >::Create
+     bf( _sgr , _cost_map );
    bf.operationTraits( BfOps( _ceps ) );
    bf.distMap( _pi_map );
    bf.init( 0 );
@@ -1014,8 +1018,8 @@ class CycleCanceling
   typedef FilterArcs< StaticDigraph , FilterMap > ResDigraph;
   typedef StaticVectorMap< StaticDigraph::Node , StaticDigraph::Arc > PredMap;
   typedef typename BellmanFord< ResDigraph , CostArcMap >::template SetDistMap<
-    CostNodeMap >::template SetPredMap< PredMap >::template SetOperationTraits<
-    BfOps >::Create BF;
+    CostNodeMap >::template SetPredMap< PredMap >::
+    template SetOperationTraits< BfOps >::Create BF;
 
   // Build the residual network
   _arc_vec.clear();
@@ -1203,10 +1207,12 @@ class CycleCanceling
   // the reduced costs, and so does the test of admissibility
   // the potentials are double, fractional even with an exact cost type,
   // and the reduced costs are compared with 1e-6 then, as in LEMON 1.3.1,
-  // and with the tolerance on the costs otherwise
+  // or with 1/(2n) if smaller, so that an arc of reduced cost -1/n is
+  // admissible, and with the tolerance on the costs otherwise
   const bool exact = std::numeric_limits< Cost >::is_exact;
   Tolerance< double > tol;
-  tol.epsilon( exact ? 1e-6 : double( _ceps ) );
+  tol.epsilon( exact ? ( std::min )( 1e-6 , 0.5 / _res_node_num )
+		     : double( _ceps ) );
   int limit = int( LIMIT_FACTOR * std::sqrt( double( _res_node_num ) ) );
   if( limit < MIN_LIMIT )
    limit = MIN_LIMIT;

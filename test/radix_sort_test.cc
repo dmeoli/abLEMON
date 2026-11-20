@@ -29,6 +29,7 @@
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <limits>
 
 using namespace lemon;
 
@@ -260,11 +261,103 @@ void checkStableRadixSort()
   }
  }
 
+// keys of 64 bits, whose top digit is beyond the 31 bits of an int (the
+// mask 1 << max_digit was an int, and overflowed), and the extremes of the
+// signed type
+void checkWideKeys()
+{
+ std::vector< long long > s;
+ s.push_back( 1LL << 40 );
+ s.push_back( 5 );
+ s.push_back( -( 1LL << 45 ) );
+ s.push_back( ( 1LL << 62 ) + 7 );
+ s.push_back( -3 );
+ s.push_back( 0 );
+ s.push_back( std::numeric_limits< long long >::max() );
+ s.push_back( std::numeric_limits< long long >::min() );
+ s.push_back( 1LL << 33 );
+ std::vector< long long > r( s );
+ std::sort( r.begin() , r.end() );
+ radixSort( s.begin() , s.end() );
+ check( s == r , "Wrong order of keys of 64 bits" );
+
+ std::vector< unsigned long long > u;
+ u.push_back( ~0ULL );
+ u.push_back( 1ULL << 63 );
+ u.push_back( 12 );
+ u.push_back( 1ULL << 35 );
+ u.push_back( 0 );
+ std::vector< unsigned long long > v( u );
+ std::sort( v.begin() , v.end() );
+ radixSort( u.begin() , u.end() );
+ check( u == v , "Wrong order of unsigned keys of 64 bits" );
+ }
+
+// a key that knows whether it was constructed: an assignment to storage in
+// which no key was constructed is counted as wrong
+struct TrackedKey
+{
+ static int wrong;
+ int key , rank;
+ const TrackedKey * self;
+ TrackedKey( int k , int r ) : key( k ) , rank( r ) , self( this ) { }
+ TrackedKey( const TrackedKey & o )
+     : key( o.key ) , rank( o.rank ) , self( this ) { }
+ ~TrackedKey() { self = 0; }
+ TrackedKey & operator=( const TrackedKey & o ) {
+  if( self != this )
+   ++wrong;
+  key = o.key;
+  rank = o.rank;
+  return( *this );
+  }
+ };
+
+int TrackedKey::wrong = 0;
+
+struct KeyOfTracked
+{
+ int operator()( const TrackedKey & t ) const { return( t.key ); }
+ };
+
+struct UnsignedKeyOfTracked
+{
+ unsigned operator()( const TrackedKey & t ) const {
+  return( static_cast< unsigned >( t.key ) );
+  }
+ };
+
+// stableRadixSort() of keys that are not trivially copyable, with a signed
+// and an unsigned digit
+void checkStableNonTrivialKeys()
+{
+ std::vector< TrackedKey > s , u;
+ for( int i = 0 ; i < 1000 ; ++i ) {
+  s.push_back( TrackedKey( ( i * 7919 ) % 101 - 50 , i ) );
+  u.push_back( TrackedKey( ( i * 7919 ) % 101 , i ) );
+  }
+ TrackedKey::wrong = 0;
+ stableRadixSort( s.begin() , s.end() , KeyOfTracked() );
+ stableRadixSort( u.begin() , u.end() , UnsignedKeyOfTracked() );
+ check( TrackedKey::wrong == 0 ,
+	"stableRadixSort() assigned to unconstructed keys" );
+ for( int i = 1 ; i < 1000 ; ++i ) {
+  check( s[ i - 1 ].key < s[ i ].key ||
+	   ( s[ i - 1 ].key == s[ i ].key && s[ i - 1 ].rank < s[ i ].rank ) ,
+	 "Wrong stable order of signed keys" );
+  check( u[ i - 1 ].key < u[ i ].key ||
+	   ( u[ i - 1 ].key == u[ i ].key && u[ i - 1 ].rank < u[ i ].rank ) ,
+	 "Wrong stable order of unsigned keys" );
+  }
+ }
+
 int main()
 {
 
  checkRadixSort();
+ checkWideKeys();
  checkStableRadixSort();
+ checkStableNonTrivialKeys();
 
  return( 0 );
  }

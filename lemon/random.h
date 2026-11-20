@@ -73,14 +73,8 @@
 #include <lemon/math.h>
 #include <lemon/dim2.h>
 
-#ifndef LEMON_WIN32
-#include <sys/time.h>
-#include <ctime>
-#include <sys/types.h>
-#include <unistd.h>
-#else
-#include <lemon/bits/windows.h>
-#endif
+#include <chrono>
+#include <random>
 
 ///\ingroup misc
 ///\file
@@ -325,7 +319,7 @@ struct IntConversion< Result , Word , rest , shift , false >
   return(
     ( static_cast< Result >( rnd() ) << shift ) |
     IntConversion< Result , Word , rest - bits ,
-      shift + bits >::convert( rnd ) );
+		   shift + bits >::convert( rnd ) );
   }
  };
 
@@ -441,7 +435,7 @@ struct RealConversion< Result , Word , rest , shift , false >
  static Result convert( RandomCore< Word > & rnd ) {
   return(
     Shifting< Result ,
-      shift + bits >::shift( static_cast< Result >( rnd() ) ) +
+	      shift + bits >::shift( static_cast< Result >( rnd() ) ) +
     RealConversion< Result , Word , rest - bits , shift + bits >::convert(
       rnd ) );
   }
@@ -506,13 +500,13 @@ struct BoolProducer
 ///
 /// This is a template implementation of both 32-bit and
 /// 64-bit architecture optimized versions. The generators differ
-/// sligthly in the initialization and generation phase so they
-/// produce two completly different sequences.
+/// slightly in the initialization and generation phase so they
+/// produce two completely different sequences.
 ///
-/// \alert Do not use this class directly, but instead one of \ref
+/// \warning Do not use this class directly, but instead one of \ref
 /// Random, \ref Random32 or \ref Random64.
 ///
-/// The generator gives back random numbers of serveral types. To
+/// The generator gives back random numbers of several types. To
 /// get a random number from a range of a floating point type, you
 /// can use one form of the \c operator() or the \c real() member
 /// function. If you want to get random number from the {0, 1, ...,
@@ -629,17 +623,23 @@ class Random
   _random_bits::Initializer< Number , Word >::init( core , begin , end );
   }
 
- /// \brief Seeding from file or from process id and time
+ /// \brief Seeding from the random device or from the time
  ///
- /// By default, this function calls the \c seedFromFile() member
- /// function with the <tt>/dev/urandom</tt> file. If it does not success,
+ /// By default, this function seeds the generator with words of
+ /// \c std::random_device. If it does not succeed (e.g., the device throws),
  /// it uses the \c seedFromTime().
  /// \return Currently always \c true.
  bool seed() {
-#ifndef LEMON_WIN32
-  if( seedFromFile( "/dev/urandom" , 0 ) )
+  try {
+   std::random_device rd;
+   const int size = 4;
+   Word buf[ size ];
+   for( int i = 0 ; i < size ; ++i )
+    buf[ i ] = ( Word( rd() ) << 16 << 16 ) ^ Word( rd() );
+   seed( buf , buf + size );
    return( true );
-#endif
+   }
+  catch( ... ) { }
   if( seedFromTime() )
    return( true );
   return( false );
@@ -658,12 +658,8 @@ class Random
  /// \param file The source file
  /// \param offset The offset, from the file read.
  /// \return \c true when the seeding successes.
-#ifndef LEMON_WIN32
  bool seedFromFile( const std::string & file = "/dev/urandom" ,
 		    int offset = 0 )
-#else
- bool seedFromFile( const std::string & file = "" , int offset = 0 )
-#endif
  {
   std::ifstream rs( file.c_str() );
   const int size = 4;
@@ -676,20 +672,15 @@ class Random
   return( true );
   }
 
- /// \brief Seeding from process id and time
+ /// \brief Seeding from the time
  ///
- /// Seeding from process id and time. This function uses the
- /// current process id and the current time for initialize the
- /// random sequence.
+ /// Seeding from the time. This function uses the current time of
+ /// \c std::chrono::system_clock and of \c std::chrono::steady_clock for
+ /// initialize the random sequence.
  /// \return Currently always \c true.
  bool seedFromTime() {
-#ifndef LEMON_WIN32
-  timeval tv;
-  gettimeofday( &tv , 0 );
-  seed( getpid() + tv.tv_sec + tv.tv_usec );
-#else
-  seed( bits::getWinRndSeed() );
-#endif
+  seed( Word( std::chrono::system_clock::now().time_since_epoch().count() ) ^
+	Word( std::chrono::steady_clock::now().time_since_epoch().count() ) );
   return( true );
   }
 
@@ -806,7 +797,7 @@ class Random
    V1 = 2 * real< double >() - 1;
    V2 = 2 * real< double >() - 1;
    S = V1 * V1 + V2 * V2;
-   } while( S >= 1 );
+   } while( S >= 1 || S == 0 );
   return( std::sqrt( -2 * std::log( S ) / S ) * V1 );
   }
  /// Normal (Gauss) distribution with given mean and standard deviation
@@ -968,35 +959,37 @@ class Random
  /// A kind of two-dimensional normal (Gauss) distribution
 
  /// This function provides a turning symmetric two-dimensional distribution.
- /// Both coordinates are of standard normal distribution, but they are not
- /// independent.
+ /// The two coordinates are independent and of standard normal
+ /// distribution.
  ///
  /// \note The coordinates are the two random variables provided by
- /// the Box-Muller method.
+ /// the polar form of the Box-Muller method.
  dim2::Point< double > gauss2() {
   double V1 , V2 , S;
   do {
    V1 = 2 * real< double >() - 1;
    V2 = 2 * real< double >() - 1;
    S = V1 * V1 + V2 * V2;
-   } while( S >= 1 );
+   } while( S >= 1 || S == 0 );
   double W = std::sqrt( -2 * std::log( S ) / S );
   return( dim2::Point< double >( W * V1 , W * V2 ) );
   }
  /// A kind of two-dimensional exponential distribution
 
  /// This function provides a turning symmetric two-dimensional distribution.
- /// The x-coordinate is of conditionally exponential distribution
- /// with the condition that x is positive and y=0. If x is negative and
- /// y=0 then, -x is of exponential distribution. The same is true for the
- /// y-coordinate.
+ /// For \f$(V_1, V_2)\f$ uniform in the unit disc and
+ /// \f$S = V_1^2 + V_2^2\f$, it returns \f$-\ln(S)/S \cdot (V_1, V_2)\f$:
+ /// its direction is uniform, and its distance from the origin is
+ /// \f$-\ln(S)/\sqrt{S}\f$ with \f$S\f$ uniform in \f$(0, 1)\f$, which
+ /// exceeds \f$r\f$ with the probability \f$u\f$ such that
+ /// \f$-\ln(u)/\sqrt{u} = r\f$ (not an exponential distribution).
  dim2::Point< double > exponential2() {
   double V1 , V2 , S;
   do {
    V1 = 2 * real< double >() - 1;
    V2 = 2 * real< double >() - 1;
    S = V1 * V1 + V2 * V2;
-   } while( S >= 1 );
+   } while( S >= 1 || S == 0 );
   double W = -std::log( S ) / S;
   return( dim2::Point< double >( W * V1 , W * V2 ) );
   }

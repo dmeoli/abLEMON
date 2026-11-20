@@ -25,11 +25,7 @@ include $(LEMONSDR)/makefile
 
 # macros to be exported - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# external libraries for LEMON: the threads of the system
-ifeq ($(OS),Windows_NT)
+# external libraries for LEMON: none
 LEMONLIB =
-else
-LEMONLIB = -lpthread
-endif
 
 ############################ End of makefile #################################

@@ -10,6 +10,9 @@
 
 # the build directories of CMake, and what CMake writes in the source
 /build*/
+
+# the site of the user manual, which MkDocs writes next to manual/
+/manual-site/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake

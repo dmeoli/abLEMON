@@ -1,0 +1,33 @@
+% The search tree of ArcLookUp for a node whose arcs go to the nodes of
+% ids 1, 2, 4, 5, 7 and 9 (sec. 4.8): refresh() sorts the arcs by target
+% and makes the middle one the root of each subtree, and the look-up for
+% target 5 follows the path 4, 7, 5. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[box-touched] (r) at (0,0) {4};
+  \node[box] (a) at (-22mm,-13mm) {1};
+  \node[box-touched] (b) at (22mm,-13mm) {7};
+  \node[box] (c) at (-11mm,-26mm) {2};
+  \node[box-added] (d) at (11mm,-26mm) {5};
+  \node[box] (e) at (33mm,-26mm) {9};
+  \draw[edge] (r) -- (a);
+  \draw[edge-touched] (r) -- (b);
+  \draw[edge] (a) -- (c);
+  \draw[edge-touched] (b) -- (d);
+  \draw[edge] (b) -- (e);
+  \node[index,left=2mm of a] {\_left[4]};
+  \node[index,right=2mm of b] {\_right[4]};
+  \node[index,above=2mm of r] {\_head[s]};
+  % the sorted arcs, with the index refreshRec gives them
+  \cells{v}{-21mm,-42mm}{1/cell,2/cell,4/touched,5/added,7/touched,9/cell}
+  \indices{v}{6}
+  \node[var,anchor=east] at ($(v-0.west)+(-2mm,0)$) {targets};
+\end{tikzpicture}
+\end{document}

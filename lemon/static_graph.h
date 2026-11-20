@@ -294,9 +294,9 @@ typedef DigraphExtender< StaticDigraphBase > ExtendedStaticDigraphBase;
 /// can be indexed with integers from the ranges <tt>[0..nodeNum()-1]</tt>
 /// and <tt>[0..arcNum()-1]</tt>, respectively.
 /// The index of an item is the same as its ID, it can be obtained
-/// using the corresponding \ref index() or \ref concepts::Digraph::id()
-/// "id()" function. A node or arc with a certain index can be obtained
-/// using node() or arc().
+/// using the corresponding \ref index() or
+/// \ref concepts::Digraph::id "id()" function. A node or arc
+/// with a certain index can be obtained using node() or arc().
 ///
 /// This type fully conforms to the \ref concepts::Digraph "Digraph concept".
 /// Most of its member functions and nested classes are documented
@@ -705,7 +705,8 @@ typedef GraphExtender< StaticGraphBase > ExtendedStaticGraphBase;
 ///
 /// \brief A static undirected graph class.
 ///
-/// \ref StaticGraph is the undirected counterpart of \ref StaticDigraph:
+/// \ref StaticGraph is the undirected counterpart of
+/// \ref StaticDigraph "StaticDigraph":
 /// a graph whose structure is built once, with \ref build(), and cannot be
 /// modified after that (but it can be built again), in exchange for
 /// arrays that hold the arcs out of each node one after the other, with no

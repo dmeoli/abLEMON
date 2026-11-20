@@ -7,8 +7,6 @@
 
 #cmakedefine LEMON_CXX11 1
 
-#cmakedefine LEMON_WIN32 1
-
 #cmakedefine LEMON_HAVE_LP 1
 #cmakedefine LEMON_HAVE_MIP 1
 #cmakedefine LEMON_HAVE_GLPK 1
@@ -26,28 +24,18 @@
 #cmakedefine LEMON_DEFAULT_LP LEMON_@LEMON_DEFAULT_LP@_
 #cmakedefine LEMON_DEFAULT_MIP LEMON_@LEMON_DEFAULT_MIP@_
 
-#cmakedefine LEMON_USE_PTHREAD 1
-#cmakedefine LEMON_USE_WIN32_THREADS 1
+#cmakedefine LEMON_STATIC_DEFINE 1
 
-#cmakedefine LEMON_SHARED_LIBRARY 1
-
-/* the declaration of a datum of the library, which whoever uses LEMON as a
-   DLL imports from it (its functions are exported without a mark) */
-#if defined( _WIN32 ) && defined( LEMON_SHARED_LIBRARY )
- #ifdef LEMON_BUILDING_LIBRARY
-  #define LEMON_DATA __declspec( dllexport )
- #else
-  #define LEMON_DATA __declspec( dllimport )
- #endif
-#else
- #define LEMON_DATA
-#endif
+/* LEMON_DATA, the declaration of a datum of the library, which whoever uses
+   LEMON as a DLL imports from it (its functions are exported without a
+   mark): written by GenerateExportHeader of CMake, empty for the static
+   library */
+#include <lemon/export.h>
 
 /* a constant of namespace scope, inline from C++17, which gives it external
    linkage, so that the module lemon exports it and its templates may use
    it; a const one, of internal linkage, before */
-#if __cplusplus >= 201703L || \
-    ( defined( _MSVC_LANG ) && _MSVC_LANG >= 201703L )
+#if defined( __cpp_inline_variables )
  #define LEMON_CONSTANT inline constexpr
 #else
  #define LEMON_CONSTANT const

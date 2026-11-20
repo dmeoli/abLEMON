@@ -163,7 +163,7 @@ class Suurballe
   ResidualDijkstra( Suurballe & srb )
       : _graph( srb._graph ) , _length( srb._length ) , _flow( *srb._flow ) ,
 	_pi( *srb._potential ) , _pred( srb._pred ) , _s( srb._s ) ,
-   _t( srb._t ) ,
+	_t( srb._t ) ,
 	_dist( _graph ) { }
 
   // Run the algorithm and return true if a path is found
@@ -600,6 +600,12 @@ class Suurballe
    ( *_flow )[ e ] = 0;
    }
   if( _full_init ) {
+   // t not reachable from s: no path, as without fullInit(), rather than
+   // one path through no arc
+   if( _t != _s && ( *_init_pred )[ _t ] == INVALID ) {
+    _path_num = 0;
+    return( _path_num );
+    }
    for( NodeIt n( _graph ) ; n != INVALID ; ++n ) {
     ( *_potential )[ n ] = ( *_init_dist )[ n ];
     }

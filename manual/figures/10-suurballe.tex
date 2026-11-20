@@ -1,0 +1,48 @@
+% Suurballe's algorithm (sec. 10.5) on a digraph whose shortest path
+% s-a-b-t leaves no second arc-disjoint path: the first path, the second
+% one in the residual digraph through the reverse of a-b (length -1), and
+% the two paths of least total length that result. Build: make figures
+% (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\newcommand{\nodes}{%
+  \node[vertex-touched] (s) at (0,0) {s};
+  \node[vertex] (a) at (20mm,12mm) {a};
+  \node[vertex] (b) at (20mm,-12mm) {b};
+  \node[vertex-touched] (t) at (40mm,0) {t};}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \begin{scope}
+    \nodes
+    \draw[arc-touched] (s) -- node[label] {1} (a);
+    \draw[arc-touched] (a) -- node[label] {1} (b);
+    \draw[arc-touched] (b) -- node[label] {1} (t);
+    \draw[arc] (s) -- node[label] {2} (b);
+    \draw[arc] (a) -- node[label] {2} (t);
+    \node[var] at (20mm,-24mm) {first path, length 3};
+  \end{scope}
+  \begin{scope}[xshift=56mm]
+    \nodes
+    \draw[arc-faded] (a) -- node[label] {$-1$} (s);
+    \draw[arc-added] (b) -- node[label] {$-1$} (a);
+    \draw[arc-faded] (t) -- node[label] {$-1$} (b);
+    \draw[arc-added] (s) -- node[label] {2} (b);
+    \draw[arc-added] (a) -- node[label] {2} (t);
+    \node[var] at (20mm,-24mm) {residual: second path, length 3};
+  \end{scope}
+  \begin{scope}[xshift=112mm]
+    \nodes
+    \draw[arc-added] (s) -- node[label] {1} (a);
+    \draw[arc-faded] (a) -- (b);
+    \draw[arc-touched] (b) -- node[label] {1} (t);
+    \draw[arc-touched] (s) -- node[label] {2} (b);
+    \draw[arc-added] (a) -- node[label] {2} (t);
+    \node[var] at (20mm,-24mm) {two paths, length 6};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

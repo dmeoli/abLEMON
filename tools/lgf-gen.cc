@@ -47,7 +47,9 @@
 
 using namespace lemon;
 
+/// \cond
 typedef dim2::Point< double > Point;
+/// \endcond
 
 GRAPH_TYPEDEFS( ListGraph );
 
@@ -304,6 +306,8 @@ inline void delaunay()
   nodes.push_back( it );
   points.push_back( coords[ it ] );
   }
+ if( nodes.empty() )  // the triangulation of no point has no edge
+  return;
 
  SiteHeap siteheap( points.size() );
 
@@ -639,7 +643,7 @@ void tsp2()
   //       g.addArc(leafs[i],leafs[i+1]);
 
   std::vector< Parc > pedges;
-  for( unsigned int i = 0 ; i < leafs.size() - 1 ; i++ )
+  for( unsigned int i = 0 ; i + 1 < leafs.size() ; i++ )
    for( unsigned int j = i + 1 ; j < leafs.size() ; j++ ) {
     Node n = leafs[ i ];
     Node m = leafs[ j ];
@@ -778,6 +782,11 @@ int main( int argc , const char ** argv )
 	   "Prefix of the output files. Default is 'lgf-gen-out'" )
    .run();
 
+ // a tour needs at least three nodes
+ if( ( ap[ "tsp" ] || ap[ "tsp2" ] ) && N < 3 ) {
+  std::cerr << ap.commandName() << ": -tsp and -tsp2 need at least 3 nodes\n";
+  exit( 1 );
+  }
  if( ap[ "rand" ] ) {
   int seed = int( time( 0 ) );
   std::cout << "Random number seed: " << seed << std::endl;

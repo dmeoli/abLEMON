@@ -122,7 +122,7 @@ struct BfsDefaultTraits
 ///The default type is \ref ListDigraph.
 ///\tparam TR The traits class that defines various types used by the
 ///algorithm. By default, it is \ref BfsDefaultTraits
-///"BfsDefaultTraits<GR>".
+///"BfsDefaultTraits< GR >".
 ///In most cases, this parameter should not be set directly,
 ///consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -440,6 +440,9 @@ class Bfs
  ///
  void addSource( Node s ) {
   if( ! ( *_reached )[ s ] ) {
+   if( emptyQueue() ) {  // a new search: its first level is 1
+    _curr_dist = 1;
+    }
    _reached->set( s , true );
    _pred->set( s , INVALID );
    _dist->set( s , 0 );
@@ -480,7 +483,7 @@ class Bfs
  ///node, then the \c reach parameter will be set to \c true.
  ///
  ///\param target The target node.
- ///\retval reach Indicates if the target node is reached.
+ ///\param[in,out] reach Indicates if the target node is reached.
  ///It should be initially \c false.
  ///
  ///\return The processed node.
@@ -514,7 +517,7 @@ class Bfs
  ///
  ///\param nm A \c bool (or convertible) node map that indicates the
  ///possible targets.
- ///\retval rnode The reached target node.
+ ///\param[in,out] rnode The reached target node.
  ///It should be initially \c INVALID.
  ///
  ///\return The processed node.
@@ -672,7 +675,7 @@ class Bfs
 
  ///This method runs the %BFS algorithm from node \c s
  ///in order to compute the shortest path to node \c t
- ///(it stops searching when \c t is processed).
+ ///(it stops searching when \c t is reached).
  ///
  ///\return \c true if \c t is reachable form \c s.
  ///
@@ -1011,7 +1014,7 @@ class BfsWizard : public TR
 
  ///This method runs BFS algorithm from node \c s
  ///in order to compute the shortest path to node \c t
- ///(it stops searching when \c t is processed).
+ ///(it stops searching when \c t is reached).
  ///
  ///\return \c true if \c t is reachable form \c s.
  bool run( Node s , Node t ) {
@@ -1160,7 +1163,7 @@ class BfsWizard : public TR
 /// // Compute shortest path from s to t
 /// bool reached = bfs( g ).path( p ).dist( d ).run( s , t );
 ///\endcode
-///\warning Don't forget to put the \ref BfsWizard::run(Node) "run()"
+///\warning Don't forget to put the \ref BfsWizard::run "run()"
 ///to the end of the parameter list.
 ///\sa BfsWizard
 ///\sa Bfs
@@ -1290,7 +1293,7 @@ struct BfsVisitDefaultTraits
 /// events, you should implement your own visitor class.
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref BfsVisitDefaultTraits
-/// "BfsVisitDefaultTraits<GR>".
+/// "BfsVisitDefaultTraits< GR >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -1472,7 +1475,7 @@ class BfsVisit
  /// node, then the \c reach parameter will be set to \c true.
  ///
  /// \param target The target node.
- /// \retval reach Indicates if the target node is reached.
+ /// \param[in,out] reach Indicates if the target node is reached.
  /// It should be initially \c false.
  ///
  /// \return The processed node.
@@ -1507,7 +1510,7 @@ class BfsVisit
  ///
  /// \param nm A \c bool (or convertible) node map that indicates the
  /// possible targets.
- /// \retval rnode The reached target node.
+ /// \param[in,out] rnode The reached target node.
  /// It should be initially \c INVALID.
  ///
  /// \return The processed node.
@@ -1667,7 +1670,7 @@ class BfsVisit
  ///
  /// This method runs the %BFS algorithm from node \c s
  /// in order to compute the shortest path to node \c t
- /// (it stops searching when \c t is processed).
+ /// (it stops searching when \c t is reached).
  ///
  /// \return \c true if \c t is reachable form \c s.
  ///

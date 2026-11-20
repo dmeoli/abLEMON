@@ -26,27 +26,14 @@
 ///It is automatically included by all graph types, therefore it usually
 ///do not have to be included directly.
 
-// The warning of MSVC that the headers of LEMON give, turned off:
-// C4250: 'class1' : inherits 'class2::member' via dominance, which the
-// graph adaptors and the edge sets do by design (the others that LEMON
-// turned off, among them C4996 on what is declared deprecated and C4267 on
-// a size_t narrowed, it does not give, and they are left to the user)
-
 #include <lemon/config.h>
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4250 )
-#endif
 
 // The types that the [DI]GRAPH_TYPEDEFS macros define in the scope of the
 // user, who may not use them all: marked as possibly unused, so that GCC and
 // Clang do not warn of them, rather than turning the warning off for the
-// whole of the compilation of the user
-#if defined( __GNUC__ )
-#define LEMON_UNUSED_TYPEDEF __attribute__( ( __unused__ ) )
-#else
-#define LEMON_UNUSED_TYPEDEF
-#endif
+// whole of the compilation of the user; a compiler that does not know the
+// attribute ignores it, as the standard prescribes
+#define LEMON_UNUSED_TYPEDEF [[gnu::unused]]
 
 #include <vector>
 #include <utility>
@@ -468,7 +455,7 @@ class MapCopyBase
  };
 
 template< typename Digraph , typename Item , typename RefMap ,
-  typename FromMap ,
+	  typename FromMap ,
 	  typename ToMap >
 class MapCopy : public MapCopyBase< Digraph , Item , RefMap >
 {
@@ -521,7 +508,7 @@ class RefCopy : public MapCopyBase< Digraph , Item , RefMap >
  };
 
 template< typename Digraph , typename Item , typename RefMap ,
-  typename CrossRef >
+	  typename CrossRef >
 class CrossRefCopy : public MapCopyBase< Digraph , Item , RefMap >
 {
  public:
@@ -602,7 +589,7 @@ struct BpGraphCopySelector
  static void copy( const From & from , BpGraph & to ,
 		   RedNodeRefMap & redNodeRefMap ,
 		   BlueNodeRefMap & blueNodeRefMap ,
-       EdgeRefMap & edgeRefMap ) {
+		   EdgeRefMap & edgeRefMap ) {
   to.clear();
   for( typename From::RedNodeIt it( from ) ; it != INVALID ; ++it ) {
    redNodeRefMap[ it ] = to.addRedNode();
@@ -626,7 +613,7 @@ struct BpGraphCopySelector<
  static void copy( const From & from , BpGraph & to ,
 		   RedNodeRefMap & redNodeRefMap ,
 		   BlueNodeRefMap & blueNodeRefMap ,
-       EdgeRefMap & edgeRefMap ) {
+		   EdgeRefMap & edgeRefMap ) {
   to.build( from , redNodeRefMap , blueNodeRefMap , edgeRefMap );
   }
  };
@@ -813,7 +800,7 @@ class DigraphCopy
  DigraphCopy & arcCrossRef( ArcCrossRef & map ) {
   _arc_maps.push_back(
     new _core_bits::CrossRefCopy< From , Arc , ArcRefMap ,
-      ArcCrossRef >( map ) );
+				  ArcCrossRef >( map ) );
   return( *this );
   }
 
@@ -863,7 +850,7 @@ class DigraphCopy
  To & _to;
 
  std::vector< _core_bits::MapCopyBase< From , Node ,
-   NodeRefMap > * > _node_maps;
+				       NodeRefMap > * > _node_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Arc , ArcRefMap > * > _arc_maps;
  };
@@ -1076,7 +1063,7 @@ class GraphCopy
  GraphCopy & arcCrossRef( ArcCrossRef & map ) {
   _arc_maps.push_back(
     new _core_bits::CrossRefCopy< From , Arc , ArcRefMap ,
-      ArcCrossRef >( map ) );
+				  ArcCrossRef >( map ) );
   return( *this );
   }
 
@@ -1182,12 +1169,12 @@ class GraphCopy
  To & _to;
 
  std::vector< _core_bits::MapCopyBase< From , Node ,
-   NodeRefMap > * > _node_maps;
+				       NodeRefMap > * > _node_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Arc , ArcRefMap > * > _arc_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Edge ,
-   EdgeRefMap > * > _edge_maps;
+				       EdgeRefMap > * > _edge_maps;
  };
 
 /// \brief Copy a graph to another graph.
@@ -1416,7 +1403,7 @@ class BpGraphCopy
  BpGraphCopy & redRef( RedRef & map ) {
   _red_maps.push_back(
     new _core_bits::RefCopy< From , RedNode , RedNodeRefMap ,
-      RedRef >( map ) );
+			     RedRef >( map ) );
   return( *this );
   }
 
@@ -1431,7 +1418,7 @@ class BpGraphCopy
  BpGraphCopy & redCrossRef( RedCrossRef & map ) {
   _red_maps.push_back(
     new _core_bits::CrossRefCopy< From , RedNode , RedNodeRefMap ,
-      RedCrossRef >(
+				  RedCrossRef >(
       map ) );
   return( *this );
   }
@@ -1448,7 +1435,7 @@ class BpGraphCopy
  BpGraphCopy & redNodeMap( const FromMap & map , ToMap & tmap ) {
   _red_maps.push_back(
     new _core_bits::MapCopy< From , RedNode , RedNodeRefMap , FromMap ,
-      ToMap >(
+			     ToMap >(
       map , tmap ) );
   return( *this );
   }
@@ -1504,7 +1491,7 @@ class BpGraphCopy
  BpGraphCopy & blueNodeMap( const FromMap & map , ToMap & tmap ) {
   _blue_maps.push_back(
     new _core_bits::MapCopy< From , BlueNode , BlueNodeRefMap , FromMap ,
-      ToMap >(
+			     ToMap >(
       map , tmap ) );
   return( *this );
   }
@@ -1542,7 +1529,7 @@ class BpGraphCopy
  BpGraphCopy & arcCrossRef( ArcCrossRef & map ) {
   _arc_maps.push_back(
     new _core_bits::CrossRefCopy< From , Arc , ArcRefMap ,
-      ArcCrossRef >( map ) );
+				  ArcCrossRef >( map ) );
   return( *this );
   }
 
@@ -1656,7 +1643,7 @@ class BpGraphCopy
  To & _to;
 
  std::vector< _core_bits::MapCopyBase< From , Node ,
-   NodeRefMap > * > _node_maps;
+				       NodeRefMap > * > _node_maps;
 
  std::vector< _core_bits::MapCopyBase< From , RedNode , RedNodeRefMap > * >
    _red_maps;
@@ -1667,7 +1654,7 @@ class BpGraphCopy
  std::vector< _core_bits::MapCopyBase< From , Arc , ArcRefMap > * > _arc_maps;
 
  std::vector< _core_bits::MapCopyBase< From , Edge ,
-   EdgeRefMap > * > _edge_maps;
+				       EdgeRefMap > * > _edge_maps;
  };
 
 /// \brief Copy a graph to another graph.
@@ -1924,8 +1911,12 @@ class ConEdgeIt : public GR::Edge
 
  /// \brief Constructor.
  ///
- /// Construct a new ConEdgeIt that continues iterating from edge \c e.
- ConEdgeIt( const GR & g , Edge e ) : Parent( e ) , _graph( g ) { }
+ /// Construct a new ConEdgeIt that continues iterating from edge \c e,
+ /// on the edges that connect its two end nodes.
+ ConEdgeIt( const GR & g , Edge e )
+     : Parent( e ) , _graph( g ) ,
+       _u( e != INVALID ? g.u( e ) : Node( INVALID ) ) ,
+       _v( e != INVALID ? g.v( e ) : Node( INVALID ) ) { }
 
  /// \brief Increment operator.
  ///
@@ -1983,7 +1974,7 @@ class DynArcLookUp
      : public ItemSetTraits< GR , Node >::template Map< Arc >::Type
  {
   typedef typename ItemSetTraits< GR ,
-    Node >::template Map< Arc >::Type Parent;
+				  Node >::template Map< Arc >::Type Parent;
 
   public:
   AutoNodeMap( const GR & digraph ) : Parent( digraph , INVALID ) { }
@@ -2316,10 +2307,14 @@ class DynArcLookUp
  ///  n++;
  ///\endcode
  ///
- ///Finding the arcs take at most <em>O</em>(log<em>d</em>)
- ///amortized time, specifically, the time complexity of the lookups
- ///is equal to the optimal search tree implementation for the
- ///current query distribution in a constant factor.
+ ///Finding the first arc, with \c p not given, takes at most amortized
+ ///time <em>O</em>(log<em>d</em>), specifically, the time complexity of
+ ///these lookups is equal to the optimal search tree implementation for
+ ///the current query distribution in a constant factor. Finding the arc
+ ///after \c p may walk from \c p up to its successor without splaying
+ ///that path, hence it takes amortized time <em>O</em>(<em>h</em> +
+ ///log<em>d</em>), where <em>h</em> &le; <em>d</em> is the depth of
+ ///\c p in the search tree of \c s.
  ///
  ///\note This is a dynamic data structure, therefore the data
  ///structure is updated after each graph alteration. Thus although
@@ -2581,7 +2576,7 @@ class AllArcLookUp : public ArcLookUp< GR >
  ///out-degree of the digraph.
  void refresh() {
   for( NodeIt n( _g ) ; n != INVALID ; ++n )
-   refresh( _head[ n ] );
+   refresh( n );
   }
 
  ///Find an arc between two nodes.

@@ -214,8 +214,8 @@ void checkVf2Compile()
  succ = vf2( g , h ).iso().run();
  succ = vf2( g , h ).mapping( r ).run();
 
- Vf2< G1 , G2 , concepts::ReadWriteMap< typename G1::Node ,
-   typename G2::Node > ,
+ Vf2< G1 , G2 ,
+      concepts::ReadWriteMap< typename G1::Node , typename G2::Node > ,
       EqClass< typename G1::Node , typename G2::Node > >
    myVf2( g , h , r , EqClass< typename G1::Node , typename G2::Node >() );
  myVf2.find();
@@ -257,8 +257,8 @@ void checkVf2ppCompile()
 
  concepts::ReadMap< typename G1::Node , int > c1;
  concepts::ReadMap< typename G2::Node , int > c2;
- Vf2pp< G1 , G2 , concepts::ReadWriteMap< typename G1::Node ,
-   typename G2::Node > ,
+ Vf2pp< G1 , G2 ,
+	concepts::ReadWriteMap< typename G1::Node , typename G2::Node > ,
 	concepts::ReadMap< typename G1::Node , int > ,
 	concepts::ReadMap< typename G2::Node , int > >
    myVf2pp( g , h , r , c1 , c2 );
@@ -269,8 +269,8 @@ void checkVf2ppCompile()
 
  concepts::ReadMap< typename G1::Node , char > c1_c;
  concepts::ReadMap< typename G2::Node , char > c2_c;
- Vf2pp< G1 , G2 , concepts::ReadWriteMap< typename G1::Node ,
-   typename G2::Node > ,
+ Vf2pp< G1 , G2 ,
+	concepts::ReadWriteMap< typename G1::Node , typename G2::Node > ,
 	concepts::ReadMap< typename G1::Node , char > ,
 	concepts::ReadMap< typename G2::Node , char > >
    myVf2pp_c( g , h , r , c1_c , c2_c );
@@ -281,8 +281,8 @@ void checkVf2ppCompile()
 
  concepts::ReadMap< typename G1::Node , IntConvertible1 > c1_IntConv;
  concepts::ReadMap< typename G2::Node , IntConvertible2 > c2_IntConv;
- Vf2pp< G1 , G2 , concepts::ReadWriteMap< typename G1::Node ,
-   typename G2::Node > ,
+ Vf2pp< G1 , G2 ,
+	concepts::ReadWriteMap< typename G1::Node , typename G2::Node > ,
 	concepts::ReadMap< typename G1::Node , IntConvertible1 > ,
 	concepts::ReadMap< typename G2::Node , IntConvertible2 > >
    myVf2pp_IntConv( g , h , r , c1_IntConv , c2_IntConv );
@@ -438,7 +438,7 @@ void checkWizardObjects()
  check( n == vf2( c5 , petersen ).count() ,
 	"Wrong number of mappings from getPtrToVf2Object()" );
  Vf2pp< SmartGraph , SmartGraph ,
-   SmartGraph::NodeMap< SmartGraph::Node > > * w =
+	SmartGraph::NodeMap< SmartGraph::Node > > * w =
    vf2pp( c5 , petersen ).getPtrToVf2ppObject();
  n = 0;
  while( w->find() )
@@ -496,4 +496,23 @@ int main()
 
  check( vf2( c10 , c10 ).iso().run() , "C10 and C10 are isomorphic." );
  check( vf2pp( c10 , c10 ).iso().run() , "C10 and C10 are isomorphic." );
+
+ // an isomorphism maps onto all the nodes: K2 is an induced subgraph of
+ // two disjoint copies of K2, but it is not isomorphic to them
+ {
+  SmartGraph k2 , k2k2;
+  k2.addEdge( k2.addNode() , k2.addNode() );
+  for( int i = 0 ; i < 2 ; ++i )
+   k2k2.addEdge( k2k2.addNode() , k2k2.addNode() );
+  check( vf2( k2 , k2k2 ).induced().count() == 4 ,
+	 "K2 has 4 induced mappings into 2K2." );
+  check( vf2( k2 , k2k2 ).iso().count() == 0 ,
+	 "K2 and 2K2 are not isomorphic." );
+  check( vf2pp( k2 , k2k2 ).iso().count() == 0 ,
+	 "K2 and 2K2 are not isomorphic." );
+  check( ! vf2( k2 , k2k2 ).iso().run() , "K2 and 2K2 are not isomorphic." );
+  check( ! vf2pp( k2 , k2k2 ).iso().run() , "K2 and 2K2 are not isomorphic." );
+  check( vf2( k2 , k2 ).iso().count() == 2 , "K2 has 2 automorphisms." );
+  check( vf2pp( k2 , k2 ).iso().count() == 2 , "K2 has 2 automorphisms." );
+  }
  }

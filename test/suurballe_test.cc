@@ -262,5 +262,19 @@ int main()
   check( suurballe.totalLength() == 1040 , "The flow is not optimal" );
   }
 
+ // fullInit() and a target that cannot be reached: no path, where one
+ // path through no arc was reported and findPaths() then walked off
+ {
+  ListDigraph g;
+  ListDigraph::Node a = g.addNode() , b = g.addNode() , c = g.addNode();
+  ListDigraph::ArcMap< int > len( g );
+  len[ g.addArc( a , b ) ] = 1;
+  Suurballe< ListDigraph > suurballe( g , len );
+  suurballe.fullInit( a );
+  check( suurballe.start( c ) == 0 , "A path to a node not reachable" );
+  check( suurballe.pathNum() == 0 , "A path to a node not reachable" );
+  check( suurballe.start( b ) == 1 , "Wrong number of paths" );
+  }
+
  return( 0 );
  }

@@ -25,6 +25,8 @@
 #include <lemon/lgf_reader.h>
 #include <lemon/gomory_hu.h>
 #include <cstdlib>
+#include <limits>
+#include <vector>
 
 using namespace std;
 using namespace lemon;
@@ -102,6 +104,91 @@ int cutValue( const Graph & graph , const BoolNodeMap & cut ,
  return( sum );
  }
 
+// A cut map that counts its writes and the writes on INVALID
+struct CountingCutMap
+{
+ typedef Node Key;
+ typedef bool Value;
+
+ BoolNodeMap map;
+ int sets , invalid_sets;
+
+ CountingCutMap( const Graph & graph )
+     : map( graph , false ) , sets( 0 ) , invalid_sets( 0 ) { }
+
+ void set( const Node & n , bool v ) {
+  ++sets;
+  if( n == INVALID )
+   ++invalid_sets;
+  else
+   map[ n ] = v;
+  }
+
+ bool operator[]( const Node & n ) const { return( map[ n ] ); }
+ };
+
+// minCutMap() writes each node once, also on a deep tree
+void checkMinCutMapWrites()
+{
+ Graph graph;
+ IntEdgeMap capacity( graph );
+ const int n = 20;
+ std::vector< Node > nodes;
+ for( int i = 0 ; i < n ; ++i )
+  nodes.push_back( graph.addNode() );
+ for( int i = 0 ; i + 1 < n ; ++i )
+  capacity[ graph.addEdge( nodes[ i ] , nodes[ i + 1 ] ) ] = i + 1;
+
+ GomoryHu< Graph > ght( graph , capacity );
+ ght.run();
+
+ for( int i = 0 ; i < n ; ++i )
+  for( int j = 0 ; j < n ; ++j ) {
+   if( i == j )
+    continue;
+   CountingCutMap cm( graph );
+   int value = ght.minCutMap( nodes[ i ] , nodes[ j ] , cm );
+   check( cm.sets == n , "minCutMap() writes a node more than once" );
+   check( cm.invalid_sets == 0 , "minCutMap() writes INVALID" );
+   check( value == std::min( i , j ) + 1 , "Wrong cut value" );
+   check( value == cutValue( graph , cm.map , capacity ) , "Wrong cut" );
+   check( cm[ nodes[ i ] ] && ! cm[ nodes[ j ] ] , "Wrong sides" );
+   }
+ }
+
+// minCutMap( s , s ) puts every node on the side of s
+void checkMinCutMapSameNode( const Graph & graph ,
+			     const GomoryHu< Graph > & ght )
+{
+ for( NodeIt u( graph ) ; u != INVALID ; ++u ) {
+  CountingCutMap cm( graph );
+  int value = ght.minCutMap( u , u , cm );
+  check( cm.invalid_sets == 0 , "minCutMap( s , s ) writes INVALID" );
+  check( value == std::numeric_limits< int >::max() ,
+	 "Wrong value of minCutMap( s , s )" );
+  check( value == ght.minCutValue( u , u ) ,
+	 "minCutMap( s , s ) and minCutValue( s , s ) differ" );
+  for( NodeIt v( graph ) ; v != INVALID ; ++v )
+   check( cm[ v ] , "Wrong side in minCutMap( s , s )" );
+  check( GomoryHu< Graph >::MinCutEdgeIt( ght , u , u ) == INVALID ,
+	 "MinCutEdgeIt( s , s ) lists an edge" );
+  }
+ }
+
+// run() on graphs of zero and one node
+void checkSmallGraphs()
+{
+ Graph graph;
+ IntEdgeMap capacity( graph );
+ GomoryHu< Graph > empty( graph , capacity );
+ empty.run();
+
+ Node u = graph.addNode();
+ GomoryHu< Graph > single( graph , capacity );
+ single.run();
+ check( single.predNode( u ) == INVALID , "Wrong root" );
+ check( single.rootDist( u ) == 0 , "Wrong order of the root" );
+ }
 
 int main()
 {
@@ -142,6 +229,10 @@ int main()
    check( sum == countNodes( graph ) , "Problem with MinCutNodeIt" );
    }
   }
+
+ checkMinCutMapSameNode( graph , ght );
+ checkMinCutMapWrites();
+ checkSmallGraphs();
 
  return( 0 );
  }

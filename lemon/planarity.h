@@ -571,7 +571,9 @@ bool checkPlanarity( const GR & graph )
 /// 3 Red and 3 Blue nodes) subdivision.
 ///
 /// The current implementation calculates either an embedding or a
-/// Kuratowski subdivision. The running time of the algorithm is O(n).
+/// Kuratowski subdivision. The running time of the algorithm is
+/// O(n log n): the sort of the children of each node by their low points,
+/// made by radixSort(), takes O(n log n) in all, and the rest O(n).
 ///
 /// \see PlanarDrawing, checkPlanarity()
 template< typename Graph >
@@ -636,8 +638,8 @@ class PlanarEmbedding
  /// \pre The graph must be simple, i.e. it should not
  /// contain parallel or loop arcs.
  PlanarEmbedding( const Graph & graph )
-     : _graph( graph ) , _embedding( _graph ) , _kuratowski( graph ,
-							     false ) { }
+     : _graph( graph ) , _embedding( _graph ) ,
+       _kuratowski( graph , false ) { }
 
  /// \brief Run the algorithm.
  ///
@@ -1643,7 +1645,7 @@ class PlanarEmbedding
 			 FlipMap & flip_map , OrderMap & order_map ,
 			 OrderList & order_list , PredMap & pred_map ,
 			 ChildLists & child_lists ,
-      AncestorMap & ancestor_map ,
+			 AncestorMap & ancestor_map ,
 			 LowMap & low_map , EmbedArc & embed_arc ,
 			 MergeRoots & merge_roots ) {
 
@@ -1719,7 +1721,7 @@ class PlanarEmbedding
     Node lwnode , lznode;
     markCommonPath( wnode , rorder , lwnode , lznode , order_list , order_map ,
 		    node_data , arc_lists , embed_arc , merge_roots ,
-	child_lists ,
+		    child_lists ,
 		    ancestor_map , low_map );
 
     markPertinentPath( lwnode , order_map , node_data , arc_lists , embed_arc ,
@@ -2623,9 +2625,10 @@ class PlanarColoring
 
  /// \brief Return the node map of color indices
  ///
- /// This function returns the node map of color indices. The values are
- /// in the range \c [0..4] or \c [0..5] according to the coloring method.
- IndexMap colorIndexMap() const { return( _color_map ); }
+ /// This function returns a const reference to the node map of color
+ /// indices, rather than a copy of it. The values are in the range
+ /// \c [0..4] or \c [0..5] according to the coloring method.
+ const IndexMap & colorIndexMap() const { return( _color_map ); }
 
  /// \brief Return the node map of colors
  ///

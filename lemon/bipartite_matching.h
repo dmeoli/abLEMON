@@ -40,7 +40,8 @@ namespace lemon
 ///
 /// This class implements the algorithm of Hopcroft and Karp, which finds a
 /// maximum cardinality matching of a bipartite graph in
-/// \f$O(m\sqrt{n})\f$ time: in each phase, a breadth-first search from the
+/// \f$O((n+m)\sqrt{n})\f$ time, i.e., \f$O(m\sqrt{n})\f$ on a graph
+/// without isolated nodes: in each phase, a breadth-first search from the
 /// unmatched red nodes finds the length of the shortest augmenting paths,
 /// and a depth-first search augments along a maximal set of disjoint ones
 /// of that length. It can be started from the empty matching or from a
@@ -71,6 +72,7 @@ class HopcroftKarp
  typename BpGraph::template RedNodeMap< IncEdgeIt > _current;
  BoolNodeMap _cover;
  int _size;
+ int _limit;  // the layer of the red nodes that end the shortest paths
 
  static const int INF = std::numeric_limits< int >::max();
 
@@ -82,7 +84,9 @@ class HopcroftKarp
   }
 
  // the lengths of the alternating paths from the unmatched red nodes to
- // the red nodes; true if an augmenting path exists
+ // the red nodes, up to the first layer from which an unmatched blue node
+ // is reached (_limit), so that the augmenting paths along the layers are
+ // the shortest ones; true if an augmenting path exists
  bool bfs() {
   std::queue< RedNode > queue;
   for( RedNodeIt u( _graph ) ; u != INVALID ; ++u ) {
@@ -94,14 +98,16 @@ class HopcroftKarp
     _dist[ u ] = INF;
     }
    }
-  bool found = false;
+  _limit = INF;
   while( ! queue.empty() ) {
    RedNode u = queue.front();
    queue.pop();
+   if( _dist[ u ] >= _limit )  // the layers beyond the shortest paths
+    break;
    for( IncEdgeIt e( _graph , u ) ; e != INVALID ; ++e ) {
     Node w = mateOf( _graph.blueNode( e ) );
     if( w == INVALID ) {
-     found = true;
+     _limit = _dist[ u ];
      }
     else if( _dist[ _graph.asRedNodeUnsafe( w ) ] == INF ) {
      _dist[ _graph.asRedNodeUnsafe( w ) ] = _dist[ u ] + 1;
@@ -109,7 +115,7 @@ class HopcroftKarp
      }
     }
    }
-  return( found );
+  return( _limit != INF );
   }
 
  // a shortest augmenting path from the unmatched red node s along the
@@ -123,6 +129,8 @@ class HopcroftKarp
    for( ; _current[ x ] != INVALID ; ++_current[ x ] ) {
     Node w = mateOf( _graph.blueNode( _current[ x ] ) );
     if( w == INVALID ) {
+     if( _dist[ x ] != _limit )  // a longer path than the shortest ones
+      continue;
      for( std::size_t i = stack.size() ; i-- > 0 ; ) {
       Edge e = _current[ stack[ i ] ];
       _matching[ stack[ i ] ] = e;
@@ -131,7 +139,7 @@ class HopcroftKarp
      return( true );
      }
     RedNode y = _graph.asRedNodeUnsafe( w );
-    if( _dist[ y ] == _dist[ x ] + 1 ) {
+    if( _dist[ y ] == _dist[ x ] + 1 && _dist[ y ] <= _limit ) {
      stack.push_back( y );
      advanced = true;
      break;
@@ -185,7 +193,8 @@ class HopcroftKarp
  /// Constructor.
  explicit HopcroftKarp( const BpGraph & graph )
      : _graph( graph ) , _matching( graph , INVALID ) , _dist( graph ) ,
-       _current( graph ) , _cover( graph , false ) , _size( 0 ) { }
+       _current( graph ) , _cover( graph , false ) , _size( 0 ) ,
+       _limit( INF ) { }
 
  /// \name Execution Control
  /// The simplest way to execute the algorithm is to use the \c run()
@@ -312,8 +321,9 @@ class HopcroftKarp
 /// shortest augmenting paths: each red node is matched in turn along a
 /// shortest path of the residual graph, found by Dijkstra's algorithm on
 /// the costs reduced by node potentials, which the method keeps
-/// nonnegative; it takes \f$O(n_r\, m \log n)\f$ time, where \f$n_r\f$ is
-/// the number of red nodes.
+/// nonnegative; it takes \f$O(n_r\,(n + m \log m))\f$ time, i.e.,
+/// \f$O(n_r\,(n + m \log n))\f$ on a graph without parallel edges, where
+/// \f$n_r\f$ is the number of red nodes.
 ///
 /// The potentials are the dual solution: for every edge \f$e\f$ between
 /// the red node \f$r\f$ and the blue node \f$b\f$,
@@ -325,7 +335,7 @@ class HopcroftKarp
 /// \tparam CM The type of the cost map, whose values must be of a signed
 /// arithmetic type.
 template< typename BPGR ,
-  typename CM = typename BPGR::template EdgeMap< int > >
+	  typename CM = typename BPGR::template EdgeMap< int > >
 class MinCostAssignment
 {
  public:
@@ -352,7 +362,7 @@ class MinCostAssignment
 
  typedef std::pair< Value , int > Item;
  typedef std::priority_queue< Item , std::vector< Item > ,
-   std::greater< Item > >
+			      std::greater< Item > >
    Heap;
 
  // the node y reached at distance d along the edge e, unless it is

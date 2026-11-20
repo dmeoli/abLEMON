@@ -1,0 +1,46 @@
+% A breadth-first and a depth-first search of the same digraph from s
+% (sec. 9.2 and 9.3), the out-arcs of each node scanned from top to
+% bottom: the arcs of the trees, the distance (BFS) and the depth in the
+% tree (DFS) of each node. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\newcommand{\nodes}[4]{%
+  \node[vertex-touched] (s) at (0,0) {s};
+  \node[vertex] (a) at (20mm,12mm) {a};
+  \node[vertex] (b) at (20mm,-12mm) {b};
+  \node[vertex] (c) at (42mm,12mm) {c};
+  \node[vertex] (d) at (42mm,-12mm) {d};
+  \node[label,left=1.2mm of s] {0};
+  \node[label,above=1.2mm of a] {#1};
+  \node[label,below=1.2mm of b] {#2};
+  \node[label,above=1.2mm of c] {#3};
+  \node[label,below=1.2mm of d] {#4};}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \begin{scope}
+    \nodes{1}{1}{2}{2}
+    \draw[arc-added] (s) -- (a);
+    \draw[arc-added] (s) -- (b);
+    \draw[arc] (a) -- (b);
+    \draw[arc-added] (a) -- (c);
+    \draw[arc-added] (b) -- (d);
+    \draw[arc] (c) -- (d);
+    \node[var] at (21mm,-26mm) {breadth-first: distance};
+  \end{scope}
+  \begin{scope}[xshift=62mm]
+    \nodes{1}{2}{2}{3}
+    \draw[arc-added] (s) -- (a);
+    \draw[arc] (s) -- (b);
+    \draw[arc-added] (a) -- (b);
+    \draw[arc-added] (a) -- (c);
+    \draw[arc-added] (b) -- (d);
+    \draw[arc] (c) -- (d);
+    \node[var] at (21mm,-26mm) {depth-first: depth};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

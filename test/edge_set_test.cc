@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <utility>
 #include <vector>
 
 #include <lemon/concepts/digraph.h>
@@ -378,6 +379,76 @@ void checkListEdgeSet()
  }
 
 
+// Whether the node maintenance of an arc set, eraseNode() and clearNodes(),
+// is callable from outside the class.
+template< class AS , class = void >
+struct NodeMaintenancePublic
+{
+ static const bool value = false;
+ };
+
+template< class AS >
+struct NodeMaintenancePublic<
+  AS , decltype( std::declval< AS & >().clearNodes() ,
+		std::declval< AS & >().eraseNode(
+		  std::declval< typename AS::Node >() ) ,
+		void() ) >
+{
+ static const bool value = true;
+ };
+
+void checkNodeMaintenanceHidden()
+{
+ check( ! NodeMaintenancePublic< SmartArcSet< ListDigraph > >::value ,
+	"SmartArcSet has public eraseNode()" );
+ check( ! NodeMaintenancePublic< ListArcSet< ListDigraph > >::value ,
+	"ListArcSet has public eraseNode()" );
+ check( ! NodeMaintenancePublic< SmartEdgeSet< ListGraph > >::value ,
+	"SmartEdgeSet has public eraseNode()" );
+ check( ! NodeMaintenancePublic< ListEdgeSet< ListGraph > >::value ,
+	"ListEdgeSet has public eraseNode()" );
+ }
+
+// An arc or an edge refused by an observer is taken out of the set again,
+// where it stayed with no slot in the maps; a later addition works.
+template< class Set >
+void checkArcSetRefusedAdd()
+{
+ ListDigraph g;
+ ListDigraph::Node u = g.addNode() , v = g.addNode();
+ Set s( g );
+ typename Set::template ArcMap< int > m( s , 0 );
+ checkRefusedAdd( s.notifier( typename Set::Arc() ) ,
+		  [ & ]() { s.addArc( u , v ); } );
+ check( countArcs( s ) == 0 , "A refused arc stayed in the set." );
+ typename Set::Arc a = s.addArc( u , v );
+ m[ a ] = 7;
+ check( countArcs( s ) == 1 && m[ a ] == 7 , "Wrong arc after a refusal." );
+ }
+
+template< class Set >
+void checkEdgeSetRefusedAdd()
+{
+ ListGraph g;
+ ListGraph::Node u = g.addNode() , v = g.addNode();
+ Set s( g );
+ typename Set::template EdgeMap< int > m( s , 0 );
+ checkRefusedAdd( s.notifier( typename Set::Edge() ) ,
+		  [ & ]() { s.addEdge( u , v ); } );
+ check( countEdges( s ) == 0 , "A refused edge stayed in the set." );
+ checkRefusedAdd( s.notifier( typename Set::Arc() ) ,
+		  [ & ]() { s.addEdge( u , v ); } );
+ check( countEdges( s ) == 0 && countArcs( s ) == 0 ,
+	"An edge refused by the arc observers stayed in the set." );
+ checkRefusedAdd( s.notifier( typename Set::Edge() ) ,
+		  [ & ]() { s.addEdge( u , u ); } );
+ check( countEdges( s ) == 0 && countIncEdges( s , u ) == 0 ,
+	"A refused loop stayed in the set." );
+ typename Set::Edge e = s.addEdge( u , v );
+ m[ e ] = 7;
+ check( countEdges( s ) == 1 && m[ e ] == 7 , "Wrong edge after a refusal." );
+ }
+
 int main()
 {
 
@@ -385,6 +456,11 @@ int main()
  checkListArcSet();
  checkSmartEdgeSet();
  checkListEdgeSet();
+ checkNodeMaintenanceHidden();
+ checkArcSetRefusedAdd< ListArcSet< ListDigraph > >();
+ checkArcSetRefusedAdd< SmartArcSet< ListDigraph > >();
+ checkEdgeSetRefusedAdd< ListEdgeSet< ListGraph > >();
+ checkEdgeSetRefusedAdd< SmartEdgeSet< ListGraph > >();
 
  return( 0 );
  }

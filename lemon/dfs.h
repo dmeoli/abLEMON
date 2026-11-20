@@ -122,7 +122,7 @@ struct DfsDefaultTraits
 ///The default type is \ref ListDigraph.
 ///\tparam TR The traits class that defines various types used by the
 ///algorithm. By default, it is \ref DfsDefaultTraits
-///"DfsDefaultTraits<GR>".
+///"DfsDefaultTraits< GR >".
 ///In most cases, this parameter should not be set directly,
 ///consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -606,7 +606,7 @@ class Dfs
 
  ///This method runs the %DFS algorithm from node \c s
  ///in order to compute the DFS path to node \c t
- ///(it stops searching when \c t is processed)
+ ///(it stops searching when \c t is reached)
  ///
  ///\return \c true if \c t is reachable form \c s.
  ///
@@ -943,7 +943,7 @@ class DfsWizard : public TR
 
  ///This method runs DFS algorithm from node \c s
  ///in order to compute the DFS path to node \c t
- ///(it stops searching when \c t is processed).
+ ///(it stops searching when \c t is reached).
  ///
  ///\return \c true if \c t is reachable form \c s.
  bool run( Node s , Node t ) {
@@ -1092,7 +1092,7 @@ class DfsWizard : public TR
 /// // Compute the DFS path from s to t
 /// bool reached = dfs( g ).path( p ).dist( d ).run( s , t );
 ///\endcode
-///\warning Don't forget to put the \ref DfsWizard::run(Node) "run()"
+///\warning Don't forget to put the \ref DfsWizard::run "run()"
 ///to the end of the parameter list.
 ///\sa DfsWizard
 ///\sa Dfs
@@ -1234,7 +1234,7 @@ struct DfsVisitDefaultTraits
 /// events, you should implement your own visitor class.
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref DfsVisitDefaultTraits
-/// "DfsVisitDefaultTraits<GR>".
+/// "DfsVisitDefaultTraits< GR >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -1549,7 +1549,7 @@ class DfsVisit
 
  /// This method runs the %DFS algorithm from node \c s
  /// in order to compute the DFS path to node \c t
- /// (it stops searching when \c t is processed).
+ /// (it stops searching when \c t is reached).
  ///
  /// \return \c true if \c t is reachable form \c s.
  ///

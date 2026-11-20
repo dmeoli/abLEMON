@@ -1,0 +1,30 @@
+% An edge and its two arcs (sec. 3.2): the edge e of ListGraph, SmartGraph
+% or StaticGraph, with its inherent orientation from u(e) to v(e), and the
+% arcs 2e + 1 (forward, direction() true) and 2e (backward) that represent
+% it. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  % the edge
+  \node[vertex] (u) at (0,0) {u};
+  \node[vertex] (v) at (30mm,0) {v};
+  \draw[edge] (u) -- node[label] {\ttfamily e} (v);
+  \node[var,below=3mm of u] {u(e)};
+  \node[var,below=3mm of v] {v(e)};
+  % its two arcs
+  \node[vertex] (u2) at (52mm,0) {u};
+  \node[vertex] (v2) at (92mm,0) {v};
+  \draw[arc-touched] (u2) to[bend left=28]
+    node[label,above=1.2mm] {\ttfamily direct(e,true)} (v2);
+  \draw[arc] (v2) to[bend left=28]
+    node[label,below=1.2mm] {\ttfamily direct(e,false)} (u2);
+  \node[index,above=12mm of $(u2)!0.5!(v2)$] {id 2e+1, direction() true};
+  \node[index,below=12mm of $(u2)!0.5!(v2)$] {id 2e, direction() false};
+\end{tikzpicture}
+\end{document}

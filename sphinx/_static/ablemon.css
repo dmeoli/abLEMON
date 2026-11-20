@@ -1,0 +1,178 @@
+/* The Sphinx site of abLEMON set as the PDF of the manual, as
+   manual/build/extra.css sets the site of the manual: Latin Modern for the
+   text and the code (the fonts of manual/build/fonts, which conf.py copies
+   next to this file), at the size of a book, a white header and sidebar
+   in place of the coloured bars of the theme of Read the Docs, the code
+   within the prose without a box, plain tables, and the primary 7030A0
+   for the links. */
+
+@font-face { font-family: "Latin Modern Roman";
+  src: url("lmroman10-regular.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Roman"; font-weight: bold;
+  src: url("lmroman10-bold.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Roman"; font-style: italic;
+  src: url("lmroman10-italic.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Roman"; font-weight: bold;
+  font-style: italic;
+  src: url("lmroman10-bolditalic.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Mono";
+  src: url("lmmono10-regular.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Mono"; font-style: italic;
+  src: url("lmmono10-italic.otf") format("opentype"); }
+
+body, h1, h2, h3, h4, h5, h6, legend, input, .btn,
+.rst-content .toctree-wrapper > p.caption,
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+  font-family: "Latin Modern Roman", serif;
+}
+
+.rst-content code, .rst-content tt, code, kbd, pre, samp,
+.rst-content pre.literal-block, .rst-content div[class^="highlight"] pre,
+.rst-content dl .sig, .rst-content dl .sig * {
+  font-family: "Latin Modern Mono", monospace;
+}
+
+/* the text column of a book, justified and hyphenated */
+body { color: #000; font-size: 17px; }
+.wy-nav-content { max-width: 58rem; }
+.rst-content p, .rst-content li, .rst-content dd {
+  line-height: 1.45;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* the headings in the weight of LaTeX */
+.rst-content h1 { font-size: 1.7em; }
+.rst-content h2 { font-size: 1.3em; }
+.rst-content h3, .rst-content p.rubric { font-size: 1.1em; }
+
+/* the links in the primary of the PDF */
+a, a:visited, .rst-content a code { color: #7030A0; }
+a:hover { color: #4b1f6b; }
+
+/* the header and the sidebar white, as the page of a book */
+.wy-body-for-nav, .wy-nav-content, .wy-nav-content-wrap,
+.wy-nav-side, .wy-side-nav-search, .wy-nav-top {
+  background: #fff;
+}
+.wy-nav-side { border-right: 1px solid #ddd; color: #000; }
+.wy-side-nav-search > a, .wy-side-nav-search .wy-dropdown > a,
+.wy-side-nav-search > div.version, .wy-nav-top a {
+  color: #000;
+}
+.wy-side-nav-search input[type="text"] { border-color: #bbb; }
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+  color: #000;
+  text-transform: none;
+  font-size: 100%;
+}
+.wy-menu-vertical a, .wy-menu-vertical li.current a,
+.wy-menu-vertical li.on a {
+  color: #000;
+  background: none !important;
+  border: none !important;
+}
+.wy-menu-vertical li.current { background: none; }
+.wy-menu-vertical a:hover {
+  background: #f2f2f2 !important;
+  color: #7030A0;
+}
+.wy-menu-vertical li.current > a, .wy-menu-vertical li.on > a {
+  font-weight: bold;
+}
+.wy-menu-vertical a button.toctree-expand { color: #666; }
+
+/* the code within the prose as \texttt in the PDF: no box around it */
+.rst-content code, .rst-content tt, code,
+.rst-content code.literal, .rst-content tt.literal {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 100%;
+  color: inherit;
+  white-space: normal;
+}
+.rst-content pre { font-size: 0.9em; }
+
+/* the tables as in the PDF: plain, with thin rules above, below and under
+   the header, and the cells on more lines (the theme keeps them on one) */
+.rst-content table.docutils, .wy-table-bordered-all {
+  border: none;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+.rst-content table.docutils td, .rst-content table.docutils th,
+html.writer-html5 .rst-content table.docutils th {
+  border: none;
+  background: none !important;
+  font-size: 95%;
+  white-space: normal;
+}
+.rst-content table.docutils thead th {
+  border-bottom: 0.5px solid #000;
+}
+
+/* the signatures of the members on a light grey, not in a blue box */
+.rst-content dl.cpp > dt {
+  background: #f6f6f6 !important;
+  border-top: none !important;
+  border-left: 2px solid #7030A0 !important;
+  color: #000 !important;
+}
+
+/* the description of a group without the signature "group <title>"
+   that Breathe puts above it, the title of the page saying it */
+.rst-content dl:has(> dt > span.target[id^="group__"]) > dt {
+  display: none;
+}
+.rst-content dl:has(> dt > span.target[id^="group__"]) > dd {
+  margin-left: 0;
+}
+
+/* the notes and the warnings as paragraphs of the text with a rule on the
+   left, not in coloured boxes */
+.rst-content .admonition, .rst-content .note, .rst-content .warning,
+.rst-content .seealso, .rst-content .attention, .rst-content .important {
+  background: none;
+  border-left: 2px solid #7030A0;
+  padding: 0.3em 1em;
+}
+.rst-content .admonition-title, .rst-content .note .admonition-title,
+.rst-content .warning .admonition-title,
+.rst-content .seealso .admonition-title {
+  background: none;
+  color: #000;
+  font-weight: bold;
+  padding: 0;
+  margin: 0 0 0.3em;
+}
+.rst-content .admonition-title::before { display: none; }
+
+/* a display formula wider than the page scrolls in its own box */
+mjx-container[display="true"], div.math {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* the lists of the parameters within the column: the second column of the
+   grid of a field list may shrink, and a long word wraps */
+html.writer-html5 .rst-content dl.field-list {
+  grid-template-columns: fit-content(30%) minmax(0, 1fr);
+}
+html.writer-html5 .rst-content dl.field-list > dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html.writer-html5 .rst-content dl.field-list > dd code {
+  white-space: normal;
+}
+
+/* a long signature wraps within the column instead of running past it */
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list)
+  > dt.sig {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

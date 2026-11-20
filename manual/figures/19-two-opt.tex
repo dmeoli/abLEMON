@@ -1,0 +1,50 @@
+% A 2-opt move (sec. 19.3): the edges (u,u+) and (v,v+) of the tour, u+
+% and v+ the successors of u and v, cross; they are removed (faded) and
+% replaced by (u,v) and (u+,v+), which reverses the path from u+ to v.
+% Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  % before
+  \begin{scope}
+    \node[vertex-touched] (u)  at (0,0)       {u};
+    \node[vertex-touched] (v) at (20mm,0)    {v};
+    \node[vertex-touched] (vp)  at (0,-20mm)   {v+};
+    \node[vertex-touched] (up) at (20mm,-20mm){u+};
+    \node[vertex] (a) at (-14mm,-10mm) {};
+    \node[vertex] (b) at (34mm,-10mm) {};
+    \draw[edge] (a) -- (u);
+    \draw[edge] (a) -- (vp);
+    \draw[edge] (up) -- (b);
+    \draw[edge] (v) -- (b);
+    \draw[edge-touched] (u) -- (up);
+    \draw[edge-touched] (v) -- (vp);
+    \node[var] at (10mm,-30mm) {before};
+  \end{scope}
+  \draw[ptr] (40mm,-10mm) -- (50mm,-10mm);
+  % after
+  \begin{scope}[xshift=70mm]
+    \node[vertex] (u)  at (0,0)       {u};
+    \node[vertex] (v) at (20mm,0)    {v};
+    \node[vertex] (vp)  at (0,-20mm)   {v+};
+    \node[vertex] (up) at (20mm,-20mm){u+};
+    \node[vertex] (a) at (-14mm,-10mm) {};
+    \node[vertex] (b) at (34mm,-10mm) {};
+    \draw[edge] (a) -- (u);
+    \draw[edge] (a) -- (vp);
+    \draw[edge] (up) -- (b);
+    \draw[edge] (v) -- (b);
+    \draw[arc-faded,-] (u) -- (up);
+    \draw[arc-faded,-] (v) -- (vp);
+    \draw[edge-added] (u) -- (v);
+    \draw[edge-added] (up) -- (vp);
+    \node[var] at (10mm,-30mm) {after};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

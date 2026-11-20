@@ -127,7 +127,7 @@ SkeletonSolverBase::Sense SkeletonSolverBase::_getSense() const
 
 void SkeletonSolverBase::_clear()
 {
- row_num = col_num = 0;
+ row_num = col_num = -1;  // as the constructor, so that the next index is 0
  }
 
 void SkeletonSolverBase::_messageLevel( MessageLevel )
@@ -211,6 +211,13 @@ MipSkeleton::Value MipSkeleton::_getSolValue() const
 {
  return( 0 );
  }
+
+MipSkeleton::ColTypes MipSkeleton::_getColType( int ) const
+{
+ return( REAL );
+ }
+void MipSkeleton::_setColType( int , ColTypes )
+{ }
 
 MipSkeleton::ProblemType MipSkeleton::_getType() const
 {

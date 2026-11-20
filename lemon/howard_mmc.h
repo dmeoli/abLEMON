@@ -110,7 +110,7 @@ struct HowardMmcDefaultTraits< GR , CM , true >
 /// map type is \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
 /// \tparam TR The traits class that defines various types used by the
 /// algorithm. By default, it is \ref HowardMmcDefaultTraits
-/// "HowardMmcDefaultTraits<GR, CM>".
+/// "HowardMmcDefaultTraits< GR , CM >".
 /// In most cases, this parameter should not be set directly,
 /// consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -182,6 +182,12 @@ class HowardMmc
 
  Path * _cycle_path;
  bool _local_path;
+
+ // The cycle of minimum mean of each strongly connected component that has
+ // one: a node of it, its cost and its size
+ std::vector< Node > _comp_cycle_node;
+ std::vector< LargeCost > _comp_cycle_cost;
+ std::vector< int > _comp_cycle_size;
 
  // Internal data used by the algorithm
  typename Digraph::template NodeMap< Arc > _policy;
@@ -365,9 +371,11 @@ class HowardMmc
   int iter_count = 0;
   bool iter_limit_reached = false;
   for( int comp = 0 ; comp < _comp_num ; ++comp ) {
-   // Find the minimum mean cycle in the current component
+   // Find the minimum mean cycle in the current component (none found yet,
+   // since the limit may stop the search before its first policy cycle)
    if( ! buildPolicyGraph( comp ) )
     continue;
+   _curr_found = false;
    while( true ) {
     if( ++iter_count > limit ) {
      iter_limit_reached = true;
@@ -376,6 +384,13 @@ class HowardMmc
     findPolicyCycle();
     if( ! computeNodeDistances() )
      break;
+    }
+
+   // Keep the cycle of the component
+   if( _curr_found ) {
+    _comp_cycle_node.push_back( _curr_node );
+    _comp_cycle_cost.push_back( _curr_cost );
+    _comp_cycle_size.push_back( _curr_size );
     }
 
    // Update the best cycle (global minimum mean cycle)
@@ -447,11 +462,11 @@ class HowardMmc
  ///
  /// This function returns the mean cost of the found cycle.
  ///
- /// \note <tt>alg.cycleMean()</tt> is just a shortcut of the
- /// following code.
- /// \code
- /// return( static_cast< double >( alg.cycleCost() ) / alg.cycleSize() );
- /// \endcode
+ /// \note <tt>alg.cycleMean()</tt> divides the cost of the cycle, kept as
+ /// a \c LargeCost, by cycleSize(); hence it is the same as
+ /// <tt>static_cast< double >( alg.cycleCost() ) / alg.cycleSize()</tt>
+ /// only when that cost fits in \c Cost, to which cycleCost() converts
+ /// it.
  ///
  /// \pre \ref run() or \ref findCycleMean() must be called before
  /// using this function.
@@ -468,6 +483,46 @@ class HowardMmc
  /// this function.
  const Path & cycle() const { return( *_cycle_path ); }
 
+ /// \brief Return the number of the cycles of the components.
+ ///
+ /// Howard's policy iteration runs on each strongly connected component of
+ /// the digraph in turn, and ends there with a policy whose cycle is one of
+ /// minimum mean cost of the component (Dasdan, 2004): this function returns
+ /// the number of the components that have a cycle, whose cycles, one for
+ /// each, are pairwise node-disjoint [see componentCycle()]. They are
+ /// those of minimum mean in their components only if \ref findCycleMean()
+ /// was not stopped by its limit on the iterations.
+ ///
+ /// \pre \ref run() or \ref findCycleMean() must be called before
+ /// using this function.
+ int componentCycleNum() const { return( int( _comp_cycle_node.size() ) ); }
+
+ /// \brief Return the total cost of the cycle of the i-th component.
+ ///
+ /// \pre \ref run() or \ref findCycleMean() must be called before
+ /// using this function [see componentCycleNum()].
+ Cost componentCycleCost( int i ) const {
+  return( static_cast< Cost >( _comp_cycle_cost[ i ] ) );
+  }
+
+ /// \brief Return the number of arcs on the cycle of the i-th component.
+ ///
+ /// \pre \ref run() or \ref findCycleMean() must be called before
+ /// using this function [see componentCycleNum()].
+ int componentCycleSize( int i ) const { return( _comp_cycle_size[ i ] ); }
+
+ /// \brief Append the cycle of the i-th component to a path.
+ ///
+ /// \pre \ref run() or \ref findCycleMean() must be called before
+ /// using this function [see componentCycleNum()].
+ template< typename P >
+ void componentCycle( int i , P & path ) const {
+  const Node start = _comp_cycle_node[ i ];
+  path.addBack( _policy[ start ] );
+  for( Node v = start ; ( v = _gr.target( _policy[ v ] ) ) != start ; )
+   path.addBack( _policy[ v ] );
+  }
+
  ///@}
 
  private:
@@ -482,6 +537,9 @@ class HowardMmc
   _best_cost = 0;
   _best_size = 1;
   _cycle_path->clear();
+  _comp_cycle_node.clear();
+  _comp_cycle_cost.clear();
+  _comp_cycle_size.clear();
   }
 
  // Find strongly connected components and initialize _comp_nodes
@@ -549,6 +607,8 @@ class HowardMmc
   LargeCost ccost;
   int csize;
   Node u , v;
+  // The root of the previous iteration, kept on a tie of the means
+  const Node root = _curr_found ? _curr_node : INVALID;
   _curr_found = false;
   for( int i = 0 ; i < int( _nodes->size() ) ; ++i ) {
    u = ( *_nodes )[ i ];
@@ -561,15 +621,19 @@ class HowardMmc
     // A cycle is found
     ccost = _cost[ _policy[ u ] ];
     csize = 1;
+    bool has_root = ( u == root );
     for( v = u ; ( v = _gr.target( _policy[ v ] ) ) != u ; ) {
      ccost += _cost[ _policy[ v ] ];
      ++csize;
+     if( v == root )
+      has_root = true;
      }
-    if( ! _curr_found || ( ccost * _curr_size < _curr_cost * csize ) ) {
+    if( ! _curr_found || ( ccost * _curr_size < _curr_cost * csize ) ||
+	( has_root && ccost * _curr_size == _curr_cost * csize ) ) {
      _curr_found = true;
      _curr_cost = ccost;
      _curr_size = csize;
-     _curr_node = u;
+     _curr_node = has_root ? root : u;
      }
     }
    }

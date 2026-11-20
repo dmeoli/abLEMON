@@ -1,14 +1,80 @@
 /*
  * What the documentation of abLEMON changes in doxygen-awesome-css, loaded
- * after it [see HTML_EXTRA_STYLESHEET in Doxyfile.in].
+ * after it [see HTML_EXTRA_STYLESHEET in Doxyfile.in]: the site set as the
+ * PDF of the manual, as manual/build/extra.css sets the site of the manual,
+ * with Latin Modern for the text and the code (the fonts of
+ * manual/build/fonts, which HTML_EXTRA_FILES copies next to this file), at
+ * the size of a book, a white header and side panel, the code within the
+ * prose without a box, plain tables, and the primary 7030A0 for the links.
  */
 
-/* the colors of the lemon of the logo for the accents */
+@font-face { font-family: "Latin Modern Roman";
+  src: url("lmroman10-regular.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Roman"; font-weight: bold;
+  src: url("lmroman10-bold.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Roman"; font-style: italic;
+  src: url("lmroman10-italic.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Roman"; font-weight: bold;
+  font-style: italic;
+  src: url("lmroman10-bolditalic.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Mono";
+  src: url("lmmono10-regular.otf") format("opentype"); }
+@font-face { font-family: "Latin Modern Mono"; font-style: italic;
+  src: url("lmmono10-italic.otf") format("opentype"); }
+
+/* the fonts, the sizes and the colours of the PDF: black text, the
+   primary 7030A0 for the links and the accents, white panels */
 html {
-    --primary-color: #a8860b;
-    --primary-dark-color: #7a6108;
-    --primary-light-color: #d9b52c;
-    --content-maxwidth: 1200px;
+    --font-family: "Latin Modern Roman", serif;
+    --font-family-monospace: "Latin Modern Mono", monospace;
+    --page-font-size: 17px;
+    --navigation-font-size: 15px;
+    --toc-font-size: 15px;
+    --code-font-size: 16px;
+    --title-font-size: 24px;
+    --memtitle-font-size: 19px;
+    --content-line-height: 1.45;
+
+    --primary-color: #7030A0;
+    --primary-dark-color: #4b1f6b;
+    --primary-light-color: #9b6bc0;
+    --page-foreground-color: #000000;
+    --page-secondary-foreground-color: #444444;
+
+    --side-nav-background: #ffffff;
+    --header-background: #ffffff;
+    --code-background: #ffffff;
+    --tablehead-background: #ffffff;
+    --blockquote-background: #ffffff;
+    --section-code-background: none;
+    --section-code-border: transparent;
+
+    /* the notes and the warnings with a rule on the left, not in coloured
+       boxes */
+    --note-color: #ffffff;
+    --note-color-dark: #7030A0;
+    --note-color-darker: #000000;
+    --warning-color: #ffffff;
+    --warning-color-dark: #7030A0;
+    --warning-color-darker: #000000;
+    --todo-color: #ffffff;
+    --todo-color-dark: #7030A0;
+    --todo-color-darker: #000000;
+    --deprecated-color: #ffffff;
+    --deprecated-color-dark: #7030A0;
+    --deprecated-color-darker: #000000;
+    --bug-color: #ffffff;
+    --bug-color-dark: #7030A0;
+    --bug-color-darker: #000000;
+    --invariant-color: #ffffff;
+    --invariant-color-dark: #7030A0;
+    --invariant-color-darker: #000000;
+
+    /* the text column of a book */
+    --content-maxwidth: 58rem;
+    /* the side panel high enough for the name and the version on two
+       lines, which the serif font needs */
+    --top-height: 135px;
 }
 
 /* the logo and the title in the side panel, which has the width that
@@ -20,6 +86,50 @@ html {
 
 #projectname {
     white-space: normal;
+}
+
+/* the text justified and hyphenated, the headings in the weight of LaTeX */
+div.contents p, div.contents li, div.contents dd {
+    text-align: justify;
+    hyphens: auto;
+}
+
+div.header .title, div.contents h1, div.contents h2, div.contents h3,
+h2.groupheader {
+    font-weight: bold;
+}
+div.header .title, div.contents h1 { font-size: 1.7em; }
+div.contents h2 { font-size: 1.3em; }
+div.contents h3 { font-size: 1.1em; }
+
+/* the code within the prose as \texttt in the PDF: no box around it */
+code, span.tt {
+    background: none;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+/* the tables as in the PDF: plain, with thin rules above, below and under
+   the header */
+table.fieldtable, table.markdownTable tbody, table.doxtable tbody {
+    box-shadow: none;
+    border-radius: 0;
+}
+table.markdownTable, table.doxtable, table.fieldtable {
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    border-collapse: collapse;
+}
+table.markdownTable td, table.markdownTable th,
+table.doxtable td, table.doxtable th,
+table.fieldtable td, table.fieldtable th {
+    border: none !important;
+    background: none !important;
+}
+table.markdownTable th, table.doxtable th, table.fieldtable th {
+    border-bottom: 0.5px solid #000 !important;
+    font-weight: bold;
 }
 
 /* a display formula wider than the page scrolls in its own box */

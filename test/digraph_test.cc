@@ -60,8 +60,8 @@ void checkDigraphBuild()
 
  checkGraphConArcList( G , 1 );
 
- Arc a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 , n3 ) , a4 = G.addArc( n2 ,
-									  n3 );
+ Arc a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 , n3 ) ,
+   a4 = G.addArc( n2 , n3 );
  ::lemon::ignore_unused_variable_warning( a2 , a3 , a4 );
 
  checkGraphNodeList( G , 3 );
@@ -90,8 +90,8 @@ void checkDigraphSplit()
 
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) ,
+   a3 = G.addArc( n2 , n3 ) ,
      a4 = G.addArc( n2 , n3 );
  ::lemon::ignore_unused_variable_warning( a1 , a2 , a3 , a4 );
 
@@ -125,8 +125,8 @@ void checkDigraphAlter()
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode() ,
    n4 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) , a3 = G.addArc( n4 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) ,
+   a3 = G.addArc( n4 , n3 ) ,
      a4 = G.addArc( n4 , n3 ) , a5 = G.addArc( n2 , n4 );
  ::lemon::ignore_unused_variable_warning( a1 , a2 , a3 , a5 );
 
@@ -206,8 +206,8 @@ void checkDigraphErase()
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode() ,
    n4 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) , a3 = G.addArc( n4 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n4 , n1 ) ,
+   a3 = G.addArc( n4 , n3 ) ,
      a4 = G.addArc( n3 , n1 ) , a5 = G.addArc( n2 , n4 );
  ::lemon::ignore_unused_variable_warning( a2 , a3 , a4 , a5 );
 
@@ -256,8 +256,8 @@ void checkDigraphSnapshot()
 
  Digraph G;
  Node n1 = G.addNode() , n2 = G.addNode() , n3 = G.addNode();
- Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) , a3 = G.addArc( n2 ,
-									  n3 ) ,
+ Arc a1 = G.addArc( n1 , n2 ) , a2 = G.addArc( n2 , n1 ) ,
+   a3 = G.addArc( n2 , n3 ) ,
      a4 = G.addArc( n2 , n3 );
  ::lemon::ignore_unused_variable_warning( a1 , a2 , a3 , a4 );
 
@@ -347,6 +347,31 @@ void checkConcepts()
  {  // Checking FullDigraph
   checkConcept< Digraph , FullDigraph >();
   }
+ }
+
+template< class Digraph >
+void checkDigraphRefusedAdd()
+{
+ TEMPLATE_DIGRAPH_TYPEDEFS( Digraph );
+
+ Digraph G;
+ Node n1 = G.addNode() , n2 = G.addNode();
+ G.addArc( n1 , n2 );
+
+ checkRefusedAdd( G.notifier( Node() ) , [ & ]() { G.addNode(); } );
+ checkGraphNodeList( G , 2 );
+ checkRefusedAdd( G.notifier( Arc() ) , [ & ]() { G.addArc( n2 , n1 ); } );
+ checkGraphArcList( G , 1 );
+ checkGraphOutArcList( G , n2 , 0 );
+ checkGraphInArcList( G , n1 , 0 );
+
+ G.addArc( n2 , G.addNode() );
+ checkGraphNodeList( G , 3 );
+ checkGraphArcList( G , 2 );
+ checkNodeIds( G );
+ checkArcIds( G );
+ checkGraphNodeMap( G );
+ checkGraphArcMap( G );
  }
 
 template< typename Digraph >
@@ -496,6 +521,8 @@ void checkStaticDigraph()
  int m = G.arcNum();
  check( G.index( G.node( n - 1 ) ) == n - 1 , "Wrong index." );
  check( G.index( G.arc( m - 1 ) ) == m - 1 , "Wrong index." );
+ const GR & CG = G;
+ check( CG.index( CG.arc( m - 1 ) ) == m - 1 , "Wrong index." );
  }
 
 void checkFullDigraph( int num )
@@ -545,12 +572,14 @@ void checkDigraphs()
   checkDigraphErase< ListDigraph >();
   checkDigraphSnapshot< ListDigraph >();
   checkDigraphValidityErase< ListDigraph >();
+  checkDigraphRefusedAdd< ListDigraph >();
   }
  {  // Checking SmartDigraph
   checkDigraphBuild< SmartDigraph >();
   checkDigraphSplit< SmartDigraph >();
   checkDigraphSnapshot< SmartDigraph >();
   checkDigraphValidity< SmartDigraph >();
+  checkDigraphRefusedAdd< SmartDigraph >();
   }
  {  // Checking StaticDigraph
   checkStaticDigraph< StaticDigraph >();
@@ -561,9 +590,56 @@ void checkDigraphs()
   }
  }
 
+// An observer that accepts additions and detaches itself when told to erase
+// them, as a rollback of the notifier does when a later observer refuses.
+template< class Notifier >
+class DetachingObserver : public Notifier::ObserverBase
+{
+ typedef typename Notifier::Item Item;
+ typedef typename Notifier::ImmediateDetach Detach;
+
+ public:
+ explicit DetachingObserver( Notifier & nf ) { this->attach( nf ); }
+ bool isAttached() const { return( this->attached() ); }
+
+ protected:
+ void add( const Item & ) override { }
+ void add( const std::vector< Item > & ) override { }
+ void erase( const Item & ) override { throw( Detach() ); }
+ void erase( const std::vector< Item > & ) override { throw( Detach() ); }
+ void build() override { }
+ void clear() override { throw( Detach() ); }
+ };
+
+// The rollback of an addition refused by an observer detaches an observer
+// that throws ImmediateDetach from its erase(), and the caller sees the
+// original exception, where the ImmediateDetach went out in its place and
+// the observer stayed attached
+void checkRollbackDetach()
+{
+ typedef ListDigraph::NodeNotifier Notifier;
+ ListDigraph g;
+ DetachingObserver< Notifier > detaching( g.notifier( ListDigraph::Node() ) );
+ bool refused = false;
+ try {
+  RefusingObserver< Notifier > refusing( g.notifier( ListDigraph::Node() ) );
+  g.addNode();
+  }
+ catch( const RefusingObserver< Notifier >::Refused & ) {
+  refused = true;
+  }
+ catch( ... ) {
+  }
+ check( refused , "The rollback did not keep the original exception." );
+ check( ! detaching.isAttached() ,
+	"The rollback did not detach the observer." );
+ check( countNodes( g ) == 0 , "A refused node stayed in the digraph." );
+ }
+
 int main()
 {
  checkDigraphs();
  checkConcepts();
+ checkRollbackDetach();
  return( 0 );
  }

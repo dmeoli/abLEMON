@@ -312,10 +312,10 @@ inline void writeEscape( std::ostream & os , char c )
    os << "\\v";
    return;
   default:
-   if( c < 0x20 ) {
-    std::ios::fmtflags flags = os.flags();
-    os << '\\' << std::oct << static_cast< int >( c );
-    os.flags( flags );
+   // three octal digits, so that a digit after them is not read with them;
+   // the bytes above 127 are written as they are
+   if( static_cast< unsigned char >( c ) < 0x20 ) {
+    os << '\\' << '0' << char( '0' + ( c >> 3 ) ) << char( '0' + ( c & 7 ) );
     }
    else {
     os << c;
@@ -326,7 +326,7 @@ inline void writeEscape( std::ostream & os , char c )
 
 inline bool requireEscape( const std::string & str )
 {
- if( str.empty() || str[ 0 ] == '@' )
+ if( str.empty() || str[ 0 ] == '@' || str[ 0 ] == '#' )
   return( true );
  std::istringstream is( str );
  char c;

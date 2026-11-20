@@ -281,6 +281,45 @@ void checkBpGraphSnapshot()
  checkGraphArcList( G , 4 );
  }
 
+template< class BpGraph >
+void checkBpGraphRefusedAdd()
+{
+ TEMPLATE_BPGRAPH_TYPEDEFS( BpGraph );
+
+ BpGraph G;
+ RedNode n1 = G.addRedNode();
+ BlueNode n2 = G.addBlueNode();
+ G.addEdge( n1 , n2 );
+
+ checkRefusedAdd( G.notifier( RedNode() ) , [ & ]() { G.addRedNode(); } );
+ checkRefusedAdd( G.notifier( Node() ) , [ & ]() { G.addRedNode(); } );
+ checkRefusedAdd( G.notifier( BlueNode() ) , [ & ]() { G.addBlueNode(); } );
+ checkRefusedAdd( G.notifier( Node() ) , [ & ]() { G.addBlueNode(); } );
+ checkGraphNodeList( G , 2 );
+ checkGraphRedNodeList( G , 1 );
+ checkGraphBlueNodeList( G , 1 );
+ checkRefusedAdd( G.notifier( Edge() ) , [ & ]() { G.addEdge( n1 , n2 ); } );
+ checkRefusedAdd( G.notifier( Arc() ) , [ & ]() { G.addEdge( n1 , n2 ); } );
+ checkGraphEdgeList( G , 1 );
+ checkGraphArcList( G , 2 );
+ checkGraphIncEdgeArcLists( G , n1 , 1 );
+ checkGraphIncEdgeArcLists( G , n2 , 1 );
+
+ G.addEdge( G.addRedNode() , G.addBlueNode() );
+ checkGraphNodeList( G , 4 );
+ checkGraphRedNodeList( G , 2 );
+ checkGraphBlueNodeList( G , 2 );
+ checkGraphEdgeList( G , 2 );
+ checkNodeIds( G );
+ checkRedNodeIds( G );
+ checkBlueNodeIds( G );
+ checkEdgeIds( G );
+ checkGraphNodeMap( G );
+ checkGraphRedNodeMap( G );
+ checkGraphBlueNodeMap( G );
+ checkGraphEdgeMap( G );
+ }
+
 template< typename BpGraph >
 void checkBpGraphValidity()
 {
@@ -316,7 +355,7 @@ void checkConcepts()
   checkConcept< MappableBpGraphComponent<> , MappableBpGraphComponent<> >();
 
   checkConcept< ExtendableBpGraphComponent<> ,
-    ExtendableBpGraphComponent<> >();
+		ExtendableBpGraphComponent<> >();
 
   checkConcept< ErasableBpGraphComponent<> , ErasableBpGraphComponent<> >();
 
@@ -417,11 +456,13 @@ void checkGraphs()
   checkBpGraphAlter< ListBpGraph >();
   checkBpGraphSnapshot< ListBpGraph >();
   checkBpGraphValidity< ListBpGraph >();
+  checkBpGraphRefusedAdd< ListBpGraph >();
   }
  {  // Checking SmartGraph
   checkBpGraphBuild< SmartBpGraph >();
   checkBpGraphSnapshot< SmartBpGraph >();
   checkBpGraphValidity< SmartBpGraph >();
+  checkBpGraphRefusedAdd< SmartBpGraph >();
   }
  {  // Checking FullBpGraph
   checkFullBpGraph( 6 , 8 );

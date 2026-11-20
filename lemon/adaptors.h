@@ -61,8 +61,8 @@ class DigraphAdaptorBase
  void first( Node & i ) const { _digraph->first( i ); }
  void first( Arc & i ) const { _digraph->first( i ); }
  void firstIn( Arc & i , const Node & n ) const { _digraph->firstIn( i , n ); }
- void firstOut( Arc & i , const Node & n ) const { _digraph->firstOut( i ,
-								       n ); }
+ void firstOut( Arc & i ,
+		const Node & n ) const { _digraph->firstOut( i , n ); }
 
  void next( Node & i ) const { _digraph->next( i ); }
  void next( Arc & i ) const { _digraph->next( i ); }
@@ -376,7 +376,7 @@ class ReverseDigraphBase : public DigraphAdaptorBase< DGR >
 /// It conforms to the \ref concepts::Digraph "Digraph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or arcs, unless the \c GR template
+/// by adding or removing nodes or arcs, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides item counting in the same time as the adapted
@@ -597,7 +597,7 @@ class SubDigraphBase : public DigraphAdaptorBase< DGR >
 
 template< typename DGR , typename NF , typename AF >
 class SubDigraphBase< DGR , NF , AF ,
-  false > : public DigraphAdaptorBase< DGR >
+		      false > : public DigraphAdaptorBase< DGR >
 {
  typedef DigraphAdaptorBase< DGR > Parent;
 
@@ -769,7 +769,7 @@ class SubDigraphBase< DGR , NF , AF ,
 /// This adaptor conforms to the \ref concepts::Digraph "Digraph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or arcs, unless the \c GR template
+/// by adding or removing nodes or arcs, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides only linear time counting for nodes and arcs.
@@ -811,7 +811,7 @@ class SubDigraph
  typedef AF ArcFilterMap;
 
  typedef DigraphAdaptorExtender< SubDigraphBase< DGR , NF , AF ,
-   true > > Parent;
+						 true > > Parent;
 
  typedef typename Parent::Node Node;
  typedef typename Parent::Arc Arc;
@@ -1588,7 +1588,7 @@ template< typename GR , typename NF = typename GR::template NodeMap< bool > ,
 class FilterNodes
     : public DigraphAdaptorExtender< SubDigraphBase<
 	GR , NF , ConstMap< typename GR::Arc , Const< bool , true > > ,
-   true > >
+	  true > >
 {
 #endif
  typedef DigraphAdaptorExtender< SubDigraphBase<
@@ -1613,6 +1613,25 @@ class FilterNodes
  /// given node filter map.
  FilterNodes( GR & graph , NF & node_filter ) : Parent() , const_true_map() {
   Parent::initialize( graph , node_filter , const_true_map );
+  }
+
+ /// \brief Copy constructor
+ ///
+ /// Creates an adaptor of the same digraph or graph with the same node
+ /// filter map, which refers to none of the members of \c other.
+ FilterNodes( const FilterNodes & other ) : Parent( other ) ,
+   const_true_map() {
+  Parent::_arc_filter = &const_true_map;
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor adapt the digraph or graph of \c other with its
+ /// node filter map.
+ FilterNodes & operator=( const FilterNodes & other ) {
+  Parent::operator=( other );
+  Parent::_arc_filter = &const_true_map;
+  return( *this );
   }
 
  /// \brief Sets the status of the given node
@@ -1647,7 +1666,7 @@ class FilterNodes< GR , NF ,
 		   typename enable_if< UndirectedTagIndicator< GR > >::type >
     : public GraphAdaptorExtender< SubGraphBase<
 	GR , NF , ConstMap< typename GR::Edge , Const< bool , true > > ,
-   true > >
+	  true > >
 {
 
  typedef GraphAdaptorExtender< SubGraphBase<
@@ -1669,6 +1688,17 @@ class FilterNodes< GR , NF ,
  FilterNodes( GR & graph , NodeFilterMap & node_filter )
      : Parent() , const_true_map() {
   Parent::initialize( graph , node_filter , const_true_map );
+  }
+
+ FilterNodes( const FilterNodes & other ) : Parent( other ) ,
+   const_true_map() {
+  Parent::_edge_filter = &const_true_map;
+  }
+
+ FilterNodes & operator=( const FilterNodes & other ) {
+  Parent::operator=( other );
+  Parent::_edge_filter = &const_true_map;
+  return( *this );
   }
 
  void status( const Node & n , bool v ) const { Parent::status( n , v ); }
@@ -1706,7 +1736,7 @@ FilterNodes< const GR , const NF > filterNodes( const GR & graph ,
 /// "Digraph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or arcs, unless the \c GR template
+/// by adding or removing nodes or arcs, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides only linear time counting for nodes and arcs.
@@ -1730,7 +1760,7 @@ template< typename DGR , typename AF = typename DGR::template ArcMap< bool > >
 class FilterArcs
     : public DigraphAdaptorExtender< SubDigraphBase<
 	DGR , ConstMap< typename DGR::Node , Const< bool , true > > , AF ,
-   false > >
+	  false > >
 {
 #endif
  typedef DigraphAdaptorExtender< SubDigraphBase<
@@ -1758,6 +1788,24 @@ class FilterArcs
  FilterArcs( DGR & digraph , ArcFilterMap & arc_filter )
      : Parent() , const_true_map() {
   Parent::initialize( digraph , const_true_map , arc_filter );
+  }
+
+ /// \brief Copy constructor
+ ///
+ /// Creates an adaptor of the same digraph with the same arc filter map,
+ /// which refers to none of the members of \c other.
+ FilterArcs( const FilterArcs & other ) : Parent( other ) , const_true_map() {
+  Parent::_node_filter = &const_true_map;
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor adapt the digraph of \c other with its arc
+ /// filter map.
+ FilterArcs & operator=( const FilterArcs & other ) {
+  Parent::operator=( other );
+  Parent::_node_filter = &const_true_map;
+  return( *this );
   }
 
  /// \brief Sets the status of the given arc
@@ -1839,7 +1887,7 @@ template< typename GR , typename EF = typename GR::template EdgeMap< bool > >
 class FilterEdges
     : public GraphAdaptorExtender< SubGraphBase<
 	GR , ConstMap< typename GR::Node , Const< bool , true > > , EF ,
-   false > >
+	  false > >
 {
 #endif
  typedef GraphAdaptorExtender< SubGraphBase<
@@ -1857,9 +1905,7 @@ class FilterEdges
  protected:
  ConstMap< typename GR::Node , Const< bool , true > > const_true_map;
 
- FilterEdges() : const_true_map( true ) {
-  Parent::setNodeFilterMap( const_true_map );
-  }
+ FilterEdges() : const_true_map() { }
 
  public:
  /// \brief Constructor
@@ -1868,6 +1914,25 @@ class FilterEdges
  /// filter map.
  FilterEdges( GR & graph , EF & edge_filter ) : Parent() , const_true_map() {
   Parent::initialize( graph , const_true_map , edge_filter );
+  }
+
+ /// \brief Copy constructor
+ ///
+ /// Creates an adaptor of the same graph with the same edge filter map,
+ /// which refers to none of the members of \c other.
+ FilterEdges( const FilterEdges & other ) : Parent( other ) ,
+   const_true_map() {
+  Parent::_node_filter = &const_true_map;
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor adapt the graph of \c other with its edge
+ /// filter map.
+ FilterEdges & operator=( const FilterEdges & other ) {
+  Parent::operator=( other );
+  Parent::_node_filter = &const_true_map;
+  return( *this );
   }
 
  /// \brief Sets the status of the given edge
@@ -2245,7 +2310,7 @@ class UndirectorBase
 
  template< typename V >
  class ArcMap : public SubMapExtender< UndirectorBase< DGR > ,
-   ArcMapBase< V > >
+				       ArcMapBase< V > >
  {
   typedef SubMapExtender< UndirectorBase< DGR > , ArcMapBase< V > > Parent;
 
@@ -2329,7 +2394,7 @@ class UndirectorBase
 /// This adaptor conforms to the \ref concepts::Graph "Graph" concept.
 ///
 /// The adapted digraph can also be modified through this adaptor
-/// by adding or removing nodes or edges, unless the \c GR template
+/// by adding or removing nodes or edges, unless the \c DGR template
 /// parameter is set to be \c const.
 ///
 /// This class provides item counting in the same time as the adapted
@@ -2787,7 +2852,7 @@ class ResBackwardFilter
 /// It must be an arc map of some numerical type, which defines
 /// the capacities in the flow problem. It is implicitly \c const.
 /// The default type is
-/// \ref concepts::Digraph::ArcMap "GR::ArcMap< int >".
+/// \ref concepts::Digraph::ArcMap "DGR::ArcMap< int >".
 /// \tparam FM The type of the flow map.
 /// It must be an arc map of some numerical type, which defines
 /// the flow values in the flow problem. The default type is \c CM.
@@ -2795,8 +2860,8 @@ class ResBackwardFilter
 /// The default tolerance type depends on the value type of the
 /// capacity map.
 ///
-/// \note This adaptor is implemented using Undirector and FilterArcs
-/// adaptors.
+/// \note This adaptor is implemented as a SubDigraph of an Undirector
+/// of the digraph.
 ///
 /// \note The \c Node type of this adaptor and the adapted digraph are
 /// convertible to each other, moreover the \c Arc type of the adaptor
@@ -2867,6 +2932,32 @@ class ResidualDigraph
        _backward_filter( capacity , flow , tolerance ) ,
        _arc_filter( _forward_filter , _backward_filter ) {
   Parent::initialize( _graph , _node_filter , _arc_filter );
+  }
+
+ /// \brief Copy constructor
+ ///
+ /// Creates a residual digraph of the same digraph, capacity map, flow
+ /// map and tolerance, which refers to none of the members of \c other.
+ ResidualDigraph( const ResidualDigraph & other )
+     : Parent() , _capacity( other._capacity ) , _flow( other._flow ) ,
+       _graph( other._graph ) , _node_filter() ,
+       _forward_filter( other._forward_filter ) ,
+       _backward_filter( other._backward_filter ) ,
+       _arc_filter( _forward_filter , _backward_filter ) {
+  Parent::initialize( _graph , _node_filter , _arc_filter );
+  }
+
+ /// \brief Assignment
+ ///
+ /// Makes this adaptor the residual digraph of the digraph, capacity
+ /// map, flow map and tolerance of \c other.
+ ResidualDigraph & operator=( const ResidualDigraph & other ) {
+  _capacity = other._capacity;
+  _flow = other._flow;
+  _graph = other._graph;
+  _forward_filter = other._forward_filter;
+  _backward_filter = other._backward_filter;
+  return( *this );
   }
 
  typedef typename Parent::Arc Arc;
@@ -3198,8 +3289,8 @@ class SplitNodesBase
    }
   }
  int maxArcId() const {
-  return( ( std::max )( _digraph->maxNodeId() << 1 ,
-			 ( _digraph->maxArcId() << 1 ) | 1 ) );
+  return( ( std::max )( _digraph->maxArcId() << 1 ,
+			 ( _digraph->maxNodeId() << 1 ) | 1 ) );
   }
 
  static bool inNode( const Node & n ) { return( n._in ); }
@@ -3376,7 +3467,7 @@ class SplitNodesBase
 
  template< typename V >
  class ArcMap : public SubMapExtender< SplitNodesBase< DGR > ,
-   ArcMapBase< V > >
+				       ArcMapBase< V > >
  {
   typedef SubMapExtender< SplitNodesBase< DGR > , ArcMapBase< V > > Parent;
 

@@ -500,7 +500,7 @@ typedef GraphExtender< GridGraphBase > ExtendedGridGraphBase;
 ///
 /// A short example about the basic usage:
 ///\code
-/// GridGraph graph( rows , cols );
+/// GridGraph graph( width , height );
 /// GridGraph::NodeMap< int > val( graph );
 /// for( int i = 0 ; i < graph.width() ; ++i )
 /// {
@@ -521,10 +521,10 @@ class GridGraph : public ExtendedGridGraphBase
 
  public:
  /// \brief Map to get the indices of the nodes as \ref dim2::Point
- /// "dim2::Point<int>".
+ /// "dim2::Point< int >".
  ///
  /// Map to get the indices of the nodes as \ref dim2::Point
- /// "dim2::Point<int>".
+ /// "dim2::Point< int >".
  class IndexMap
  {
   public:

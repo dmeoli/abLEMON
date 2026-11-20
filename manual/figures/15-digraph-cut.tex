@@ -1,0 +1,33 @@
+% The digraph of the example of section 15.2: the minimum cut with node 0
+% inside is {0,1,2}, of value 5, and the minimum cut of the digraph is
+% X = {3,4,5}, of value 4, whose two leaving arcs are drawn in the colour
+% of what the algorithm chooses. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \node[vertex] (n0) at (0,12mm) {0};
+  \node[vertex] (n1) at (19mm,26mm) {1};
+  \node[vertex] (n2) at (19mm,-2mm) {2};
+  \node[vertex-touched] (n3) at (46mm,26mm) {3};
+  \node[vertex-touched] (n4) at (46mm,-2mm) {4};
+  \node[vertex-touched] (n5) at (65mm,12mm) {5};
+  \begin{scope}[on background layer]
+    \node[region,fit=(n3)(n4)(n5),inner sep=2.5mm] {};
+  \end{scope}
+  \draw[arc] (n0) to[bend left=12] node[label] {6} (n1);
+  \draw[arc] (n1) -- node[label] {4} (n2);
+  \draw[arc] (n2) to[bend left=12] node[label] {6} (n0);
+  \draw[arc] (n1) to[bend left=12] node[label] {5} (n3);
+  \draw[arc-added] (n3) to[bend left=12] node[label] {2} (n1);
+  \draw[arc-added] (n4) -- node[label] {2} (n2);
+  \draw[arc] (n3) -- node[label] {6} (n4);
+  \draw[arc] (n4) to[bend right=12] node[label] {6} (n5);
+  \draw[arc] (n5) to[bend right=12] node[label] {5} (n3);
+\end{tikzpicture}
+\end{document}

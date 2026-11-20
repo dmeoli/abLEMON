@@ -94,10 +94,8 @@ INPUT                  = "@abs_top_srcdir@/doc" \
                          "@abs_top_srcdir@/lemon/bits" \
                          "@abs_top_srcdir@/lemon/concepts" \
                          "@abs_top_srcdir@/demo" \
-                         "@abs_top_srcdir@/contrib" \
                          "@abs_top_srcdir@/tools" \
-                         "@abs_top_srcdir@/test/test_tools.h" \
-                         "@abs_top_builddir@/doc/mainpage.dox"
+                         "@abs_top_srcdir@/test/test_tools.h"
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.h \
                          *.cc \
@@ -215,9 +213,9 @@ MAN_LINKS              = NO
 #---------------------------------------------------------------------------
 # configuration options related to the XML output
 #---------------------------------------------------------------------------
-GENERATE_XML           = NO
+GENERATE_XML           = YES
 XML_OUTPUT             = xml
-XML_PROGRAMLISTING     = YES
+XML_PROGRAMLISTING     = NO
 #---------------------------------------------------------------------------
 # configuration options for the AutoGen Definitions output
 #---------------------------------------------------------------------------
@@ -244,7 +242,7 @@ SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration::additions related to external references
 #---------------------------------------------------------------------------
-TAGFILES               = "@abs_top_builddir@/doc/libstdc++.tag = @LEMON_DOC_LIBSTDC++_URL@"
+TAGFILES               = 
 GENERATE_TAGFILE       = html/lemon.tag
 ALLEXTERNALS           = NO
 EXTERNAL_GROUPS        = NO
@@ -280,3 +278,9 @@ HTML_COLORSTYLE        = LIGHT
 HTML_EXTRA_STYLESHEET  = "@abs_top_srcdir@/doc/theme/awesome/doxygen-awesome.css" \
                          "@abs_top_srcdir@/doc/theme/awesome/doxygen-awesome-sidebar-only.css" \
                          "@abs_top_srcdir@/doc/theme/custom.css"
+HTML_EXTRA_FILES       = "@abs_top_srcdir@/manual/build/fonts/lmroman10-regular.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmroman10-bold.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmroman10-italic.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmroman10-bolditalic.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmmono10-regular.otf" \
+                         "@abs_top_srcdir@/manual/build/fonts/lmmono10-italic.otf"

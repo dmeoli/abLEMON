@@ -96,15 +96,7 @@ inline const char * cstringify( const char * str )
 #endif
 
 #ifndef LEMON_FUNCTION_NAME
-#  if defined __GNUC__
-#    define LEMON_FUNCTION_NAME ( __PRETTY_FUNCTION__ )
-#  elif defined _MSC_VER
-#    define LEMON_FUNCTION_NAME ( __FUNCSIG__ )
-#  elif __STDC_VERSION__ >= 199901L
-#    define LEMON_FUNCTION_NAME ( __func__ )
-#  else
-#    define LEMON_FUNCTION_NAME ( "<unknown>" )
-#  endif
+#  define LEMON_FUNCTION_NAME ( __func__ )
 #endif
 
 #ifdef DOXYGEN

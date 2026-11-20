@@ -1,0 +1,45 @@
+% A union-find forest (sec. 8.2): each item points to its parent, the root
+% carries the size of its class; find(x) on the left follows the path
+% x -> y -> z -> r, and on the right, after the compression of the path,
+% x and y point to the root. Build: make figures (in ../build).
+\documentclass[border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{lamalunga}
+\input{tikz-ablemon}
+\begin{document}
+\begin{tikzpicture}[abl]
+  \begin{scope}
+    \node[vertex-added] (r) at (0,0) {r};
+    \node[vertex-touched] (z) at (-12mm,-14mm) {z};
+    \node[vertex] (w) at (12mm,-14mm) {w};
+    \node[vertex-touched] (y) at (-12mm,-28mm) {y};
+    \node[vertex] (u) at (0mm,-28mm) {u};
+    \node[vertex-touched] (x) at (-12mm,-42mm) {x};
+    \draw[arc-touched] (z) -- (r);
+    \draw[arc] (w) -- (r);
+    \draw[arc-touched] (y) -- (z);
+    \draw[arc] (u) -- (z);
+    \draw[arc-touched] (x) -- (y);
+    \node[label,right=1.5mm of r] {size 6};
+    \node[var] at (0,-52mm) {before find(x)};
+  \end{scope}
+  \begin{scope}[xshift=52mm]
+    \node[vertex-added] (r) at (0,0) {r};
+    \node[vertex] (z) at (-14mm,-14mm) {z};
+    \node[vertex] (w) at (14mm,-14mm) {w};
+    \node[vertex-touched] (y) at (-4mm,-24mm) {y};
+    \node[vertex] (u) at (-18mm,-28mm) {u};
+    \node[vertex-touched] (x) at (8mm,-30mm) {x};
+    \draw[arc] (z) -- (r);
+    \draw[arc] (w) -- (r);
+    \draw[arc-added] (y) -- (r);
+    \draw[arc] (u) -- (z);
+    \draw[arc-added] (x) -- (r);
+    \node[label,right=1.5mm of r] {size 6};
+    \node[var] at (0,-52mm) {after find(x)};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

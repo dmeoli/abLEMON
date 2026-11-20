@@ -132,9 +132,7 @@ class ChristofidesTsp
    sgr.addNode();
    }
   for( int i = 0 ; i != int( odd_nodes.size() ) ; ++i ) {
-   for( int j = 0 ; j != int( odd_nodes.size() ) ; ++j ) {
-    if( j == i )
-     continue;
+   for( int j = i + 1 ; j != int( odd_nodes.size() ) ; ++j ) {
     SmartGraph::Edge e =
       sgr.addEdge( sgr.nodeFromId( i ) , sgr.nodeFromId( j ) );
     scost[ e ] = -_cost[ _gr.edge( odd_nodes[ i ] , odd_nodes[ j ] ) ];

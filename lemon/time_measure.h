@@ -25,14 +25,8 @@
 
 #include <lemon/config.h>
 
-#ifdef LEMON_WIN32
-#include <lemon/bits/windows.h>
-#else
-#include <unistd.h>
-#include <sys/times.h>
-#include <sys/time.h>
-#endif
-
+#include <chrono>
+#include <ctime>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -52,6 +46,11 @@ namespace lemon
 /// - a system cpu time
 /// - a user cpu time of children
 /// - a system cpu time of children
+///
+/// The real time is that of \c std::chrono::steady_clock, and the user cpu
+/// time is the processor time of the process that \c std::clock() gives,
+/// which also counts the time spent in the system on its behalf; the other
+/// three are zero, as no standard facility gives them.
 ///
 /// TimeStamp's can be added to or substracted from each other and
 /// they can be pushed to a stream.
@@ -101,21 +100,10 @@ class TimeStamp
 
  ///Read the current time values of the process
  void stamp() {
-#ifndef LEMON_WIN32
-  timeval tv;
-  gettimeofday( &tv , 0 );
-  rtime = tv.tv_sec + double( tv.tv_usec ) / 1e6;
-
-  tms ts;
-  double tck = sysconf( _SC_CLK_TCK );
-  times( &ts );
-  utime = ts.tms_utime / tck;
-  stime = ts.tms_stime / tck;
-  cutime = ts.tms_cutime / tck;
-  cstime = ts.tms_cstime / tck;
-#else
-  bits::getWinProcTimes( rtime , utime , stime , cutime , cstime );
-#endif
+  rtime = std::chrono::duration< double >(
+	    std::chrono::steady_clock::now().time_since_epoch() ).count();
+  utime = double( std::clock() ) / CLOCKS_PER_SEC;
+  stime = cutime = cstime = 0;
   }
 
  /// Constructor initializing with zero
@@ -200,12 +188,12 @@ class TimeStamp
  double systemTime() const { return( stime ); }
  ///Gives back the user time of the process' children
 
- ///\note On <tt>WIN32</tt> platform this value is not calculated.
+ ///\note It is always zero, as no standard facility gives it.
  ///
  double cUserTime() const { return( cutime ); }
  ///Gives back the user time of the process' children
 
- ///\note On <tt>WIN32</tt> platform this value is not calculated.
+ ///\note It is always zero, as no standard facility gives it.
  ///
  double cSystemTime() const { return( cstime ); }
  ///Gives back the real time
@@ -221,7 +209,7 @@ inline TimeStamp operator*( double b , const TimeStamp & t )
 
 ///Prints the time counters in the following form:
 ///
-/// <tt>u: XX.XXs s: XX.XXs cu: XX.XXs cs: XX.XXs real: XX.XXs</tt>
+/// <tt>u: XX.XXs, s: XX.XXs, cu: XX.XXs, cs: XX.XXs, real: XX.XXs</tt>
 ///
 /// where the values are the
 /// \li \c u: user cpu time,
@@ -230,8 +218,8 @@ inline TimeStamp operator*( double b , const TimeStamp & t )
 /// \li \c cs: system cpu time of children,
 /// \li \c real: real time.
 /// \relates TimeStamp
-/// \note On <tt>WIN32</tt> platform the cummulative values are not
-/// calculated.
+/// \note The system time and the cumulative values are zero, as no
+/// standard facility gives them.
 inline std::ostream & operator<<( std::ostream & os , const TimeStamp & t )
 {
  switch( t._format ) {
@@ -425,12 +413,12 @@ class Timer
  double systemTime() const { return( operator TimeStamp().systemTime() ); }
  ///Gives back the ellapsed user time of the process' children
 
- ///\note On <tt>WIN32</tt> platform this value is not calculated.
+ ///\note It is always zero, as no standard facility gives it.
  ///
  double cUserTime() const { return( operator TimeStamp().cUserTime() ); }
  ///Gives back the ellapsed user time of the process' children
 
- ///\note On <tt>WIN32</tt> platform this value is not calculated.
+ ///\note It is always zero, as no standard facility gives it.
  ///
  double cSystemTime() const { return( operator TimeStamp().cSystemTime() ); }
  ///Gives back the ellapsed real time
@@ -543,9 +531,9 @@ class NoTimeReport
 ///and <tt>2*min_time</tt>.
 ///\param f the function object to be measured.
 ///\param min_time the minimum total running time.
-///\retval num if it is not \c NULL, then the actual
+///\param[out] num if it is not \c NULL, then the actual
 ///        number of execution of \c f will be written into <tt>*num</tt>.
-///\retval full_time if it is not \c NULL, then the actual
+///\param[out] full_time if it is not \c NULL, then the actual
 ///        total running time will be written into <tt>*full_time</tt>.
 ///\return The average running time of \c f.
 

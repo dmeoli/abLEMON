@@ -22,8 +22,6 @@
 #include <vector>
 
 #include <lemon/bin_heap.h>
-#include <lemon/concept_check.h>
-#include <lemon/concepts/heap.h>
 #include <lemon/core.h>
 #include <lemon/path.h>
 
@@ -56,13 +54,16 @@ struct AStarDefaultTraits
 /// a heuristic: the nodes are scanned in the order of their tentative
 /// distance from the source plus the heuristic value, an estimate of their
 /// distance to the target, and the search stops when the target is
-/// scanned. The heuristic must be admissible, i.e., never larger than the
-/// distance to the target (e.g., the straight-line distance on a road
-/// network), and the closer it is to that distance, the fewer nodes are
-/// scanned; with a heuristic that is everywhere zero, it is Dijkstra's
-/// algorithm stopped at the target. A heuristic that is also consistent,
-/// i.e., for which \f$h(u) \leq \ell(uv) + h(v)\f$ on every arc, scans each
-/// node at most once; with an admissible one that is not, a node whose
+/// scanned. The heuristic must be admissible, i.e.,
+/// \f$h(v) - h(t) \leq \delta(v,t)\f$ for each node \f$v\f$, where
+/// \f$\delta(v,t)\f$ is the distance from \f$v\f$ to the target \f$t\f$:
+/// with \f$h(t) = 0\f$, never larger than the distance to the target (e.g.,
+/// the straight-line distance on a road network). The closer it is to that
+/// distance, the fewer nodes are scanned; with a heuristic that is
+/// everywhere zero, it is Dijkstra's algorithm stopped at the target. A
+/// heuristic that is also consistent, i.e., for which
+/// \f$h(u) \leq \ell(uv) + h(v)\f$ on every arc, scans each node at most
+/// once; with an admissible one that is not, a node whose
 /// distance improves after its scan is scanned again.
 ///
 /// \tparam GR The digraph type the algorithm runs on.
@@ -133,15 +134,14 @@ class AStar
  /// \param graph The digraph the algorithm runs on.
  /// \param length The lengths of the arcs, which must be nonnegative.
  /// \param heuristic The heuristic values of the nodes, which must not
- /// exceed their distances to the target of each \ref run().
+ /// exceed their distances to the target of each \ref run() by more than
+ /// the value of that target.
  AStar( const Digraph & graph , const LengthMap & length ,
 	const HeuristicMap & heuristic )
      : _graph( graph ) , _length( length ) , _heuristic( heuristic ) ,
        _dist( graph ) , _pred( graph , INVALID ) , _seen( graph , false ) ,
        _cross( graph , Heap::PRE_HEAP ) , _heap( _cross ) , _target( 0 ) ,
-       _scanned( 0 ) {
-  checkConcept< concepts::Heap< Value , HeapCrossRef > , Heap >();
-  }
+       _scanned( 0 ) { }
 
  /// \brief Find a shortest path from \c s to \c t.
  ///

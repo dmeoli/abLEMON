@@ -27,8 +27,6 @@
 #include <lemon/list_graph.h>
 #include <lemon/bin_heap.h>
 #include <lemon/bits/path_dump.h>
-#include <lemon/concept_check.h>
-#include <lemon/concepts/heap.h>
 #include <lemon/core.h>
 #include <lemon/error.h>
 #include <lemon/maps.h>
@@ -104,7 +102,7 @@ struct DijkstraDefaultTraits
  ///\sa BinHeap
  ///\sa Dijkstra
  typedef BinHeap< typename LEN::Value , HeapCrossRef ,
-   std::less< Value > > Heap;
+		  std::less< Value > > Heap;
  ///Instantiates a \c Heap.
 
  ///This function instantiates a \ref Heap.
@@ -188,10 +186,10 @@ struct DijkstraDefaultTraits
 ///It is read once for each arc, so the map may involve in
 ///relatively time consuming process to compute the arc lengths if
 ///it is necessary. The default map type is \ref
-///concepts::Digraph::ArcMap "GR::ArcMap<int>".
+///concepts::Digraph::ArcMap "GR::ArcMap< int >".
 ///\tparam TR The traits class that defines various types used by the
 ///algorithm. By default, it is \ref DijkstraDefaultTraits
-///"DijkstraDefaultTraits<GR, LEN>".
+///"DijkstraDefaultTraits< GR , LEN >".
 ///In most cases, this parameter should not be set directly,
 ///consider to use the named template parameters instead.
 #ifdef DOXYGEN
@@ -379,7 +377,7 @@ class Dijkstra
      : public Dijkstra< Digraph , LengthMap , SetStandardProcessedMapTraits >
  {
   typedef Dijkstra< Digraph , LengthMap ,
-    SetStandardProcessedMapTraits > Create;
+		    SetStandardProcessedMapTraits > Create;
   };
 
  template< class H , class CR >
@@ -406,8 +404,8 @@ class Dijkstra
  ///or \ref init().
  ///\sa SetStandardHeap
  template< class H , class CR = typename Digraph::template NodeMap< int > >
- struct SetHeap : public Dijkstra< Digraph , LengthMap , SetHeapTraits< H ,
-   CR > >
+ struct SetHeap : public Dijkstra< Digraph , LengthMap ,
+				   SetHeapTraits< H , CR > >
  {
   typedef Dijkstra< Digraph , LengthMap , SetHeapTraits< H , CR > > Create;
   };
@@ -460,7 +458,7 @@ class Dijkstra
      : public Dijkstra< Digraph , LengthMap , SetOperationTraitsTraits< T > >
  {
   typedef Dijkstra< Digraph , LengthMap ,
-    SetOperationTraitsTraits< T > > Create;
+		    SetOperationTraitsTraits< T > > Create;
   };
 
  ///@}
@@ -478,9 +476,7 @@ class Dijkstra
      : G( &g ) , _length( &length ) , _pred( NULL ) , local_pred( false ) ,
        _dist( NULL ) , local_dist( false ) , _processed( NULL ) ,
        local_processed( false ) , _heap_cross_ref( NULL ) ,
-       local_heap_cross_ref( false ) , _heap( NULL ) , local_heap( false ) {
-  checkConcept< concepts::Heap< Value , HeapCrossRef > , Heap >();
-  }
+       local_heap_cross_ref( false ) , _heap( NULL ) , local_heap( false ) { }
 
  ///Destructor.
  ~Dijkstra() {
@@ -630,15 +626,17 @@ class Dijkstra
  ///Adds a new source node to the priority heap.
  ///The optional second parameter is the initial distance of the node.
  ///
- ///The function checks if the node has already been added to the heap and
- ///it is pushed to the heap only if either it was not in the heap
- ///or the shortest path found till then is shorter than \c dst.
+ ///The function checks if the node has already been added to the heap:
+ ///it is pushed to the heap if it has never been there, its distance is
+ ///decreased to \c dst if it is in the heap with a larger one, and a node
+ ///already processed is left as it is.
  void addSource( Node s , Value dst = OperationTraits::zero() ) {
-  if( _heap->state( s ) != Heap::IN_HEAP ) {
+  if( _heap->state( s ) == Heap::PRE_HEAP ) {
    _heap->push( s , dst );
    }
-  else if( _ops.less( ( *_heap )[ s ] , dst ) ) {
-   _heap->set( s , dst );
+  else if( _heap->state( s ) == Heap::IN_HEAP &&
+	   _ops.less( dst , ( *_heap )[ s ] ) ) {
+   _heap->decrease( s , dst );
    _pred->set( s , INVALID );
    }
   }
@@ -1291,7 +1289,7 @@ class DijkstraWizard : public TR
 /// // Compute shortest path from s to t
 /// bool reached = dijkstra( g , length ).path( p ).dist( d ).run( s , t );
 ///\endcode
-///\warning Don't forget to put the \ref DijkstraWizard::run(Node) "run()"
+///\warning Don't forget to put the \ref DijkstraWizard::run "run()"
 ///to the end of the parameter list.
 ///\sa DijkstraWizard
 ///\sa Dijkstra

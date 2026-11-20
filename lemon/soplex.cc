@@ -165,7 +165,7 @@ void SoplexLp::_setColName( int c , const std::string & name )
 int SoplexLp::_colByName( const std::string & name ) const
 {
  std::map< std::string ,
-   int >::const_iterator it = _col_names_ref.find( name );
+	   int >::const_iterator it = _col_names_ref.find( name );
  if( it != _col_names_ref.end() ) {
   return( it->second );
   }
@@ -191,7 +191,7 @@ void SoplexLp::_setRowName( int r , const std::string & name )
 int SoplexLp::_rowByName( const std::string & name ) const
 {
  std::map< std::string ,
-   int >::const_iterator it = _row_names_ref.find( name );
+	   int >::const_iterator it = _row_names_ref.find( name );
  if( it != _row_names_ref.end() ) {
   return( it->second );
   }
@@ -290,7 +290,7 @@ void SoplexLp::_setRowUpperBound( int i , Value ub )
 {
  LEMON_ASSERT( ub != -INF , "Invalid bound" );
  soplex->changeRangeReal( i , soplex->lhsReal( i ) ,
-		      ub != INF ? ub : soplex::infinity );
+			  ub != INF ? ub : soplex::infinity );
  }
 
 SoplexLp::Value SoplexLp::_getRowUpperBound( int i ) const

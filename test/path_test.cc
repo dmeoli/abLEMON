@@ -62,6 +62,19 @@ void checkCopy( typename GR::Arc a )
  P2 r2( p );
  }
 
+// Check that the assignment of a path to itself keeps its arcs
+template< typename GR , typename P >
+void checkSelfAssign( typename GR::Arc a )
+{
+ Path< GR > src;
+ src.addBack( a );
+ P p( src );
+ const P & q = p;
+ p = q;
+ check( p.length() == 1 && p.nth( 0 ) == a ,
+	"The assignment of a path to itself changed it." );
+ }
+
 // Tests for copy constructors and assignment operators of paths
 void checkPathCopy()
 {
@@ -81,6 +94,10 @@ void checkPathCopy()
  checkCopy< ListDigraph , Path3 , Path1 >( a );
  checkCopy< ListDigraph , Path3 , Path2 >( a );
  checkCopy< ListDigraph , Path3 , Path4 >( a );
+ checkSelfAssign< ListDigraph , Path1 >( a );
+ checkSelfAssign< ListDigraph , Path2 >( a );
+ checkSelfAssign< ListDigraph , Path3 >( a );
+ checkSelfAssign< ListDigraph , Path4 >( a );
  }
 
 // Class for testing path functions
