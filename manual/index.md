@@ -1,10 +1,14 @@
-# abLEMON — A User Manual {#front}
+# abLEMON — a better LEMON, and an able one {#front}
+
+A User Manual
 
 **Donato Meoli**
 *Dipartimento di Informatica, Università di Pisa*
 `donato.meoli@outlook.com`
 
-*For abLEMON 1.9.0 (November 2026).*
+*Version 1.9.0 (November 2026)*
+
+---
 
 ## Abstract {#abstract}
 
