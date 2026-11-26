@@ -1,5 +1,9 @@
 # abLEMON — A User Manual {#front}
 
+**Donato Meoli**
+*Dipartimento di Informatica, Università di Pisa*
+`donato.meoli@outlook.com`
+
 *For abLEMON 1.9.0 (November 2026).*
 
 ## Abstract {#abstract}
