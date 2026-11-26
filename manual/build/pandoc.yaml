@@ -66,7 +66,7 @@ include-in-header:
   - preamble.tex
 
 metadata:
-  title: "abLEMON — a better LEMON, and an able one"
+  title: "abLEMON: a better LEMON, and an able one"
   subtitle: "A User Manual"
   date: "Version 1.9.0 (November 2026)"
   author: "Donato Meoli"
