@@ -1,4 +1,4 @@
-# abLEMON<br>a better LEMON, and an able one {#front}
+# abLEMON: a better LEMON, and an able one {#front}
 
 A User Manual
 
