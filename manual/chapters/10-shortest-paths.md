@@ -585,7 +585,10 @@ shortest path algorithm for (10.7). At iteration $i$ it finds a shortest path
 from $s$ to $t$ in the residual digraph $G_x$ of the flow $x$ of $i-1$ paths,
 which has
 $$
-\text{an arc } uv \text{ of length } \ell(uv) \text{ for each } uv \text{ with } x_{uv}=0, \qquad \text{an arc } vu \text{ of length } -\ell(uv) \text{ for each } uv \text{ with } x_{uv}=1, \tag{10.8}
+\begin{aligned}
+&\text{an arc } uv \text{ of length } \ell(uv) \text{ for each } uv \text{ with } x_{uv}=0, \\
+&\text{an arc } vu \text{ of length } -\ell(uv) \text{ for each } uv \text{ with } x_{uv}=1,
+\end{aligned} \tag{10.8}
 $$
 and sends one unit of flow along it, i.e., it sets $x$ to 1 on its forward
 arcs and to 0 on the arcs whose reverse it uses (Algorithm 10.5).

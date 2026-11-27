@@ -70,7 +70,8 @@ written. When the code changes, the chapter changes in the same commit.
   implementation: an algorithm is given by its pseudocode, and the use of a
   class by its interface in the prose, with real C++ only as signatures of
   the API and short examples of use (a few lines that show how a class is
-  called), the same rule as the other manuals of the family. The programs of the manual live in
+  called), the same rule as the other manuals of the family. The programs
+  of the manual live in
   `manual/examples/NN-name.cc`, each a complete program in the style of
   code-style, built and run by ctest as `manual_NN_name` (the hyphens
   become underscores), which checks its own results and returns nonzero if
@@ -148,7 +149,8 @@ manual/
   build/
     Makefile  pandoc.yaml  preamble.tex  mkdocs.yml  check.py
     snippets.lua  admonition.lua  figure-ext.lua  crossref-link.lua
-    break-code.lua  katex-init.js
+    source-links.lua  break-code.lua  katex-init.js  hooks.py
+    extra.css  code-break.js  text-size.js  fonts/
 ```
 
 ---
@@ -170,6 +172,23 @@ The examples are built and run with the tests of the library
 references, and `make check` silent. `pandoc.yaml` and the `nav` of
 `mkdocs.yml` list the chapters in the order of `chapters.txt`: keep the
 three, and the table of contents of `index.md`, in sync.
+
+The site is set as the PDF by `build/extra.css`, `build/code-break.js` and
+`build/text-size.js` (two magnifiers in the header that scale the whole page),
+and the code within the prose of the PDF is broken by `build/break-code.lua`:
+the four files are the same bytes in the manuals of the family (the common
+copy and its rationale are kept with the style scripts of the family), and
+their numbers are never tuned here. They give Latin Modern at 16 px on every
+screen (the root of Material fixed at 125%), a grid of 72rem, i.e., a column
+of about 900 px and 110-116 characters, tables with the three rules of LaTeX,
+and code names broken only after / . _ , ( and `::` (a CamelCase boundary at a
+high penalty, and `\emergencystretch` in `preamble.tex` to stretch a line
+instead). A block, a table or a display that does not fit is fixed in the
+Markdown: a display is split over the lines of an `aligned`, a table whose
+code column overflows in the PDF gets a wider first column in the dashes of
+its separator row. Site acceptance: `site_measure.py` of the style scripts at
+1366, 1568, 1920 and 2560 px reports no block, table or display that scrolls,
+and `overlaps.py` reports 0 defects on every page.
 
 ---
 

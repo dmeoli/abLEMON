@@ -29,6 +29,8 @@
 % the right margin. (Inline code gets \allowbreak hints from break-code.lua;
 % xurl makes \url/\href break at any character.)
 \usepackage{xurl}
+% a line that cannot break a name stretches instead [see break-code.lua]
+\setlength{\emergencystretch}{3em}
 
 % --- Code blocks: wrap long lines, and frame them on a light background so
 % they stand out from the surrounding prose instead of washing into it. ---
