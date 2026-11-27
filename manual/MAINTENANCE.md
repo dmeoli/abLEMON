@@ -178,17 +178,17 @@ The site is set as the PDF by `build/extra.css`, `build/code-break.js` and
 and the code within the prose of the PDF is broken by `build/break-code.lua`:
 the four files are the same bytes in the manuals of the family (the common
 copy and its rationale are kept with the style scripts of the family), and
-their numbers are never tuned here. They give Latin Modern at 16 px on every
-screen (the root of Material fixed at 125%), a grid of 72rem, i.e., a column
-of about 900 px and 110-116 characters, tables with the three rules of LaTeX,
-and code names broken only after / . _ , ( and `::` (a CamelCase boundary at a
-high penalty, and `\emergencystretch` in `preamble.tex` to stretch a line
-instead). A block, a table or a display that does not fit is fixed in the
-Markdown: a display is split over the lines of an `aligned`, a table whose
-code column overflows in the PDF gets a wider first column in the dashes of
-its separator row. Site acceptance: `site_measure.py` of the style scripts at
-1366, 1568, 1920 and 2560 px reports no block, table or display that scrolls,
-and `overlaps.py` reports 0 defects on every page.
+their numbers are never tuned here. They give Latin Modern at 16 px, and at 18
+px from 1520 px up (the root of Material fixed at 125% and 140%), a grid of
+72rem, i.e., a column of about 900 px and 110-116 characters, tables with the
+three rules of LaTeX, and code names broken only after / . _ , ( and `::` (a
+CamelCase boundary at a high penalty, and `\emergencystretch` in
+`preamble.tex` to stretch a line instead). A block, a table or a display that
+does not fit is fixed in the Markdown: a display is split over the lines of an
+`aligned`, a table whose code column overflows in the PDF gets a wider first
+column in the dashes of its separator row. Site acceptance: `site_measure.py`
+of the style scripts at 1366, 1568, 1920 and 2560 px reports no block, table
+or display that scrolls, and `overlaps.py` reports 0 defects on every page.
 
 ---
 
